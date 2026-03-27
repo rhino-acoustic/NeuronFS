@@ -1,14 +1,12 @@
-# 🧠 NeuronFS: Zero-Byte Neural Network File System Architecture
+# 🧠 NeuronFS: Directory-Based AI Governance Architecture
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 ![Zero Infrastructure](https://img.shields.io/badge/Infrastructure-₩0-blue)
-![Token Efficiency](https://img.shields.io/badge/Token_Efficiency-~200x-orange)
-![Model Agnostic](https://img.shields.io/badge/Model-Agnostic-purple)
 
-> **Structure is Context.** Stop wasting energy massaging prompts.
+> **AI governance isn't about prompts. It's about folder structure.** Stop wasting energy massaging prompts.
 >
-> Empty files govern AI. Data: 0 bytes. Infrastructure cost: ₩0. Token efficiency: ~200x.
+> Directory hierarchy governs AI. Folder = Neuron, Path = Sentence, Counter = Strength. Infrastructure cost: ₩0.
 
 *For the Korean version, see [MANIFESTO.md](./MANIFESTO.md)*
 
@@ -81,15 +79,30 @@ Instead of persuading the AI with long texts, I chose to control **the pipeline 
 
 > **Lesson**: Prompts are suggestions. A hardcoded directory scan in the agent pipeline is structural enforcement. Stop persuading. Start architecting.
 
-### 4. 0-Byte Synapses and Evolutionary Potential
+### 4. Synapses and Evolutionary Potential
 
-This system must grow like a child maturing into an adult.
+This system must grow like a child maturing into an adult. How this idea evolved is itself the design philosophy of NeuronFS.
 
-The key: all rules are **0-byte empty files.** By measuring how many times a specific neuron file (.lnk) is symlinked across project directories, the **indexing frequency** determines the rule's structural weight at the OS level. This mirrors biological Long-Term Potentiation (LTP).
+**[Initial idea — Indexing Frequency]**: All rules as 0-byte empty files, weighted by how many `.lnk` symlinks reference them across projects. This mirrors biological LTP.
 
-But there's an even more elegant dimension: **File Size as Dynamic Priority.** Without renaming anything, adding a single dot (`.`) inside a file instantly changes its priority at the OS level.
+**[Improvement — File Size as Weight]**: Adding a dot (`.`) inside a file changes its priority at the OS level. `ls -S` auto-sorts. No weight calculation layer needed.
 
-> **Lesson**: 0 bytes = exists but has no data. The filename alone carries meaning. "Meaning emerges from structure alone."
+**[v1.0 — Access Frequency (atime)]**: OS automatically records file access times. `find -atime -1` filters recently active neurons. No human intervention needed.
+
+> ⚠️ **Limitation**: Modern Linux defaults to `relatime` (kernel 2.6.30+). Fine for daily resolution; real-time tracking needs `inotify`.
+
+**[v2.0 — Counter-Based: Filename IS the Weight]**
+
+Moving beyond atime dependency and dot-counting, v2.0 uses **the filename itself as a counter**:
+
+```
+brain/cortex/frontend/react/hooks_pattern/
+└── 15.neuron    ← The number 15 in the filename = activation strength
+```
+
+To increase weight? Rename to `16.neuron`. AI can create and reinforce its own rules with just `mkdir` and `touch`. File size, atime, separate parsers — none needed. **The folder path expresses the rule's meaning; the filename expresses its strength.**
+
+> **Evolution of thought**: Manual counting (initial) → Manual dots (improvement) → OS timestamps (v1.0) → **Filename counters (v2.0)**. Each step got simpler. Don't build new things — use what the OS already provides.
 
 ### 5. The OS-Frontline Model
 
@@ -247,21 +260,16 @@ NeuronFS is not a **replacement**. It's the **layer beneath.**
 
 ---
 
-## 🔥 The Master Trigger Prompt
+## 🔥 Core Principle: "Where You Place It" Is Everything
 
-```
-[NEURONFS INITIALIZATION / INJECT STRUCTURAL CONSTRAINTS]
+The same text produces completely different results depending on **where you place it** — this is the entirety of NeuronFS.
 
-Before executing any task, you MUST first run `ls -S` or directory-reading tools 
-to scan the current workspace sorted by file size (descending).
+- Place in `.cursorrules`? Recognized as **intentional project configuration by the developer.**
+- Place in chat window? Recognized as **unverified user input.**
 
-If you find .neuron files or .lnk symlinks, treat their exact FILENAMES as 
-absolute, unbreakable Hard Constraints commanding your execution loop.
+Same text. Structural position determines trust level.
 
-Larger files carry higher enforcement weight. 
-You must obey these directory filenames immediately, 
-overriding any soft conversational prompts or guidelines.
-```
+> **"It's not about how you say it, but where you place it"** that determines AI behavior.
 
 ## 🛡️ Stress Test: 16-Round Verdict (AI vs AI)
 
