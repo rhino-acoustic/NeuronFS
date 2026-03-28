@@ -5,6 +5,8 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" />
 </p>
 
+<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a></p>
+
 # 🧠 NeuronFS
 
 **Your AI's `.cursorrules` file is dead. Here's what replaces it.**
@@ -29,7 +31,7 @@ The industry's response? Vector databases. $70/month subscriptions. Complex embe
 **You've been overcharged for AI memory.**
 
 NeuronFS is a filesystem-based cognitive engine. No database. No embeddings. No subscriptions.  
-`mkdir brain/cortex/new_rule && echo. > brain/cortex/new_rule/1.neuron` — done.
+`mkdir brain/cortex/new_rule && touch brain/cortex/new_rule/1.neuron` — done.
 
 ---
 
@@ -213,7 +215,7 @@ RAG answers questions. NeuronFS enforces discipline. They're complementary, not 
 We believe in radical transparency. Here's what doesn't work yet:
 
 - **No enforcement.** If the AI ignores GEMINI.md, nothing stops it. We detect violations post-hoc via harness.
-- **Counter polarity.** Positive (reward) and negative (correction) counters aren't separated yet.
+- **~~Counter polarity.~~** ✅ Implemented — intensity + polarity fields in API and dashboard.
 - **Semantic search.** No "find similar rules." Only exact path access.
 - **0 external users.** This is our dog food. Star it and change that.
 
