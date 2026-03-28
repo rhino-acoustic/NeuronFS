@@ -1,352 +1,581 @@
-package main
+﻿package main
 
-// Dashboard HTML for NeuronFS v4.0 — Folder-as-Neuron Cognitive Engine
+// Dashboard HTML for NeuronFS v5.0 — 3D Brain Topology + Card UI
 
 const dashboardHTML = `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuronFS v4 — 인지 엔진</title>
+<title>NeuronFS v5 — 인지 엔진</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-  /* ── Reset & Base ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
   body {
-    font-family: 'SUIT', -apple-system, sans-serif;
-    background: #0f0f0f; color: #e0e0e0;
-    min-height: 100vh; padding: 24px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #09090b; color: #e0e0e0;
+    min-height: 100vh; overflow: hidden;
   }
-  a { color: #3B82F6; text-decoration: none; }
+
+  /* ── Layout ── */
+  .app { display: flex; height: 100vh; }
+  #canvas3d { flex: 1; position: relative; }
+  .sidebar {
+    width: 420px; min-width: 380px; background: rgba(15,15,20,0.95);
+    border-left: 1px solid #1a1a2e; overflow-y: auto;
+    backdrop-filter: blur(20px); z-index: 10;
+  }
 
   /* ── Header ── */
   .header {
-    display: flex; align-items: center; gap: 16px;
-    margin-bottom: 32px; padding-bottom: 16px;
-    border-bottom: 1px solid #2a2a2a;
+    padding: 20px 24px; border-bottom: 1px solid #1a1a2e;
+    display: flex; align-items: center; gap: 12px;
   }
-  .header h1 { font-size: 20px; font-weight: 700; color: #fff; }
-  .header .axiom {
-    font-size: 11px; color: #888; letter-spacing: 0.05em;
-    background: #1a1a1a; padding: 4px 12px; border-radius: 50px;
+  .header h1 { font-size: 16px; font-weight: 900; color: #fff; letter-spacing: -0.02em; }
+  .badge {
+    font-size: 10px; padding: 3px 10px; border-radius: 50px;
+    font-weight: 700; letter-spacing: 0.05em;
   }
-  .status {
-    margin-left: auto; padding: 6px 16px; border-radius: 50px;
-    font-size: 12px; font-weight: 700;
-  }
-  .status.ok { background: #064e3b; color: #34d399; }
-  .status.bomb { background: #7f1d1d; color: #fca5a5; animation: pulse 1s infinite; }
-
-  /* ── Grid ── */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 16px;
+  .badge-ok { background: #064e3b; color: #34d399; }
+  .badge-score {
+    background: linear-gradient(135deg, #1e40af, #7c3aed);
+    color: #fff; margin-left: auto; font-size: 12px; padding: 4px 14px;
   }
 
-  /* ── Region Card ── */
-  .region {
-    background: #1a1a1a; border-radius: 12px;
-    border: 1px solid #2a2a2a; overflow: hidden;
-    transition: border-color 0.2s;
+  /* ── Stats Bar ── */
+  .stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    padding: 16px 24px; gap: 12px; border-bottom: 1px solid #1a1a2e;
   }
-  .region:hover { border-color: #3a3a3a; }
-  .region-header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 16px; cursor: pointer; user-select: none;
+  .stat { text-align: center; }
+  .stat-value {
+    font-size: 28px; font-weight: 900;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
-  .region-icon { font-size: 20px; }
-  .region-name { font-weight: 700; font-size: 14px; color: #fff; text-transform: uppercase; letter-spacing: 0.1em; }
-  .region-ko { font-size: 11px; color: #888; }
-  .region-stats {
-    margin-left: auto; display: flex; gap: 12px;
-    font-size: 11px; color: #666;
-  }
-  .region-stats span { background: #222; padding: 2px 8px; border-radius: 4px; }
+  .stat-label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; }
 
-  /* ── Neurons List ── */
-  .neurons {
-    max-height: 0; overflow: hidden;
-    transition: max-height 0.3s ease;
-    border-top: 1px solid #222;
+  /* ── Detail Panel (appears on sphere click) ── */
+  .detail-panel {
+    padding: 20px 24px; border-bottom: 1px solid #1a1a2e;
+    display: none; animation: slideIn 0.2s ease;
   }
-  .region.open .neurons { max-height: 2000px; }
-  .neuron {
+  .detail-panel.active { display: block; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; } }
+  .detail-panel h2 {
+    font-size: 14px; font-weight: 700; color: #fff;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .detail-panel .close-btn {
+    margin-left: auto; cursor: pointer; color: #666;
+    font-size: 16px; background: none; border: none;
+  }
+  .detail-panel .close-btn:hover { color: #fff; }
+
+  /* ── Connections (axons) ── */
+  .connections { margin: 8px 0 12px; }
+  .conn-line {
     display: flex; align-items: center; gap: 8px;
-    padding: 8px 16px; border-bottom: 1px solid #1f1f1f;
-    font-size: 12px; transition: background 0.15s;
+    font-size: 11px; color: #888; padding: 4px 0;
   }
-  .neuron:hover { background: #222; }
-  .neuron:last-child { border-bottom: none; }
+  .conn-arrow { color: #3b82f6; font-weight: 700; }
+  .conn-target { color: #e0e0e0; cursor: pointer; }
+  .conn-target:hover { color: #3b82f6; text-decoration: underline; }
 
-  /* ── Path as Sentence ── */
-  .neuron-path {
-    flex: 1; font-family: monospace; font-size: 11px; color: #ccc;
-    word-break: break-all;
+  /* ── Neuron list in detail ── */
+  .neuron-list { max-height: 300px; overflow-y: auto; }
+  .neuron-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; border-bottom: 1px solid #111; font-size: 11px;
   }
-  .neuron-path .segment { color: #888; }
-  .neuron-path .leaf { color: #fff; font-weight: 600; }
+  .neuron-item:last-child { border: none; }
+  .n-name { flex: 1; color: #ccc; font-family: monospace; word-break: break-all; }
+  .n-bar { width: 50px; height: 4px; background: #222; border-radius: 2px; overflow: hidden; }
+  .n-fill { height: 100%; border-radius: 2px; }
+  .n-counter { font-family: monospace; font-size: 10px; color: #666; width: 28px; text-align: right; }
+  .n-signals { font-size: 10px; width: 32px; text-align: center; }
 
-  /* ── Activation Bar ── */
-  .activation {
-    width: 60px; height: 6px; background: #333; border-radius: 3px;
-    overflow: hidden; flex-shrink: 0;
+  /* ── Region list ── */
+  .region-list { padding: 8px 24px; }
+  .region-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; margin: 4px; border-radius: 50px;
+    font-size: 11px; font-weight: 600; cursor: pointer;
+    border: 1px solid #222; background: #111; transition: all 0.15s;
   }
-  .activation-fill {
-    height: 100%; border-radius: 3px;
-    transition: width 0.3s;
-  }
-  .act-low { background: #475569; }
-  .act-med { background: #3b82f6; }
-  .act-high { background: #22c55e; }
-  .act-max { background: #f59e0b; }
-
-  .neuron-counter {
-    font-size: 10px; color: #666; width: 40px; text-align: right;
-    font-family: monospace;
-  }
-  .neuron-signals { font-size: 12px; width: 40px; text-align: center; }
-
-  /* ── Add Neuron Form ── */
-  .add-form {
-    display: flex; gap: 8px; padding: 12px 16px;
-    background: #151515; border-top: 1px solid #222;
-  }
-  .add-form input {
-    flex: 1; background: #222; border: 1px solid #333;
-    border-radius: 6px; padding: 6px 10px; color: #fff;
-    font-size: 11px; font-family: monospace;
-  }
-  .add-form input::placeholder { color: #555; }
-  .add-form button {
-    background: #1d4ed8; color: #fff; border: none;
-    border-radius: 6px; padding: 6px 14px; font-size: 11px;
-    cursor: pointer; font-weight: 600;
-  }
-  .add-form button:hover { background: #2563eb; }
-
-  /* ── Growth Protocol Card ── */
-  .protocol {
-    grid-column: 1 / -1;
-    background: #0d1117; border: 1px solid #1f3a5f;
-    border-radius: 12px; padding: 24px;
-  }
-  .protocol h3 { color: #58a6ff; font-size: 14px; margin-bottom: 12px; }
-  .protocol pre {
-    background: #161b22; padding: 16px; border-radius: 8px;
-    font-size: 11px; color: #8b949e; line-height: 1.6;
-    overflow-x: auto; white-space: pre-wrap;
-  }
-  .protocol .highlight { color: #79c0ff; }
-
-  /* ── Tree Visualization ── */
-  .tree-section {
-    grid-column: 1 / -1;
-    background: #1a1a1a; border: 1px solid #2a2a2a;
-    border-radius: 12px; padding: 24px;
-  }
-  .tree-section h3 { color: #fff; font-size: 14px; margin-bottom: 16px; }
-  .tree {
-    font-family: monospace; font-size: 11px; color: #888;
-    line-height: 1.8; max-height: 500px; overflow-y: auto;
-  }
-  .tree .folder { color: #f59e0b; }
-  .tree .counter { color: #22c55e; }
-  .tree .signal { color: #ef4444; }
-
-  /* ── Inject Button ── */
-  .inject-bar {
-    grid-column: 1 / -1;
-    display: flex; gap: 12px; align-items: center;
-  }
-  .btn-inject {
-    background: #059669; color: #fff; border: none;
-    border-radius: 50px; padding: 10px 28px; font-size: 13px;
-    cursor: pointer; font-weight: 700; letter-spacing: 0.05em;
-  }
-  .btn-inject:hover { background: #047857; }
-  .btn-bomb {
-    background: #dc2626; color: #fff; border: none;
-    border-radius: 50px; padding: 10px 28px; font-size: 13px;
-    cursor: pointer; font-weight: 700;
-  }
-  .inject-result {
-    font-size: 12px; color: #888; flex: 1;
+  .region-chip:hover { border-color: #3b82f6; background: #0f172a; }
+  .region-chip.active { border-color: #3b82f6; background: #1e3a5f; color: #fff; }
+  .region-chip .chip-count {
+    background: #222; padding: 1px 6px; border-radius: 10px;
+    font-size: 9px; color: #888;
   }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+  /* ── Controls ── */
+  .controls {
+    padding: 16px 24px; border-top: 1px solid #1a1a2e;
+    display: flex; gap: 8px; position: sticky; bottom: 0;
+    background: rgba(15,15,20,0.95); backdrop-filter: blur(20px);
   }
+  .btn {
+    flex: 1; border: none; border-radius: 8px; padding: 10px;
+    font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-primary { background: #1d4ed8; color: #fff; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-danger { background: #7f1d1d; color: #fca5a5; }
+  .btn-danger:hover { background: #991b1b; }
+  .btn-ghost { background: #1a1a2e; color: #888; }
+  .btn-ghost:hover { background: #222; color: #fff; }
+
+  /* ── 3D overlay info ── */
+  .hover-tooltip {
+    position: absolute; pointer-events: none;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+    border: 1px solid #333; border-radius: 8px;
+    padding: 8px 14px; font-size: 11px; color: #fff;
+    display: none; z-index: 100; max-width: 280px;
+  }
+  .hover-tooltip .tt-region { color: #3b82f6; font-weight: 700; }
+  .hover-tooltip .tt-stats { color: #888; font-size: 10px; }
 </style>
 </head>
 <body>
+<div class="app">
+  <!-- 3D Canvas -->
+  <div id="canvas3d">
+    <div class="hover-tooltip" id="tooltip"></div>
+  </div>
 
-<div class="header">
-  <h1>🧠 NeuronFS v4.0</h1>
-  <span class="axiom">폴더=뉴런 | 파일=발화흔적 | 경로=문장</span>
-  <div id="status" class="status ok">NOMINAL</div>
-</div>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="header">
+      <h1>🧠 NeuronFS v5</h1>
+      <span class="badge badge-ok" id="status">NOMINAL</span>
+      <span class="badge badge-score" id="score">0</span>
+    </div>
 
-<div class="grid" id="grid">
-  <div style="color:#666; padding:40px; text-align:center;">로딩 중...</div>
+    <div class="stats">
+      <div class="stat"><div class="stat-value" id="s-neurons">0</div><div class="stat-label">뉴런</div></div>
+      <div class="stat"><div class="stat-value" id="s-activation">0</div><div class="stat-label">활성도</div></div>
+      <div class="stat"><div class="stat-value" id="s-regions">0</div><div class="stat-label">영역</div></div>
+    </div>
+
+    <div class="detail-panel" id="detail">
+      <h2>
+        <span id="detail-icon"></span>
+        <span id="detail-name"></span>
+        <button class="close-btn" onclick="closeDetail()">✕</button>
+      </h2>
+      <div class="connections" id="detail-axons"></div>
+      <div class="neuron-list" id="detail-neurons"></div>
+    </div>
+
+    <div class="region-list" id="regionChips"></div>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="doInject()">⚡ INJECT</button>
+      <button class="btn btn-ghost" onclick="doDedup()">🔀 DEDUP</button>
+      <button class="btn btn-ghost" onclick="doDecay()">🍂 DECAY</button>
+      <button class="btn btn-danger" onclick="doBomb()">💀 BOMB</button>
+    </div>
+  </div>
 </div>
 
 <script>
 // ── State ──
 let brainData = null;
+let regionSpheres = {};
+let selectedRegion = null;
+let scene, camera, renderer, raycaster, mouse;
+let particleSystem;
+let axonLines = [];
 
-// ── Load ──
-async function loadBrain() {
-  const res = await fetch('/api/brain');
-  brainData = await res.json();
-  render();
+// ── Colors per region ──
+const regionColors = {
+  brainstem: 0xff4444,
+  limbic: 0xff8844,
+  hippocampus: 0xffcc44,
+  sensors: 0x44ff88,
+  cortex: 0x4488ff,
+  ego: 0xaa44ff,
+  prefrontal: 0xff44aa
+};
+const regionEmoji = {
+  brainstem: '🫀', limbic: '💓', hippocampus: '📝',
+  sensors: '👁️', cortex: '🧠', ego: '🎭', prefrontal: '🎯'
+};
+
+// ── Three.js Setup ──
+function initThree() {
+  const container = document.getElementById('canvas3d');
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x09090b, 0.0015);
+
+  camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 2000);
+  camera.position.set(0, 50, 250);
+  camera.lookAt(0, 0, 0);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0x222244, 0.5);
+  scene.add(ambient);
+  const point = new THREE.PointLight(0x4488ff, 1.5, 500);
+  point.position.set(0, 100, 100);
+  scene.add(point);
+  const point2 = new THREE.PointLight(0xaa44ff, 0.8, 400);
+  point2.position.set(-100, -50, -100);
+  scene.add(point2);
+
+  // Background particles
+  const pGeo = new THREE.BufferGeometry();
+  const pCount = 2000;
+  const positions = new Float32Array(pCount * 3);
+  for (let i = 0; i < pCount * 3; i++) positions[i] = (Math.random() - 0.5) * 800;
+  pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const pMat = new THREE.PointsMaterial({ color: 0x334466, size: 1, transparent: true, opacity: 0.4 });
+  particleSystem = new THREE.Points(pGeo, pMat);
+  scene.add(particleSystem);
+
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+
+  // Events
+  renderer.domElement.addEventListener('mousemove', onMouseMove);
+  renderer.domElement.addEventListener('click', onSphereClick);
+  window.addEventListener('resize', () => {
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+  });
 }
 
-// ── Render ──
-function render() {
-  if (!brainData) return;
-  const d = brainData;
-  const grid = document.getElementById('grid');
-  const status = document.getElementById('status');
+// ── Create Brain Spheres ──
+function createBrain(data) {
+  // Clear old
+  Object.values(regionSpheres).forEach(s => scene.remove(s.mesh));
+  axonLines.forEach(l => scene.remove(l));
+  regionSpheres = {}; axonLines = [];
 
-  // Status
-  if (d.bombSource) {
-    status.className = 'status bomb';
-    status.textContent = 'BOMB: ' + d.bombSource;
-  } else {
-    status.className = 'status ok';
-    status.textContent = 'NOMINAL — ' + d.firedNeurons + '/' + d.totalNeurons + ' neurons';
-  }
+  const regions = data.regions || [];
+  const angleStep = (Math.PI * 2) / Math.max(regions.length, 1);
+  const radius = 100;
 
-  let html = '';
+  regions.forEach((region, i) => {
+    const angle = angleStep * i - Math.PI / 2;
+    const x = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius;
+    const y = (Math.random() - 0.5) * 40;
 
-  // ── Inject Bar ──
-  html += '<div class="inject-bar">';
-  html += '<button class="btn-inject" onclick="doInject()">⚡ INJECT → GEMINI.md</button>';
-  html += '<button class="btn-bomb" onclick="doBomb()">💀 BOMB</button>';
-  html += '<span class="inject-result" id="inject-result">총 활성도: ' + d.totalCounter + '</span>';
-  html += '</div>';
-
-  // ── Region Cards ──
-  for (const region of d.regions) {
-    const icon = region.icon || '📁';
-    const ko = region.ko || '';
-    const nc = region.neurons ? region.neurons.length : 0;
+    const neuronCount = region.neurons ? region.neurons.length : 0;
     const totalAct = region.neurons ? region.neurons.reduce((s,n) => s + n.counter, 0) : 0;
-    const hasBomb = region.hasBomb;
+    const sphereSize = 8 + Math.sqrt(neuronCount) * 3;
 
-    html += '<div class="region open" onclick="this.classList.toggle(\'open\')">';
-    html += '<div class="region-header">';
-    html += '<span class="region-icon">' + icon + '</span>';
-    html += '<span class="region-name">' + region.name + '</span>';
-    html += '<span class="region-ko">' + ko + '</span>';
-    html += '<div class="region-stats">';
-    html += '<span>뉴런 ' + nc + '</span>';
-    html += '<span>활성도 ' + totalAct + '</span>';
-    if (hasBomb) html += '<span style="color:#ef4444">💀 BOMB</span>';
-    if (region.axons && region.axons.length > 0) html += '<span>.axon ' + region.axons.length + '</span>';
-    html += '</div></div>';
+    const color = regionColors[region.name] || 0x888888;
 
-    html += '<div class="neurons">';
+    // Glowing sphere
+    const geo = new THREE.SphereGeometry(sphereSize, 32, 32);
+    const mat = new THREE.MeshPhongMaterial({
+      color: color, emissive: color, emissiveIntensity: 0.3,
+      transparent: true, opacity: 0.85, shininess: 80
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, y, z);
+    scene.add(mesh);
+
+    // Glow ring
+    const ringGeo = new THREE.RingGeometry(sphereSize + 2, sphereSize + 4, 32);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: color, transparent: true, opacity: 0.15, side: THREE.DoubleSide
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.position.copy(mesh.position);
+    ring.lookAt(camera.position);
+    scene.add(ring);
+
+    // Sub-neuron dots (orbit around sphere)
+    const subDots = [];
     if (region.neurons) {
-      // Sort by counter desc
-      const sorted = [...region.neurons].sort((a,b) => b.counter - a.counter);
-      for (const n of sorted) {
-        const segments = n.path.split(/[\/\\]/);
-        const leaf = segments.pop();
-        const prefix = segments.length > 0 ? '<span class="segment">' + segments.join(' > ') + ' > </span>' : '';
-
-        let actPct = Math.min(100, n.counter);
-        let actClass = 'act-low';
-        if (n.counter >= 90) actClass = 'act-max';
-        else if (n.counter >= 50) actClass = 'act-high';
-        else if (n.counter >= 10) actClass = 'act-med';
-
-        let signals = '';
-        if (n.dopamine > 0) signals += '🟢';
-        if (n.hasBomb) signals += '💀';
-        if (n.hasMemory) signals += '📝';
-        if (n.isDormant) signals += '💤';
-
-        html += '<div class="neuron">';
-        html += '<div class="neuron-path">' + prefix + '<span class="leaf">' + leaf.replace(/_/g, ' ') + '</span></div>';
-        html += '<div class="activation"><div class="activation-fill ' + actClass + '" style="width:' + actPct + '%"></div></div>';
-        html += '<div class="neuron-counter">' + n.counter + '</div>';
-        html += '<div class="neuron-signals">' + signals + '</div>';
-        html += '</div>';
-      }
+      const topN = [...region.neurons].sort((a,b) => b.counter - a.counter).slice(0, 12);
+      topN.forEach((n, j) => {
+        const subAngle = (Math.PI * 2 / topN.length) * j;
+        const subR = sphereSize + 8 + Math.random() * 6;
+        const dotGeo = new THREE.SphereGeometry(1 + Math.min(n.counter / 5, 3), 8, 8);
+        const dotMat = new THREE.MeshBasicMaterial({
+          color: n.dopamine > 0 ? 0x22ff66 : n.hasBomb ? 0xff2222 : color,
+          transparent: true, opacity: 0.7
+        });
+        const dot = new THREE.Mesh(dotGeo, dotMat);
+        dot.position.set(
+          x + Math.cos(subAngle) * subR,
+          y + Math.sin(subAngle) * subR * 0.6,
+          z + Math.sin(subAngle * 1.5) * subR * 0.4
+        );
+        scene.add(dot);
+        subDots.push(dot);
+      });
     }
 
-    // Add neuron form
-    html += '<div class="add-form" onclick="event.stopPropagation()">';
-    html += '<input type="text" placeholder="새 뉴런 경로 (예: react/server_components)" id="add-' + region.name + '">';
-    html += '<button onclick="addNeuron(\'' + region.name + '\')">+ 뉴런</button>';
-    html += '</div>';
+    regionSpheres[region.name] = {
+      mesh, ring, subDots, region,
+      basePos: { x, y, z }, sphereSize,
+      neuronCount, totalAct
+    };
+  });
 
-    html += '</div></div>';
+  // Axon connections (lines between regions)
+  regions.forEach(region => {
+    if (!region.axons) return;
+    const src = regionSpheres[region.name];
+    if (!src) return;
+    region.axons.forEach(target => {
+      const dst = regionSpheres[target];
+      if (!dst) return;
+      const curve = new THREE.QuadraticBezierCurve3(
+        src.mesh.position,
+        new THREE.Vector3(
+          (src.mesh.position.x + dst.mesh.position.x) / 2,
+          (src.mesh.position.y + dst.mesh.position.y) / 2 + 30,
+          (src.mesh.position.z + dst.mesh.position.z) / 2
+        ),
+        dst.mesh.position
+      );
+      const points = curve.getPoints(30);
+      const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+      const lineMat = new THREE.LineBasicMaterial({
+        color: regionColors[region.name] || 0x444444,
+        transparent: true, opacity: 0.15
+      });
+      const line = new THREE.Line(lineGeo, lineMat);
+      scene.add(line);
+      axonLines.push(line);
+    });
+  });
+}
+
+// ── Mouse interaction ──
+function onMouseMove(e) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const meshes = Object.values(regionSpheres).map(s => s.mesh);
+  const hits = raycaster.intersectObjects(meshes);
+
+  const tooltip = document.getElementById('tooltip');
+  if (hits.length > 0) {
+    const entry = Object.values(regionSpheres).find(s => s.mesh === hits[0].object);
+    if (entry) {
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX - document.getElementById('canvas3d').getBoundingClientRect().left + 15) + 'px';
+      tooltip.style.top = (e.clientY - document.getElementById('canvas3d').getBoundingClientRect().top - 10) + 'px';
+      tooltip.innerHTML = '<span class="tt-region">' + (regionEmoji[entry.region.name]||'') + ' ' + entry.region.name + '</span><br>' +
+        '<span class="tt-stats">뉴런 ' + entry.neuronCount + ' | 활성도 ' + entry.totalAct + '</span>';
+      renderer.domElement.style.cursor = 'pointer';
+    }
+  } else {
+    tooltip.style.display = 'none';
+    renderer.domElement.style.cursor = 'default';
+  }
+}
+
+function onSphereClick(e) {
+  raycaster.setFromCamera(mouse, camera);
+  const meshes = Object.values(regionSpheres).map(s => s.mesh);
+  const hits = raycaster.intersectObjects(meshes);
+  if (hits.length > 0) {
+    const entry = Object.values(regionSpheres).find(s => s.mesh === hits[0].object);
+    if (entry) selectRegion(entry.region.name);
+  }
+}
+
+// ── Select Region (show detail) ──
+function selectRegion(name) {
+  selectedRegion = name;
+  const entry = regionSpheres[name];
+  if (!entry) return;
+  const region = entry.region;
+
+  // Highlight sphere
+  Object.values(regionSpheres).forEach(s => {
+    s.mesh.material.emissiveIntensity = s.mesh === entry.mesh ? 0.8 : 0.15;
+    s.mesh.material.opacity = s.mesh === entry.mesh ? 1 : 0.4;
+    s.ring.material.opacity = s.mesh === entry.mesh ? 0.3 : 0.05;
+  });
+  // Highlight axon lines
+  axonLines.forEach(l => { l.material.opacity = 0.05; });
+  if (region.axons) {
+    axonLines.forEach(l => { /* highlight relevant */ l.material.opacity = 0.3; });
   }
 
-  // ── Growth Protocol ──
-  html += '<div class="protocol">';
-  html += '<h3>🌱 자동 성장 프로토콜 — GEMINI.md에 주입되는 메타 지침</h3>';
-  html += '<pre>';
-  html += '폴더 계층이 <span class="highlight">무한히 확장</span>됩니다:\n\n';
-  html += '  cortex/frontend/react/hooks_pattern/          ← 8단계에서 멈출 필요 없음\n';
-  html += '  cortex/frontend/react/hooks_pattern/useCallback/  ← 더 깊어질 수 있음\n';
-  html += '  cortex/frontend/react/hooks_pattern/useCallback/memoize_deps/\n\n';
-  html += '성장 트리거:\n';
-  html += '  1. 사용자가 교정 → AI가 cortex/ 에 새 폴더 생성 + 1.neuron\n';
-  html += '  2. 같은 규칙 재사용 → 카운터 파일명 증가 (1.neuron → 2.neuron)\n';
-  html += '  3. 사용자 칭찬 → dopamine1.neuron 생성 (보상 신호)\n';
-  html += '  4. 3회 반복 실수 → bomb.neuron 생성 (서킷 브레이커)\n';
-  html += '  5. 오래 미사용 → .dormant 처리 (가지치기)\n\n';
-  html += '카운터 = 파일명 숫자:\n';
-  html += '  1.neuron   → 1회 발화 (신생 뉴런)\n';
-  html += '  42.neuron  → 42회 발화 (학습된 경로)\n';
-  html += '  99.neuron  → 99회 발화 (수초화 완료 = 반사적 실행)\n';
-  html += '</pre>';
-  html += '</div>';
+  // Detail panel
+  const panel = document.getElementById('detail');
+  panel.classList.add('active');
+  document.getElementById('detail-icon').textContent = regionEmoji[name] || '📁';
+  document.getElementById('detail-name').textContent = name.toUpperCase() + ' — ' + (region.ko || '');
 
-  grid.innerHTML = html;
+  // Axons
+  let axonHtml = '';
+  if (region.axons && region.axons.length > 0) {
+    axonHtml += '<div style="font-size:10px;color:#666;margin-bottom:4px;">축삭 연결:</div>';
+    region.axons.forEach(a => {
+      axonHtml += '<div class="conn-line"><span class="conn-arrow">→</span><span class="conn-target" onclick="selectRegion(\'' + a + '\')">' +
+        (regionEmoji[a]||'') + ' ' + a + '</span></div>';
+    });
+  }
+  document.getElementById('detail-axons').innerHTML = axonHtml;
+
+  // Neurons
+  let nHtml = '';
+  if (region.neurons) {
+    const sorted = [...region.neurons].sort((a,b) => b.counter - a.counter);
+    sorted.forEach(n => {
+      const pct = Math.min(100, n.counter * 5);
+      let barColor = '#475569';
+      if (n.counter >= 10) barColor = '#f59e0b';
+      else if (n.counter >= 5) barColor = '#22c55e';
+      else if (n.counter >= 2) barColor = '#3b82f6';
+
+      let signals = '';
+      if (n.dopamine > 0) signals += '🟢';
+      if (n.hasBomb) signals += '💀';
+      if (n.isDormant) signals += '💤';
+
+      const path = n.path.replace(/\//g, ' > ');
+      nHtml += '<div class="neuron-item">' +
+        '<div class="n-name">' + path + '</div>' +
+        '<div class="n-bar"><div class="n-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>' +
+        '<div class="n-counter">' + n.counter + '</div>' +
+        '<div class="n-signals">' + signals + '</div>' +
+        '</div>';
+    });
+  }
+  document.getElementById('detail-neurons').innerHTML = nHtml;
+
+  // Region chips
+  document.querySelectorAll('.region-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.region === name);
+  });
 }
 
-// ── API Calls ──
+function closeDetail() {
+  document.getElementById('detail').classList.remove('active');
+  selectedRegion = null;
+  Object.values(regionSpheres).forEach(s => {
+    s.mesh.material.emissiveIntensity = 0.3;
+    s.mesh.material.opacity = 0.85;
+    s.ring.material.opacity = 0.15;
+  });
+  axonLines.forEach(l => { l.material.opacity = 0.15; });
+  document.querySelectorAll('.region-chip').forEach(c => c.classList.remove('active'));
+}
+
+// ── Render loop ──
+let frame = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  frame++;
+
+  // Slow camera orbit
+  const t = frame * 0.001;
+  camera.position.x = Math.cos(t) * 250;
+  camera.position.z = Math.sin(t) * 250;
+  camera.position.y = 50 + Math.sin(t * 0.5) * 20;
+  camera.lookAt(0, 0, 0);
+
+  // Breathing spheres
+  Object.values(regionSpheres).forEach(s => {
+    const breath = 1 + Math.sin(frame * 0.02 + s.basePos.x) * 0.03;
+    s.mesh.scale.set(breath, breath, breath);
+    s.ring.lookAt(camera.position);
+    // Orbit sub-dots
+    s.subDots.forEach((dot, i) => {
+      const a = frame * 0.005 + i * 0.5;
+      const r = s.sphereSize + 10 + i * 2;
+      dot.position.x = s.basePos.x + Math.cos(a) * r;
+      dot.position.y = s.basePos.y + Math.sin(a * 0.7) * r * 0.5;
+      dot.position.z = s.basePos.z + Math.sin(a * 1.3) * r * 0.3;
+    });
+  });
+
+  // Rotate particles
+  particleSystem.rotation.y += 0.0001;
+
+  renderer.render(scene, camera);
+}
+
+// ── UI Updates ──
+function updateUI(data) {
+  document.getElementById('s-neurons').textContent = data.totalNeurons;
+  document.getElementById('s-activation').textContent = data.totalCounter;
+  document.getElementById('s-regions').textContent = (data.regions || []).length;
+  document.getElementById('score').textContent = '⚡ ' + data.totalCounter;
+
+  if (data.bombSource) {
+    document.getElementById('status').className = 'badge';
+    document.getElementById('status').style.background = '#7f1d1d';
+    document.getElementById('status').style.color = '#fca5a5';
+    document.getElementById('status').textContent = '💀 BOMB: ' + data.bombSource;
+  } else {
+    document.getElementById('status').className = 'badge badge-ok';
+    document.getElementById('status').textContent = 'NOMINAL';
+  }
+
+  // Region chips
+  let chipsHtml = '';
+  (data.regions || []).forEach(r => {
+    const nc = r.neurons ? r.neurons.length : 0;
+    const act = selectedRegion === r.name ? ' active' : '';
+    chipsHtml += '<span class="region-chip' + act + '" data-region="' + r.name + '" onclick="selectRegion(\'' + r.name + '\')">' +
+      (regionEmoji[r.name]||'') + ' ' + r.name +
+      '<span class="chip-count">' + nc + '</span></span>';
+  });
+  document.getElementById('regionChips').innerHTML = chipsHtml;
+}
+
+// ── API ──
+async function loadBrain() {
+  try {
+    const res = await fetch('/api/brain');
+    brainData = await res.json();
+    if (!scene) { initThree(); animate(); }
+    createBrain(brainData);
+    updateUI(brainData);
+    if (selectedRegion) selectRegion(selectedRegion);
+  } catch(e) { console.error(e); }
+}
+
 async function doInject() {
-  const res = await fetch('/api/inject', { method: 'POST' });
-  const text = await res.text();
-  document.getElementById('inject-result').textContent = text;
+  await fetch('/api/inject', { method: 'POST' });
   loadBrain();
 }
-
+async function doDedup() {
+  await fetch('/api/dedup', { method: 'POST' });
+  loadBrain();
+}
+async function doDecay() {
+  await fetch('/api/decay', { method: 'POST', headers:{'Content-Type':'application/json'}, body: '{"days":30}' });
+  loadBrain();
+}
 async function doBomb() {
-  const region = prompt('Bomb을 놓을 영역 (brainstem, cortex, ...):');
+  const region = prompt('Bomb 영역:');
   if (!region) return;
-  const neuron = prompt('Bomb 뉴런 이름 (예: halt_all):');
-  if (!neuron) return;
-  await fetch('/api/bomb', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({region: region, name: neuron})
+  await fetch('/api/signal', {
+    method: 'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({path: region + '/halt', type: 'bomb'})
   });
   loadBrain();
 }
 
-async function addNeuron(region) {
-  const input = document.getElementById('add-' + region);
-  const path = input.value.trim();
-  if (!path) return;
-  await fetch('/api/neuron', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({region: region, path: path})
-  });
-  input.value = '';
-  loadBrain();
-}
-
-// ── Auto-refresh ──
+// ── Init ──
 loadBrain();
-setInterval(loadBrain, 5000);
+setInterval(loadBrain, 10000);
 </script>
 </body>
-</html>`
+</html>` + "\n"
+

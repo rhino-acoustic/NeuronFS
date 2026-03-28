@@ -1,9 +1,9 @@
 {
-  "generated": "2026-03-28T23:24:48",
+  "generated": "2026-03-28T23:34:32",
   "brainPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "totalNeurons": 210,
-  "firedNeurons": 210,
-  "totalCounter": 259,
+  "totalNeurons": 244,
+  "firedNeurons": 244,
+  "totalCounter": 1028,
   "regions": [
     {
       "name": "brainstem",
@@ -149,43 +149,43 @@
       "neurons": [
         {
           "path": "감정제거_목표전진",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0
         },
         {
           "path": "긴급_감지",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0
         },
         {
           "path": "도파민_보상",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 1
         },
         {
           "path": "아드레날린_비상",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0
         },
         {
           "path": "엔도르핀_지속",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0
         },
         {
           "path": "좌절_감지",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0
         },
         {
           "path": "칭찬_감지",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0
         }
@@ -203,20 +203,20 @@
       "neurons": [
         {
           "path": "KI_자동참조_시작시",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0
         },
         {
           "path": "PD교정_절대진실",
-          "counter": 3,
+          "counter": 10,
           "depth": 0,
           "dopamine": 0,
           "memory": true
         },
         {
           "path": "bomb_이력",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0,
           "memory": true
@@ -230,27 +230,27 @@
         },
         {
           "path": "복원_트리거_키워드",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0
         },
         {
           "path": "세션_로그",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0,
           "memory": true
         },
         {
           "path": "에러_패턴",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0,
           "memory": true
         },
         {
           "path": "이전_컨텍스트_복원",
-          "counter": 1,
+          "counter": 5,
           "depth": 0,
           "dopamine": 0,
           "memory": true
@@ -276,199 +276,199 @@
       "neurons": [
         {
           "path": "brand\\디자인참조_oura_aesop_apple",
-          "counter": 2,
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "brand\\베가베리런_프리미엄_웰니스",
-          "counter": 2,
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "brand\\슬로건_for_your_wellness",
-          "counter": 2,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "brand\\타겟_30_50_건강러너",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "brand\\톤_프리미엄_자연_럭셔리",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\그림자_미세_0_2_8_006",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\글래스모피즘_blur20",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\버튼_라운드_풀",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\색상_다크버튼_1c1c1c",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\색상_밀크_fefaef",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\색상_스톤텍스트_4a4741",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\색상_웜베이지_eadccf",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\색상_쿨블루_b6cfdd",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\샌드스톤_베이스_f7f1e8",
-          "counter": 1,
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\애니메이션_글래스팝_08s",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\애니메이션_부유_무한_3s",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\애니메이션_슬로우줌_4s",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "design\\여백_카드_24_32px",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "nas\\推robocopy_MT",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "nas\\推robocopy_대용량",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "nas\\禁PS복사_cmd만",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "nas\\禁powershell_copyitem",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "nas\\쓰기전_경로확인",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "nas_brain\\NAS재연결_net_use",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "nas_brain\\경로_Z_VOL1_VGVR_BRAIN",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "nas_brain\\데이터수집_경로Z",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "nas_brain\\시스템문서_경로Z",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "nas_brain\\지식마켓_경로Z",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "nas_brain\\프로젝트_경로Z_옴니버스",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "tools\\n8n_자동화_5678",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "tools\\로컬스크래퍼_clawl",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "tools\\스크래퍼_node_CDP",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "typography\\폰트_Suit한글_Instrument영문",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         }
@@ -499,97 +499,193 @@
         },
         {
           "path": "community\\github\\AI_agent_memory",
-          "counter": 1,
-          "depth": 2,
-          "dopamine": 0
-        },
-        {
-          "path": "community\\github\\Cognee_지식그래프_비정형구조화",
-          "counter": 1,
-          "depth": 2,
-          "dopamine": 0
-        },
-        {
-          "path": "community\\github\\Letta_MemGPT_OS레벨메모리",
-          "counter": 1,
-          "depth": 2,
-          "dopamine": 0
-        },
-        {
-          "path": "community\\github\\Mem0_듀얼스토어_벡터DB_KG",
-          "counter": 1,
-          "depth": 2,
-          "dopamine": 0
-        },
-        {
-          "path": "community\\github\\Zep_시간기반_시계열KG",
-          "counter": 1,
-          "depth": 2,
-          "dopamine": 0
-        },
-        {
-          "path": "community\\trend2026\\망각이_기능_TTL퇴거",
-          "counter": 1,
-          "depth": 2,
-          "dopamine": 0
-        },
-        {
-          "path": "community\\trend2026\\자기관리_에이전트_RL메모리",
-          "counter": 1,
-          "depth": 2,
-          "dopamine": 0
-        },
-        {
-          "path": "community\\검증\\禁context_stuffing_subsumption이토큰절약실증필요",
           "counter": 3,
           "depth": 2,
           "dopamine": 0
         },
         {
+          "path": "community\\github\\Cognee_지식그래프_비정형구조화",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\github\\Letta_MemGPT_OS레벨메모리",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\github\\Mem0_듀얼스토어_벡터DB_KG",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\github\\Zep_시간기반_시계열KG",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\SQLite_middle_ground",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\digital_assembly_line",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\git_as_memory",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\governance_as_code",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\hybrid_memory",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\multi_agent_시스템",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\observability_추적",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\proactive_concierge",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\trust_by_design",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\망각이_기능_TTL퇴거",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\자기관리_에이전트_RL메모리",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\검증\\禁context_stuffing_subsumption이토큰절약실증필요",
+          "counter": 5,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
           "path": "community\\검증\\禁dirty_data_dedup_decay가실제로정화하는가",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "community\\검증\\禁암묵적학습_fsnotify_Groq이진짜패턴학습하는가",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "community\\검증\\禁저장만_검색부재_3tier가실제적시검색하는가",
+          "counter": 5,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\반면교사\\context_stuffing_성능저하",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\반면교사\\dirty_data_모순정보",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\반면교사\\망각기능_부재",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\반면교사\\벤치는좋고_프로덕션깨짐",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\반면교사\\암묵적_학습_불가",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\반면교사\\운영복잡성_인프라과다",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\반면교사\\저장되지만_검색안됨",
           "counter": 1,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "community\\차용검토\\Cognee_관계그래프_축삭교차가대체가능한가",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "community\\차용검토\\Mem0_벤치마크_표준화_NeuronFS에벤치없음",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "community\\차용검토\\시맨틱검색_VectorDB없이_Jaccard충분한가",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "frontend\\coding\\禁console_log",
-          "counter": 9,
+          "counter": 15,
           "depth": 2,
           "dopamine": 1
         },
         {
           "path": "frontend\\coding\\禁inline_style",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
@@ -601,7 +697,7 @@
         },
         {
           "path": "frontend\\coding\\禁인라인스타일",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 6
         },
@@ -679,97 +775,145 @@
         },
         {
           "path": "methodology\\2단계_리뷰",
-          "counter": 1,
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "methodology\\checkpoint_재개",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "methodology\\idempotent_설계",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "methodology\\multi_model_검증",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "methodology\\plan_then_execute",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "methodology\\scope_정의후실행",
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "methodology\\긍정부정_양면검토",
-          "counter": 1,
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "methodology\\기존코드_리버스_활용",
-          "counter": 1,
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "methodology\\두_페르소나_토론",
-          "counter": 1,
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "methodology\\로컬깃_생활화",
-          "counter": 3,
+          "counter": 10,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "methodology\\반성후_출력",
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "methodology\\부정프롬프트가_효과적",
-          "counter": 1,
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "methodology\\사전기반_매칭",
-          "counter": 1,
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "methodology\\스킬_자동트리거",
-          "counter": 1,
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "methodology\\작은단위_분할실행",
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "methodology\\제3자_검증",
-          "counter": 1,
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "methodology\\커뮤니티_학술검색",
-          "counter": 1,
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "methodology\\필요할때만_질문",
-          "counter": 1,
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "methodology\\항상_출력검증",
+          "counter": 10,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\axiom\\경로가_문장",
-          "counter": 2,
+          "counter": 20,
           "depth": 2,
           "dopamine": 1
         },
         {
           "path": "neuronfs\\axiom\\깊이가_구체성",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\axiom\\카운터가_활성도",
-          "counter": 2,
+          "counter": 20,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\axiom\\파일이_발화기록",
-          "counter": 2,
+          "counter": 20,
           "depth": 2,
           "dopamine": 1
         },
         {
           "path": "neuronfs\\axiom\\폴더가_뉴런",
-          "counter": 2,
+          "counter": 20,
           "depth": 2,
           "dopamine": 1
         },
@@ -781,31 +925,31 @@
         },
         {
           "path": "neuronfs\\connections\\라우터_자동배정",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\connections\\영구_수동",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\connections\\터널_임시",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\defense\\bomb_자동차단",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\defense\\brainstem_읽기전용",
-          "counter": 2,
+          "counter": 15,
           "depth": 2,
           "dopamine": 0
         },
@@ -817,7 +961,7 @@
         },
         {
           "path": "neuronfs\\defense\\禁cognitive_drift",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
@@ -841,7 +985,7 @@
         },
         {
           "path": "neuronfs\\design\\실재_온톨로지",
-          "counter": 2,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
@@ -859,13 +1003,13 @@
         },
         {
           "path": "neuronfs\\growth\\plasticity_stability_균형",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\growth\\가지치기_휴면",
-          "counter": 4,
+          "counter": 15,
           "depth": 2,
           "dopamine": 0
         },
@@ -877,7 +1021,7 @@
         },
         {
           "path": "neuronfs\\growth\\경험만이_분류",
-          "counter": 2,
+          "counter": 15,
           "depth": 2,
           "dopamine": 6
         },
@@ -913,43 +1057,43 @@
         },
         {
           "path": "neuronfs\\ownership\\brainstem_PD전용",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\ownership\\cortex_AI경험",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\ownership\\ego_PD커스텀",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\ownership\\hippocampus_자동로그",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\ownership\\limbic_자동",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\ownership\\prefrontal_PD설정",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\ownership\\sensors_PD선언",
-          "counter": 1,
+          "counter": 5,
           "depth": 2,
           "dopamine": 0
         },
@@ -961,7 +1105,7 @@
         },
         {
           "path": "neuronfs\\runtime\\api_read_항상최신",
-          "counter": 2,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
@@ -973,7 +1117,7 @@
         },
         {
           "path": "neuronfs\\runtime\\cdp_인젝션_contenteditable",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 1
         },
@@ -1009,7 +1153,7 @@
         },
         {
           "path": "neuronfs\\runtime\\도파민_로그",
-          "counter": 4,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0,
           "memory": true
@@ -1028,7 +1172,7 @@
         },
         {
           "path": "neuronfs\\runtime\\카운터_쓰기반영",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
@@ -1040,43 +1184,43 @@
         },
         {
           "path": "neuronfs\\signals\\bomb_회로차단",
-          "counter": 1,
+          "counter": 15,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\signals\\도파민_강화",
-          "counter": 2,
+          "counter": 15,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\signals\\카운터가_파일명",
-          "counter": 2,
+          "counter": 15,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\structure\\7개_영역",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\structure\\소세계_네트워크",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\structure\\축삭_교차연결",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\structure\\포섭_우선순위",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
@@ -1100,37 +1244,79 @@
         },
         {
           "path": "neuronfs\\wargame\\축삭교차_14of20",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\wargame\\카운터활성_13of20",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\wargame\\파일은_trace_16of20",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\wargame\\폴더는_뉴런_18of20",
-          "counter": 1,
+          "counter": 10,
           "depth": 2,
           "dopamine": 0
         },
         {
           "path": "neuronfs\\뇌_정량지표_실질검증",
-          "counter": 1,
+          "counter": 10,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "security\\least_agency_원칙",
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "security\\禁평문_토큰",
-          "counter": 1,
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "security\\도구호출_제한",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "security\\에이전트_고유ID",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "security\\연속_레드팀",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "security\\입력검증_injection방어",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "security\\출력필터링_PII차단",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "security\\프롬프트보호_crown_jewels",
+          "counter": 5,
           "depth": 1,
           "dopamine": 0
         },
@@ -1165,14 +1351,8 @@
           "dopamine": 0
         },
         {
-          "path": "testing\\검증A_테스트_중복",
-          "counter": 6,
-          "depth": 1,
-          "dopamine": 0
-        },
-        {
           "path": "testing\\항상_출력검증",
-          "counter": 1,
+          "counter": 10,
           "depth": 1,
           "dopamine": 3
         },
@@ -1219,8 +1399,38 @@
           "dopamine": 0
         },
         {
+          "path": "소통\\간결_실행중심",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "소통\\결과물_먼저",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "소통\\구조화_체계적",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "소통\\데이터_기반주장",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "소통\\핵심부터_전달",
+          "counter": 5,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
           "path": "전문가_간결",
-          "counter": 2,
+          "counter": 10,
           "depth": 0,
           "dopamine": 0
         },
@@ -1238,13 +1448,13 @@
         },
         {
           "path": "한국어_네이티브",
-          "counter": 1,
+          "counter": 10,
           "depth": 0,
           "dopamine": 0
         },
         {
           "path": "한국어로_사고하고_응답",
-          "counter": 6,
+          "counter": 10,
           "depth": 0,
           "dopamine": 0
         }
@@ -1262,61 +1472,61 @@
       "neurons": [
         {
           "path": "project\\GitHub_공개_준비",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "project\\NeuronFS_뇌_진화",
-          "counter": 2,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "project\\NeuronFS_대시보드_통합",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "project\\NeuronFS_유휴엔진",
-          "counter": 2,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "project\\베가베리_CRM_운영",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "project\\영상파이프라인_v17",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "project\\옴니버스_누그레이_브랜드",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "project\\옴니버스_시장조사",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "project\\옴니버스_졸리아워_브랜드",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "project\\옴니버스_화이트타올_브랜드",
-          "counter": 1,
+          "counter": 3,
           "depth": 1,
           "dopamine": 0
         },
@@ -1378,7 +1588,8 @@
           "path": "todo\\커뮤니티_동향_자동수집",
           "counter": 1,
           "depth": 1,
-          "dopamine": 0
+          "dopamine": 0,
+          "dormant": true
         },
         {
           "path": "todo\\프로세스_자동재시작",
