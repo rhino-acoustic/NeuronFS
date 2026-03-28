@@ -1,9 +1,9 @@
 {
-  "generated": "2026-03-28T22:22:15",
+  "generated": "2026-03-28T22:50:14",
   "brainPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "totalNeurons": 196,
-  "firedNeurons": 196,
-  "totalCounter": 219,
+  "totalNeurons": 200,
+  "firedNeurons": 200,
+  "totalCounter": 223,
   "regions": [
     {
       "name": "brainstem",
@@ -613,6 +613,12 @@
           "dopamine": 0
         },
         {
+          "path": "methodology\\기존코드_리버스_활용",
+          "counter": 1,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
           "path": "methodology\\두_페르소나_토론",
           "counter": 1,
           "depth": 1,
@@ -689,6 +695,12 @@
           "counter": 2,
           "depth": 2,
           "dopamine": 1
+        },
+        {
+          "path": "neuronfs\\cdp 인젝션 확정",
+          "counter": 1,
+          "depth": 1,
+          "dopamine": 0
         },
         {
           "path": "neuronfs\\connections\\라우터_자동배정",
@@ -871,10 +883,28 @@
           "dopamine": 0
         },
         {
+          "path": "neuronfs\\runtime\\Input_insertText_패턴",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
           "path": "neuronfs\\runtime\\api_read_항상최신",
           "counter": 2,
           "depth": 2,
           "dopamine": 0
+        },
+        {
+          "path": "neuronfs\\runtime\\cdp_응답_result_result_value",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "neuronfs\\runtime\\cdp_인젝션_contenteditable",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 1
         },
         {
           "path": "neuronfs\\runtime\\idle_auto_decay",
@@ -889,7 +919,19 @@
           "dopamine": 0
         },
         {
+          "path": "neuronfs\\runtime\\禁textarea_가정",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
           "path": "neuronfs\\runtime\\禁token_tax_도구정의비대화",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "neuronfs\\runtime\\禁자기프로세스_kill",
           "counter": 1,
           "depth": 2,
           "dopamine": 0
@@ -1141,6 +1183,12 @@
       ],
       "neurons": [
         {
+          "path": "project\\GitHub_공개_준비",
+          "counter": 1,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
           "path": "project\\NeuronFS_뇌_진화",
           "counter": 2,
           "depth": 1,
@@ -1210,13 +1258,15 @@
           "path": "todo\\git_diff_진화판정",
           "counter": 1,
           "depth": 1,
-          "dopamine": 0
+          "dopamine": 0,
+          "dormant": true
         },
         {
           "path": "todo\\rollback_메커니즘",
           "counter": 1,
           "depth": 1,
-          "dopamine": 0
+          "dopamine": 0,
+          "dormant": true
         },
         {
           "path": "todo\\긍정형_뉴런을_부정형으로_전환",
@@ -1228,7 +1278,8 @@
           "path": "todo\\대시보드_404_수정",
           "counter": 1,
           "depth": 1,
-          "dopamine": 0
+          "dopamine": 0,
+          "dormant": true
         },
         {
           "path": "todo\\대시보드_자가진화",
@@ -1240,7 +1291,8 @@
           "path": "todo\\이벤트기반_주입_폴링제거",
           "counter": 1,
           "depth": 1,
-          "dopamine": 0
+          "dopamine": 0,
+          "dormant": true
         },
         {
           "path": "todo\\커뮤니티_동향_자동수집",
