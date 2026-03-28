@@ -1,9 +1,9 @@
 {
-  "generated": "2026-03-28T23:09:00",
+  "generated": "2026-03-28T23:12:39",
   "brainPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "totalNeurons": 196,
-  "firedNeurons": 196,
-  "totalCounter": 232,
+  "totalNeurons": 197,
+  "firedNeurons": 197,
+  "totalCounter": 233,
   "regions": [
     {
       "name": "brainstem",
@@ -1048,6 +1048,12 @@
           "path": "neuronfs\\wargame\\폴더는_뉴런_18of20",
           "counter": 1,
           "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "neuronfs\\뇌_정량지표_실질검증",
+          "counter": 1,
+          "depth": 1,
           "dopamine": 0
         },
         {

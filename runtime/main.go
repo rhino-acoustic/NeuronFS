@@ -1493,7 +1493,22 @@ func runIdleLoop(brainRoot string) {
 		fmt.Println("[IDLE] 🔀 Running dedup (Jaccard similarity)...")
 		deduplicateNeurons(brainRoot)
 
-		// 4. Git snapshot
+		// 4. Growth tracking (뇌 성장 이력 추적)
+		brain := scanBrain(brainRoot)
+		result := runSubsumption(brain)
+		growthLogDir := filepath.Join(brainRoot, "hippocampus", "session_log")
+		os.MkdirAll(growthLogDir, 0755)
+		growthLogFile := filepath.Join(growthLogDir, "growth.log")
+		entry := fmt.Sprintf("%s: neurons=%d, activation=%d, regions=%d\n",
+			time.Now().Format("2006-01-02_15:04"), result.TotalNeurons, result.TotalCounter, len(result.ActiveRegions))
+		f, _ := os.OpenFile(growthLogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if f != nil {
+			f.WriteString(entry)
+			f.Close()
+		}
+		fmt.Printf("[GROWTH] 📈 %s", entry)
+
+		// 5. Git snapshot
 		fmt.Println("[IDLE] 📸 Git snapshot...")
 		gitSnapshot(brainRoot)
 
