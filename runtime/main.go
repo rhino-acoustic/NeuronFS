@@ -1843,6 +1843,45 @@ func startAPI(brainRoot string, port int) {
 		fmt.Fprint(w, dashboardHTML)
 	}))
 
+	// POST /api/community — 외부 커뮤니티 트렌드를 뉴런으로 수집
+	// Body: {"source":"github|reddit|hackernews","topic":"AI memory","insight":"..."}
+	mux.HandleFunc("/api/community", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "POST only", 405)
+			return
+		}
+		var req struct {
+			Source  string `json:"source"`
+			Topic   string `json:"topic"`
+			Insight string `json:"insight"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Topic == "" {
+			http.Error(w, `{"error":"topic required"}`, 400)
+			return
+		}
+		// 안전한 경로 생성
+		safeTopic := strings.ReplaceAll(req.Topic, " ", "_")
+		safeTopic = strings.ReplaceAll(safeTopic, "/", "_")
+		safeTopic = strings.ReplaceAll(safeTopic, "\\", "_")
+		
+		neuronPath := filepath.Join(brainRoot, "cortex", "community", req.Source, safeTopic)
+		os.MkdirAll(neuronPath, 0755)
+		
+		// 카운터 파일 생성/증가
+		files, _ := filepath.Glob(filepath.Join(neuronPath, "*.neuron"))
+		counter := len(files) + 1
+		counterFile := filepath.Join(neuronPath, fmt.Sprintf("%d.neuron", counter))
+		os.WriteFile(counterFile, []byte(req.Insight), 0644)
+		
+		fmt.Printf("[COMMUNITY] 📡 %s/%s → counter %d\n", req.Source, safeTopic, counter)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "ok",
+			"path":   fmt.Sprintf("cortex/community/%s/%s", req.Source, safeTopic),
+			"counter": counter,
+		})
+	}))
+
 	// GET /api/brain — full brain state for dashboard (compatible with dashboard.go format)
 	mux.HandleFunc("/api/brain", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		data := buildBrainJSONResponse(brainRoot)
