@@ -1,9 +1,9 @@
 {
-  "generated": "2026-03-28T23:13:51",
+  "generated": "2026-03-28T23:24:48",
   "brainPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "totalNeurons": 197,
-  "firedNeurons": 197,
-  "totalCounter": 233,
+  "totalNeurons": 210,
+  "firedNeurons": 210,
+  "totalCounter": 259,
   "regions": [
     {
       "name": "brainstem",
@@ -276,19 +276,19 @@
       "neurons": [
         {
           "path": "brand\\디자인참조_oura_aesop_apple",
-          "counter": 1,
+          "counter": 2,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "brand\\베가베리런_프리미엄_웰니스",
-          "counter": 1,
+          "counter": 2,
           "depth": 1,
           "dopamine": 0
         },
         {
           "path": "brand\\슬로건_for_your_wellness",
-          "counter": 1,
+          "counter": 2,
           "depth": 1,
           "dopamine": 0
         },
@@ -504,8 +504,86 @@
           "dopamine": 0
         },
         {
+          "path": "community\\github\\Cognee_지식그래프_비정형구조화",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\github\\Letta_MemGPT_OS레벨메모리",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\github\\Mem0_듀얼스토어_벡터DB_KG",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\github\\Zep_시간기반_시계열KG",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\망각이_기능_TTL퇴거",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\trend2026\\자기관리_에이전트_RL메모리",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\검증\\禁context_stuffing_subsumption이토큰절약실증필요",
+          "counter": 3,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\검증\\禁dirty_data_dedup_decay가실제로정화하는가",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\검증\\禁암묵적학습_fsnotify_Groq이진짜패턴학습하는가",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\검증\\禁저장만_검색부재_3tier가실제적시검색하는가",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\차용검토\\Cognee_관계그래프_축삭교차가대체가능한가",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\차용검토\\Mem0_벤치마크_표준화_NeuronFS에벤치없음",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
+          "path": "community\\차용검토\\시맨틱검색_VectorDB없이_Jaccard충분한가",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
           "path": "frontend\\coding\\禁console_log",
-          "counter": 8,
+          "counter": 9,
           "depth": 2,
           "dopamine": 1
         },
@@ -786,14 +864,8 @@
           "dopamine": 0
         },
         {
-          "path": "neuronfs\\growth\\禁context_stuffing",
-          "counter": 1,
-          "depth": 2,
-          "dopamine": 0
-        },
-        {
           "path": "neuronfs\\growth\\가지치기_휴면",
-          "counter": 3,
+          "counter": 4,
           "depth": 2,
           "dopamine": 0
         },
@@ -937,7 +1009,7 @@
         },
         {
           "path": "neuronfs\\runtime\\도파민_로그",
-          "counter": 3,
+          "counter": 4,
           "depth": 2,
           "dopamine": 0,
           "memory": true
@@ -1089,6 +1161,12 @@
         {
           "path": "testing\\fsnotify_실전검증",
           "counter": 1,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
+          "path": "testing\\검증A_테스트_중복",
+          "counter": 6,
           "depth": 1,
           "dopamine": 0
         },

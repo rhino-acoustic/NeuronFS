@@ -1659,54 +1659,53 @@ func deduplicateNeurons(brainRoot string) {
 }
 
 // runHeartbeatLoop drives the conscious mind (AI) forward without human input.
-// 유휴 판정: CDP probe로 IDE 채팅 출력 영역의 텍스트 변화를 감지
-// → 텍스트가 안 변하면 AI가 정지한 것 → Todo 주입
+// 유휴 판정: auto-accept의 전사 로그(_transcripts/) mtime을 확인
+// → 전사가 멈추면 AI가 정지한 것 → Todo 주입
 func runHeartbeatLoop(brainRoot string) {
 	pulseScript := filepath.Join(filepath.Dir(brainRoot), "runtime", "pulse.mjs")
-	probeScript := filepath.Join(filepath.Dir(brainRoot), "runtime", "probe.mjs")
 	todoDir := filepath.Join(brainRoot, "prefrontal", "todo")
+	transcriptsDir := filepath.Join(brainRoot, "_transcripts")
 
-	consecutiveIdle := 0 // 연속 idle 횟수
 	lastInjection := time.Time{} // 마지막 주입 시각
 
 	for {
-		time.Sleep(30 * time.Second) // 30초마다 확인 (빠른 반응)
+		time.Sleep(30 * time.Second)
 
-		// 쿨다운: 마지막 주입 후 5분 이내면 스킵 (과주입 방지)
+		// 쿨다운: 주입 후 5분 이내면 스킵
 		if !lastInjection.IsZero() && time.Since(lastInjection) < 5*time.Minute {
 			continue
 		}
 
-		// CDP probe로 AI 출력 활동 확인 (2초 간 텍스트 변화 감지)
-		probeActive := true // 기본값: 활동 중 (안전 폴백)
-		probeCmd := exec.Command("node", probeScript)
-		probeOut, err := probeCmd.CombinedOutput()
-		if err == nil && len(probeOut) > 0 {
-			outStr := strings.TrimSpace(string(probeOut))
-			if strings.Contains(outStr, `"active":false`) {
-				probeActive = false
-			} else if strings.Contains(outStr, `"active":true`) {
-				probeActive = true
+		// 전사 로그의 최신 파일 mtime으로 AI 활동 판단
+		transcriptActive := true
+		entries, err := os.ReadDir(transcriptsDir)
+		if err == nil && len(entries) > 0 {
+			var latestMod time.Time
+			for _, e := range entries {
+				if info, err := e.Info(); err == nil {
+					if info.ModTime().After(latestMod) {
+						latestMod = info.ModTime()
+					}
+				}
+			}
+			// 전사 로그가 60초 이상 갱신 안 됐으면 AI 정지
+			if !latestMod.IsZero() && time.Since(latestMod) > 60*time.Second {
+				transcriptActive = false
+				fmt.Printf("[HEARTBEAT] 📡 전사 중단 감지: %s 이후 출력 없음\n", latestMod.Format("15:04:05"))
 			}
 		} else {
-			// probe 실패 → 기존 API 기반 폴백
+			// 전사 디렉토리 없으면 폴백: API activity
 			lastAct := getLastActivity()
-			idleDuration := time.Since(lastAct)
-			if idleDuration > 3*time.Minute {
-				probeActive = false
+			if time.Since(lastAct) > 3*time.Minute {
+				transcriptActive = false
 			}
 		}
 
-		if probeActive {
-			consecutiveIdle = 0
+		if transcriptActive {
 			continue
 		}
 
-		consecutiveIdle++
-		// 1회 idle이면 (= 30초+ 출력 없음) AI 정지로 판단하고 즉시 주입
-		// probe 자체가 2초 관찰하므로 false positive 가능성 낮음
-
-		// 다음 작업(Todo) 하나를 집어온다
+		// Todo 하나를 집어온다
 		var nextTask string
 		filepath.Walk(todoDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil || !info.IsDir() || path == todoDir {
@@ -1722,15 +1721,14 @@ func runHeartbeatLoop(brainRoot string) {
 		if nextTask != "" {
 			prompt := fmt.Sprintf("[%s] 유휴 상태 감지됨. 다음 할 일 '%s'을(를) 즉시 분석 및 실행하고 보고할 것.",
 				time.Now().Format("15:04"), nextTask)
-			fmt.Printf("[HEARTBEAT] ⚡ AI 출력 정지 감지 → 강제 주입: %s\n", nextTask)
+			fmt.Printf("[HEARTBEAT] ⚡ 전사 중단 → 강제 주입: %s\n", nextTask)
 
 			cmd := exec.Command("node", pulseScript, prompt)
 			if err := cmd.Run(); err != nil {
 				fmt.Printf("[HEARTBEAT] ⚠️ CDP injection failed: %v\n", err)
 			}
 			touchActivity()
-			consecutiveIdle = 0
-			lastInjection = time.Now() // 쿨다운 시작
+			lastInjection = time.Now()
 		}
 	}
 }
