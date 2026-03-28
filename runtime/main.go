@@ -1243,6 +1243,14 @@ func processInbox(brainRoot string) {
 			neuronPath = "hippocampus/_inbox_pending/" + sanitized
 		}
 
+		// Security: Basic Prompt Injection & Path Traversal Defense
+		if strings.Contains(neuronPath, "..") || strings.Contains(neuronPath, `\`) ||
+			strings.Contains(neuronPath, "$") || strings.Contains(neuronPath, "&") ||
+			strings.Contains(neuronPath, "|") || strings.Contains(neuronPath, ">") {
+			fmt.Printf("[SECURITY] 🛡️ Injection blocked: %s\n", neuronPath)
+			continue
+		}
+
 		// Determine action
 		counterAdd := entry.CounterAdd
 		if counterAdd <= 0 {
@@ -1487,6 +1495,21 @@ func runIdleLoop(brainRoot string) {
 		lastEvolveTime = time.Now()
 		idleEvolveRunning = false
 		fmt.Printf("[IDLE] ✅ Autonomous cycle complete at %s\n\n", lastEvolveTime.Format("15:04:05"))
+	}
+}
+
+// runHeartbeatLoop writes a timestamp to _inbox/heartbeat.json every 60 seconds
+// Acts as a verifiable pulse for the multi-agent / autopilot system.
+func runHeartbeatLoop(brainRoot string) {
+	hbPath := filepath.Join(brainRoot, "_inbox", "heartbeat.json")
+	for {
+		data := fmt.Sprintf(`{"status":"alive", "ts":"%s", "activity_min_ago":%d}`, 
+			time.Now().Format("2006-01-02T15:04:05"),
+			int(time.Since(getLastActivity()).Minutes()),
+		)
+		os.MkdirAll(filepath.Dir(hbPath), 0755)
+		os.WriteFile(hbPath, []byte(data), 0644)
+		time.Sleep(60 * time.Second)
 	}
 }
 
@@ -1781,6 +1804,9 @@ func startAPI(brainRoot string, port int) {
 
 	// Start idle engine in background
 	go runIdleLoop(brainRoot)
+
+	// Start heartbeat in background
+	go runHeartbeatLoop(brainRoot)
 
 	fmt.Printf("[NeuronFS API] 🧠 Serving on http://localhost:%d\n", port)
 	fmt.Printf("  GET  /                           — Dashboard (카드 UI)\n")
