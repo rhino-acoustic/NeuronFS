@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 // Dashboard HTML for NeuronFS v5.0 — 3D Brain Topology + Card UI
 
@@ -95,6 +95,42 @@ const dashboardHTML = `<!DOCTYPE html>
   .n-fill { height: 100%; border-radius: 2px; }
   .n-counter { font-family: monospace; font-size: 10px; color: #666; width: 28px; text-align: right; }
   .n-signals { font-size: 10px; width: 32px; text-align: center; }
+  .n-fire { background: none; border: 1px solid #333; border-radius: 4px; color: #888; font-size: 9px; padding: 2px 6px; cursor: pointer; transition: all 0.15s; }
+  .n-fire:hover { border-color: #f59e0b; color: #f59e0b; }
+  .n-strength { font-size: 8px; padding: 1px 5px; border-radius: 3px; font-weight: 700; margin-right: 4px; }
+  .n-str-abs { background: #7f1d1d; color: #fca5a5; }
+  .n-str-must { background: #1e3a5f; color: #93c5fd; }
+
+  /* ── Search ── */
+  .search-bar {
+    padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
+  }
+  .search-bar input {
+    width: 100%; background: #111; border: 1px solid #222; border-radius: 8px;
+    padding: 8px 12px; color: #fff; font-size: 12px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-bar input:focus { border-color: #3b82f6; }
+  .search-bar input::placeholder { color: #555; }
+
+  /* ── Add neuron form ── */
+  .add-section {
+    padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
+    display: none;
+  }
+  .add-section.visible { display: block; }
+  .add-section .add-row { display: flex; gap: 6px; margin-top: 8px; }
+  .add-section input, .add-section select {
+    flex: 1; background: #111; border: 1px solid #222; border-radius: 6px;
+    padding: 6px 10px; color: #fff; font-size: 11px; outline: none;
+  }
+  .add-section select { flex: none; width: 110px; }
+  .add-section button {
+    background: #059669; color: #fff; border: none; border-radius: 6px;
+    padding: 6px 14px; font-size: 11px; cursor: pointer; font-weight: 600;
+  }
+  .add-section button:hover { background: #047857; }
+  .add-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; }
 
   /* ── Region list ── */
   .region-list { padding: 8px 24px; }
@@ -127,6 +163,18 @@ const dashboardHTML = `<!DOCTYPE html>
   .btn-danger:hover { background: #991b1b; }
   .btn-ghost { background: #1a1a2e; color: #888; }
   .btn-ghost:hover { background: #222; color: #fff; }
+  .btn-add { background: #059669; color: #fff; }
+  .btn-add:hover { background: #047857; }
+
+  /* ── Toast notification ── */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.9); border: 1px solid #333;
+    border-radius: 8px; padding: 8px 20px; font-size: 12px; color: #34d399;
+    z-index: 200; opacity: 0; transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
 
   /* ── 3D overlay info ── */
   .hover-tooltip {
@@ -161,6 +209,10 @@ const dashboardHTML = `<!DOCTYPE html>
       <div class="stat"><div class="stat-value" id="s-regions">0</div><div class="stat-label">영역</div></div>
     </div>
 
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="뉴런 검색 (경로, 이름...)" oninput="filterNeurons()">
+    </div>
+
     <div class="detail-panel" id="detail">
       <h2>
         <span id="detail-icon"></span>
@@ -173,13 +225,23 @@ const dashboardHTML = `<!DOCTYPE html>
 
     <div class="region-list" id="regionChips"></div>
 
+    <div class="add-section" id="addSection">
+      <div class="add-label">새 뉴런 생성</div>
+      <div class="add-row">
+        <select id="addRegion"></select>
+        <input type="text" id="addPath" placeholder="경로 (예: methodology/tdd)">
+        <button onclick="addNeuron()">+</button>
+      </div>
+    </div>
+
     <div class="controls">
       <button class="btn btn-primary" onclick="doInject()">⚡ INJECT</button>
+      <button class="btn btn-add" onclick="toggleAdd()">+ 뉴런</button>
       <button class="btn btn-ghost" onclick="doDedup()">🔀 DEDUP</button>
-      <button class="btn btn-ghost" onclick="doDecay()">🍂 DECAY</button>
       <button class="btn btn-danger" onclick="doBomb()">💀 BOMB</button>
     </div>
   </div>
+  <div class="toast" id="toast"></div>
 </div>
 
 <script>
@@ -446,12 +508,19 @@ function selectRegion(name) {
       if (n.hasBomb) signals += '💀';
       if (n.isDormant) signals += '💤';
 
+      let strengthHtml = '';
+      if (n.counter >= 10) strengthHtml = '<span class="n-strength n-str-abs">절대</span>';
+      else if (n.counter >= 5) strengthHtml = '<span class="n-strength n-str-must">반드시</span>';
+
       const path = n.path.replace(/\//g, ' > ');
+      const regionName = selectedRegion;
       nHtml += '<div class="neuron-item">' +
+        strengthHtml +
         '<div class="n-name">' + path + '</div>' +
         '<div class="n-bar"><div class="n-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>' +
         '<div class="n-counter">' + n.counter + '</div>' +
         '<div class="n-signals">' + signals + '</div>' +
+        '<button class="n-fire" onclick="event.stopPropagation();fireNeuron(\'' + regionName + '\',\'' + n.path.replace(/'/g,"\\'" ) + '\')">▲</button>' +
         '</div>';
     });
   }
@@ -550,16 +619,18 @@ async function loadBrain() {
   } catch(e) { console.error(e); }
 }
 
+// ── Inject ──
 async function doInject() {
-  await fetch('/api/inject', { method: 'POST' });
+  showToast('⚡ Injecting...');
+  const res = await fetch('/api/inject', { method: 'POST' });
+  const text = await res.text();
+  showToast('✅ ' + text);
   loadBrain();
 }
 async function doDedup() {
+  showToast('🔀 Dedup...');
   await fetch('/api/dedup', { method: 'POST' });
-  loadBrain();
-}
-async function doDecay() {
-  await fetch('/api/decay', { method: 'POST', headers:{'Content-Type':'application/json'}, body: '{"days":30}' });
+  showToast('✅ Dedup 완료');
   loadBrain();
 }
 async function doBomb() {
@@ -569,7 +640,103 @@ async function doBomb() {
     method: 'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({path: region + '/halt', type: 'bomb'})
   });
+  showToast('💀 BOMB: ' + region);
   loadBrain();
+}
+
+// ── Fire neuron ──
+async function fireNeuron(region, path) {
+  await fetch('/api/fire', {
+    method: 'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({path: region + '/' + path})
+  });
+  showToast('🔥 fired: ' + path);
+  loadBrain();
+}
+
+// ── Add neuron ──
+function toggleAdd() {
+  const section = document.getElementById('addSection');
+  section.classList.toggle('visible');
+  if (section.classList.contains('visible')) {
+    const sel = document.getElementById('addRegion');
+    sel.innerHTML = '';
+    if (brainData && brainData.regions) {
+      brainData.regions.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.name; opt.textContent = (regionEmoji[r.name]||'') + ' ' + r.name;
+        sel.appendChild(opt);
+      });
+    }
+  }
+}
+async function addNeuron() {
+  const region = document.getElementById('addRegion').value;
+  const path = document.getElementById('addPath').value.trim();
+  if (!region || !path) return;
+  await fetch('/api/neuron', {
+    method: 'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({region: region, path: path})
+  });
+  document.getElementById('addPath').value = '';
+  document.getElementById('addSection').classList.remove('visible');
+  showToast('🌱 뉴런 생성: ' + region + '/' + path);
+  loadBrain();
+}
+
+// ── Search ──
+function filterNeurons() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  if (!q) { if (selectedRegion) selectRegion(selectedRegion); return; }
+  if (!brainData) return;
+
+  // Search all neurons across all regions
+  let results = [];
+  (brainData.regions || []).forEach(r => {
+    (r.neurons || []).forEach(n => {
+      if (n.path.toLowerCase().includes(q) || n.name.toLowerCase().includes(q)) {
+        results.push({...n, regionName: r.name});
+      }
+    });
+  });
+  results.sort((a,b) => b.counter - a.counter);
+
+  let nHtml = '<div style="font-size:10px;color:#666;margin-bottom:6px;">검색 결과: ' + results.length + '건</div>';
+  results.forEach(n => {
+    const pct = Math.min(100, n.counter * 5);
+    let barColor = '#475569';
+    if (n.counter >= 10) barColor = '#f59e0b';
+    else if (n.counter >= 5) barColor = '#22c55e';
+    else if (n.counter >= 2) barColor = '#3b82f6';
+    let strengthHtml = '';
+    if (n.counter >= 10) strengthHtml = '<span class="n-strength n-str-abs">절대</span>';
+    else if (n.counter >= 5) strengthHtml = '<span class="n-strength n-str-must">반드시</span>';
+    let signals = '';
+    if (n.dopamine > 0) signals += '🟢';
+    if (n.hasBomb) signals += '💀';
+    nHtml += '<div class="neuron-item">' +
+      strengthHtml +
+      '<div class="n-name" style="font-size:10px"><span style="color:#3b82f6">' + n.regionName + '</span> > ' + n.path.replace(/\//g, ' > ') + '</div>' +
+      '<div class="n-bar"><div class="n-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>' +
+      '<div class="n-counter">' + n.counter + '</div>' +
+      '<div class="n-signals">' + signals + '</div>' +
+      '</div>';
+  });
+
+  const panel = document.getElementById('detail');
+  panel.classList.add('active');
+  document.getElementById('detail-icon').textContent = '🔍';
+  document.getElementById('detail-name').textContent = '검색: "' + q + '"';
+  document.getElementById('detail-axons').innerHTML = '';
+  document.getElementById('detail-neurons').innerHTML = nHtml;
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
 }
 
 // ── Init ──
