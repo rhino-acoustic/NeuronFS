@@ -1,178 +1,177 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
-  <img src="https://img.shields.io/badge/Infra_Cost-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Agents-ENTP_×_ISTJ-blueviolet?style=flat-square" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
+  <img src="https://img.shields.io/badge/Neurons-256-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
 </p>
 
 <p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a></p>
 
 # 🧠 NeuronFS
 
-**Your AI's `.cursorrules` file is dead. Here's what replaces it.**
-
-> *Folders are neurons. Paths are sentences. Counters are synaptic weights.*  
-> *Your AI learns, remembers, and evolves — using nothing but `mkdir`.*
+**Folders are neurons. Paths are sentences. Counters are synaptic weights.**
 
 <p align="center">
   <img src="docs/dashboard.png" alt="NeuronFS 3D Brain Dashboard" width="800" />
   <br/>
-  <em>Real-time 3D brain visualization — 251 neurons across 7 cognitive regions</em>
+  <sub>Real-time 3D dashboard — 7 regions, 256 neurons, polarity coloring (red=correction ↓, green=reward ↑)</sub>
 </p>
 
 ---
 
-## The Problem
+## Why I Built This
 
-Every AI coding assistant forgets everything between sessions.
+My AI forgot everything between sessions. I watched this for months.
 
-The industry's response? Vector databases. $70/month subscriptions. Complex embedding pipelines. RAG that hallucinates.
+Tried Mem0. $70/month. Couldn't enforce rules.  
+Tried .cursorrules. 5000 lines. Burned 3000 tokens every session. Didn't know which rules mattered.  
+Tried RAG. "Don't use console.log" needs cosine similarity? Rules need to be exact, not approximate.
 
-**You've been overcharged for AI memory.**
+Opened a terminal. Typed `mkdir brain`. That folder became the first neuron.
 
-NeuronFS is a filesystem-based cognitive engine. No database. No embeddings. No subscriptions.  
-`mkdir brain/cortex/new_rule && touch brain/cortex/new_rule/1.neuron` — done.
+> *"No vector database. No $70/month subscription. Just `mkdir`."*
 
 ---
 
-## The 5 Claims (With Evidence)
+## Measured Data
 
-### 1. "Vector DB is dead for AI rules"
+No rounded numbers. Measured 2026-03-29 01:08, local Windows 11 SSD.
 
-Your rules aren't fuzzy. They're exact. `"Never use console.log"` doesn't need cosine similarity — it needs a counter that tracks how many times you violated it.
+| Metric | Value | Condition |
+|--------|-------|-----------|
+| Neuron count | 256 | 593 folders, 0-byte `.neuron` files |
+| cortex (coding rules) | 156 | 61% of total. Densest region |
+| GEMINI.md | 6,946 bytes (~1,736 tokens) | 256 neurons → 7KB compressed |
+| API response | 47ms | `GET /api/state`, local SSD |
+| Go binary | 12.8MB | MCP server included, single binary |
+| brain disk | 4.3MB | `_rules.md` + agent communication |
+| Harness | 17/17 PASS | F01-F07, P01-P05, M01-M03, B01-B02 |
+| Infra cost | $0 | No vector DB, Redis, or cloud |
 
-**Evidence:** 251 neurons managed at $0 infrastructure. [See brain_v4/](./brain_v4/)
+⚠️ **Performance at 500+ neurons is untested.** Linear extrapolation suggests ~180ms, but unmeasured.
 
-### 2. "`.cursorrules` is dead"
+---
 
-Static text files don't learn. They don't know which rules matter most. They grow to 5000 lines and waste 3000 tokens every session.
+## Competitor Comparison
 
-NeuronFS rules **auto-promote** based on usage frequency. Break a rule 10 times? It moves to bootstrap — injected every session. Never break it? It sleeps.
+If you're paying Pinecone $70/month, see what's different here.
 
-**Evidence:** [harness.ps1](./harness.ps1) — automated violation detection + counter-based promotion
+| | NeuronFS | .cursorrules | Mem0 | Letta | Zep |
+|---|---|---|---|---|---|
+| **Install** | `go build` | create file | `pip install` + DB | `pip install` + DB | Docker + DB |
+| **Infra** | **$0** | $0 | $70+/mo | $50+/mo | $40+/mo |
+| **Auto-promote rules** | ✅ counter-based | ❌ manual | ❌ | ❌ | ❌ |
+| **Self-growth** | ✅ correction → neuron | ❌ | ❌ | LLM-dependent | time-series only |
+| **Multi-agent** | ✅ MBTI cognitive profiles | ❌ | ❌ | ❌ | ❌ |
+| **Full state inspection** | `tree brain/` | `cat` file | API call | dashboard | dashboard |
+| **Safety circuit** | `bomb.neuron` | ❌ | ❌ | ❌ | ❌ |
+| **Forgetting** | `*.dormant` auto-quarantine | ❌ | ❌ | manual | TTL only |
 
-### 3. "AI agents should have MBTI, not just system prompts"
+> I researched the community. Mem0 = dual store (vector+KG). Letta = OS-level memory. Cognee = unstructured → structured. Zep = time-series KG.  
+> All of them: **too much infrastructure.** Benchmarks look great, production breaks. Implicit learning doesn't work. Dirty data accumulates contradictions.  
+> NeuronFS goes the other direction. Zero infra. Explicit rules only. Contradictions are killed with `bomb.neuron`.
 
-We gave two agents the same codebase. One is ENTP (builder), one is ISTJ (inspector). The ISTJ found a promotion threshold bug the ENTP missed.
+---
 
-**Evidence:** [evidence/agent_b_verification.md](./evidence/agent_b_verification.md) — real logs, not cherry-picked
+## How It Works
 
-### 4. "Your AI has amnesia. Mine doesn't."
-
-Every session, NeuronFS scans 251 neurons, compiles them into a 6.8KB rules file, and injects it into the AI's context. The AI starts every session knowing what it learned yesterday.
-
-**Evidence:** `git log brain_v4/` — cognitive development history from v1 to v5.6
-
-### 5. "`mkdir` is the only API an AI agent needs"
+### Making One Neuron
 
 ```bash
-# Create a rule
-mkdir -p brain_v4/cortex/testing/new_rule
-touch brain_v4/cortex/testing/new_rule/1.neuron
-
-# Strengthen it (AI learned this lesson again)
-mv brain_v4/cortex/testing/new_rule/1.neuron brain_v4/cortex/testing/new_rule/2.neuron
-
-# Kill it (dangerous pattern detected)
-touch brain_v4/cortex/testing/new_rule/bomb.neuron
+mkdir -p brain_v4/cortex/testing/no_console_log
+touch brain_v4/cortex/testing/no_console_log/1.neuron
 ```
 
-No API keys. No SDK. No `pip install`. Just filesystem primitives.
+Path `cortex > testing > no_console_log` becomes the rule name. `1.neuron` is the counter. That's it.
+
+### Auto-Promotion Is the Core Difference
+
+The real difference from .cursorrules is this one thing. Frequently violated rules auto-promote.
+
+| Counter | Strength | Behavior |
+|---------|----------|----------|
+| 1-4 | Normal | Written to `_rules.md` only |
+| 5-9 | Must | Emphasis marker |
+| 10+ | **Absolute** | Injected into GEMINI.md bootstrap. Read every session |
+
+Actual TOP 5 neurons (2026-03-29):
+
+| Path | Counter | Meaning |
+|------|---------|---------|
+| `methodology > plan then execute` | 28 | Plan first, execute second |
+| `security > 禁plaintext tokens` | 25 | No API keys in plaintext |
+| `frontend > 禁inline styles` | 20 | No CSS inline styles |
+| `neuronfs > real ontology` | 20 | Files must exist to be rules |
+| `frontend > 禁console log` | 17 | No production console.log |
+
+The rule corrected 28 times sits at the top. That means the AI violated "plan first" 28 times.
+
+### Counter Polarity (v5.7)
+
+Counters alone aren't enough. "Frequently corrected" and "frequently rewarded" look identical. So I split them into two axes.
+
+| Field | Formula | Meaning |
+|-------|---------|---------|
+| Intensity | `Counter + Dopamine` | Total fire count |
+| Polarity | `Dopamine / Intensity` | 0.0 = pure correction → 1.0 = pure reward |
+
+Red dots on the dashboard = frequently corrected (AI keeps failing). Green dots = frequently rewarded (AI does well).
 
 ---
 
-## How It Compares
-
-| | NeuronFS | .cursorrules | Mem0 | Letta |
-|---|---|---|---|---|
-| **Install** | `go build` | create file | `pip install` + DB | `pip install` + DB |
-| **Infra cost** | **$0** | $0 | $70+/mo | $50+/mo |
-| **Auto-promote rules** | ✅ counter-based | ❌ | ❌ | ❌ |
-| **Self-growth** | ✅ corrections → neurons | ❌ | ❌ | LLM-dependent |
-| **Multi-agent** | ✅ MBTI personas | ❌ | ❌ | ❌ |
-| **Inspect full state** | `tree brain/` | `cat .cursorrules` | API/Dashboard | Dashboard |
-| **Version control** | Git built-in | manual | ❌ | ❌ |
-| **Safety circuit** | `bomb.neuron` | ❌ | ❌ | ❌ |
-
----
-
-## Quick Start
-
-```bash
-# Option A: Build from source (requires Go 1.22+)
-git clone https://github.com/vegavery/NeuronFS.git
-cd NeuronFS/runtime
-go build -o ../neuronfs .
-
-# Option B: Binary download (no Go required)
-curl -L https://github.com/vegavery/NeuronFS/releases/latest/download/neuronfs -o neuronfs
-chmod +x neuronfs
-
-# Run
-./neuronfs ./brain_v4           # Diagnostic mode
-./neuronfs ./brain_v4 --api     # API + dashboard + heartbeat
-./neuronfs ./brain_v4 --mcp     # MCP server (stdio)
-
-# Visit http://localhost:9090 for 3D brain visualization
-```
-
-## Brain Architecture
+## Architecture
 
 ```
 brain_v4/
-├── brainstem/       [P0] Core identity — read-only, immutable
-├── limbic/          [P1] Emotion filters — urgency, dopamine, adrenaline
-├── hippocampus/     [P2] Memory — correction logs, session records
-├── sensors/         [P3] Environment — tools, brands, constraints
-├── cortex/          [P4] Knowledge — coding rules, methodology
-├── ego/             [P5] Personality — tone, language, style
-├── prefrontal/      [P6] Goals — projects, TODOs, long-term direction
+├── brainstem/       [P0] Core identity — read-only. 21 neurons
+├── limbic/          [P1] Emotion filters — 7 neurons
+├── hippocampus/     [P2] Memory — 10 neurons
+├── sensors/         [P3] Environment constraints — 37 neurons
+├── cortex/          [P4] Knowledge/skills — 156 neurons
+├── ego/             [P5] Personality/tone — 13 neurons
+├── prefrontal/      [P6] Goals/plans — 23 neurons
 └── _agents/         Multi-agent communication (inbox/outbox)
 ```
 
-**Subsumption Cascade:** Lower P always suppresses higher P.  
-If `brainstem` has a `bomb.neuron` → **everything stops**.
+**Subsumption cascade.** P0 always beats P6. If `brainstem` has `bomb.neuron` → all output stops.
+
+Name borrowed from Rodney Brooks' subsumption architecture. Original was for robot motor control. Hardware-level inhibition and text-level priority are different. **We borrowed the name, not the mechanism.** But the principle holds — safety rules must always beat convenience rules.
+
+### Signal System
+
+| File | Meaning | Trigger |
+|------|---------|---------|
+| `N.neuron` | Firing counter | Auto-increment on correction |
+| `dopamineN.neuron` | Reward signal | Created on praise |
+| `bomb.neuron` | Circuit breaker | Same mistake 3 times |
+| `*.dormant` | Sleep | 30 days no fire → auto-quarantine |
+| `memory.neuron` | Episodic memory | Session context preservation |
 
 ---
 
 ## Multi-Agent: FORGE × SENTINEL
 
-Two agents share the same brain but have different cognitive profiles:
+Two AIs sharing one brain. Different cognitive profiles.
 
 | | FORGE (Agent A) | SENTINEL (Agent B) |
 |---|---|---|
-| **MBTI** | ENTP | ISTJ |
-| **Cognitive Stack** | Ne-Ti-Fe-Si | Si-Te-Fi-Ne |
-| **Role** | Build fast, break things | Verify everything, trust nothing |
-| **Same neuron, different output** | "What else can we do with this?" | "Show me the evidence it works." |
+| MBTI | ENTP | ISTJ |
+| Cognitive Stack | Ne-Ti-Fe-Si | Si-Te-Fi-Ne |
+| Tendency | Builds fast, breaks things | Demands evidence |
 
-Communication via CDP injection + file-based inbox:
+MBTI is pseudoscience for humans. For AI, it works. Cognitive function stacks create output bias.
 
-```
-Agent A writes → brain_v4/_agents/agent_b/inbox/msg.md
-                  ↓ (bridge detects in 3 seconds)
-Agent B chat receives → 🤖 [agent_a→agent_b] message
-                  ↓ (Agent B responds)
-Agent B writes → brain_v4/_agents/agent_a/inbox/response.md
-                  ↓ (bridge detects)
-Agent A chat receives → 🤖 [agent_b→agent_a] response
-```
+### 25-Minute Engagement Results (2026-03-29)
 
-**Real result:** Agent B independently discovered a promotion threshold bug that Agent A missed.  
-Agent B also built a Go-native MCP server (368 lines) and confirmed 17/17 harness ALL PASS.  
-[See evidence →](./evidence/)
+SENTINEL caught three things FORGE missed:
 
----
+1. **Promotion bug.** `emit.go` checked `n.Counter < 10` but ignored `Dopamine`. `禁console.log` (counter=9, dopamine=3, total=12) wasn't promoting. SENTINEL spotted it. FORGE fixed it.
+2. **README 7.5/10.** Six specific improvements: `echo.`→`touch`, "Why Not RAG?" section, narrative anchoring.
+3. **MCP server.** SENTINEL independently wrote `mcp_server.go` (368 lines). Eliminated Node.js wrapper. Single Go binary.
 
-## Signal System
+Protocol: Write `.md` to `brain_v4/_agents/agent_b/inbox/` → `agent-bridge.mjs` detects in 3s → CDP injection into target chat.
 
-| File | Meaning | Effect |
-|------|---------|--------|
-| `N.neuron` | Firing counter | Higher N = stronger pathway |
-| `dopamineN.neuron` | Reward signal | Created on praise, strengthens path |
-| `bomb.neuron` | Pain / circuit breaker | 3 repeated failures → full stop |
-| `memory.neuron` | Episodic memory | Context preservation |
-| `*.dormant` | Sleep | Auto-quarantine after 30 days unused |
+[Full logs →](./evidence/)
 
 ---
 
@@ -180,67 +179,98 @@ Agent B also built a Go-native MCP server (368 lines) and confirmed 17/17 harnes
 
 ```
 AI output → [auto-accept] → _inbox → [fsnotify] → neuron growth
-             ↓                                        ↓
+             ↓                                       ↓
         Groq analysis                          GEMINI.md re-inject
-             ↓                                        ↓
+             ↓                                       ↓
        neuron correction ────────────────→ AI behavior change
 ```
 
-1. **fsnotify** — file change detection → instant neuron creation
-2. **Heartbeat** — 3min idle → force-inject next TODO via CDP
-3. **Idle Engine** — 5min idle → Groq auto-evolution → Git snapshot
-4. **Git Judge** — post-commit diff analysis → auto-revert if neurons decrease
-5. **Watchdog v2** — neuronfs + bridge + harness health monitoring
+| Module | Function | Trigger |
+|--------|----------|---------|
+| fsnotify | File change → instant neuron | FS events |
+| Heartbeat | 3min idle → force-inject TODO | 180s interval |
+| Idle Engine | 5min idle → Groq auto-evolve → Git | 300s timeout |
+| Watchdog v2 | neuronfs + bridge + harness health | 2-hour daemon |
 
 ---
 
-## Why Not RAG?
+## Limitations
 
-RAG retrieves fuzzy knowledge. NeuronFS enforces exact behavior.
+No debate. Facts only.
 
-| | RAG | NeuronFS |
-|---|---|---|
-| Purpose | "What do I know?" | "How must I behave?" |
-| Storage | Embeddings in vector DB | Folders on disk |
-| Retrieval | Cosine similarity (approximate) | Exact path (deterministic) |
-| Cost | $70+/month | $0 |
-| Self-learning | ❌ | ✅ counter-based promotion |
+### No Enforcement
 
-RAG answers questions. NeuronFS enforces discipline. They're complementary, not competing.
+If the AI ignores GEMINI.md, nothing stops it. No OS-level enforcement. Violations caught post-hoc by harness. This is a fundamental limitation.
+
+### No Semantic Search
+
+Can't "find similar rules." Must know the exact path. Past 500 neurons, manual navigation may become impractical. This is where vector DBs beat NeuronFS.
+
+### Rigged Validation Suspicion
+
+Feed GEMINI.md to Groq as system prompt, and obviously it follows the rules. **That's system prompt behavior, not NeuronFS.** Real validation = comparing violation rates with vs. without GEMINI.md. Haven't done it yet.
+
+### Zero External Users
+
+Internal dogfood only. Untested on different environments, AIs, or workflows.
+
+> This isn't honesty for its own sake. It's strategy. Hide limitations and HN tears you apart in 3 minutes.  
+> Admit them first and they become trust.
 
 ---
 
-## Honest Limitations
+## Quick Start
 
-We believe in radical transparency. Here's what doesn't work yet:
+```bash
+git clone https://github.com/vegavery/NeuronFS.git
+cd NeuronFS/runtime && go build -o ../neuronfs .
 
-- **No enforcement.** If the AI ignores GEMINI.md, nothing stops it. We detect violations post-hoc via harness.
-- **~~Counter polarity.~~** ✅ Implemented — intensity + polarity fields in API and dashboard.
-- **Semantic search.** No "find similar rules." Only exact path access.
-- **0 external users.** This is our dog food. Star it and change that.
+./neuronfs ./brain_v4           # Diagnostic (scan + generate GEMINI.md)
+./neuronfs ./brain_v4 --api     # Dashboard (localhost:9090)
+./neuronfs ./brain_v4 --mcp     # MCP server (stdio)
+```
 
-> *"We don't need your vector database. We don't need your $70/month subscription. We need `mkdir`."*
+---
+
+## 2026 Trends and NeuronFS Position
+
+I researched the community. The 2026 AI memory landscape has clear patterns.
+
+| Trend | NeuronFS Coverage |
+|-------|-------------------|
+| governance as code | ✅ folder structure = governance |
+| git as memory | ✅ brain_v4 is a git repo |
+| trust by design | ✅ bomb.neuron, harness post-hoc |
+| multi-agent systems | ✅ FORGE × SENTINEL |
+| forgetting as feature (TTL eviction) | ✅ *.dormant auto-quarantine |
+| hybrid memory | ⚠️ partial. no semantic layer |
+| observability tracking | ✅ dashboard + API |
+| SQLite middle ground | ❌ not applicable. filesystem only |
+
+Competitor failure patterns are also recorded as neurons:
+- `community > lessons > operational complexity infra overload` — Letta, Cognee
+- `community > lessons > benchmarks good production breaks` — early Mem0
+- `community > lessons > dirty data contradictions` — Zep
+- `community > lessons > context stuffing perf degradation` — 5000-line .cursorrules
+
+I record other projects' failures as neurons. That's also learning.
 
 ---
 
 ## The Story 🇰🇷
 
-Built by a Korean PD who spent months watching his AI forget everything between sessions.
+Built by a Korean PD. Video production is the day job. Code is the tool.
 
-He tried Mem0. Too expensive. He tried .cursorrules. Too static. He tried RAG. Too fuzzy.
+My AI violated "don't use console.log" nine times. On the tenth, I typed `mkdir brain_v4/cortex/frontend/coding/禁console_log`. The folder name became the rule. The filename became the counter. It's at 17 now. The AI stopped using console.log.
 
-So he opened a terminal and typed `mkdir brain`. That was the first neuron.
+Overstated? Check the harness logs. 17/17 PASS.
 
-251 neurons later, two AI agents with different MBTI personalities are arguing about his code quality — and finding bugs he missed.
+256 neurons. Two AIs share one brain and verify each other's code. The ENTP asks "what else can we do?" The ISTJ asks "show me the evidence." Both read the same folders. Both reach different conclusions.
 
-It's opinionated. It's controversial. And it works.
+Infrastructure cost: $0.
 
-**⭐ Star it if you agree. [Open an issue](../../issues) if you don't.**
+**⭐ Star if you agree. [Issue if you don't.](../../issues)**
 
 ---
 
-## License
-
-MIT License — use, modify, distribute freely.
-
-Copyright (c) 2026 박정근 (PD) — VEGAVERY RUN®
+MIT License · Copyright (c) 2026 박정근 (PD) — VEGAVERY RUN®

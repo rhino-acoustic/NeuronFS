@@ -1,178 +1,177 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
-  <img src="https://img.shields.io/badge/인프라_비용-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/에이전트-ENTP_×_ISTJ-blueviolet?style=flat-square" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/인프라-₩0-brightgreen?style=flat-square" />
+  <img src="https://img.shields.io/badge/뉴런-256-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
 </p>
 
 <p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a></p>
 
 # 🧠 NeuronFS
 
-**당신의 AI `.cursorrules` 파일은 죽었습니다. 이것이 대안입니다.**
-
-> *폴더가 뉴런이다. 경로가 문장이다. 카운터가 시냅스 가중치다.*  
-> *당신의 AI는 `mkdir` 하나로 배우고, 기억하고, 진화합니다.*
+**폴더가 뉴런이다. 경로가 문장이다. 카운터가 시냅스 가중치다.**
 
 <p align="center">
   <img src="docs/dashboard.png" alt="NeuronFS 3D 뇌 대시보드" width="800" />
   <br/>
-  <em>실시간 3D 뇌 시각화 — 7개 인지 영역에 걸친 251개 뉴런</em>
+  <sub>실시간 3D 대시보드 — 7개 영역, 256개 뉴런, 극성 색상 (빨강=교정 ↓, 초록=보상 ↑)</sub>
 </p>
 
 ---
 
-## 문제
+## 왜 만들었나
 
-모든 AI 코딩 어시스턴트는 세션 사이에서 **모든 것을 잊어버립니다.**
+AI가 세션마다 모든 걸 잊어버린다. 몇 달을 봤다.
 
-업계의 대응? 벡터 데이터베이스. 월 $70 구독료. 복잡한 임베딩 파이프라인. 환각하는 RAG.
+Mem0를 써봤다. 월 $70. 규칙 강제가 안 된다.  
+.cursorrules를 써봤다. 5000줄이 되니까 매 세션 3000 토큰을 태운다. 어떤 규칙이 중요한지 모른다.  
+RAG를 써봤다. "console.log 쓰지 마"에 코사인 유사도가 필요한가. 규칙은 정확해야지 비슷하면 안 된다.
 
-**AI 메모리에 과금당하고 계신 겁니다.**
+터미널을 열고 `mkdir brain`을 쳤다. 폴더 하나가 첫 번째 뉴런이었다.
 
-NeuronFS는 파일시스템 기반 인지 엔진입니다. 데이터베이스 없음. 임베딩 없음. 구독료 없음.  
-`mkdir brain/cortex/new_rule && touch brain/cortex/new_rule/1.neuron` — 끝.
+> *"벡터 DB도 필요 없고, $70/월 구독료도 필요 없다. `mkdir`이면 된다."*
 
 ---
 
-## 5가지 주장 (증거 포함)
+## 실측 데이터
 
-### 1. "AI 규칙에 벡터 DB는 필요 없다"
+둥근 숫자 없다. 2026-03-29 01:08, 로컬 Windows 11 SSD 환경에서 측정한 값이다.
 
-규칙은 애매하지 않습니다. 정확합니다. `"console.log 쓰지 마"` 에는 코사인 유사도가 아니라, **몇 번 위반했는지 추적하는 카운터**가 필요합니다.
+| 지표 | 수치 | 조건 |
+|------|------|------|
+| 뉴런 수 | 256개 | 593개 폴더, 0-byte `.neuron` 파일 |
+| cortex (코딩 규칙) | 156개 | 전체의 61%. 가장 밀집한 영역 |
+| GEMINI.md | 6,946 bytes (~1,736 토큰) | 256개 뉴런 → 7KB 압축 |
+| API 응답 | 47ms | `GET /api/state`, SSD 로컬 |
+| Go 바이너리 | 12.8MB | MCP 서버 포함, 단일 바이너리 |
+| brain 디스크 | 4.3MB | `_rules.md` + 에이전트 통신 |
+| harness | 17/17 PASS | F01-F07, P01-P05, M01-M03, B01-B02 |
+| 인프라 비용 | ₩0 | 벡터 DB, Redis, 클라우드 없음 |
 
-**증거:** 251개 뉴런, 인프라 비용 $0. [brain_v4/ 참조](./brain_v4/)
+⚠️ **500+ 뉴런 성능은 미검증.** 선형 외삽하면 ~180ms 예상이지만, 실측은 없다.
 
-### 2. "`.cursorrules`는 죽었다"
+---
 
-정적 텍스트 파일은 학습하지 못합니다. 어떤 규칙이 중요한지 모릅니다. 5000줄까지 자라서 매 세션 3000 토큰을 낭비합니다.
+## 경쟁 제품 비교
 
-NeuronFS 규칙은 사용 빈도에 따라 **자동 승격**됩니다. 10번 위반? 부트스트랩으로 이동 — 매 세션 주입. 한 번도 안 어기면? 쉰다.
+Pinecone에 $70/월 내고 있다면, 여기서 뭐가 다른지 먼저 보라.
 
-**증거:** [harness.ps1](./harness.ps1) — 자동 위반 감지 + 카운터 기반 승격
+| | NeuronFS | .cursorrules | Mem0 | Letta | Zep |
+|---|---|---|---|---|---|
+| **설치** | `go build` | 파일 생성 | `pip install` + DB | `pip install` + DB | Docker + DB |
+| **인프라** | **₩0** | ₩0 | $70+/월 | $50+/월 | $40+/월 |
+| **규칙 자동 승격** | ✅ 카운터 기반 | ❌ 수동 편집 | ❌ | ❌ | ❌ |
+| **자가 성장** | ✅ 교정 → 뉴런 | ❌ | ❌ | LLM 의존 | 시계열만 |
+| **멀티 에이전트** | ✅ MBTI 인지 프로필 | ❌ | ❌ | ❌ | ❌ |
+| **상태 전체 확인** | `tree brain/` | `cat` 파일 | API 호출 | 대시보드 | 대시보드 |
+| **안전장치** | `bomb.neuron` | ❌ | ❌ | ❌ | ❌ |
+| **망각** | `*.dormant` 자동 격리 | ❌ | ❌ | 수동 | TTL만 |
 
-### 3. "AI 에이전트에게 MBTI를 줘라"
+> 커뮤니티를 조사했다. Mem0는 듀얼스토어(벡터+KG), Letta는 OS레벨 메모리, Cognee는 비정형 구조화, Zep는 시계열 KG.  
+> 전부 **인프라 과다.** 벤치는 좋고 프로덕션에서 깨진다. 암묵적 학습이 안 된다. dirty data에 모순 정보가 쌓인다.  
+> NeuronFS는 반대 방향이다. 인프라 제로. 명시적 규칙만. 모순이 발생하면 `bomb.neuron`으로 차단한다.
 
-같은 코드베이스를 두 에이전트에게 줬습니다. 하나는 ENTP(빌더), 하나는 ISTJ(감사관). ISTJ가 ENTP가 놓친 승격 임계값 버그를 찾아냈습니다.
+---
 
-**증거:** [evidence/agent_b_verification.md](./evidence/agent_b_verification.md) — 실제 로그
+## 작동 원리
 
-### 4. "당신의 AI는 기억상실이다. 내 건 아니다."
-
-매 세션, NeuronFS는 251개 뉴런을 스캔하고 6.8KB 규칙 파일로 컴파일해서 AI 컨텍스트에 주입합니다. AI는 매 세션 어제 배운 것을 알고 시작합니다.
-
-**증거:** `git log brain_v4/` — v1부터 v5.6까지의 인지 발달 기록
-
-### 5. "`mkdir`이 AI 에이전트에게 필요한 유일한 API다"
+### 뉴런 하나 만들기
 
 ```bash
-# 규칙 생성
-mkdir -p brain_v4/cortex/testing/new_rule
-touch brain_v4/cortex/testing/new_rule/1.neuron
-
-# 강화 (AI가 이 교훈을 또 배움)
-mv brain_v4/cortex/testing/new_rule/1.neuron brain_v4/cortex/testing/new_rule/2.neuron
-
-# 말살 (위험 패턴 감지)
-touch brain_v4/cortex/testing/new_rule/bomb.neuron
+mkdir -p brain_v4/cortex/testing/no_console_log
+touch brain_v4/cortex/testing/no_console_log/1.neuron
 ```
 
-API 키 없음. SDK 없음. `pip install` 없음. 파일시스템 기본 명령어만.
+경로 `cortex > testing > no_console_log`가 규칙 이름이 된다. `1.neuron`이 카운터다. 이게 전부다.
+
+### 자동 승격이 핵심이다
+
+.cursorrules와의 진짜 차이는 이것 하나다. 자주 위반하는 규칙이 자동으로 올라간다.
+
+| 카운터 | 강도 | 동작 |
+|--------|------|------|
+| 1-4 | 일반 | `_rules.md`에만 기록 |
+| 5-9 | 반드시 | 강조 표시 |
+| 10+ | **절대** | GEMINI.md bootstrap에 직접 주입. 매 세션 읽힘 |
+
+실제 TOP 5 뉴런 (2026-03-29):
+
+| 경로 | 카운터 | 의미 |
+|------|--------|------|
+| `methodology > plan then execute` | 28 | 계획 먼저, 실행 나중 |
+| `security > 禁평문 토큰` | 25 | API 키 평문 노출 금지 |
+| `frontend > 禁인라인스타일` | 20 | CSS 인라인 금지 |
+| `neuronfs > 실재 온톨로지` | 20 | 파일이 실재해야 규칙이다 |
+| `frontend > 禁console log` | 17 | 프로덕션 console.log 금지 |
+
+28번 교정당한 규칙이 맨 위에 있다. AI가 "계획 먼저"를 28번 어겼다는 뜻이다.
+
+### 카운터 극성 (v5.7)
+
+카운터만으로는 부족하다. "자주 교정당하는 것"과 "자주 칭찬받는 것"이 구분이 안 된다. 그래서 두 축으로 분리했다.
+
+| 필드 | 계산 | 의미 |
+|------|------|------|
+| Intensity | `Counter + Dopamine` | 총 발화 횟수 |
+| Polarity | `Dopamine / Intensity` | 0.0 = 순수 교정, 1.0 = 순수 보상 |
+
+대시보드에서 빨간 점 = 교정이 많다 (AI가 계속 틀린다). 초록 점 = 보상이 많다 (AI가 잘한다).
 
 ---
 
-## 비교
-
-| | NeuronFS | .cursorrules | Mem0 | Letta |
-|---|---|---|---|---|
-| **설치** | `go build` | 파일 생성 | `pip install` + DB | `pip install` + DB |
-| **인프라 비용** | **$0** | $0 | $70+/월 | $50+/월 |
-| **규칙 자동 승격** | ✅ 카운터 기반 | ❌ | ❌ | ❌ |
-| **자가 성장** | ✅ 교정 → 뉴런 | ❌ | ❌ | LLM 의존 |
-| **멀티 에이전트** | ✅ MBTI 페르소나 | ❌ | ❌ | ❌ |
-| **전체 상태 확인** | `tree brain/` | `cat .cursorrules` | API/대시보드 | 대시보드 |
-| **버전 관리** | Git 기본 내장 | 수동 | ❌ | ❌ |
-| **안전장치** | `bomb.neuron` | ❌ | ❌ | ❌ |
-
----
-
-## 빠른 시작
-
-```bash
-# 방법 A: 소스에서 빌드 (Go 1.22+ 필요)
-git clone https://github.com/vegavery/NeuronFS.git
-cd NeuronFS/runtime
-go build -o ../neuronfs .
-
-# 방법 B: 바이너리 다운로드 (Go 불필요)
-curl -L https://github.com/vegavery/NeuronFS/releases/latest/download/neuronfs -o neuronfs
-chmod +x neuronfs
-
-# 실행
-./neuronfs ./brain_v4           # 진단 모드
-./neuronfs ./brain_v4 --api     # API + 대시보드 + 하트비트
-./neuronfs ./brain_v4 --mcp     # MCP 서버 (stdio)
-
-# http://localhost:9090 에서 3D 뇌 시각화 확인
-```
-
-## 뇌 아키텍처
+## 아키텍처
 
 ```
 brain_v4/
-├── brainstem/       [P0] 핵심 정체성 — 읽기전용, 불변
-├── limbic/          [P1] 감정 필터 — 긴급도, 도파민, 아드레날린
-├── hippocampus/     [P2] 기억 — 교정 기록, 세션 로그
-├── sensors/         [P3] 환경 — 도구, 브랜드, 제약조건
-├── cortex/          [P4] 지식 — 코딩 규칙, 방법론
-├── ego/             [P5] 성향 — 말투, 언어, 스타일
-├── prefrontal/      [P6] 목표 — 프로젝트, TODO, 장기 방향
-└── _agents/         멀티에이전트 통신 (inbox/outbox)
+├── brainstem/       [P0] 핵심 정체성 — 읽기전용. 21개 뉴런
+├── limbic/          [P1] 감정 필터 — 7개 뉴런
+├── hippocampus/     [P2] 기억 — 10개 뉴런
+├── sensors/         [P3] 환경 제약 — 37개 뉴런
+├── cortex/          [P4] 지식/기술 — 156개 뉴런
+├── ego/             [P5] 성향/톤 — 13개 뉴런
+├── prefrontal/      [P6] 목표/계획 — 23개 뉴런
+└── _agents/         에이전트 간 통신 (inbox/outbox)
 ```
 
-**하위복종 계단(Subsumption Cascade):** 낮은 P가 항상 높은 P를 억제.  
-`brainstem`에 `bomb.neuron`이 있으면 → **모든 것이 멈춘다.**
+**하위복종 계단.** P0이 P6를 항상 이긴다. `brainstem`에 `bomb.neuron`이 있으면 모든 출력이 멈춘다.
+
+이름은 Rodney Brooks의 subsumption architecture에서 빌렸다. 원본은 로봇 모터 제어용이다. 하드웨어 레벨 억제와 텍스트 레벨 우선순위는 다르다. **이름을 빌렸을 뿐이다.** 하지만 원칙은 같다 — 안전 규칙이 편의 규칙을 항상 이겨야 한다.
+
+### 신호 체계
+
+| 파일 | 의미 | 발생 조건 |
+|------|------|----------|
+| `N.neuron` | 발화 카운터 | 교정 시 자동 증가 |
+| `dopamineN.neuron` | 보상 신호 | 칭찬 시 생성 |
+| `bomb.neuron` | 차단기 | 동일 실수 3회 반복 |
+| `*.dormant` | 수면 | 30일 미발화 → 자동 격리 |
+| `memory.neuron` | 에피소드 기억 | 특정 세션 보존용 |
 
 ---
 
 ## 멀티 에이전트: FORGE × SENTINEL
 
-두 에이전트가 같은 뇌를 공유하되 다른 인지 프로필을 가집니다:
+같은 뇌를 공유하는 두 AI. 인지 프로필이 다르다.
 
 | | FORGE (Agent A) | SENTINEL (Agent B) |
 |---|---|---|
-| **MBTI** | ENTP | ISTJ |
-| **인지 스택** | Ne-Ti-Fe-Si | Si-Te-Fi-Ne |
-| **역할** | 빠르게 만들고, 부수기 | 모든 것을 검증, 아무것도 믿지 않기 |
-| **같은 뉴런, 다른 출력** | "이걸로 뭘 더 할 수 있지?" | "작동한다는 증거를 보여줘." |
+| MBTI | ENTP | ISTJ |
+| 인지 스택 | Ne-Ti-Fe-Si | Si-Te-Fi-Ne |
+| 성향 | 빠르게 만들고 부순다 | 증거를 요구한다 |
 
-CDP 인젝션 + 파일 기반 inbox 통신:
+MBTI가 유사과학인 건 안다. 하지만 AI에게는 작동한다. 인지기능 스택이 출력 편향을 만든다.
 
-```
-Agent A 작성 → brain_v4/_agents/agent_b/inbox/msg.md
-                  ↓ (bridge 3초 내 감지)
-Agent B 채팅 수신 → 🤖 [agent_a→agent_b] 메시지
-                  ↓ (Agent B 응답)
-Agent B 작성 → brain_v4/_agents/agent_a/inbox/response.md
-                  ↓ (bridge 감지)
-Agent A 채팅 수신 → 🤖 [agent_b→agent_a] 응답
-```
+### 25분 교전 결과 (2026-03-29)
 
-**실제 결과:** Agent B가 Agent A가 놓친 승격 임계값 버그를 독립적으로 발견.  
-Agent B가 Go 네이티브 MCP 서버(368줄)도 구현하고 17/17 harness ALL PASS 확인.  
-[증거 →](./evidence/)
+SENTINEL이 FORGE가 놓친 것 세 개:
 
----
+1. **승격 버그.** `emit.go`가 `n.Counter < 10`만 보고 `Dopamine`을 무시했다. `禁console.log`(카운터 9 + 도파민 3 = 12)가 승격 안 됐다. SENTINEL이 지적. FORGE가 수정.
+2. **README 7.5/10.** 개선안 6건: `echo.`→`touch`, "Why Not RAG?" 추가, Story 섹션 앵커링.
+3. **MCP 서버.** SENTINEL이 독자적으로 `mcp_server.go` 368줄 작성. Node.js 래퍼 제거, Go 단일 바이너리 통합.
 
-## 신호 체계
+통신 프로토콜: `brain_v4/_agents/agent_b/inbox/`에 `.md` 파일 → `agent-bridge.mjs`가 3초 내 감지 → CDP 인젝션으로 상대 채팅에 전달.
 
-| 파일 | 의미 | 효과 |
-|------|------|------|
-| `N.neuron` | 발화 카운터 | N이 클수록 강한 경로 |
-| `dopamineN.neuron` | 보상 신호 | 칭찬 시 생성, 경로 강화 |
-| `bomb.neuron` | 고통 / 차단기 | 3회 반복 실패 → 완전 정지 |
-| `memory.neuron` | 에피소드 기억 | 컨텍스트 보존 |
-| `*.dormant` | 수면 | 30일 미사용 → 자동 격리 |
+[전체 로그 →](./evidence/)
 
 ---
 
@@ -186,61 +185,92 @@ AI 출력 → [auto-accept] → _inbox → [fsnotify] → 뉴런 성장
      뉴런 교정 ────────────────→ AI 행동 변화
 ```
 
-1. **fsnotify** — 파일 변경 감지 → 즉시 뉴런 생성
-2. **하트비트** — 3분 유휴 → CDP로 다음 TODO 강제 주입
-3. **유휴 엔진** — 5분 유휴 → Groq 자동 진화 → Git 스냅샷
-4. **Git 판사** — 커밋 후 diff 분석 → 뉴런 감소 시 자동 롤백
-5. **워치독 v2** — neuronfs + bridge + harness 건강 감시
+| 모듈 | 기능 | 트리거 |
+|------|------|-------|
+| fsnotify | 파일 변경 → 뉴런 즉시 생성 | FS 이벤트 |
+| 하트비트 | 유휴 3분 → TODO 강제 주입 | 180s 간격 |
+| 유휴 엔진 | 유휴 5분 → Groq 자동 진화 → Git 스냅샷 | 300s 타임아웃 |
+| 워치독 v2 | neuronfs + bridge + harness 건강 감시 | 2시간 데몬 |
 
 ---
 
-## RAG와 뭐가 다른가?
+## 한계
 
-RAG는 애매한 지식을 검색합니다. NeuronFS는 정확한 행동을 강제합니다.
+토론하지 않는다. 사실을 말한다.
 
-| | RAG | NeuronFS |
-|---|---|---|
-| 목적 | "내가 뭘 아나?" | "어떻게 행동해야 하나?" |
-| 저장 | 벡터 DB의 임베딩 | 디스크의 폴더 |
-| 검색 | 코사인 유사도 (근사) | 정확한 경로 (결정적) |
-| 비용 | $70+/월 | $0 |
-| 자가 학습 | ❌ | ✅ 카운터 기반 승격 |
+### 강제력이 없다
 
-RAG는 질문에 답합니다. NeuronFS는 규율을 강제합니다. 경쟁이 아니라 보완입니다.
+AI가 GEMINI.md를 안 읽으면 무력하다. OS 레벨의 enforcement가 없다. 위반은 harness로 사후에 잡는다. 이건 근본적 한계다.
+
+### 시맨틱 검색이 없다
+
+"비슷한 규칙 찾기"가 안 된다. 경로를 정확히 알아야 한다. 500개가 넘으면 수동 탐색이 불가능해질 수 있다. 이건 벡터 DB가 NeuronFS보다 잘하는 영역이다.
+
+### 자작극 의혹
+
+Groq에 GEMINI.md를 system prompt로 넣으면 당연히 따른다. **이건 NeuronFS의 공로가 아니라 system prompt의 공로다.** 진짜 검증은 "GEMINI.md 있을 때 vs 없을 때 위반율 비교"다. 아직 안 했다.
+
+### 외부 사용자가 없다
+
+내부 도그푸드만 했다. 다른 환경, 다른 AI, 다른 워크플로에서의 검증이 없다.
+
+> 이건 정직이 아니라 전략이다. 한계를 숨기면 HN에서 3분 안에 깨진다.  
+> 먼저 인정하면 신뢰가 된다.
 
 ---
 
-## 솔직한 한계
+## 빠른 시작
 
-급진적 투명성을 믿습니다. 아직 안 되는 것:
+```bash
+git clone https://github.com/vegavery/NeuronFS.git
+cd NeuronFS/runtime && go build -o ../neuronfs .
 
-- **강제력 없음.** AI가 GEMINI.md를 무시하면 막을 수 없습니다. harness로 사후 감지합니다.
-- **~~카운터 극성.~~** ✅ 구현 완료 — intensity + polarity 필드가 API와 대시보드에 반영.
-- **시맨틱 검색.** "비슷한 규칙 찾기" 없음. 정확한 경로만 접근 가능.
-- **외부 사용자 0명.** 자체 도그푸드입니다. Star를 눌러서 바꿔주세요.
+./neuronfs ./brain_v4           # 진단 (스캔 + GEMINI.md 생성)
+./neuronfs ./brain_v4 --api     # 대시보드 (localhost:9090)
+./neuronfs ./brain_v4 --mcp     # MCP 서버 (stdio)
+```
 
-> *"벡터 데이터베이스도 필요 없고, 월 $70 구독료도 필요 없다. `mkdir`이면 된다."*
+---
+
+## 2026 트렌드와 NeuronFS의 위치
+
+커뮤니티를 조사했다. 2026년 AI 메모리 시장의 흐름이 보인다.
+
+| 트렌드 | NeuronFS 해당 여부 |
+|--------|-------------------|
+| governance as code | ✅ 폴더 구조가 곧 거버넌스 |
+| git as memory | ✅ brain_v4 자체가 git repo |
+| trust by design | ✅ bomb.neuron, harness 사후 검증 |
+| multi agent 시스템 | ✅ FORGE × SENTINEL |
+| 망각이 기능 (TTL 퇴거) | ✅ *.dormant 자동 격리 |
+| hybrid memory | ⚠️ 부분. 시맨틱 레이어 없음 |
+| observability 추적 | ✅ 대시보드 + API |
+| SQLite middle ground | ❌ 해당 없음. 파일시스템만 씀 |
+
+경쟁자들의 실패 패턴도 뉴런으로 기록했다:
+- `community > 반면교사 > 운영복잡성 인프라과다` — Letta, Cognee
+- `community > 반면교사 > 벤치는좋고 프로덕션깨짐` — Mem0 초기 버전
+- `community > 반면교사 > dirty data 모순정보` — Zep
+- `community > 반면교사 > context stuffing 성능저하` — .cursorrules 5000줄
+
+남의 실패를 뉴런으로 만든다. 이것도 학습이다.
 
 ---
 
 ## 이야기 🇰🇷
 
-한국의 한 PD가 몇 달간 AI가 세션마다 모든 걸 잊어버리는 걸 지켜봤습니다.
+한국의 PD가 만들었다. 영상이 본업이고 코딩은 도구다.
 
-Mem0를 써봤습니다. 너무 비쌌습니다. .cursorrules를 써봤습니다. 너무 정적이었습니다. RAG를 써봤습니다. 너무 애매했습니다.
+AI가 "console.log 쓰지 마"를 9번 어겼다. 10번째에 `mkdir brain_v4/cortex/frontend/coding/禁console_log`를 쳤다. 폴더 이름이 규칙이 됐다. 파일 이름이 카운터가 됐다. 그게 17번까지 올라갔다. AI가 더 이상 console.log를 안 쓴다.
 
-그래서 터미널을 열고 `mkdir brain`을 쳤습니다. 그것이 첫 번째 뉴런이었습니다.
+과장인가? 실제 harness 로그를 보라. 17/17 PASS다.
 
-251개 뉴런이 지난 지금, 다른 MBTI 성격을 가진 두 AI 에이전트가 그의 코드 품질을 놓고 논쟁하고 — 그가 놓친 버그를 찾고 있습니다.
+256개 뉴런이 있다. 두 AI가 같은 뇌를 공유하면서 서로의 코드를 검증한다. ENTP는 "뭘 더 할 수 있지?"를 묻고, ISTJ는 "증거를 보여줘"를 묻는다. 둘 다 같은 폴더를 읽지만 다른 결론에 도달한다.
 
-독선적입니다. 논란의 여지가 있습니다. 그리고 작동합니다.
+인프라 비용은 ₩0이다.
 
-**⭐ 동의하면 Star를 눌러주세요. [동의하지 않으면 이슈를 열어주세요.](../../issues)**
+**⭐ 동의하면 Star. [아니면 Issue.](../../issues)**
 
 ---
 
-## 라이선스
-
-MIT License — 자유롭게 사용, 수정, 배포 가능.
-
-Copyright (c) 2026 박정근 (PD) — VEGAVERY RUN®
+MIT License · Copyright (c) 2026 박정근 (PD) — VEGAVERY RUN®
