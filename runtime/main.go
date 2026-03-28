@@ -1669,7 +1669,7 @@ func runHeartbeatLoop(brainRoot string) {
 	consecutiveIdle := 0 // 연속 idle 횟수
 
 	for {
-		time.Sleep(60 * time.Second) // 1분마다 확인
+		time.Sleep(30 * time.Second) // 30초마다 확인 (빠른 반응)
 
 		// CDP probe로 AI 출력 활동 확인 (2초 간 텍스트 변화 감지)
 		probeActive := true // 기본값: 활동 중 (안전 폴백)
@@ -1699,10 +1699,8 @@ func runHeartbeatLoop(brainRoot string) {
 		}
 
 		consecutiveIdle++
-		// 연속 2회 이상 idle이면 (= 2분 이상 출력 없음) AI 정지로 판단
-		if consecutiveIdle < 2 {
-			continue
-		}
+		// 1회 idle이면 (= 30초+ 출력 없음) AI 정지로 판단하고 즉시 주입
+		// probe 자체가 2초 관찰하므로 false positive 가능성 낮음
 
 		// 다음 작업(Todo) 하나를 집어온다
 		var nextTask string
