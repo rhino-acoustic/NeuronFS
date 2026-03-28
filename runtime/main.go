@@ -1498,18 +1498,51 @@ func runIdleLoop(brainRoot string) {
 	}
 }
 
-// runHeartbeatLoop writes a timestamp to _inbox/heartbeat.json every 60 seconds
-// Acts as a verifiable pulse for the multi-agent / autopilot system.
+// runHeartbeatLoop drives the conscious mind (AI) forward without human input.
+// It scans prefrontal/todo and injects the next task into the chat input,
+// forcing the AI to work continuously (Boil the Lake pattern).
 func runHeartbeatLoop(brainRoot string) {
-	hbPath := filepath.Join(brainRoot, "_inbox", "heartbeat.json")
+	pulseScript := filepath.Join(filepath.Dir(brainRoot), "runtime", "pulse.ps1")
+	todoDir := filepath.Join(brainRoot, "prefrontal", "todo")
+
 	for {
-		data := fmt.Sprintf(`{"status":"alive", "ts":"%s", "activity_min_ago":%d}`, 
-			time.Now().Format("2006-01-02T15:04:05"),
-			int(time.Since(getLastActivity()).Minutes()),
-		)
-		os.MkdirAll(filepath.Dir(hbPath), 0755)
-		os.WriteFile(hbPath, []byte(data), 0644)
-		time.Sleep(60 * time.Second)
+		time.Sleep(60 * time.Second) // 1분마다 휴식 여부 확인
+
+		lastAct := getLastActivity()
+		idleDuration := time.Since(lastAct)
+
+		// 3분 이상 아무 입력(API/채팅)이 없었다면 AI가 멈춘 것으로 판단하고 강제 주입
+		if idleDuration > 3 * time.Minute {
+			// 다음 작업(Todo) 하나를 집어온다
+			var nextTask string
+			filepath.Walk(todoDir, func(path string, info os.FileInfo, err error) error {
+				if err != nil || !info.IsDir() || path == todoDir {
+					return nil
+				}
+				// dormant 상태면 제외
+				if _, err := os.Stat(filepath.Join(path, "decay.dormant")); err == nil {
+					return nil
+				}
+				nextTask = filepath.Base(path)
+				return filepath.SkipDir // 하나 찾으면 종료
+			})
+
+			if nextTask != "" {
+				// 주입 프롬프트 생성 (시스템 룰과 한국어 강제)
+				prompt := fmt.Sprintf("[%s] 유휴 상태 감지됨. 다음 할 일 '%s'을(를) 즉시 분석 및 실행하고 보고할 것.", 
+					time.Now().Format("15:04"), nextTask)
+				fmt.Printf("[HEARTBEAT] ⚡ AI 강제 기상 및 주입: %s\n", nextTask)
+				
+				// pulse.ps1을 호출해 실제 입력창에 타이핑 후 엔터 (UI 자동화)
+				// 또는 n8n 웹훅 등 원하는 엔드포인트에 쏴줌
+				cmd := exec.Command("powershell", "-ExecutionPolicy", "Bypass", "-File", pulseScript, prompt)
+				if err := cmd.Run(); err != nil {
+					fmt.Printf("[HEARTBEAT] ⚠️ SendKey failed: %v\n", err)
+				}
+				// 과도한 연속 주입 방지를 위해 Activity 갱신 (의사-입력)
+				touchActivity()
+			}
+		}
 	}
 }
 

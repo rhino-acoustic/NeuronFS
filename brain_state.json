@@ -1,9 +1,9 @@
 {
-  "generated": "2026-03-28T22:17:31",
+  "generated": "2026-03-28T22:22:15",
   "brainPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "totalNeurons": 194,
-  "firedNeurons": 194,
-  "totalCounter": 213,
+  "totalNeurons": 196,
+  "firedNeurons": 196,
+  "totalCounter": 219,
   "regions": [
     {
       "name": "brainstem",
@@ -619,6 +619,12 @@
           "dopamine": 0
         },
         {
+          "path": "methodology\\로컬깃_생활화",
+          "counter": 3,
+          "depth": 1,
+          "dopamine": 0
+        },
+        {
           "path": "methodology\\부정프롬프트가_효과적",
           "counter": 1,
           "depth": 1,
@@ -889,6 +895,12 @@
           "dopamine": 0
         },
         {
+          "path": "neuronfs\\runtime\\도파민_로그",
+          "counter": 1,
+          "depth": 2,
+          "dopamine": 0
+        },
+        {
           "path": "neuronfs\\runtime\\스캐너_트리읽기",
           "counter": 1,
           "depth": 2,
@@ -1112,7 +1124,7 @@
         },
         {
           "path": "한국어로_사고하고_응답",
-          "counter": 2,
+          "counter": 4,
           "depth": 0,
           "dopamine": 0
         }
