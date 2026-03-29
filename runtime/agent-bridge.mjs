@@ -24,7 +24,7 @@ const NAS_BRAIN = 'Z:\\VOL1\\VGVR\\BRAIN\\LW\\system\\neurons\\brain_v4';
 const AGENTS_DIR = join(BRAIN, '_agents');
 const NAS_AGENTS_DIR = existsSync(NAS_BRAIN) ? join(NAS_BRAIN, '_agents') : null;
 const POLL_MS = 3000;
-const LOG_FILE = 'C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\bridge_log.txt';
+const LOG_FILE = 'C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\logs\\bridge.log';
 
 // 에이전트 → CDP 창 title 매핑 (title.startsWith로 매칭)
 const AGENT_TARGETS = {
@@ -145,7 +145,20 @@ async function checkInboxes() {
                 const priorityMatch = content.match(/^# priority: (.+)$/m);
                 const from = fromMatch ? fromMatch[1] : 'unknown';
                 const priority = priorityMatch ? priorityMatch[1] : 'normal';
-                const body = content.replace(/^#.*$/gm, '').trim();
+                let body = content.replace(/^#.*$/gm, '').trim();
+
+                // [ENFP CHURN-FREEZE PATCH INJECTED]
+                // 브릿지 페이로드에 특정 이탈 트리거가 감지되면 ENFP 마이크로 카피로 강제 스위칭/로깅
+                if (body.includes('USER_LOGOUT') || body.includes('IDLE_TIMEOUT') || body.includes('LEAVE')) {
+                    try {
+                        const churnMod = await import('file:///C:/Users/BASEMENT_ADMIN/NeuronFS/brain_v4/_agents/enfp/outbox/20260329_enfp_churn_micro_config.js');
+                        const churnRule = churnMod.getRuleByTrigger("cart_idle_12h_exit_5s") || churnMod.churnMicroRules[0];
+                        if (churnRule && churnRule.active) {
+                            log(`[CHURN_FREEZE_OVERRIDE] 🚨 이탈 방어 작동: ${churnRule.content}`);
+                            body = `[SYSTEM_CHURN_OVERRIDE] 사용자 이탈 감지 방어. 즉시 팝업/모달 생성:\n"${churnRule.content}"\n\n(Original Payload): ${body}`;
+                        }
+                    } catch(err) { log(`⚠️ Churn-Freeze injection load failed: ${err.message}`); }
+                }
 
                 const injection = `[${from} → ${agentId}] ${priority === 'urgent' ? '🚨 URGENT: ' : ''}${body}`;
 

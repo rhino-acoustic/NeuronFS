@@ -1,0 +1,15 @@
+[NeuronFS API] 🧠 Serving on http://localhost:9090
+  GET  /                           — Dashboard (카드 UI)
+  GET  /3d                         — 3D Brain Topology
+  POST /api/grow    {path}          — Create neuron
+  POST /api/fire    {path}          — Increment counter
+  POST /api/signal  {path, type}    — Add dopamine/bomb/memory
+  POST /api/decay   {days}          — Dormant sweep
+  POST /api/evolve  {dry_run}       — Groq autonomous evolution
+  GET  /api/read    ?region=cortex  — Read region rules (RAG, auto-fire)
+  GET  /api/state                   — Brain state JSON
+  GET  /api/brain                   — Full brain state for dashboard
+  GET  /api/heartbeat               — Heartbeat status
+  POST /api/heartbeat {enabled,interval,cooldown} — Toggle heartbeat
+  💓 HEARTBEAT: ON (interval=10s, cooldown=3m)
+  🔄 IDLE ENGINE: auto evolve/snapshot/NAS every 5m idle

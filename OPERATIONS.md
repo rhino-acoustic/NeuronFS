@@ -2,8 +2,8 @@
 
 > **SSOT** — 이 문서가 NeuronFS 시스템의 유일한 진실.  
 > **위치** — 코드와 함께 Git 추적. 세션 간 유실 없음.  
-> **최종 갱신** — 2026-03-29 21:30 KST  
-> **현재 상태** — 305 neurons | 427 activation | NOMINAL
+> **최종 갱신** — 2026-03-29 22:04 KST  
+> **현재 상태** — 314 neurons | 453 activation | NOMINAL
 
 ---
 
@@ -72,29 +72,52 @@ P6 prefrontal    목표/계획     주~월 단위    인간 설정
 run-auto-accept.bat
 ├── Antigravity (CDP port 9000)
 ├── auto-accept.mjs              ← CDP 자동 수락 + Groq 분석
-├── neuronfs --api               ← Dashboard + REST API (9090)
-├── neuronfs --watch             ← brain_v4 감시 + brain_state.json 갱신
-├── agent-bridge.mjs             ← CDP 에이전트 브릿지
-├── bot-heartbeat.mjs            ← 유휴 감지 + Groq 진화
-└── robocopy /MIR                ← 로컬 → NAS 동기화
+├── neuronfs --api               ← Dashboard + REST API (:9090)
+├── neuronfs --watch             ← brain_v4 감시 + processInbox + emit
+├── agent-bridge.mjs             ← 에이전트 inbox 폴링 (3초)
+├── bot-heartbeat.mjs            ← 봇 idle 감지 + CDP kickstart (30초)
+├── watchdog.ps1                 ← 전체 프로세스 생존 감시 (30초)
+├── robocopy /MIR                ← 로컬 → NAS 동기화 (5초)
+└── kickstart.mjs                ← 부팅 시 1회 에이전트 초기화
 ```
 
-### ⚠️ start_brain.bat 주의
+### 프로세스 역할 상세
 
-`start_brain.bat`은 `cd /d "%~dp0runtime"` 후 `neuronfs.exe` 실행.  
-**빌드 후 반드시 runtime/neuronfs.exe에도 복사해야 함.**
+| 프로세스 | 언어 | 역할 | 주기 |
+|----------|------|------|------|
+| **neuronfs --watch** | Go | fsnotify 감시 → processInbox → emit | 이벤트 |
+| **neuronfs --api** | Go | 대시보드 + REST API | HTTP 요청 시 |
+| **auto-accept.mjs** | Node | CDP로 봇 버튼 자동 클릭 | 이벤트 |
+| **agent-bridge.mjs** | Node | `_agents/{bot}/inbox/` 폴링 → API 전달 | 3초 |
+| **bot-heartbeat.mjs** | Node | 봇 idle 감지 → CDP kickstart | 30초 |
+| **watchdog.ps1** | PS | 프로세스 사망 감시 + harness 10분 주기 | 30초 루프 |
 
-```powershell
-# 빌드 후 양쪽 exe 동기화
-go build -o "NeuronFS\neuronfs.exe" .
-Copy-Item "NeuronFS\neuronfs.exe" "NeuronFS\runtime\neuronfs.exe"
+### 통신 구조
+
+**인프라 0원 원칙: 파일시스템이 유일한 IPC**
+
+```
+PD 교정 → AI가 corrections.jsonl 기록 (로컬 _inbox/)
+  → fsnotify 감지 → processInbox()
+  → 뉴런 디렉토리 생성 or fire
+  → writeAllTiers() → GEMINI.md + _rules.md 갱신
+
+watchdog 30초 루프:
+  1. neuronfs/bridge/heartbeat 사망? → 자동 재시작
+  2. harness 10분마다 실행 → 위반 시 bot1/inbox에 알림
+  3. heartbeat 1분 로그 (전체 상태 원라인)
+
+에이전트 간 통신:
+  brain_v4/_agents/{name}/inbox/   ← 수신
+  brain_v4/_agents/{name}/outbox/  ← 송신
+  watchdog → bot1/inbox/ (harness 위반 알림)
 ```
 
 ### API 엔드포인트
 
 | Method | Path | 소스 |
 |--------|------|------|
-| GET | `/api/state` | **brain_state.json 파일 읽기** (실시간 아님!) |
+| GET | `/api/state` | **brain_state.json 파일 읽기** (실시간 아님) |
 | GET | `/api/brain` | `scanBrain()` 실시간 |
 | POST | `/api/grow` | 뉴런 디렉토리 생성 |
 | POST | `/api/fire` | 카운터 증가 |
@@ -103,6 +126,15 @@ Copy-Item "NeuronFS\neuronfs.exe" "NeuronFS\runtime\neuronfs.exe"
 
 > `/api/state`는 `--watch` 모드가 갱신하는 brain_state.json을 그대로 반환.  
 > 새 빌드 후 watch 프로세스도 재시작해야 API 값이 갱신됨.
+
+### ⚠️ start_brain.bat 주의
+
+**빌드 후 반드시 runtime/neuronfs.exe에도 복사해야 함.**
+
+```powershell
+go build -o "NeuronFS\neuronfs.exe" .
+Copy-Item "NeuronFS\neuronfs.exe" "NeuronFS\runtime\neuronfs.exe"
+```
 
 ---
 
@@ -203,26 +235,91 @@ $path = "Z:\VOL1\VGVR\BRAIN\...\corrections.jsonl"  # 이러면 안 됨
 ### 2026-03-29: 뉴런 251→40→89→305 복구
 
 **증상:** API totalNeurons=40으로 감소  
-**1차 오진:** main.go의 `.neuron` 필수 조건 때문이라 판단 → 코드 수정  
-**2차 오진:** `.neuron` 마커 파일 소실이라 판단 → 마커 263개 생성  
+**1차 오진:** main.go의 `.neuron` 필수 조건 때문이라 판단  
+**2차 오진:** `.neuron` 마커 파일 소실이라 판단  
 **진짜 원인:**
 1. `.gitignore`에 `brain_v4/` 포함 → Git 미추적 → 디렉토리 소실
 2. main.go에서 `.neuron` 없는 폴더를 스킵 → Axiom 위반
 
 **해결:**
 1. main.go 수정: 디렉토리 자체를 뉴런으로 인식
-2. `/api/grow`로 260개 경로 복원 (Go 스크립트)
+2. `/api/grow`로 260개 경로 복원
 3. `.gitignore`에서 `brain_v4/` 제거
-4. brain_v4 전체 Git 커밋
 
-**교훈:**
-- 감사 시 `.gitignore` 반드시 확인
-- 증상(카운트 부족) 아닌 원인(데이터 보호) 먼저 추적
-- **디렉토리가 뉴런** — 이 Axiom을 혼동하지 않음
+**교훈:** 감사 시 `.gitignore` 반드시 확인. 디렉토리가 뉴런.
+
+### 2026-03-29: corrections.jsonl NAS 기록 사고
+
+**증상:** corrections.jsonl에 교정 기록했는데 processInbox 미작동  
+**원인:** corrections.jsonl을 NAS(`Z:\...`)에 직접 기록.  
+`--watch`는 로컬 brain_v4를 감시하므로 NAS의 변경을 감지하지 못함.  
+**해결:** 모든 쓰기를 로컬 경로로 통일. sensors/nas에 `禁NAS직접쓰기_로컬만` 뉴런 등록.
+
+### 2026-03-29: `--watch` NAS 경로 연결 (run-auto-accept.bat L106)
+
+**증상:** NAS 존재 시 `--watch`가 NAS 경로로 실행됨  
+**영향:** AI가 로컬에 쓴 corrections.jsonl이 즉시 처리되지 않음 (5초 robocopy 지연)  
+**수정 필요:** L106을 항상 로컬 brain_v4 경로로 변경
 
 ---
 
-## 8. 금기사항
+## 8. 로그 관리
+
+### 통합 로그 디렉토리
+
+```
+NeuronFS/logs/
+├── heartbeat.log      ← bot-heartbeat.mjs
+├── bridge.log         ← agent-bridge.mjs
+├── watchdog.log       ← watchdog.ps1
+├── rotate.ps1         ← 일별 로테이션 (5MB 초과 시)
+└── archive/           ← 로테이션된 로그 + 일회성 디버그
+```
+
+### 로테이션 규칙
+
+- **5MB 초과** → `archive/`로 이동 (날짜 접미어)
+- **7일 경과** → archive에서 자동 삭제
+- watchdog이 harness 실행 시 `rotate.ps1` 호출
+
+### 디버그 레벨
+
+| 접두어 | 의미 |
+|--------|------|
+| `✅` | 정상 완료 |
+| `⚡` | 킥/주입 |
+| `⚠️` | 경고 (프로세스 사망 등) |
+| `❌` | 실패 |
+| `🚨` | 긴급 (bomb, harness 위반) |
+| `💓` | heartbeat (1분 원라인 상태) |
+
+---
+
+## 9. 상호 감시 (Mutual Watchdog)
+
+```
+watchdog.ps1 → auto-accept/bridge/heartbeat/neuronfs 감시
+auto-accept.mjs → watchdog.ps1 생존 확인 (30초)
+```
+
+**어느 쪽이 죽어도 상대방이 재시작.** 단일 장애점 제거.
+
+### 뉴런 자동 생성 경로
+
+```
+AI 교정 감지 → corrections.jsonl (로컬 _inbox/)
+  → fsnotify (neuronfs --watch)
+  → processInbox()
+  → mkdir (뉴런 디렉토리 생성)
+  → counter fire
+  → writeAllTiers() → GEMINI.md 갱신
+```
+
+**조건:** `neuronfs --watch` 프로세스가 살아있어야 함.
+
+---
+
+## 10. 금기사항
 
 1. ❌ brain_v4 뉴런 폴더명 영어 번역/변환
 2. ❌ 한자 접두어(禁, 推) 제거/변경

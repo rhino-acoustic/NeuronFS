@@ -37,7 +37,7 @@ function log(msg) {
     const ts = new Date().toISOString().slice(11, 19);
     const line = `[${ts}] ${msg}`;
     console.log(line);
-    try { appendFileSync('C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\heartbeat_log.txt', line + '\n', 'utf8'); } catch {}
+    try { appendFileSync('C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\logs\\heartbeat.log', line + '\n', 'utf8'); } catch {}
 }
 
 function getJson(url) {
@@ -267,16 +267,11 @@ async function heartbeatLoop() {
                     const now = Date.now();
                     const titleKey = TITLE_MAP[botName];
                     if (!nextTask) {
-                        // [PD 교정반영] 실제 할 일이 없으면 하위 에이전트에게 같은 트리거(Standby) 주입을 중단.
-                        // 대신 PM(나 자신)에게만 모든 책임을 묻고 핑을 날립니다.
-                        if (botName === 'pm') {
-                            kickMsg = `[SYSTEM ALARM] 하위 에이전트들의 일감이 고갈되어 유휴(Idle) 상태에 빠졌습니다! PM은 즉시 Inbox를 점검하고 시스템 방향을 설정하여 백로그(backlog)를 채워 넣으시오. (Wake up)`;
-                        } else {
-                            // 하위 에이전트들은 빈 파일(Standby.md)을 계속 생성하지 않도록 스킵
-                            log(`[${botName}] No tasks in backlog. Standby (No Injection).`);
-                            state.waitStart = now; // 초기화
-                            continue; // 킥(주입) 생략
-                        }
+                        // [PM 다이렉트 패치: 쳇바퀴 유휴 알람 영구 MUTE]
+                        // 런타임 스레드들이 자율 생존하므로 PM에게 억지 핑(Wake up)을 쏘는 로직을 완전히 파기/제거합니다.
+                        log(`[${botName}] No tasks in backlog. Zero-Queue Engine Standby (No Injection).`);
+                        state.waitStart = now; // 초기화
+                        continue; // PM이든 하위 봇이든, 가비지 알람 킥주입 무조건 생략 (음소거)!
                     } else {
                         kickMsg = `[HEARTBEAT] 이전 산출물: ${lastOutput || '없음'}. 다음 backlog를 즉시 주입한다: [${titleKey}] ${nextTask}. 완료 후 결과를 아웃박스에 저장하라.`;
                     }

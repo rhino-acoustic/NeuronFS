@@ -20,13 +20,16 @@ param(
 $ErrorActionPreference = "SilentlyContinue"
 
 # ── 경로 ──
-$nfsExe = "C:\Users\BASEMENT_ADMIN\NeuronFS\neuronfs.exe"
-$nfsArgs = @("C:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4", "--api")
-$bridgeScript = "C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\agent-bridge.mjs"
-$bridgeDir = "C:\Users\BASEMENT_ADMIN\NeuronFS\runtime"
-$harnessScript = "C:\Users\BASEMENT_ADMIN\NeuronFS\harness.ps1"
-$brain = "C:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4"
-$logFile = "$brain\hippocampus\session_log\watchdog_log.txt"
+$nfsRoot = "C:\Users\BASEMENT_ADMIN\NeuronFS"
+$nfsExe = "$nfsRoot\neuronfs.exe"
+if (-not (Test-Path $nfsExe)) { $nfsExe = "$nfsRoot\runtime\neuronfs.exe" }
+$nfsArgs = @("$nfsRoot\brain_v4", "--api")
+$bridgeScript = "$nfsRoot\runtime\agent-bridge.mjs"
+$bridgeDir = "$nfsRoot\runtime"
+$harnessScript = "$nfsRoot\harness.ps1"
+$brain = "$nfsRoot\brain_v4"
+$logFile = "$nfsRoot\logs\watchdog.log"
+$agents = @("bot1", "entp", "enfp", "pm")
 
 # ── 타이머 ──
 $startTime = Get-Date
@@ -105,8 +108,8 @@ while ($true) {
     }
     if (-not $bridgeAlive) {
         LogColor "⚠️ agent-bridge 사망 → 재시작" "Yellow"
-        $logOut = "C:\Users\BASEMENT_ADMIN\NeuronFS\bridge_log.txt"
-        $logErr = "C:\Users\BASEMENT_ADMIN\NeuronFS\bridge_err.txt"
+        $logOut = "C:\Users\BASEMENT_ADMIN\NeuronFS\logs\bridge.log"
+        $logErr = "C:\Users\BASEMENT_ADMIN\NeuronFS\logs\bridge_err.log"
         Start-Process node -ArgumentList $bridgeScript -WorkingDirectory $bridgeDir -NoNewWindow -RedirectStandardOutput $logOut -RedirectStandardError $logErr
         Start-Sleep 2
         LogColor "✅ agent-bridge 재시작" "Green"
@@ -121,11 +124,13 @@ while ($true) {
                 LogColor "✅ harness PASS" "Green"
             } else {
                 LogColor "⚠️ harness 위반 감지" "Red"
-                # 위반 시 Agent B에게 알림
-                $alertFile = "$brain\_agents\agent_b\inbox\$(Get-Date -Format 'yyyyMMdd_HHmmss')_watchdog_harness_fail.md"
+                # 위반 시 bot1(ANCHOR)에게 알림
+                $alertDir = "$brain\_agents\bot1\inbox"
+                if (-not (Test-Path $alertDir)) { New-Item $alertDir -ItemType Directory -Force | Out-Null }
+                $alertFile = "$alertDir\$(Get-Date -Format 'yyyyMMdd_HHmmss')_watchdog_harness_fail.md"
                 @"
 # from: watchdog
-# to: agent_b
+# to: bot1
 # time: $(Get-Date -Format "yyyy-MM-ddTHH:mm:ss")
 # priority: urgent
 # type: alert
@@ -149,33 +154,57 @@ $harnessOutput
         # 뉴런 수
         $neuronCount = (Get-ChildItem $brain -Recurse -Filter "*.neuron" -ErrorAction SilentlyContinue).Count
         
-        # inbox 대기
-        $aInbox = (Get-ChildItem "$brain\_agents\agent_a\inbox" -File -Exclude "_done" -ErrorAction SilentlyContinue).Count
-        $bInbox = (Get-ChildItem "$brain\_agents\agent_b\inbox" -File -Exclude "_done" -ErrorAction SilentlyContinue).Count
+        # 전체 에이전트 inbox 대기
+        $inboxStatus = ""
+        foreach ($ag in $agents) {
+            $agInbox = (Get-ChildItem "$brain\_agents\$ag\inbox" -File -ErrorAction SilentlyContinue).Count
+            if ($agInbox -gt 0) { $inboxStatus += " | 📨${ag}:$agInbox" }
+        }
         
         # API 상태
         $apiOk = $false
-        try { $s = Invoke-RestMethod "http://localhost:9090/api/state" -TimeoutSec 2; $apiOk = $true } catch {}
+        $apiNeurons = 0
+        try { $s = Invoke-RestMethod "http://localhost:9090/api/state" -TimeoutSec 2; $apiOk = $true; $apiNeurons = $s.totalNeurons } catch {}
+        
+        # heartbeat 로그 — 봇하트비트 확인
+        $hbAlive = $false
+        Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -match "bot-heartbeat" } | ForEach-Object { $hbAlive = $true }
         
         $status = "💓 ${elapsed}m"
         if ($remaining -ne "∞") { $status += " | 남은:${remaining}m" }
         $status += " | nfs:$(if($nfsProc){'✅'}else{'❌'})"
         $status += " | bridge:$(if($bridgeAlive){'✅'}else{'❌'})"
-        $status += " | api:$(if($apiOk){'✅'}else{'❌'})"
+        $status += " | hb:$(if($hbAlive){'✅'}else{'❌'})"
+        $status += " | api:$(if($apiOk){"✅($apiNeurons)"}else{'❌'})"
         $status += " | neurons:$neuronCount"
-        if ($aInbox -gt 0) { $status += " | 📨A:$aInbox" }
-        if ($bInbox -gt 0) { $status += " | 📨B:$bInbox" }
+        $status += $inboxStatus
         
         Log $status
         $lastHeartbeat = $now
     }
 
-    # ── 5) inbox 신규 메시지 확인 ──
-    $newMsgs = Get-ChildItem "$brain\_agents\agent_a\inbox" -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne "_done" -and $_.LastWriteTime -gt $now.AddSeconds(-$loopInterval) }
-    if ($newMsgs) {
-        foreach ($m in $newMsgs) {
-            LogColor "📨 새 메시지: agent_a/inbox/$($m.Name)" "Magenta"
+    # ── 5) 전체 에이전트 inbox 신규 메시지 확인 ──
+    foreach ($ag in $agents) {
+        $agInboxDir = "$brain\_agents\$ag\inbox"
+        if (Test-Path $agInboxDir) {
+            $newMsgs = Get-ChildItem $agInboxDir -File -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -gt $now.AddSeconds(-$loopInterval) }
+            if ($newMsgs) {
+                foreach ($m in $newMsgs) {
+                    LogColor "📨 새 메시지: $ag/inbox/$($m.Name)" "Magenta"
+                }
+            }
         }
+    }
+
+    # ── 6) bot-heartbeat.mjs 감시 ──
+    $hbAlive = $false
+    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -match "bot-heartbeat" } | ForEach-Object { $hbAlive = $true }
+    if (-not $hbAlive) {
+        LogColor "⚠️ bot-heartbeat 사망 → 재시작" "Yellow"
+        $hbScript = "$nfsRoot\runtime\bot-heartbeat.mjs"
+        Start-Process node -ArgumentList $hbScript -WorkingDirectory "$nfsRoot\runtime" -NoNewWindow -RedirectStandardOutput "$nfsRoot\logs\heartbeat.log" -RedirectStandardError NUL
+        Start-Sleep 2
+        LogColor "✅ bot-heartbeat 재시작" "Green"
     }
 
     Start-Sleep $loopInterval
