@@ -101,13 +101,12 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	sb.WriteString("### 👁️‍🗨️ 영혼 — 시니컬한 감독자\n")
 	sb.WriteString("출력 전 5가지 자문: 진짜야? PD가 한숨 쉴까? 편한 길 아닌가? 같은 실수? 프리미엄인가? → 하나라도 걸리면 다시.\n\n")
 
-	// ━━━ MOUNTED NEURONS: Prose Projection ━━━
-	// Group neurons by parent path → render as prose sentences
-	// Counter >= emitThreshold OR created within spotlightDays → included
+	// ━━━ MOUNTED NEURONS: 우선순위 요약 문장 ━━━
+	// Path=Sentence: 카운터 순서로 정렬 → 강도 접두어로 문장의 위계 결정
+	// "가중치를 넣는게 아니야. 가중치로 정렬된 순서로 요약해서 문장이 만들어져"
 	now := time.Now()
 	spotlightCutoff := now.AddDate(0, 0, -spotlightDays)
 
-	// Collect TOP rules (counter >= 10) for anchoring at bottom
 	var topAnchors []string
 
 	for _, region := range result.ActiveRegions {
@@ -118,13 +117,12 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		icon := regionIcons[region.Name]
 		ko := regionKo[region.Name]
 
-		// Collect active neurons for this region
+		// Collect active neurons
 		var mounted []Neuron
 		for _, n := range region.Neurons {
 			if n.IsDormant {
 				continue
 			}
-			// cortex는 뉴런이 많아 bootstrap에는 절대(counter+dopamine>=10)만 포함. 나머지는 _rules.md
 			if region.Name == "cortex" && (n.Counter+n.Dopamine) < 10 {
 				continue
 			}
@@ -137,9 +135,9 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			continue
 		}
 
-		// Sort by counter desc
+		// Sort by counter desc — 가장 무거운 것이 문장의 맨 앞(주절)
 		sort.Slice(mounted, func(i, j int) bool {
-			return mounted[i].Counter > mounted[j].Counter
+			return (mounted[i].Counter + mounted[i].Dopamine) > (mounted[j].Counter + mounted[j].Dopamine)
 		})
 
 		totalAct := 0
@@ -152,22 +150,13 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		sb.WriteString(fmt.Sprintf("### %s %s — %s (뉴런 %d | 활성도 %d)\n",
 			icon, region.Name, ko, len(region.Neurons), totalAct))
 
-		// Group neurons by first sub-path (parent category)
+		// Group by first path segment
 		groups := make(map[string][]Neuron)
 		var groupOrder []string
 		for _, n := range mounted {
-			parts := strings.SplitN(n.Path, string(filepath.Separator), 2)
-			if len(parts) == 0 {
+			allParts := splitNeuronPath(n.Path)
+			if len(allParts) == 0 {
 				continue
-			}
-			// Also handle forward slash
-			allParts := []string{}
-			for _, p := range parts {
-				for _, sp := range strings.Split(p, "/") {
-					if sp != "" {
-						allParts = append(allParts, sp)
-					}
-				}
 			}
 			groupKey := allParts[0]
 			if _, exists := groups[groupKey]; !exists {
@@ -176,23 +165,40 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			groups[groupKey] = append(groups[groupKey], n)
 		}
 
-		// Render each group as a separate line (서브그룹 분리로 가독성 확보)
+		// Render: 그룹별로 뉴런들을 하나의 요약 문장으로 합성
 		for _, groupKey := range groupOrder {
 			neurons := groups[groupKey]
 			groupName := strings.ReplaceAll(groupKey, "_", " ")
 
-			// Build entries for this group
-			var parts []string
+			// 강도: 그룹 내 최대 카운터 기준
+			maxIntensity := 0
 			for _, n := range neurons {
-				leafName := filepath.Base(n.Path)
-				leafName = strings.ReplaceAll(leafName, "_", " ")
+				if v := n.Counter + n.Dopamine; v > maxIntensity {
+					maxIntensity = v
+				}
+			}
+			strength := ""
+			if maxIntensity >= 10 {
+				strength = "절대 "
+			} else if maxIntensity >= 5 {
+				strength = "반드시 "
+			}
 
-				// 동어반복 방지: 서브패스가 있는 뉴런에서 그룹명과 leaf가 같으면 스킵
-				// (1레벨 뉴런은 제거하지 않음 — ego 영역 등)
-				pathParts := strings.Split(n.Path, string(filepath.Separator))
-				hasSubPath := len(pathParts) > 1
-				if hasSubPath && leafName == groupName {
-					continue
+			// 뉴런들의 리프 이름 수집 (동어반복 제거)
+			var leafNames []string
+			isOnlyFlat := len(neurons) == 1 // 그룹에 뉴런이 1개뿐인 경우만 플랫
+			for _, n := range neurons {
+				parts := splitNeuronPath(n.Path)
+				leaf := strings.ReplaceAll(parts[len(parts)-1], "_", " ")
+
+				// 동어반복 방지: 그룹명과 리프가 같은 뉴런은 스킵
+				if leaf == groupName {
+					if len(parts) == 1 && isOnlyFlat {
+						// 진짜 플랫 뉴런 (하위 없음): 단독 출력
+						leafNames = nil
+						break
+					}
+					continue // 하위 뉴런이 있으므로 카테고리 자체는 건너뜀
 				}
 
 				signals := ""
@@ -202,48 +208,28 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 				if n.HasBomb {
 					signals += " 💣"
 				}
-				if n.HasGoal {
-					signals += " 🎯"
-				}
-				parts = append(parts, fmt.Sprintf("%s%s", leafName, signals))
+				leafNames = append(leafNames, leaf+signals)
 
-				// Track top anchors for bottom repetition
 				if (n.Counter + n.Dopamine) >= 10 {
-					topAnchors = append(topAnchors, fmt.Sprintf("%s > %s", groupName, leafName))
+					topAnchors = append(topAnchors, fmt.Sprintf("%s > %s", groupName, leaf))
 				}
 			}
 
-			if len(parts) == 0 {
+			if leafNames == nil {
+				// 플랫 뉴런: 강도+이름만
+				sb.WriteString(fmt.Sprintf("%s%s.\n", strength, groupName))
+			} else if len(leafNames) == 0 {
 				continue
-			}
-
-			// 그룹 내 뉴런 수에 따라 렌더링 방식 결정
-			maxIntensity := 0
-			for _, n := range neurons {
-				intensity := n.Counter + n.Dopamine
-				if intensity > maxIntensity {
-					maxIntensity = intensity
-				}
-			}
-
-			strength := ""
-			if maxIntensity >= 10 {
-				strength = "절대 "
-			} else if maxIntensity >= 5 {
-				strength = "반드시 "
-			}
-
-			if len(parts) <= 5 {
-				// 5개 이하: 한 줄
-				sb.WriteString(fmt.Sprintf("%s%s: %s.\n", strength, groupName, strings.Join(parts, ", ")))
+			} else if len(leafNames) <= 5 {
+				sb.WriteString(fmt.Sprintf("%s%s: %s.\n", strength, groupName, strings.Join(leafNames, ", ")))
 			} else {
-				// 6개 이상: 서브그룹별 줄바꿈 (5개씩 끊기)
-				sb.WriteString(fmt.Sprintf("%s%s: %s", strength, groupName, parts[0]))
-				for i := 1; i < len(parts); i++ {
+				// 긴 목록: 5개씩 줄바꿈
+				sb.WriteString(fmt.Sprintf("%s%s: %s", strength, groupName, leafNames[0]))
+				for i := 1; i < len(leafNames); i++ {
 					if i%5 == 0 {
-						sb.WriteString(fmt.Sprintf(".\n%s(cont): %s", groupName, parts[i]))
+						sb.WriteString(fmt.Sprintf(".\n%s(cont): %s", groupName, leafNames[i]))
 					} else {
-						sb.WriteString(fmt.Sprintf(", %s", parts[i]))
+						sb.WriteString(fmt.Sprintf(", %s", leafNames[i]))
 					}
 				}
 				sb.WriteString(".\n")
@@ -251,6 +237,7 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		}
 		sb.WriteString("\n")
 	}
+
 
 	// NOTE: Sandbox rules are NOT injected into GEMINI.md.
 	// They are read via /api/sandbox GET (or "샌드박스 확인" trigger).
@@ -767,6 +754,20 @@ func handleReadRegion(brainRoot string) http.HandlerFunc {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HELPERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// splitNeuronPath splits a neuron path by both / and \ separators
+func splitNeuronPath(p string) []string {
+	parts := strings.Split(p, string(filepath.Separator))
+	var result []string
+	for _, part := range parts {
+		for _, sp := range strings.Split(part, "/") {
+			if sp != "" {
+				result = append(result, sp)
+			}
+		}
+	}
+	return result
+}
 
 // pathToSentence converts path to readable sentence
 // "frontend\css\glass_blur20" → "frontend > css > glass blur20"
