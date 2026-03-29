@@ -20,7 +20,7 @@ const AGENTS_DIR = join(BRAIN, '_agents');
 
 // PM은 heartbeat의 도구 사용자. PM 킥 = 에이전트 산출물 브리핑 (backlog 아님)
 const botState = {
-    pm:   { lastActive: Date.now(), kickCount: 0, lastIdx: -1, isBriefing: true },
+    pm:   { lastActive: Date.now(), kickCount: 0, lastIdx: -1, isBriefing: true, lastBriefingHash: '' },
     bot1: { lastActive: Date.now(), kickCount: 0, lastIdx: -1 },
     entp: { lastActive: Date.now(), kickCount: 0, lastIdx: -1 },
     enfp: { lastActive: Date.now(), kickCount: 0, lastIdx: -1 }
@@ -279,15 +279,26 @@ async function heartbeatLoop() {
                     const lastOutput = getRecentOutbox(botName);
 
                     // Reflect & Critique: 결과물이 있으면 다른 봇에 자동 크로스 리뷰 요청
+                    // DEDUP: 리뷰 대상 산출물이 이미 outbox에 리뷰 완료본이 있으면 skip
                     if (lastOutput && state.kickCount > 0 && state.kickCount % 3 === 0) {
                         const reviewTarget = botName === 'enfp' ? 'entp' : 'enfp';
-                        const reviewPath = join(AGENTS_DIR, reviewTarget, 'inbox', 
-                            `${new Date().toISOString().slice(0,10).replace(/-/g,'')}_heartbeat_review_${botName}.md`);
-                        try {
-                            writeFileSync(reviewPath, 
-                                `# from: heartbeat\n# priority: normal\n\n${botName}의 최신 산출물(${lastOutput})을 리뷰하라.\n품질 미달이면 ${botName}/inbox에 재작업 요청을 보내라.\n`, 'utf8');
-                            log(`🔄 Reflect: ${botName} → ${reviewTarget} 크로스 리뷰 요청`);
-                        } catch {}
+                        const reviewOutbox = join(AGENTS_DIR, reviewTarget, 'outbox');
+                        const alreadyReviewed = existsSync(reviewOutbox) && readdirSync(reviewOutbox).some(f => f.includes(lastOutput.replace(/\.(md|js)$/,'').slice(-30)));
+                        if (!alreadyReviewed) {
+                            const reviewPath = join(AGENTS_DIR, reviewTarget, 'inbox', 
+                                `${new Date().toISOString().slice(0,10).replace(/-/g,'')}_heartbeat_review_${botName}.md`);
+                            if (!existsSync(reviewPath)) {
+                                try {
+                                    writeFileSync(reviewPath, 
+                                        `# from: heartbeat\n# priority: normal\n\n${botName}의 최신 산출물(${lastOutput})을 리뷰하라.\n품질 미달이면 ${botName}/inbox에 재작업 요청을 보내라.\n`, 'utf8');
+                                    log(`🔄 Reflect: ${botName} → ${reviewTarget} 크로스 리뷰 요청`);
+                                } catch {}
+                            } else {
+                                log(`⏭️ Reflect: ${reviewTarget} inbox에 이미 리뷰 요청 존재 → skip`);
+                            }
+                        } else {
+                            log(`⏭️ Reflect: ${lastOutput} 이미 리뷰 완료 → skip`);
+                        }
                     }
 
                     // Dynamic Priority: 컨텍스트에 맞는 킥 메시지
@@ -296,8 +307,16 @@ async function heartbeatLoop() {
                     const titleKey = TITLE_MAP[botName];
 
                     // PM 브리핑 킥: backlog가 아닌 에이전트 산출물 종합
+                    // DEDUP: outbox 변동 없으면 같은 브리핑 반복하지 않음
                     if (botState[botName]?.isBriefing) {
                         const briefing = getAgentBriefing();
+                        const briefingHash = briefing.replace(/[^a-z0-9]/gi, '').slice(0, 100);
+                        if (state.lastBriefingHash === briefingHash) {
+                            log(`⏭️ PM 브리핑: 변동 없음 → skip`);
+                            state.lastActive = Date.now(); // idle 타이머 리셋은 해줌
+                            continue;
+                        }
+                        state.lastBriefingHash = briefingHash;
                         kickMsg = `[HEARTBEAT BRIEFING] 에이전트 산출물 현황: ${briefing}. 검토하고 필요하면 지시하라.`;
                         log(`📋 PM 브리핑 킥: ${briefing.slice(0, 100)}`);
                         const ok = await kickBot(botName, kickMsg);
