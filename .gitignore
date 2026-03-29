@@ -46,7 +46,7 @@ Thumbs.db
 *.swp
 *.swo
 
-# Brain state (local only)
+# Brain runtime files (auto-generated, don't track)
 brain_state.json
 brain_dashboard.html
 brain_mesh.obj
@@ -54,5 +54,6 @@ brain_mesh.obj
 # Environment
 .env
 
-# Brain data (large, separate repo)
-brain_v4/
+# Brain agent communication (transient)
+brain_v4/_agents/*/inbox/*.md
+brain_v4/_agents/*/outbox/*.md
