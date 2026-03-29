@@ -118,17 +118,37 @@ Copy-Item "NeuronFS\neuronfs.exe" "NeuronFS\runtime\neuronfs.exe"
 ### NAS 동기화
 
 ```
-robocopy "C:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4" 
-         "Z:\VOL1\VGVR\BRAIN\LW\system\neurons\brain_v4" /MIR
+방향: 로컬 → NAS (단방향)
+robocopy "%BRAIN_PATH%" "%NAS_BRAIN%" /MIR /FFT /XO /MT:4
+주기: 5초마다 반복 (run-auto-accept.bat L121)
+```
+
+### ⚠️ 쓰기 규칙 (절대)
+
+| 규칙 | 이유 |
+|------|------|
+| **모든 쓰기는 로컬(`c:\...\brain_v4`)에** | `--watch`가 로컬 감시 |
+| **NAS(`Z:\...`)에 직접 쓰기 금지** | /MIR로 다음 동기화 시 삭제됨 |
+| **corrections.jsonl → 로컬 `_inbox/`에** | processInbox가 로컬만 읽음 |
+| **`/api/grow`, `/api/fire` 사용** | API가 로컬에 생성 |
+
+```powershell
+# ✅ 올바른 corrections.jsonl 기록
+$path = "c:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4\_inbox\corrections.jsonl"
+[IO.File]::AppendAllText($path, '{"type":"correction",...}' + "`n")
+
+# ❌ 잘못된 기록 (NAS 직접)
+$path = "Z:\VOL1\VGVR\BRAIN\...\corrections.jsonl"  # 이러면 안 됨
 ```
 
 ### 백업 계층
 
-| 계층 | 위치 | 보호 수준 |
-|------|------|----------|
-| **Git (주)** | 로컬 `.git/` | 이력 관리, 디렉토리 구조 보존 |
-| **NAS (보조)** | `Z:\VOL1\VGVR\BRAIN\...\brain_v4` | robocopy /MIR 실시간 |
-| **brain_state.json** | Git 42e071c | 뉴런 경로 목록 스냅샷 |
+| 계층 | 위치 | 역할 | 방향 |
+|------|------|------|------|
+| **로컬 (작업)** | `c:\...\NeuronFS\brain_v4` | 원본. 모든 쓰기 여기에 | — |
+| **Git (이력)** | `.git/` | 디렉토리 구조 + 코드 보존 | 수동 커밋 |
+| **NAS (백업)** | `Z:\VOL1\VGVR\BRAIN\...\brain_v4` | 실시간 미러 | 로컬→NAS |
+| **brain_state.json** | Git 42e071c | 경로 목록 스냅샷 | 비상 복구용 |
 
 ---
 
