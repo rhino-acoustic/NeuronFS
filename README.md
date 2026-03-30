@@ -6,6 +6,12 @@
   <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
 </p>
 
+<p align="center">
+  <img src="docs/dashboard.png" alt="NeuronFS Dashboard — 3D Brain Visualization" width="800" />
+  <br/>
+  <sub>Live dashboard: 329 neurons across 7 regions. Real-time activation monitoring.</sub>
+</p>
+
 <p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 Manifesto</a></p>
 
 # 🧠 NeuronFS
@@ -13,6 +19,19 @@
 **Folders are neurons. Paths are sentences. Counters are synaptic weights.**
 
 > *"Don't beg with prompts. Design the pipeline."*
+
+### Contents
+
+| | Section | What You'll Learn |
+|---|---|---|
+| 🔴 | [The Problem](#the-problem) | Why text-based AI rules fail at scale |
+| 💡 | [Structure, Not Text](#the-answer-structure-not-text) | How `mkdir` replaces thousand-line prompts |
+| 🏆 | [Why Folders Beat Everything](#why-folders-beat-everything) | $0 infra vs $70/mo vector DBs — benchmarks included |
+| ⚖️ | [The Harness](#the-harness-how-rules-become-law) | 3-tier injection, circuit breakers, brainstem protection |
+| 🔮 | [The Palantir Insight](#the-palantir-insight) | How a $100B company proved "dumb AI + strict structure" works |
+| 🏗️ | [Architecture](#architecture) | Autonomous loop, execution stack, CLI reference |
+| ⚠️ | [Limitations](#limitations) | Honest about what doesn't work |
+| 📖 | [The Story](#the-story) | Why aphorisms make the brain smarter than rules |
 
 ---
 
@@ -82,19 +101,14 @@ Polarity   = (Counter + Dopamine - Contra) / Total    # -1.0 to +1.0
 
 > *"Folders are open source. Zero dependencies. The structure itself has no install."*
 
-| | NeuronFS | .cursorrules | Mem0 | RAG / Vector DB |
-|---|---|---|---|---|
-| **Install** | `mkdir` | create file | pip + DB server | pip + embedding model + DB |
-| **Infra cost** | **$0** | $0 | $70+/mo | $50+/mo |
-| **Speed** | `ls` = ~1ms (syscall) | file read | 50-500ms (embed + search) | 50-500ms |
-| **Dependencies** | **None** | IDE-specific | Python, DB, API keys | Python, DB, model |
-| **Model lock-in** | **None** — any AI reads folders | IDE-specific | Embedding model | Embedding model |
-| **Multi-agent** | NAS shared folder | Single project | API calls | Complex IPC |
-| **State inspection** | `tree brain/` | `cat` file | API query | API query |
-| **Hot-swap rules** | `touch` / `rm` — instant | Edit file, restart | DB update | Re-index |
-| **Version control** | `git diff` — native | git works | Not practical | Not practical |
-| **Works offline** | ✅ | ✅ | ❌ | ❌ |
-| **Semantic search** | ❌ path-only | ❌ | ✅ | ✅ |
+| | NeuronFS | .cursorrules | Mem0 / RAG |
+|---|---|---|---|
+| **Install** | `mkdir` | create file | pip + DB + model |
+| **Cost** | **$0** | $0 | $50-70+/mo |
+| **Speed** | ~1ms (syscall) | file read | 50-500ms |
+| **Dependencies** | **None** | IDE-locked | Python, DB, API |
+| **Multi-agent** | NAS shared folder | ❌ | Complex IPC |
+| **Version control** | `git diff` native | git works | ❌ |
 
 > *"It's too easy to hide. We open-source it for free."*
 >
@@ -236,11 +250,6 @@ NeuronFS is the same principle at zero cost:
 
 ## Architecture
 
-<p align="center">
-  <img src="docs/dashboard.png" alt="NeuronFS Dashboard — 3D Brain Visualization" width="800" />
-  <br/>
-  <sub>Live dashboard: 329 neurons across 7 regions. Each cluster = brain region. Real-time activation monitoring.</sub>
-</p>
 
 ### Autonomous Loop
 
@@ -329,6 +338,22 @@ A Korean PD builds video content for a living. Code is the tool, not the job.
 AI violated "don't use console.log" nine times. On the tenth: `mkdir brain/cortex/frontend/coding/禁console_log`. The folder name became the rule. The filename became the counter. It's at 17 now. The AI stopped.
 
 "Plan first, execute second." Corrected 36 times. The highest counter. 36 corrections compressed into one neuron.
+
+### Why Aphorisms Matter
+
+Every correction is a **short answer**. Users don't write essays — they snap:
+- *"Don't use fallback"* → `mkdir 禁fallback` → 1 neuron
+- *"Don't beg with prompts. Design the pipeline."* → 1 neuron
+
+**One short answer = one neuron.** Accumulate them and you get a folder tree. The folder tree is the brain.
+
+But here's the key: if that short answer is an **aphorism** — a principle, a philosophy — the brain gets qualitatively smarter.
+
+- *"Don't use console.log"* → technical fix. Good.
+- *"Don't beg with prompts. Design the pipeline."* → philosophy. **The brain's direction changes.**
+- *"Aphorisms collect into a brain. That brain becomes context."* → meta-cognition. The brain understands itself.
+
+Same 326 neurons. But a brain filled with aphorisms is **fundamentally different** from a brain filled with rules. The folder names carry the user's thinking.
 
 326 neurons. Zero infrastructure. Zero dependencies. The filesystem itself is the framework.
 
