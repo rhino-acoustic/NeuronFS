@@ -95,6 +95,34 @@ Polarity   = (Counter + Dopamine - Contra) / Total    # -1.0 to +1.0
 
 > *"Forget files. Just folders. The file is completely separate — it's just a trace of the neuron firing."*
 
+### Axons — Cross-Region Wiring
+
+Neurons live inside brain regions. **Axons** connect regions to each other — just like biological axons wire brain areas into a layered network.
+
+```
+brainstem ←→ limbic ←→ hippocampus ←→ sensors ←→ cortex ←→ ego ←→ prefrontal
+  (P0)         (P1)       (P2)          (P3)       (P4)     (P5)      (P6)
+```
+
+Implementation: each `.axon` file in a region folder declares a target:
+
+```bash
+brain_v4/brainstem/cascade_to_limbic.axon      → "limbic"
+brain_v4/limbic/cascade_from_brainstem.axon     → "brainstem"
+brain_v4/cortex/shortcut_to_hippocampus.axon    → "hippocampus"
+```
+
+**What axons actually do:**
+- **Cascade suppression:** Lower P suppresses higher P. If `brainstem` has a bomb, the axon to `limbic` signals "stop all higher processing."
+- **Context routing:** `sensors` axon to `cortex` means "check environment constraints before applying knowledge."
+- **Skill linking:** `cortex/skills/supanova/ref.axon` → links to external `SKILL.md` files, bridging folder structure to external tools.
+
+Currently **16 axons** wire the 7 brain regions into a layered cascade — including 3 shortcut paths for emergency routing (e.g., `limbic → cortex` for adrenaline-level urgency).
+
+**Why axons matter at scale:** At 326 neurons, you can eyeball the tree. At 3,000 neurons across 20 regions, you can't. Without axons, regions become silos — the security team's neurons never inform the deployment team's neurons. Axons are the explicit contracts that say "before you apply cortex/deployment rules, check sensors/compliance first." As the brain grows, **axons become more important than individual neurons** — they are the topology of how your organization thinks.
+
+> *"Neurons are what you know. Axons are how knowledge flows between domains."*
+
 ---
 
 ## Why Folders Beat Everything
@@ -259,6 +287,63 @@ NeuronFS is designed to work with **Google Antigravity** (DeepMind's agentic AI 
 
 ---
 
+## Competitors Comparison
+
+|  | .cursorrules | Mem0 | Letta (MemGPT) | **NeuronFS** |
+|--|-------------|------|----------------|-------------|
+| 1000+ rules | Token overflow ❌ | ✅ (vector DB) | ✅ (tiered memory) | ✅ (folder tree) |
+| Infra cost | $0 | Server/API $$$ | Server $$$ | **$0** |
+| Switch AI | Copy file | Migration | Migration | **No change** (it's folders) |
+| User owns rules | ✅ | ❌ (AI extracts) | ❌ (agent manages) | **✅ (mkdir)** |
+| Self-growth | ❌ | ✅ | ✅ | **✅ (correction→neuron)** |
+| Immutable guardrail | ❌ | ❌ | ❌ | **✅ (brainstem chmod 444)** |
+| Auditability | git diff | Query | Logs | **ls -R** |
+
+### What the Output Looks Like
+
+**`brainstem/_rules.md`** — Auto-generated from folder structure. chmod 444. Untouchable:
+
+```markdown
+# 🛡️ BRAINSTEM — Conscience/Instinct
+Active: 24 | Dormant: 0 | Activation: 138
+
+- 절대 **禁영어사고 한국어로 생각하고 대답** (13)
+- **禁뉴런구조 임의변경** (3)
+- **토론말고 실행** (2)
+- **禁SSOT 중복** (2)
+- **PD단답이 시스템의 근원** (1)
+```
+
+**`cortex/_rules.md`** — Knowledge/skills. Grows daily:
+
+```markdown
+# 🧠 CORTEX — Knowledge/Skills
+Active: 212 | Dormant: 0 | Activation: 225
+
+- **agent ops** (0)
+  - 반드시 **no pm solo work** (6)
+  - **share source context** (3)
+- **backend** (0)
+  - **supabase** → **RLS 항상켜기** (1)
+```
+
+**`neuronfs --emit gemini` → `GEMINI.md`** — All neurons compiled into one system prompt:
+
+```markdown
+## 🛡️ brainstem (P0 — 절대 불변)
+- 절대 **禁영어사고**: 한국어로 생각하고 대답 [13회 교정]
+- **禁뉴런구조 임의변경** [3회 교정]
+- **토론말고 실행** [2회 교정]
+
+## 🧠 cortex (P4 — 지식/기술)
+- agent ops: 반드시 **no pm solo work** [6회]
+- backend/supabase: **RLS 항상켜기** [1회]
+...
+(326 neurons → ~8KB system prompt)
+```
+
+---
+
 ## Architecture
 
 
@@ -282,6 +367,21 @@ neuronfs --supervisor        ← Single binary manages all processes
 ├── neuronfs --watch         ← File watch + neuron sync
 └── neuronfs --api           ← Dashboard + REST API (port 9090)
 ```
+
+### Why Go
+
+NeuronFS runtime is a single Go binary. No Python. No Node.js runtime dependency. No Docker.
+
+| Why | Benefit |
+|-----|---------|
+| **Single binary** | `go build` → one `neuronfs.exe`. Copy to any machine. Done. |
+| **Cross-compile** | `GOOS=linux go build` from Windows. ARM, x86, Mac — all from one machine |
+| **fsnotify native** | Real-time file watch without polling. Neuron changes detected in <10ms |
+| **goroutines** | Supervisor manages 5+ child processes concurrently. Zero thread overhead |
+| **Zero GC pressure** | Folder scanning 10,000 neurons takes <50ms. No JVM warmup |
+| **Static linking** | No `.dll`, no `node_modules/`, no `pip install`. The binary IS the runtime |
+
+The philosophy: **if the brain is zero-infrastructure, the runtime should be too.** One binary, one folder, one brain.
 
 ### Supported Editors
 
@@ -355,6 +455,22 @@ AI violated "don't use console.log" nine times. On the tenth: `mkdir brain/corte
 NeuronFS was born from a real need: **building a company knowledge base.** VEGAVERY RUN® operates across CRM, video production, brand design, and e-commerce — all managed by one PD with AI. The knowledge was scattered across conversations, documents, and people's heads.
 
 The goal was simple: when any AI — current or future — starts working on VEGAVERY, it should instantly know every rule, every preference, every mistake that was already made. Not from a 50-page onboarding doc. From the folder structure itself.
+
+### Why Aphorisms Matter
+
+Every correction is a **short answer**. Users don't write essays — they snap:
+- *"Don't use fallback"* → `mkdir 禁fallback` → 1 neuron
+- *"Don't beg with prompts. Design the pipeline."* → 1 neuron
+
+**One short answer = one neuron.** Accumulate them and you get a folder tree. The folder tree is the brain.
+
+But here's the key: if that short answer is an **aphorism** — a principle, a philosophy — the brain gets qualitatively smarter.
+
+- *"Don't use console.log"* → technical fix. Good.
+- *"Don't beg with prompts. Design the pipeline."* → philosophy. **The brain's direction changes.**
+- *"Aphorisms collect into a brain. That brain becomes context."* → meta-cognition. The brain understands itself.
+
+Same 326 neurons. But a brain filled with aphorisms is **fundamentally different** from a brain filled with rules. The folder names carry the user's thinking.
 
 ### Imagine
 
