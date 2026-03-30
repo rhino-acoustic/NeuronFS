@@ -185,13 +185,18 @@ const dashboardHTML = `<!DOCTYPE html>
 
   /* ── Toast notification ── */
   .toast {
-    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.9); border: 1px solid #333;
-    border-radius: 8px; padding: 8px 20px; font-size: 12px; color: #34d399;
-    z-index: 200; opacity: 0; transition: opacity 0.3s;
-    pointer-events: none;
+    position: fixed; top: 16px; left: 16px; max-width: 300px;
+    background: rgba(12,12,24,0.9); backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid #34d399;
+    border-radius: 8px; padding: 12px 20px; font-size: 9px; font-family: 'SUIT', sans-serif; color: #e0e0e0;
+    z-index: 300; opacity: 0; pointer-events: auto; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+    animation: slideInFromLeft 0.3s forwards; display: none;
   }
-  .toast.show { opacity: 1; }
+  .toast.show { display: flex; opacity: 1; }
+  .toast.error { border-left-color: #ef4444; }
+  .toast-close { background: none; border: none; color: #888; cursor: pointer; font-size: 12px; padding: 0; line-height: 1; }
+  .toast-close:hover { color: #fff; }
+  @keyframes slideInFromLeft { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
   /* ── System Health Panel ── */
   .system-health {
@@ -297,7 +302,7 @@ const dashboardHTML = `<!DOCTYPE html>
       <button class="btn btn-danger" onclick="doBomb()">💀 BOMB</button>
     </div>
   </div>
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast"><span id="toast-msg"></span><button class="toast-close" onclick="closeToast()">✕</button></div>
 </div>
 
 <script>
@@ -886,11 +891,17 @@ async function clearSandbox() {
   loadBrain();
 }
 
+let toastTimeout;
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
+  document.getElementById('toast-msg').textContent = msg;
+  if (msg.includes('⚠️') || msg.includes('💀')) t.classList.add('error'); else t.classList.remove('error');
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 5000);
+}
+function closeToast() {
+  document.getElementById('toast').classList.remove('show');
 }
 
 // ── Health monitoring ──

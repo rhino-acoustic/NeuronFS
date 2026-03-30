@@ -399,7 +399,7 @@ func scanBrain(root string) Brain {
 		flatNeuronRegex := regexp.MustCompile(`^(.+)\.(\d+)\.neuron$`)
 		flatNeuronSimple := regexp.MustCompile(`^(.+)\.neuron$`)
 		rootNeuronFiles, _ := filepath.Glob(filepath.Join(regionPath, "*.neuron"))
-		seen := make(map[string]*Neuron) // group by neuron name
+		neuronMap := make(map[string]*Neuron) // group by neuron name (Path)
 		for _, nf := range rootNeuronFiles {
 			fname := filepath.Base(nf)
 			var neuronName string
@@ -410,15 +410,14 @@ func scanBrain(root string) Brain {
 				counter, _ = strconv.Atoi(m[2])
 			} else if m := flatNeuronSimple.FindStringSubmatch(fname); m != nil {
 				neuronName = m[1]
-				// Check for special files
 				if neuronName == "bomb" || strings.HasPrefix(neuronName, "dopamine") || strings.HasPrefix(neuronName, "memory") {
-					continue // these are signals, not neuron names
+					continue
 				}
 			} else {
 				continue
 			}
 
-			if existing, ok := seen[neuronName]; ok {
+			if existing, ok := neuronMap[neuronName]; ok {
 				if counter > existing.Counter {
 					existing.Counter = counter
 				}
@@ -431,140 +430,127 @@ func scanBrain(root string) Brain {
 					Counter:  counter,
 					ModTime:  time.Now(),
 				}
-				// Bomb check
 				if fname == "bomb.neuron" {
 					n.HasBomb = true
 					region.HasBomb = true
-				}
-				if strings.HasPrefix(fname, "bomb_") {
+				} else if strings.HasPrefix(fname, "bomb_") {
 					n.HasBomb = true
 				}
-				// Compute intensity
-				n.Intensity = n.Counter + n.Dopamine
-				if n.Intensity > 0 {
-					n.Polarity = float64(n.Dopamine) / float64(n.Intensity)
-				} else {
-					n.Polarity = 0.5
-				}
-				seen[neuronName] = n
-				region.Neurons = append(region.Neurons, *n)
+				neuronMap[neuronName] = n
 			}
 		}
 
 		// Walk for neuron folders — Axiom: Folder=Neuron, File=Trace
-		// Every non-system folder IS a neuron. .neuron files are weight traces, not requirements.
 		filepath.Walk(regionPath, func(path string, info os.FileInfo, err error) error {
 			if err != nil || !info.IsDir() || path == regionPath {
 				return nil
 			}
 
-			// Skip system/hidden folders (except _sandbox children for dashboard sandbox feature)
 			baseName := filepath.Base(path)
 			if strings.HasPrefix(baseName, "_") || strings.HasPrefix(baseName, ".") {
-				// Allow walking INTO _sandbox but don't count _sandbox itself as a neuron
 				if baseName == "_sandbox" {
 					return nil
 				}
 				return filepath.SkipDir
 			}
 
-			// _sandbox container is not a neuron — its children are
-			// (handled by return nil above, children will reach here as normal folders)
+			relPath, _ := filepath.Rel(regionPath, path)
+			depth := strings.Count(relPath, string(filepath.Separator))
 
-			// Every non-system folder is a neuron — parse .neuron files as weight traces
+			n, exists := neuronMap[relPath]
+			if !exists {
+				n = &Neuron{
+					Name:     baseName,
+					Path:     relPath,
+					FullPath: path,
+					Depth:    depth,
+					ModTime:  info.ModTime(),
+				}
+				neuronMap[relPath] = n
+			} else {
+				n.FullPath = path
+				n.Depth = depth
+				if info.ModTime().After(n.ModTime) {
+					n.ModTime = info.ModTime()
+				}
+			}
+
 			neuronFiles, _ := filepath.Glob(filepath.Join(path, "*.neuron"))
 			contraFiles, _ := filepath.Glob(filepath.Join(path, "*.contra"))
 			neuronFiles = append(neuronFiles, contraFiles...)
 			goalFiles, _ := filepath.Glob(filepath.Join(path, "*.goal"))
 
-			relPath, _ := filepath.Rel(regionPath, path)
-			depth := strings.Count(relPath, string(filepath.Separator))
-
-			neuron := Neuron{
-				Name:     filepath.Base(path),
-				Path:     relPath,
-				FullPath: path,
-				Depth:    depth,
-				ModTime:  info.ModTime(),
-			}
-
-			// Parse trace files
 			for _, nf := range neuronFiles {
 				fname := filepath.Base(nf)
 
-				// Counter: N.neuron
 				if m := counterRegex.FindStringSubmatch(fname); m != nil {
-					n, _ := strconv.Atoi(m[1])
-					if n > neuron.Counter {
-						neuron.Counter = n
+					cnt, _ := strconv.Atoi(m[1])
+					if cnt > n.Counter {
+						n.Counter = cnt
 					}
 				}
 
-				// Dopamine: dopamineN.neuron
 				if m := dopamineRegex.FindStringSubmatch(fname); m != nil {
-					n, _ := strconv.Atoi(m[1])
-					neuron.Dopamine += n
+					cnt, _ := strconv.Atoi(m[1])
+					n.Dopamine += cnt
 				}
 
-				// Contra: N.contra (inhibitory signal)
 				if strings.HasSuffix(fname, ".contra") {
 					base := strings.TrimSuffix(fname, ".contra")
-					if n, err := strconv.Atoi(base); err == nil && n > neuron.Contra {
-						neuron.Contra = n
+					if cnt, err := strconv.Atoi(base); err == nil && cnt > n.Contra {
+						n.Contra = cnt
 					}
 				}
 
-				// Bomb
 				if fname == "bomb.neuron" {
-					neuron.HasBomb = true
+					n.HasBomb = true
 					region.HasBomb = true
 				}
-
-				// Memory
 				if strings.HasPrefix(fname, "memory") {
-					neuron.HasMemory = true
+					n.HasMemory = true
 				}
 			}
 
-			// Goal files (.goal = todo/objective, primarily in prefrontal)
 			if len(goalFiles) > 0 {
-				neuron.HasGoal = true
-				// Read first goal file content
-				content, err := os.ReadFile(goalFiles[0])
-				if err == nil && len(content) > 0 {
-					neuron.GoalText = strings.TrimSpace(string(content))
+				n.HasGoal = true
+				if content, err := os.ReadFile(goalFiles[0]); err == nil && len(content) > 0 {
+					n.GoalText = strings.TrimSpace(string(content))
 				}
 			}
 
-			// Geofence files (.geofence = context masking directory prefix)
 			geofenceFiles, _ := filepath.Glob(filepath.Join(path, "*.geofence"))
 			if len(geofenceFiles) > 0 {
-				content, err := os.ReadFile(geofenceFiles[0])
-				if err == nil && len(content) > 0 {
-					neuron.Geofence = strings.TrimSpace(string(content))
+				if content, err := os.ReadFile(geofenceFiles[0]); err == nil && len(content) > 0 {
+					n.Geofence = strings.TrimSpace(string(content))
 				}
 			}
 
-			// Dormant check
 			dormantFiles, _ := filepath.Glob(filepath.Join(path, "*.dormant"))
 			if len(dormantFiles) > 0 {
-				neuron.IsDormant = true
+				n.IsDormant = true
 			}
 
-			// Compute derived fields
-			// Net weight: excitation - inhibition + reward
-			neuron.Intensity = neuron.Counter - neuron.Contra + neuron.Dopamine
-			totalSignals := neuron.Counter + neuron.Contra + neuron.Dopamine
-			if totalSignals > 0 {
-				// Polarity: -1.0 (pure inhibition) to +1.0 (pure excitation)
-				neuron.Polarity = float64(neuron.Counter+neuron.Dopamine-neuron.Contra) / float64(totalSignals)
-			} else {
-				neuron.Polarity = 0.0 // neutral — no signals
-			}
-
-			region.Neurons = append(region.Neurons, neuron)
 			return nil
 		})
+
+		// Finalize compute elements and ensure deterministic order
+		var paths []string
+		for path := range neuronMap {
+			paths = append(paths, path)
+		}
+		sort.Strings(paths)
+
+		for _, path := range paths {
+			n := neuronMap[path]
+			n.Intensity = n.Counter - n.Contra + n.Dopamine
+			totalSignals := n.Counter + n.Contra + n.Dopamine
+			if totalSignals > 0 {
+				n.Polarity = float64(n.Counter+n.Dopamine-n.Contra) / float64(totalSignals)
+			} else {
+				n.Polarity = 0.5
+			}
+			region.Neurons = append(region.Neurons, *n)
+		}
 
 		brain.Regions = append(brain.Regions, region)
 	}

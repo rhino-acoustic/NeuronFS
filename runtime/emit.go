@@ -363,7 +363,7 @@ func emitIndex(brain Brain, result SubsumptionResult) string {
 		for _, regionName := range regionOrder {
 			icon := regionIcons[regionName]
 			neurons := grouped[regionName]
-			sb.WriteString(fmt.Sprintf("#### %s %s (%d)\n", icon, regionName, len(neurons)))
+			sb.WriteString(fmt.Sprintf("### %s %s (%d)\n", icon, regionName, len(neurons)))
 			if len(neurons) == 0 {
 				sb.WriteString("(없음)\n\n")
 				continue
