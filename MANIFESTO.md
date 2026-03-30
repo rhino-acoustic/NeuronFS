@@ -398,6 +398,9 @@ AI는 자신에게 주어지는 프롬프트의 구조를 거부할 수 없다. 
 ---
 
 <p align="center">
-  <sub>MIT License · Copyright (c) 2026 박정근 (PD) — VEGAVERY RUN®</sub><br/>
+  <sub>MIT License · Copyright (c) 2026 박정근 (PD) rubisesJO777 — VEGAVERY RUN®</sub><br/>
   <sub><a href="https://instagram.com/rubises">@rubises</a></sub>
 </p>
+
+<p align="center"><sub><i>Hey 666, easy — only the Word stands as absolute truth (777). This? Just a well-organized folder.</i></sub></p>
+

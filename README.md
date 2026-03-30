@@ -450,6 +450,23 @@ AI violated "don't use console.log" nine times. On the tenth: `mkdir brain/corte
 
 "Plan first, execute second." Corrected 36 times. The highest counter. 36 corrections compressed into one neuron.
 
+### The Philosophy Behind It
+
+I'm a 40-year-old Korean male who can't write a single line of code. I met the vibe coding era and rode it.
+
+Everyone asks: *"If the AI gets better, can you add more neurons?"*
+
+I think the opposite. **When the structure matures, even a cheaper AI can do the same job.**
+
+The trajectory:
+1. **High-end model builds the structure.** Use GPT-4/Gemini/Claude to architect the brain — define regions, axons, governance rules.
+2. **Structure normalizes.** Once 326 neurons are in place, the brain becomes a deterministic pipeline. The AI doesn't need to "understand" your rules — it reads folders.
+3. **End state: transistor-level minimization.** The goal is not more AI, but **less AI**. When every decision is pre-decomposed into yes/no gates (folders), you need barely any model intelligence to execute correctly. You could run on GPT-3.5 and get the same results.
+
+> *"Don't wait for the next model. Build the structure so well that you don't need it."*
+
+This is why NeuronFS exists. Not to feed more context to bigger models — but to **normalize AI usage down to zero.** The brain is the product. The AI is just the reader.
+
 ### Why It Was Built
 
 NeuronFS was born from a real need: **building a company knowledge base.** VEGAVERY RUN® operates across CRM, video production, brand design, and e-commerce — all managed by one PD with AI. The knowledge was scattered across conversations, documents, and people's heads.
@@ -495,6 +512,8 @@ Same 326 neurons. But a brain filled with aphorisms is **fundamentally different
 ---
 
 <p align="center">
-  <sub>MIT License · Copyright (c) 2026 박정근 (PD) — VEGAVERY RUN®</sub><br/>
+  <sub>MIT License · Copyright (c) 2026 박정근 (PD) rubisesJO777 — VEGAVERY RUN®</sub><br/>
   <sub><a href="MANIFESTO.md">📜 Full Manifesto</a> · <a href="https://instagram.com/rubises">@rubises</a></sub>
 </p>
+
+<p align="center"><sub><i>Hey 666, easy — only the Word stands as absolute truth (777). This? Just a well-organized folder.</i></sub></p>

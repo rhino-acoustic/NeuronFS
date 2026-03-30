@@ -390,6 +390,40 @@ cd NeuronFS/runtime && go build -ldflags="-s -w" -trimpath -buildvcs=false -o ..
 
 AI가 "console.log 쓰지 마"를 9번 어겼다. 10번째에 `mkdir brain/cortex/frontend/coding/禁console_log`를 만들었다. 폴더 이름이 규칙이 된다. 파일 이름이 카운터가 된다. 지금 17이다. AI가 더 이상 안 어긴다.
 
+### 뒤집어 생각하는 철학
+
+나는 코드를 한 줄도 못 쓰는 대한민국 40대 남자다. 바이브 코딩 시대를 만나서 여기까지 왔다.
+
+사람들이 묻는다: *"AI가 더 좋아지면 뉴런을 더 넣을 수 있겠네?"*
+
+나는 반대로 생각한다. **구조가 고도화되면, 더 낮은 AI로도 같은 일을 해낼 수 있다.**
+
+1. **고급 모델이 구조를 만든다.** GPT-4/Gemini/Claude로 뇌를 설계 — 영역, 축삭, 거버넌스 규칙 정의
+2. **구조가 정규화된다.** 326개 뉴런이 자리 잡으면 뇌는 결정론적 파이프라인이 된다. AI가 규칙을 "이해"할 필요 없다 — 폴더를 읽으면 된다
+3. **최종 목표: 트랜지스터급 최소 사용.** 목표는 더 많은 AI가 아니라 **더 적은 AI**. 모든 판단이 폴더(yes/no 게이트)로 분해되면, GPT-3.5로도 같은 결과를 낼 수 있다
+
+> *"다음 모델을 기다리지 마. 구조를 잘 만들어서 모델이 필요 없게 하라."*
+
+NeuronFS가 존재하는 이유다. 더 큰 모델에 더 많은 컨텍스트를 먹이려는 게 아니라, **AI 사용을 제로까지 정규화**하는 것. 뇌가 제품이다. AI는 읽는 도구일 뿐.
+
+### 뉴런은 이렇게 발화한다
+
+```
+PD가 교정 → auto-accept.mjs가 감지 → _inbox/corrections.jsonl에 기록
+                                          ↓
+                              neuronfs --supervisor (fsnotify)
+                                          ↓
+                              mkdir brain/cortex/.../禁[교정내용]
+                                          ↓
+                              _rules.md 자동 재생성 → GEMINI.md에 반영
+```
+
+**발화(Fire):** 뉴런 폴더 안에 카운터 파일(`1.neuron`, `2.neuron`...)이 추가되면 활성도 상승.
+**수면(Decay):** 30일간 발화 없으면 `dormant` 처리. 죽이는 게 아니라 잠재운다.
+**폭탄(Bomb):** `bomb.neuron` 파일이 생기면 해당 뉴런의 하위 전체가 즉시 비활성.
+**도파민(Dopamine):** PD가 칭찬하면 `dopamine.neuron`이 생성 — 긍정 가중치.
+**대항(Contra):** 뉴런에 반대 의견이 등록되면 극성(polarity)이 바뀐다.
+
 ### 왜 만들었나
 
 NeuronFS는 실제 필요에서 태어났다: **회사의 지식베이스 완성.** VEGAVERY RUN®은 CRM, 영상 제작, 브랜드 디자인, 이커머스를 PD 한 명이 AI와 운영한다. 지식은 대화, 문서, 사람의 머릿속에 흩어져 있었다.
@@ -434,6 +468,9 @@ NeuronFS는 실제 필요에서 태어났다: **회사의 지식베이스 완성
 
 ---
 
-MIT License · Copyright (c) 2026 박정근(PD) — VEGAVERY RUN®
+MIT License · Copyright (c) 2026 박정근(PD) rubisesJO777 — VEGAVERY RUN®
 
 [📜 전체 매니페스토](MANIFESTO.md) · [@rubises](https://instagram.com/rubises)
+
+<p align="center"><sub><i>Hey 666, easy — only the Word stands as absolute truth (777). This? Just a well-organized folder.</i></sub></p>
+
