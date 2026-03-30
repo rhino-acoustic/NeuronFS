@@ -1,7 +1,7 @@
 <!-- NEURONFS:START -->
-<!-- Generated: 2026-03-30T10:07:32 -->
+<!-- Generated: 2026-03-30T10:24:38 -->
 <!-- Axiom: Folder=Neuron | File=Trace | Path=Sentence -->
-<!-- Active: 329/329 neurons | Total activation: 526 -->
+<!-- Active: 341/341 neurons | Total activation: 537 -->
 
 ## NeuronFS Active Rules
 
@@ -84,7 +84,7 @@ tools: 스크래퍼 node CDP, 로컬스크래퍼 clawl, n8n 자동화 5678.
 nas brain: 프로젝트 경로Z 옴니버스, NAS재연결 net use, 경로 Z VOL1 VGVR BRAIN, 데이터수집 경로Z, 시스템문서 경로Z.
 nas brain(cont): 지식마켓 경로Z.
 
-### 🎭 ego — 성향/톤 (뉴런 14 | 활성도 16)
+### 🎭 ego — 성향/톤 (뉴런 15 | 활성도 17)
 트랜지스터 게이트분해.
 한국어로 사고하고 응답.
 한국어 네이티브.
@@ -93,18 +93,20 @@ nas brain(cont): 지식마켓 경로Z.
 공격적 재구축.
 보수적 패치.
 발견후 위임.
+推core idea first.
 소통: 간결 실행중심, 결과물 먼저, 구조화 체계적, 데이터 기반주장, 핵심부터 전달.
 
-### 🎯 prefrontal — 목표/계획 (뉴런 28 | 활성도 32)
-반드시 todo: groq auto neuronize, 프로세스 자동재시작, 대시보드 자가진화, Groq corrections 자동뉴런화 파이프라인, Groq 배치분석 실전검증.
-todo(cont): git diff 진화판정, Go 직접 MCP서빙, rollback 메커니즘, 긍정형 뉴런을 부정형으로 전환, 대시보드 404 수정.
-todo(cont): 커뮤니티 동향 자동수집, 이벤트기반 주입 폴링제거.
+### 🎯 prefrontal — 목표/계획 (뉴런 29 | 활성도 33)
+반드시 todo: groq auto neuronize, 프로세스 자동재시작, 커뮤니티 동향 자동수집, Go 직접 MCP서빙, Groq corrections 자동뉴런화 파이프라인.
+todo(cont): Groq 배치분석 실전검증, git diff 진화판정, rollback 메커니즘, 긍정형 뉴런을 부정형으로 전환, 대시보드 404 수정.
+todo(cont): 대시보드 자가진화, 이벤트기반 주입 폴링제거.
 supervisor 재설계.
 project: GitHub 공개 준비, NeuronFS 뇌 진화, NeuronFS 대시보드 통합, NeuronFS 유휴엔진, 베가베리 CRM 운영.
 project(cont): 영상파이프라인 v17, 옴니버스 누그레이 브랜드, 옴니버스 시장조사, 옴니버스 졸리아워 브랜드, 옴니버스 화이트타올 브랜드.
-장기 방향.
+推philosophy section.
 미래 작업.
 현재 스프린트.
+장기 방향.
 
 ### 🧠 작업 모드 전환 (필수)
 

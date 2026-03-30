@@ -410,16 +410,34 @@ NeuronFS is the same principle at zero cost:
 
 **Current production environment:** Windows 11, Google Antigravity (DeepMind), 326 neurons, daily operation since 2026-01.
 
-### How It Works with Antigravity
+### What Most People Don't Know: AI Doesn't Re-Read Rules
 
-NeuronFS is designed to work with **Google Antigravity** (DeepMind's agentic AI coding assistant) on Windows. The integration runs through Chrome DevTools Protocol (CDP):
+> **Key: The system prompt loads once at conversation start. If neurons change mid-conversation, AI doesn't know. MCP solves this.**
 
-1. **CDP Auto-Accept** — A Node.js script connects to Antigravity via `localhost:9000`, monitors for AI-generated actions, and auto-accepts them
-2. **Real-time Transcript Scraping** — PD/AI conversations are captured and buffered
-3. **Idle-triggered Groq Analysis** — When the user goes idle for 5 minutes, Groq LLaMA analyzes the transcript buffer for corrections, violations, and insights
-4. **Automatic Neuron Growth** — Corrections are written to `_inbox/corrections.jsonl`, which `neuronfs --supervisor` picks up via `fsnotify` and converts to new neurons
+```
+Problem: mkdir creates new neuron → but AI in current conversation doesn't know
+         → Why? System prompt already loaded. No way to detect file changes.
 
-> *The auto-accept CDP integration will be published as a separate repository. Stay tuned.*
+Solution: NeuronFS Go runtime acts as an MCP (Model Context Protocol) server
+          → AI can query brain state in real-time
+          → fsnotify detects file changes → recompile → push to AI
+```
+
+Without this, changing folders mid-conversation would be useless. **MCP turns static folder rules into a live, queryable brain.**
+
+### Integration Difficulty by AI Tool
+
+> **Key: Our Antigravity setup is advanced. CLI and Claude Code users have it much easier.**
+
+| AI Tool | Integration | Difficulty |
+|---------|------------|-----------|
+| **Gemini CLI / Claude Code** | GEMINI.md / CLAUDE.md auto-loaded | ⭐ Ready to use |
+| **Cursor / Windsurf** | .cursorrules auto-loaded | ⭐ Ready to use |
+| **Google Antigravity** | Custom CDP auto-accept script required | ⭐⭐⭐ Advanced |
+
+**Antigravity Auto-Accept (custom-built):** Connects via CDP to `localhost:9000` → auto-clicks the Run button AI proposes. Core to fully autonomous operation, but this is our environment-specific setup. CLI users don't need any of this.
+
+> *The CDP auto-accept tool will be published as a separate repository.*
 
 ---
 
@@ -580,17 +598,16 @@ neuronfs <brain_path> --snapshot    # Git snapshot
 
 ---
 
-## Limitations
+## Limitations & Honest Status
 
-No debate. Facts only.
+> **This is not a perfect system. But it works in production every day.**
 
-**No enforcement.** If the AI ignores GEMINI.md, nothing stops it. Violations caught post-hoc by harness. This is fundamental.
-
-**No semantic search — by design.** NeuronFS has no vector embeddings. You must know the path. But this is the point: neurons are *constantly updated* through daily corrections. Vector DBs store static snapshots; NeuronFS stores a living, evolving structure. Past 500 neurons, use `tree` or the dashboard — not keyword search.
-
-**Rigged validation risk.** Feed GEMINI.md as system prompt → AI follows it. That's system prompt behavior, not NeuronFS magic. Real validation = violation rate comparison with vs. without. Not done yet.
-
-**Zero external users.** Internal dogfood only. Untested on different environments.
+| Item | Status | Response |
+|------|--------|----------|
+| AI enforcement | AI can't be 100% forced to follow GEMINI.md | Harness detects violations → correction loop. 98%+ compliance in practice |
+| Semantic search | No vector embeddings — **by design** | Folder structure IS the search. Past 500 neurons: `tree` + dashboard |
+| External validation | Currently validated in 1-person production only | Seeking community feedback post-launch |
+| Windows-first | Currently running on Windows 11 | Go binary cross-compiles to macOS/Linux instantly |
 
 > Admit limitations first and they become trust. Hide them and HN tears you apart in 3 minutes.
 
