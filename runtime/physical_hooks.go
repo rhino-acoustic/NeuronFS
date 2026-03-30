@@ -79,10 +79,10 @@ $timer.Interval = [TimeSpan]::FromMilliseconds(500)
 $timer.Add_Tick({ param($s,$e); if ($script:flash) { $grid.Background = [System.Windows.Media.Brushes]::Red } else { $grid.Background = [System.Windows.Media.Brushes]::DarkRed }; $script:flash = -not $script:flash })
 $timer.Start()
 
-$close = New-Object System.Windows.Threading.DispatcherTimer
-$close.Interval = [TimeSpan]::FromSeconds(15)
-$close.Add_Tick({ param($s,$e); $window.Close() })
-$close.Start()
+# 에이전트 완전 정지 (Halt)
+Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match "auto-accept|bot-heartbeat|bot1|entp|enfp" -and $_.ProcessName -notmatch "powershell" } | ForEach-Object { 
+    Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue 
+}
 
 $window.Add_MouseDown({ $window.Close() })
 $window.ShowDialog() | Out-Null
