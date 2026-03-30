@@ -731,6 +731,22 @@ bomb doesn't remove a rule. It's a **circuit breaker that stops the entire regio
 
 **How to remove:** `rm brain_v4/cortex/.../bomb.neuron` — delete the file. That's it. No CLI command. "Everything is folders" means file deletion = disarm. Intentionally simple — complex disarm procedures in emergencies hurt usability. After removal, next `--emit` auto-recovers.
 
+**Q: "When bomb fires, does the AI just quietly stop?"**
+
+No. It **physically stops.** When bomb.neuron is detected, `triggerPhysicalHook()` fires — a USB red siren literally starts spinning. The agent halts, PD sees it with their eyes, investigates, then `rm bomb.neuron` to restore.
+
+This is not a metaphor — it's a **literal circuit breaker.** A hard stop to prevent token waste. Not a software notification. A physical alarm.
+
+```go
+// physical_hooks.go — OS physical interrupt on bomb detection
+func triggerPhysicalHook(regionName string) {
+    // PowerShell beep + USB siren trigger
+    cmd := exec.Command("powershell", "-NoProfile", "-Command",
+        "[console]::beep(1000, 500); Write-Warning 'NEURONFS FATAL: BOMB detected'")
+    _ = cmd.Run()
+}
+```
+
 ---
 
 ### Why Korean? A Token Advantage for Everyone
