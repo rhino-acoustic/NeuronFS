@@ -421,51 +421,7 @@ func startDashboard(brainRoot string, port int) {
 
 	// POST /api/contra — add inhibitory signal to a neuron
 	mux.HandleFunc("/api/contra", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
-			http.Error(w, "POST only", 405)
-			return
-		}
-		var req struct {
-			Path string `json:"path"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "bad json", 400)
-			return
-		}
-		path := strings.ReplaceAll(req.Path, "\\", "/")
-		path = strings.Trim(path, "/")
-		// Brainstem is immutable — no contra allowed
-		if strings.HasPrefix(path, "brainstem") {
-			http.Error(w, "brainstem neurons are immutable — contra denied", 403)
-			return
-		}
-		// Find current contra and increment
-		neuronDir := filepath.Join(brainRoot, strings.ReplaceAll(path, "/", string(filepath.Separator)))
-		if _, err := os.Stat(neuronDir); os.IsNotExist(err) {
-			http.Error(w, "neuron not found", 404)
-			return
-		}
-		contraFiles, _ := filepath.Glob(filepath.Join(neuronDir, "*.contra"))
-		currentContra := 0
-		var oldFile string
-		for _, f := range contraFiles {
-			base := strings.TrimSuffix(filepath.Base(f), ".contra")
-			if n, err := fmt.Sscanf(base, "%d", new(int)); err == nil && n > 0 {
-				var v int
-				fmt.Sscanf(base, "%d", &v)
-				if v > currentContra {
-					currentContra = v
-					oldFile = f
-				}
-			}
-		}
-		if oldFile != "" {
-			os.Remove(oldFile)
-		}
-		newContra := currentContra + 1
-		os.WriteFile(filepath.Join(neuronDir, fmt.Sprintf("%d.contra", newContra)), []byte("."), 0644)
-		fmt.Printf("[CONTRA] 🔴 %s: %d → %d\n", path, currentContra, newContra)
-		w.Write([]byte(fmt.Sprintf("OK — contra %d: %s", newContra, path)))
+		http.Error(w, "403 Forbidden: API write operations (.contra) are disabled for security. Use CLI.", 403)
 	}))
 
 	http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), mux)
