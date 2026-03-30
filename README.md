@@ -283,7 +283,7 @@ No debate. Facts only.
 
 **No enforcement.** If the AI ignores GEMINI.md, nothing stops it. Violations caught post-hoc by harness. This is fundamental.
 
-**No semantic search.** Can't "find similar rules." Must know the exact path. Past 500 neurons, manual navigation becomes impractical. Vector DBs beat NeuronFS here.
+**No semantic search — by design.** NeuronFS has no vector embeddings. You must know the path. But this is the point: neurons are *constantly updated* through daily corrections. Vector DBs store static snapshots; NeuronFS stores a living, evolving structure. Past 500 neurons, use `tree` or the dashboard — not keyword search.
 
 **Rigged validation risk.** Feed GEMINI.md as system prompt → AI follows it. That's system prompt behavior, not NeuronFS magic. Real validation = violation rate comparison with vs. without. Not done yet.
 
