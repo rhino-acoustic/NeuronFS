@@ -50,15 +50,19 @@ Add-Type -AssemblyName PresentationCore
 
 $window = New-Object System.Windows.Window
 $window.WindowStyle = 'None'
-$window.WindowState = 'Maximized'
+$window.Width = 350
+$window.Height = 100
+$window.Left = 20
+$window.Top = 20
 $window.Topmost = $true
+$window.ShowInTaskbar = $false
 
 $grid = New-Object System.Windows.Controls.Grid
 $grid.Background = [System.Windows.Media.Brushes]::Red
 
 $text = New-Object System.Windows.Controls.TextBlock
-$text.Text = [char]::ConvertFromUtf32(0x1F4A3) + " NEURONFS BOMB" + [Environment]::NewLine + [Environment]::NewLine + "Region: %s" + [Environment]::NewLine + [Environment]::NewLine + "rm bomb.neuron to disarm"
-$text.FontSize = 72
+$text.Text = [char]::ConvertFromUtf32(0x1F4A3) + " NEURONFS BOMB: %s"
+$text.FontSize = 18
 $text.FontWeight = 'Bold'
 $text.Foreground = [System.Windows.Media.Brushes]::White
 $text.HorizontalAlignment = 'Center'
