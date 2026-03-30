@@ -1,4 +1,4 @@
-하<p align="center">
+`하<p align="center">
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
   <img src="https://img.shields.io/badge/Neurons-326-blue?style=flat-square" />
@@ -15,6 +15,7 @@
 <p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 매니페스토</a></p>
 
 # 🧠 NeuronFS
+### *폴더로 만든 자가 진화하는 AI 뇌. 인프라 제로. 종속성 제로.*
 
 **Unix는 "Everything is a file"이라 했다. 우리는 말한다: Everything is folders.**
 

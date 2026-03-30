@@ -15,6 +15,7 @@
 <p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 Manifesto</a></p>
 
 # 🧠 NeuronFS
+### *A self-evolving AI brain made of folders. Zero infra. Zero dependencies.*
 
 **Unix said "Everything is a file." We say: Everything is folders.**
 
