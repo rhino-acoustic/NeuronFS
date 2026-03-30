@@ -20,6 +20,15 @@
 
 Folders are neurons. Paths are sentences. Counters are synaptic weights. The filesystem is the brain.
 
+| Before | NeuronFS |
+|--------|----------|
+| 1000-line prompt | **One folder** |
+| "Don't forget this rule" | `mkdir 禁fallback` |
+| Vector DB $70/mo | **$0** |
+| AI can ignore it | `chmod 444` — **OS blocks it** |
+| Write rules in files | **The folder name IS the instruction. 0KB.** |
+| Switch models = reset | `cp -r brain/` — **1 second** |
+
 > *"Don't beg with prompts. Design the pipeline."*
 
 ### Contents
@@ -376,6 +385,35 @@ NeuronFS is designed to work with **Google Antigravity** (DeepMind's agentic AI 
 4. **Automatic Neuron Growth** — Corrections are written to `_inbox/corrections.jsonl`, which `neuronfs --supervisor` picks up via `fsnotify` and converts to new neurons
 
 > *The auto-accept CDP integration will be published as a separate repository. Stay tuned.*
+
+---
+
+## Multi-Agent — Personality, Not Roles
+
+> **Key: When you split agents by "role," they freeze when work falls outside their role. When you split by "personality (MBTI)," they find work that matches their temperament.**
+
+All agents **share the same brain (brain_v4/)**. One brain. But each agent has a **different personality** — like people.
+
+| Agent | MBTI | Temperament | Work Style |
+|-------|------|-------------|-----------|
+| **ANCHOR** | ISTJ | Conservative, principled, meticulous | Harness validation, governance, violation detection |
+| **FORGE** | ENTP | Aggressive, experimental, fast | Code generation, refactoring, new experiments |
+| **MUSE** | ENFP | Creative, empathetic, big-picture | Documentation, UX, community, ideas |
+
+**Why personality over roles:**
+
+- Role-based: "You are QA" → problem outside QA scope → "Not my job" 🛑
+- Personality-based: "You are ISTJ" → any problem → approach it methodically, rigorously ✅
+
+```
+Same brain, different personalities:
+
+ANCHOR(ISTJ): reads brain_v4/ → "This neuron violates harness rule #7"
+FORGE(ENTP):  reads brain_v4/ → "Split this neuron into 3 for better granularity"  
+MUSE(ENFP):   reads brain_v4/ → "This neuron name isn't intuitive enough"
+```
+
+Same brain, same rules, but **personality drives what each agent notices.** Just like a real team.
 
 ---
 
