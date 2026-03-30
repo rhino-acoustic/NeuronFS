@@ -737,6 +737,12 @@ No. It **physically stops.** When bomb.neuron is detected, `triggerPhysicalHook(
 
 This is not a metaphor — it's a **literal circuit breaker.** A hard stop to prevent token waste. Not a software notification. A physical alarm.
 
+<p align="center">
+  <img src="docs/bomb_alert.png" alt="bomb.neuron physical alert — fullscreen red flash + USB siren" width="700" />
+  <br/>
+  <sub>bomb.neuron detected → fullscreen red flash + USB siren + Telegram alert. A literal emergency stop.</sub>
+</p>
+
 ```go
 // physical_hooks.go — OS physical interrupt on bomb detection
 func triggerPhysicalHook(regionName string) {
