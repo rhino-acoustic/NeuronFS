@@ -729,6 +729,8 @@ bomb doesn't remove a rule. It's a **circuit breaker that stops the entire regio
 
 **Real-world activation:** bomb is not just design — it has fired in production. 2026-03-29, cortex and hippocampus regions, 1 activation each. PD removed bomb files, normal operation restored.
 
+**How to remove:** `rm brain_v4/cortex/.../bomb.neuron` — delete the file. That's it. No CLI command. "Everything is folders" means file deletion = disarm. Intentionally simple — complex disarm procedures in emergencies hurt usability. After removal, next `--emit` auto-recovers.
+
 ---
 
 ### Why Korean? A Token Advantage for Everyone
