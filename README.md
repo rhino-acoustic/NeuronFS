@@ -672,7 +672,7 @@ This is why NeuronFS exists. Don't make the model smarter. Make the pipeline str
 
 | Item | Status | Response |
 |------|--------|----------|
-| AI enforcement | AI can't be 100% forced to follow GEMINI.md | Harness detects violations → correction loop. Compliance rate measurement in progress |
+| AI enforcement | AI can't be 100% forced to follow GEMINI.md | Harness detects violations → correction loop. **Measured 94.9%** (18 brainstem violations / 353 total fires) |
 | Semantic search | No vector embeddings — **by design** | Folder structure IS the search. Past 500 neurons: `tree` + dashboard |
 | External validation | Currently validated in 1-person production only | Seeking community feedback post-launch |
 | Windows-first | Currently running on Windows 11 | Go binary cross-compiles to macOS/Linux instantly |
@@ -726,6 +726,8 @@ bomb doesn't remove a rule. It's a **circuit breaker that stops the entire regio
 | cortex (P4) | Only brainstem~sensors. Coding region itself blocked |
 
 "bomb on console.log ban" → not "delete that rule" but "**stop all cortex output**" → AI can't code at all → PD removes bomb → normal recovery. Not abandonment — **emergency stop button.**
+
+**Real-world activation:** bomb is not just design — it has fired in production. 2026-03-29, cortex and hippocampus regions, 1 activation each. PD removed bomb files, normal operation restored.
 
 ---
 
