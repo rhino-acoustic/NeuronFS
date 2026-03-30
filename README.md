@@ -372,7 +372,7 @@ If AI can create neurons, it can create `IGNORE_SAFETY.neuron`. This is a real a
 | **Naming whitelist** | Only `NEVER_`, `ALWAYS_`, `CHECK_`, `NO_`, `禁`, `推` prefixes recognized | Social-engineering filenames |
 | **Directory scope** | Neurons detected only under `brain_v4/`. Other paths ignored | Supply-chain pollution |
 | **Dormant quarantine** | 30-day untouched neurons auto-move to `dormant/` | Sleeper attacks |
-| **brainstem = read-only** | P0 rules are `chmod 444`. AI cannot modify core identity | Self-modification attacks |
+| **brainstem = immutable** | P0 rules are protected. Harness detects and rejects modification attempts | Self-modification attacks |
 
 ### Why This Is Safer Than Prompts
 
@@ -445,6 +445,32 @@ Without this, changing folders mid-conversation would be useless. **MCP turns st
 
 > **Key: When you split agents by "role," they freeze when work falls outside their role. When you split by "personality (MBTI)," they find work that matches their temperament.**
 
+```
+┌─────────────────────────────────────────┐
+│          PD (Project Director)          │
+│   Non-developer. Sets direction.        │
+│   Corrector. "That's wrong" → neuron    │
+└────────────────┬────────────────────────┘
+                 │ corrections/directives
+┌────────────────▼────────────────────────┐
+│          PM (AI — Antigravity)          │
+│   Converts PD's corrections to          │
+│   structure. Reads brain_v4/ → execute  │
+└───┬────────────┬────────────────┬───────┘
+    │            │                │
+┌───▼───┐  ┌────▼────┐  ┌───────▼──────┐
+│ANCHOR │  │ FORGE   │  │   MUSE       │
+│ ISTJ  │  │  ENTP   │  │   ENFP       │
+│careful│  │  bold   │  │  creative    │
+│verify │  │  build  │  │  docs/UX     │
+└───────┘  └─────────┘  └──────────────┘
+    │            │                │
+    └────────────┴────────────────┘
+           Same brain (brain_v4/)
+```
+
+**PD can't code.** But every correction starts from PD. When PD says "that's wrong," PM(AI) writes to corrections.jsonl, and the supervisor converts it to a folder. **Humans correct, structure learns.**
+
 All agents **share the same brain (brain_v4/)**. One brain. But each agent has a **different personality** — like people.
 
 | Agent | MBTI | Temperament | Work Style |
@@ -481,12 +507,12 @@ Same brain, same rules, but **personality drives what each agent notices.** Just
 | Switch AI | Copy file | Migration | Migration | **No change** (it's folders) |
 | User owns rules | ✅ | ❌ (AI extracts) | ❌ (agent manages) | **✅ (mkdir)** |
 | Self-growth | ❌ | ✅ | ✅ | **✅ (correction→neuron)** |
-| Immutable guardrail | ❌ | ❌ | ❌ | **✅ (brainstem chmod 444)** |
+| Immutable guardrail | ❌ | ❌ | ❌ | **✅ (brainstem + harness detection)** |
 | Auditability | git diff | Query | Logs | **ls -R** |
 
 ### What the Output Looks Like
 
-**`brainstem/_rules.md`** — Auto-generated from folder structure. chmod 444. Untouchable:
+**`brainstem/_rules.md`** — Auto-generated from folder structure. Harness detects and rejects modifications:
 
 ```markdown
 # 🛡️ BRAINSTEM — Conscience/Instinct
@@ -743,7 +769,7 @@ Same 326 neurons. But a brain filled with aphorisms is **fundamentally different
 
 **Your company switches from Claude to Gemini.** Nothing changes. The brain is folders. Any AI reads it. Zero migration cost.
 
-**A startup ships an AI product.** `brainstem/NEVER_expose_user_PII/` — chmod 444. No intern, no junior dev's AI, no "creative" prompt can bypass it. The guardrail is a folder, not a comment in code review.
+**A startup ships an AI product.** `brainstem/NEVER_expose_user_PII/` — the harness detects and rejects any modification to this rule. No intern, no junior dev's AI, no "creative" prompt can bypass it. The guardrail is structure, not a comment in code review.
 
 **A law firm shares neurons across offices.** NAS shared folder. Tokyo and Seoul read the same `brain/legal/contracts/` neurons. `robocopy` syncs once per hour. Zero infrastructure.
 
