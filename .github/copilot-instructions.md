@@ -1,7 +1,7 @@
 <!-- NEURONFS:START -->
-<!-- Generated: 2026-03-30T19:32:03 -->
+<!-- Generated: 2026-03-30T19:35:20 -->
 <!-- Axiom: Folder=Neuron | File=Trace | Path=Sentence -->
-<!-- Active: 353/353 neurons | Total activation: 565 -->
+<!-- Active: 354/354 neurons | Total activation: 566 -->
 
 ## NeuronFS Active Rules
 
@@ -24,7 +24,7 @@ brainstem ←→ limbic ←→ hippocampus ←→ sensors ←→ cortex ←→ e
 2. **禁영어사고 한국어로 생각하고 대답**
 3. **禁SSOT 중복**
 4. **토론말고 실행**
-5. **禁하드코딩**
+5. **禁프로세스 우회**
 
 ### 🌱 자가 성장 프로토콜
 
