@@ -46,10 +46,11 @@ Thumbs.db
 *.swp
 *.swo
 
-# Brain runtime files (auto-generated, don't track)
+# Brain runtime files (auto-generated)
 brain_state.json
 brain_dashboard.html
 brain_mesh.obj
+brain.obj
 
 # Environment
 .env
@@ -58,7 +59,7 @@ brain_mesh.obj
 brain_v4/_agents/*/inbox/*.md
 brain_v4/_agents/*/outbox/*.md
 
-# Internal backups (not for public)
+# Internal backups
 _backup_*/
 brain/
 
@@ -72,3 +73,43 @@ _transcripts/
 runtime/qs_*.txt
 runtime/coverage_*.txt
 test_result.txt
+
+# === Internal operational files ===
+
+# Proposals/evidence
+_proposals/
+evidence/
+
+# Legacy scripts
+generate_brain_v2.ps1
+generate_brain_v3.ps1
+generate_brain_v4.ps1
+generate_deep_brain.ps1
+migrate_to_korean.ps1
+harness.ps1
+watchdog.ps1
+merge.ps1
+start_brain.bat
+
+# CDP exploration
+cdp_explore*.mjs
+cdp_pages.json
+cdp_result.json
+
+# Test/temp JSON
+groq_test_result.json
+pd_chain.json
+test_groq_batch.mjs
+
+# Legacy docs (consolidated into README/MANIFESTO)
+COGNITIVE_ARCHITECTURE.md
+OPERATIONS.md
+PD_NARRATIVE.md
+MANIFESTO_EN.md
+COMMIT_MESSAGES_IN_ENGLISH.neuron
+
+# VSCode extension (WIP)
+vscode-extension/
+
+# MCP legacy (migrated to runtime)
+mcp/
