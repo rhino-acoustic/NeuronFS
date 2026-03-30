@@ -17,32 +17,15 @@
 # 🧠 NeuronFS
 ### *A self-evolving AI brain made of folders. Zero infra. Zero dependencies.*
 
-## [TL;DR] How to get Palantir-level AI control for $0
+## [TL;DR] The Filesystem is the Brain
 
-> *"Palantir did this. They achieved it with crappy AI."*
+Mem0, Letta, MemGPT all need a server. They're tied to specific models. Someone has to manage them.
+NeuronFS lives on the filesystem. Every rule is a folder. Every correction grows a new neuron automatically. Switch models? `cp -r brain/`. Share across agents? NAS shared folder. Version control? `git diff`. Cost? $0.
 
-Palantir doesn't use the world's smartest AI. They use **average AI locked inside a brutally strict structure (Ontology).** Each decision passes through thousands of transistor-level Yes/No gates. Each gate is simple enough that even a mediocre model gets it right. The cascade produces consistent, reliable results.
+Palantir's bet wasn't a smarter AI — it was a stricter pipeline. This is the same bet, on a filesystem, for anyone.
 
-**This was proven years ago.** Palantir built a $100B+ company not by waiting for AGI, but by perfecting the *structure around* ordinary AI. NeuronFS applies the same lesson: don't make the model smarter — make the pipeline stricter.
-
-> *"Transistor-level granularity. That's how Palantir uses it."*
->
-> *"Ontology is just copying the brain."*
-
-NeuronFS is the same principle at zero cost:
-
-| | Palantir AIP | NeuronFS |
-|---|---|---|
-| Structure | Ontology (Entity + Link) | Folders (Neuron + Path) |
-| AI model | Any model | Any model |
-| Gate unit | Micro-decision node | 0-byte neuron folder |
-| Cost | Enterprise $$ | **$0** |
-| Enforcement | Pipeline hardcoded | Harness hardcoded |
-
-> *"We brought enterprise-grade structural control down to $0 using the OS filesystem."*
-
-**Current production environment:** Windows 11, Google Antigravity (DeepMind), 326 neurons, daily operation since 2026-01.
-
+Not a rule manager. A self-evolving context layer that outlives every model it runs on.
+**326 neurons. Daily driver since January 2026. One person, one company, every AI task.**
 ---
 
 **Unix said "Everything is a file." We say: Everything is folders.**
