@@ -352,13 +352,31 @@ func emitIndex(brain Brain, result SubsumptionResult) string {
 	if len(spotlight) > 0 {
 		sb.WriteString("<details>\n")
 		sb.WriteString(fmt.Sprintf("<summary>🆕 신규 (probation) — %d neurons (%dd window)</summary>\n\n", len(spotlight), spotlightDays))
+
+		// Group by region in P0→P6 order
+		regionOrder := []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"}
+		grouped := make(map[string][]neuronWithRegion)
 		for _, rn := range spotlight {
-			icon := regionIcons[rn.region]
-			ageDays := int(now.Sub(rn.neuron.ModTime).Hours() / 24)
-			sb.WriteString(fmt.Sprintf("- %s **%s** (%d) — %dd남음\n",
-				icon, pathToSentence(rn.neuron.Path), rn.neuron.Counter, spotlightDays-ageDays))
+			grouped[rn.region] = append(grouped[rn.region], rn)
 		}
-		sb.WriteString("\n</details>\n\n")
+
+		for _, regionName := range regionOrder {
+			icon := regionIcons[regionName]
+			neurons := grouped[regionName]
+			sb.WriteString(fmt.Sprintf("#### %s %s (%d)\n", icon, regionName, len(neurons)))
+			if len(neurons) == 0 {
+				sb.WriteString("(없음)\n\n")
+				continue
+			}
+			for _, rn := range neurons {
+				ageDays := int(now.Sub(rn.neuron.ModTime).Hours() / 24)
+				sb.WriteString(fmt.Sprintf("- **%s** (%d) — %dd남음\n",
+					pathToSentence(rn.neuron.Path), rn.neuron.Counter, spotlightDays-ageDays))
+			}
+			sb.WriteString("\n")
+		}
+
+		sb.WriteString("</details>\n\n")
 	}
 
 	// Per-region summary table

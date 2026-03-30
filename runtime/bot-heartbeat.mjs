@@ -31,7 +31,6 @@ const HEARTBEAT_LOCK = join(AGENTS_DIR, 'pm', 'heartbeat.lock');
 
 // PM 창 title 매칭 — BASEMENT_ADMIN 워크스페이스
 const TITLE_MAP = {
-    pm: 'basement_admin',
     bot1: 'bot1',
     entp: 'entp',
     enfp: 'enfp'
