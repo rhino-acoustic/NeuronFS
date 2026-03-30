@@ -672,7 +672,7 @@ This is why NeuronFS exists. Don't make the model smarter. Make the pipeline str
 
 | Item | Status | Response |
 |------|--------|----------|
-| AI enforcement | AI can't be 100% forced to follow GEMINI.md | Harness detects violations → correction loop. 98%+ compliance in practice |
+| AI enforcement | AI can't be 100% forced to follow GEMINI.md | Harness detects violations → correction loop. Compliance rate measurement in progress |
 | Semantic search | No vector embeddings — **by design** | Folder structure IS the search. Past 500 neurons: `tree` + dashboard |
 | External validation | Currently validated in 1-person production only | Seeking community feedback post-launch |
 | Windows-first | Currently running on Windows 11 | Go binary cross-compiles to macOS/Linux instantly |
@@ -714,6 +714,37 @@ You don't. Each region's `_rules.md` handles conditional branching as text. Fold
 **Q: "Isn't the CDP auto-accept brittle against browser updates?"**
 
 Yes. CDP-based integration is brittle. **This is specific to the creator's setup.** If you use Gemini CLI, Claude Code, Cursor, or any CLI-based tool, this problem doesn't exist — GEMINI.md auto-loads. CDP is a choice for "fully autonomous operation," not a requirement of NeuronFS.
+
+**Q: "If bomb.neuron fires, doesn't the rule disappear? Won't AI break it more?"**
+
+bomb doesn't remove a rule. It's a **circuit breaker that stops the entire region's output.** Verified in code:
+
+| bomb location | result |
+|--------------|--------|
+| brainstem (P0) | **Entire brain stops**. 0 neurons output. GEMINI.md goes empty |
+| limbic (P1) | Only brainstem outputs. 6 other regions fully blocked |
+| cortex (P4) | Only brainstem~sensors. Coding region itself blocked |
+
+"bomb on console.log ban" → not "delete that rule" but "**stop all cortex output**" → AI can't code at all → PD removes bomb → normal recovery. Not abandonment — **emergency stop button.**
+
+---
+
+### Why Korean? A Token Advantage for Everyone
+
+NeuronFS was built in Korean. This isn't a limitation — it's an **advantage.**
+
+| | English | Korean (Hanja) |
+|--|---------|---------------|
+| "Never use English for thinking" | 6 tokens | `禁영어사고` = **1 token** |
+| "Always verify before delivery" | 5 tokens | `推검증후납품` = **1 token** |
+| Folder name length | Long paths | 2-4 chars = same meaning |
+
+Hanja (漢字) characters compress 6-word rules into 2-character folder names. This means:
+- **6× fewer tokens** consumed per rule
+- **More rules fit** in the same context window
+- **OS path limits** (260 chars) hit much later
+
+**English speakers:** You can use NeuronFS in English (`NEVER_use_fallback/`). But consider mixing in Hanja prefixes (`禁fallback/`) — your AI reads them correctly and you save tokens.
 
 ---
 
