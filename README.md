@@ -43,6 +43,10 @@ touch brain/cortex/testing/no_console_log/1.neuron
 
 That's a neuron. Path = rule. Filename = counter. Zero infrastructure.
 
+<p align="center">
+  <img src="docs/neuronfs_tree.png" alt="NeuronFS Folder Tree — Brain Architecture" width="720" />
+</p>
+
 | Concept | Biological Brain | NeuronFS | OS Primitive |
 |---------|-----------------|----------|-------------|
 | Neuron | Cell body | Directory | `mkdir` |
