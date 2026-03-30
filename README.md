@@ -71,7 +71,7 @@ Automatically reflected in next session's system prompt
 | 💡 | [Structure, Not Text](#the-answer-structure-not-text) | How `mkdir` replaces thousand-line prompts |
 | 🏆 | [Why Folders Beat Everything](#why-folders-beat-everything) | $0 infra vs $70/mo vector DBs — benchmarks included |
 | ⚖️ | [The Harness](#the-harness-how-rules-become-law) | 3-tier injection, circuit breakers, brainstem protection |
-| 🔮 | [The Palantir Insight](#the-palantir-insight) | How a $100B company proved "dumb AI + strict structure" works |
+| 🔮 | [Mission-Critical Scaling](#mission-critical-scaling) | How structural constraints beat smart models |
 | 🏗️ | [Architecture](#architecture) | Autonomous loop, execution stack, CLI reference |
 | ⚠️ | [Limitations](#limitations) | Honest about what doesn't work |
 | 📖 | [The Story](#the-story) | Why aphorisms make the brain smarter than rules |
@@ -441,6 +441,21 @@ Solution: NeuronFS Go runtime acts as an MCP (Model Context Protocol) server
 
 Without this, changing folders mid-conversation would be useless. **MCP turns static folder rules into a live, queryable brain.**
 
+#### Claude Desktop MCP Configuration Example
+
+Add this to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "neuronfs": {
+      "command": "C:/path/to/neuronfs.exe",
+      "args": ["C:/path/to/brain_v4", "--mcp"]
+    }
+  }
+}
+```
+
 ### Integration Difficulty by AI Tool
 
 > **Key: Our Antigravity setup is advanced. CLI and Claude Code users have it much easier.**
@@ -725,9 +740,9 @@ This is why NeuronFS exists. Don't make the model smarter. Make the pipeline str
 
 Yes. `neuronfs --emit` compiles the folder tree into text. AI reads text. But the point is **who manages that text and how.** Editing a 1000-line prompt directly vs. running `mkdir` to add a rule produce the same output — but the maintenance cost is different. Git manages text files. NeuronFS manages system prompts.
 
-**Q: "The Palantir comparison is a stretch."**
+**Q: "Can't malicious agents just write .contra or bomb files anywhere?"**
 
-Palantir's ontology and NeuronFS solve different problems at different scales. The comparison is about **principle**, not implementation — "Don't solve everything with one giant model. Break decisions into small gates and pipeline them." That principle is the same. NeuronFS isn't claiming to be Palantir — it's saying the same principle works at $0 for individuals.
+Yes. NeuronFS relies heavily on **OS filesystem permissions** and **Git integrity**. If an attacker gains unrestricted write access to your OS or Git tree, prompt injection is your least concern. We believe transparent filesystem-level security (chmod, Git auth) is safer and more familiar than black-box vector DB poisoning.
 
 **Q: "PASS: 15 is self-validation, not proof."**
 

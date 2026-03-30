@@ -495,7 +495,7 @@ func scanBrain(root string) Brain {
 					n.Dopamine += cnt
 				}
 
-				if strings.HasSuffix(fname, ".contra") {
+				if strings.HasSuffix(fname, ".contra") && region.Name != "brainstem" {
 					base := strings.TrimSuffix(fname, ".contra")
 					if cnt, err := strconv.Atoi(base); err == nil && cnt > n.Contra {
 						n.Contra = cnt
