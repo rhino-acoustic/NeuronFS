@@ -278,7 +278,7 @@ neuronfs <brain_path> --snapshot    # Git ?ㅻ깄??```
 ## 鍮좊Ⅸ ?쒖옉
 
 ```bash
-git clone https://github.com/vegavery/NeuronFS.git
+git clone https://github.com/rhino-acoustic/NeuronFS.git
 cd NeuronFS/runtime && go build -ldflags="-s -w" -trimpath -buildvcs=false -o ../neuronfs .
 
 ./neuronfs ./brain_v4           # 吏꾨떒 ?ㅼ틪

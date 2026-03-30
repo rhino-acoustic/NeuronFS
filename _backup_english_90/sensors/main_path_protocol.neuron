@@ -1,9 +1,0 @@
-# NeuronFS Architecture Protocol: Main & Backup
-
-- **[MAIN] Primary Engine (로컬 최우선 원칙):** `C:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4`
-  - 에이전트 연산(Backlog/Outbox), 허트비트(Heartbeat), 자가진화, 90개 뉴런의 대시보드 스캔 등 **생태계의 모든 뇌 가동은 오직 로컬(C: 드라이브)에서 발생하며 우선순위를 갖는다.**
-  - `generate_brain_v4.ps1`과 같은 리셋 스크립트는 로컬의 무결성(90개)을 훼손하므로 PM 승인 하에 사용을 영구 Burn-Down Lock 처리함.
-
-- **[BACKUP] Shadow Mirror (NAS 백업 보존):** `Z:\VOL1\VGVR\BRAIN\LW\system\neurons\brain_v4`
-  - 터미널 1번의 백그라운드 `$local -> $nas` 프로세스는 로컬에 적층된 생태계 결과물과 뉴런 진화를 최후에 긁어 모아 Z: 로 덮어쓰는(Mirror) 단방향 백업(Backup) 데몬으로 규정함.
-  - NAS는 연산을 굴리지 않으며, 순수 복구용 스냅샷 아카이브로만 작동함.

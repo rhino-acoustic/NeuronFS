@@ -208,6 +208,8 @@ NeuronFS rules are **files.** `tree brain/` shows everything. `git log` shows hi
 
 Palantir doesn't use the world's smartest AI. They use **average AI locked inside a brutally strict structure (Ontology).** Each decision passes through thousands of transistor-level Yes/No gates. Each gate is simple enough that even a mediocre model gets it right. The cascade produces consistent, reliable results.
 
+**This was proven years ago.** Palantir built a $100B+ company not by waiting for AGI, but by perfecting the *structure around* ordinary AI. NeuronFS applies the same lesson: don't make the model smarter — make the pipeline stricter.
+
 > *"Transistor-level granularity. That's how Palantir uses it."*
 >
 > *"Ontology is just copying the brain."*
@@ -223,6 +225,8 @@ NeuronFS is the same principle at zero cost:
 | Enforcement | Pipeline hardcoded | Harness hardcoded |
 
 > *"We brought enterprise-grade structural control down to $0 using the OS filesystem."*
+
+**Current production environment:** Windows 11, Google Antigravity (DeepMind), 326 neurons, daily operation since 2026-01.
 
 ---
 
@@ -296,7 +300,7 @@ No debate. Facts only.
 ## Quick Start
 
 ```bash
-git clone https://github.com/vegavery/NeuronFS.git
+git clone https://github.com/rhino-acoustic/NeuronFS.git
 cd NeuronFS/runtime && go build -ldflags="-s -w" -trimpath -buildvcs=false -o ../neuronfs .
 
 ./neuronfs ./brain_v4           # Diagnostic scan

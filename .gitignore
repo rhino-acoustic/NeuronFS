@@ -57,3 +57,18 @@ brain_mesh.obj
 # Brain agent communication (transient)
 brain_v4/_agents/*/inbox/*.md
 brain_v4/_agents/*/outbox/*.md
+
+# Internal backups (not for public)
+_backup_*/
+brain/
+
+# Logs directory
+logs/
+
+# Transcripts
+_transcripts/
+
+# Runtime temp files
+runtime/qs_*.txt
+runtime/coverage_*.txt
+test_result.txt
