@@ -2,16 +2,151 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"net/url"
+	"os"
 	"os/exec"
+	"strings"
 )
 
-// triggerPhysicalHook initiates a forceful physical action in the local OS
-// when a bomb is detected via the Subsumption Architecture.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Physical Hooks — bomb.neuron 감지 시 물리 경보 발동
+//
+// 1. 모니터: 전체화면 빨간색 플래시 + BOMB 메시지
+// 2. 스피커: 1000Hz 비프음 반복
+// 3. 텔레그램: BotFather 봇으로 PD에게 알림 전송
+// 4. USB 사이렌: COM 포트 시리얼 명령 (Adafruit Tower Light 등)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// 텔레그램 봇 설정 (BotFather에서 발급)
+const (
+	telegramBotToken = "" // @BotFather → /newbot → 토큰 붙여넣기
+	telegramChatID   = "" // @userinfobot으로 chat_id 확인
+)
+
+// USB 사이렌 COM 포트 설정
+// 추천 제품: Adafruit Tri-Color USB Tower Light w/ Buzzer (~$30)
+// AliExpress "USB programmable signal tower light" (~$15)
+const (
+	usbSirenCOMPort = "" // "COM3" 등. 빈 문자열이면 스킵
+)
+
+// triggerPhysicalHook — bomb 감지 시 모든 물리 경보 발동
 func triggerPhysicalHook(regionName string) {
-	fmt.Printf("[CRITICAL HOOK] BOMB detected in '%s'. Triggering OS physical interrupt...\n", regionName)
-	// Example hook: PowerShell beep or popup. Fire and forget to avoid blocking the Subsumption loop.
-	go func() {
-		cmd := exec.Command("powershell", "-NoProfile", "-Command", "[console]::beep(1000, 500); Write-Warning 'NEURONFS FATAL: BOMB detected in "+regionName+"'")
-		_ = cmd.Run()
-	}()
+	fmt.Fprintf(os.Stderr, "[CRITICAL] BOMB in '%s'. Physical alert triggered.\n", regionName)
+
+	go triggerRedFlash(regionName)
+	go triggerTelegram(regionName)
+	go triggerUSBSiren(regionName)
+}
+
+// triggerRedFlash — 모니터 전체화면 빨간색 플래시 + 비프음
+func triggerRedFlash(regionName string) {
+	escapedRegion := strings.ReplaceAll(regionName, "'", "''")
+
+	ps := fmt.Sprintf(`
+Add-Type -AssemblyName PresentationFramework
+Add-Type -AssemblyName PresentationCore
+
+$window = New-Object System.Windows.Window
+$window.WindowStyle = 'None'
+$window.WindowState = 'Maximized'
+$window.Topmost = $true
+
+$grid = New-Object System.Windows.Controls.Grid
+$grid.Background = [System.Windows.Media.Brushes]::Red
+
+$text = New-Object System.Windows.Controls.TextBlock
+$text.Text = [char]::ConvertFromUtf32(0x1F4A3) + " NEURONFS BOMB" + [Environment]::NewLine + [Environment]::NewLine + "Region: %s" + [Environment]::NewLine + [Environment]::NewLine + "rm bomb.neuron to disarm"
+$text.FontSize = 72
+$text.FontWeight = 'Bold'
+$text.Foreground = [System.Windows.Media.Brushes]::White
+$text.HorizontalAlignment = 'Center'
+$text.VerticalAlignment = 'Center'
+$text.TextAlignment = 'Center'
+$grid.Children.Add($text) | Out-Null
+$window.Content = $grid
+
+Start-Job -ScriptBlock { for ($i = 0; $i -lt 5; $i++) { [console]::beep(1000,300); Start-Sleep -m 200; [console]::beep(800,300); Start-Sleep -m 200 } } | Out-Null
+
+$flash = $true
+$timer = New-Object System.Windows.Threading.DispatcherTimer
+$timer.Interval = [TimeSpan]::FromMilliseconds(500)
+$timer.Add_Tick({ param($s,$e); if ($script:flash) { $grid.Background = [System.Windows.Media.Brushes]::Red } else { $grid.Background = [System.Windows.Media.Brushes]::DarkRed }; $script:flash = -not $script:flash })
+$timer.Start()
+
+$close = New-Object System.Windows.Threading.DispatcherTimer
+$close.Interval = [TimeSpan]::FromSeconds(15)
+$close.Add_Tick({ param($s,$e); $window.Close() })
+$close.Start()
+
+$window.Add_MouseDown({ $window.Close() })
+$window.ShowDialog() | Out-Null
+`, escapedRegion)
+
+	cmd := exec.Command("powershell", "-NoProfile", "-STA", "-Command", ps)
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "[HOOK] Red flash error: %v\n", err)
+	}
+}
+
+// triggerTelegram — BotFather 봇으로 PD에게 긴급 알림
+func triggerTelegram(regionName string) {
+	if telegramBotToken == "" || telegramChatID == "" {
+		fmt.Fprintf(os.Stderr, "[HOOK] Telegram not configured (set token/chatID in physical_hooks.go)\n")
+		return
+	}
+
+	msg := fmt.Sprintf("NEURONFS BOMB\n\nRegion: %s\nAction: rm bomb.neuron\nStatus: Agent HALTED", regionName)
+	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", telegramBotToken)
+
+	resp, err := http.PostForm(apiURL, url.Values{
+		"chat_id": {telegramChatID},
+		"text":    {msg},
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[HOOK] Telegram failed: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 200 {
+		fmt.Fprintf(os.Stderr, "[HOOK] Telegram alert sent.\n")
+	} else {
+		fmt.Fprintf(os.Stderr, "[HOOK] Telegram status %d\n", resp.StatusCode)
+	}
+}
+
+// triggerUSBSiren — USB 시리얼 타워라이트 제어
+// 추천 하드웨어:
+//   - Adafruit Tri-Color USB Tower Light w/ Buzzer (Product ID 5125) ~$30
+//     https://www.adafruit.com/product/5125
+//   - AliExpress "USB signal tower light" CH340 기반 ~$15
+//   - BlinkStick (blink1-tool CLI) ~$20
+//
+// 프로토콜: CH340 시리얼 → 0x11=Red ON, 0x21=Red OFF, 0x14=Buzzer ON
+func triggerUSBSiren(regionName string) {
+	if usbSirenCOMPort == "" {
+		return // 미설정 시 스킵
+	}
+
+	ps := fmt.Sprintf(`
+$port = New-Object System.IO.Ports.SerialPort "%s", 9600, None, 8, One
+try {
+    $port.Open()
+    # Red ON + Buzzer ON
+    $port.Write([byte[]]@(0x11, 0x14), 0, 2)
+    Start-Sleep -Seconds 10
+    # All OFF
+    $port.Write([byte[]]@(0x21, 0x24), 0, 2)
+    $port.Close()
+} catch {
+    Write-Error "USB siren error: $_"
+}
+`, usbSirenCOMPort)
+
+	cmd := exec.Command("powershell", "-NoProfile", "-Command", ps)
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "[HOOK] USB siren error: %v\n", err)
+	}
 }
