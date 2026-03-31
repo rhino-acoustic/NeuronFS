@@ -52,19 +52,46 @@ neuronfs ./brain --emit all      # → All AI formats at once
 | Rule violation → wishful thinking | `bomb.neuron` → **physical halt** |
 | Rules managed by humans | Correction → auto neuron growth |
 
-### 30-Second Start
+### Quickstart
+
+**Option A — Full engine (Go required)**
 
 ```bash
 git clone https://github.com/rhino-acoustic/NeuronFS.git
 cd NeuronFS/runtime; go build -o ../neuronfs .
 
-./neuronfs --init ./my_brain      # Create your first brain
-./neuronfs ./my_brain             # Diagnostic scan
-./neuronfs ./my_brain --emit all  # Compile to .cursorrules / CLAUDE.md / GEMINI.md
-./neuronfs ./my_brain --api       # Dashboard (localhost:9090)
+./neuronfs --init ./my_brain        # Create brain with 7 regions
+./neuronfs ./my_brain --emit all    # Compile to .cursorrules / CLAUDE.md / GEMINI.md
+./neuronfs ./my_brain --api         # Dashboard at localhost:9090
+./neuronfs ./my_brain --watch       # Auto-recompile on changes
+./neuronfs ./my_brain --fire cortex/frontend/禁console_log   # +1 counter
+./neuronfs ./my_brain --grow cortex/backend/禁raw_SQL        # Create neuron
 ```
 
-Daily driver since January 2026. Single Go binary. Zero dependencies.
+Go gives you: `--init`, `--emit`, `--watch`, `--fire`, `--grow`, `--decay`, `--api`, `--supervisor`.
+
+**Option B — Live injection only (No Go needed)**
+
+```bash
+# 1. Create a brain manually (just folders)
+mkdir -p ~/NeuronFS/brain_v4/brainstem/禁fallback
+echo. > ~/NeuronFS/brain_v4/brainstem/禁fallback/5.neuron
+
+mkdir -p ~/NeuronFS/brain_v4/cortex/frontend/禁console_log
+echo. > ~/NeuronFS/brain_v4/cortex/frontend/禁console_log/9.neuron
+
+# 2. Set environment variables
+export NEURONFS_BRAIN="$HOME/NeuronFS/brain_v4"
+export NODE_OPTIONS="--require $HOME/NeuronFS/runtime/v4-hook.cjs"
+
+# 3. Start your IDE — done
+cursor .
+```
+
+No build step. The hook is a single `.cjs` file with zero dependencies.
+Node.js is already included in every Electron-based IDE (VS Code, Cursor, Windsurf).
+
+Daily driver since January 2026. MIT License.
 
 ---
 
