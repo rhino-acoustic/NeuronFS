@@ -1927,11 +1927,11 @@ func deduplicateNeurons(brainRoot string) {
 	}
 }
 
-// runHeartbeatLoop drives the conscious mind (AI) forward without human input.
-// 유휴 판정: auto-accept의 전사 로그(_transcripts/) mtime을 확인
-// → 전사가 멈추면 AI가 정지한 것 → Todo 주입
+// runHeartbeatLoop monitors session transcripts and queues neuronization tasks.
+// V4 Architecture: the active AI session receives growth protocol via v4-hook.cjs.
+// Heartbeat no longer injects prompts via CDP. It writes report files to _inbox/reports/
+// which the AI picks up via the existing report queue mechanism.
 func runHeartbeatLoop(brainRoot string) {
-	pulseScript := filepath.Join(filepath.Dir(brainRoot), "runtime", "pulse.mjs")
 	todoDir := filepath.Join(brainRoot, "prefrontal", "todo")
 
 	// Antigravity session logs — home dir, not brainRoot parent
@@ -2045,6 +2045,7 @@ func runHeartbeatLoop(brainRoot string) {
 						lastLogFile = newFileKey
 						logText := recentLogs.String()
 						if len(logText) > 500 {
+							// Write to reports inbox — active AI session picks this up via hook
 							nextPrompt = fmt.Sprintf(`[MEMORY_OBSERVER %s] 아래는 최근 시스템 대화 로그 (%d바이트)이다.
 ---
 %s
@@ -2145,10 +2146,12 @@ func runHeartbeatLoop(brainRoot string) {
 		}
 
 		if nextPrompt != "" {
-			fmt.Printf("[HEARTBEAT] ⚡ → bot1 주입: %s\n", nextPrompt[:min(80, len(nextPrompt))])
-			cmd := exec.Command("node", pulseScript, nextPrompt, "bot1")
-			if err := cmd.Run(); err != nil {
-				fmt.Printf("[HEARTBEAT] ⚠️ CDP injection failed: %v\n", err)
+			// Write to reports inbox — active AI session reads this via v4-hook growth protocol
+			reportsDir := filepath.Join(brainRoot, "_inbox", "reports")
+			os.MkdirAll(reportsDir, 0755)
+			reportFile := filepath.Join(reportsDir, fmt.Sprintf("%s_normal_heartbeat.report", time.Now().Format("150405")))
+			if err := os.WriteFile(reportFile, []byte(nextPrompt), 0644); err == nil {
+				fmt.Printf("[HEARTBEAT] 📝 Report queued: %s\n", reportFile)
 			}
 			touchActivity()
 			lastInjection = time.Now()
