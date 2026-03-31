@@ -127,3 +127,52 @@ ARCHITECTURE_AGENTIC_CONTEXT_SCHEMA.md
 ARCHITECTURE_CONTEXT_HIJACKER.md
 ARCHITECTURE_HEADLESS_AUTORUN.md
 runtime/headless-executor.mjs
+
+# MITM certificate (NEVER commit)
+mitm.pfx
+
+# CDP/gRPC hijack experiments (contain local debug data)
+runtime/v[0-9]*-*.mjs
+runtime/*-hijack*.mjs
+runtime/*-patcher*.mjs
+runtime/*-inject*.mjs
+runtime/*probe*.mjs
+runtime/hijack-launcher.mjs
+runtime/context-hijacker.mjs
+runtime/broad-logger.mjs
+runtime/network-inspector.mjs
+runtime/transcript-extractor.mjs
+runtime/chat_summary.mjs
+runtime/show_chat.mjs
+runtime/scan_lsp_chat.mjs
+runtime/raw_methods.mjs
+runtime/repatch.mjs
+runtime/restart-ext-host.mjs
+runtime/full_search.mjs
+runtime/grpc_summary.mjs
+runtime/h2-patcher.mjs
+runtime/hotpatch-main.mjs
+runtime/cdp-main-inject.mjs
+runtime/_fix_launcher.mjs
+runtime/_show_latest.mjs
+
+# Debug dumps
+runtime/*.bin
+runtime/*.txt
+runtime/cdp_targets.json
+runtime/chat_captured.json
+v8_captures/
+v9_captures/
+
+# PS1 debug scripts
+runtime/analyze_extension.ps1
+runtime/check-net.ps1
+runtime/check-ports.ps1
+runtime/dump-procs.ps1
+runtime/get_cmdline.ps1
+runtime/get-cmd.ps1
+runtime/monitor-grpc.ps1
+runtime/extract_proto.ps1
+runtime/extract_proto.mjs
+runtime/decode_grpc.mjs
+runtime/inject-exthost.mjs

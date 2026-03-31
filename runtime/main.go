@@ -26,6 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -192,6 +193,12 @@ func main() {
 			}
 		case "--supervisor":
 			mode = "supervisor"
+		case "--neuronize":
+			mode = "neuronize"
+		case "--polarize":
+			mode = "polarize"
+		case "--symlink":
+			mode = "symlink"
 		case "--dry-run":
 			dryRun = true
 		}
@@ -298,6 +305,14 @@ func main() {
 		}
 		fmt.Printf("\033[35m[PRUNE] Toxic memories detected. Purging corrupted synapses...\033[0m\n")
 		fmt.Printf("\033[37m[RESTORE] Brainstem architecture fully re-aligned via SSOT.\033[0m\n")
+	case "rollback-all":
+		fmt.Printf("%s[PRUNE] Toxic memories detected. Purging ALL corrupted synapses...%s\n", ansiMagenta, ansiReset)
+		if err := rollbackAll(brainRoot); err != nil {
+			fmt.Printf("%s[TRAUMA] Global rollback failed: %v%s\n", ansiRed, err, ansiReset)
+			os.Exit(1)
+		}
+		fmt.Printf("%s[RESTORE] Brainstem architecture fully re-aligned via SSOT.%s\n", ansiWhite, ansiReset)
+		fmt.Printf("%s[NEURON] Cortex online. Heartbeat stabilized.%s\n", ansiGreen, ansiReset)
 	case "stats":
 		runStats(brainRoot)
 	case "vacuum":
@@ -323,6 +338,38 @@ func main() {
 		startMCPServerWithStdout(brainRoot, realStdout) // blocking: stdio loop
 	case "supervisor":
 		runSupervisor(brainRoot)
+	case "neuronize":
+		runNeuronize(brainRoot, dryRun)
+	case "polarize":
+		runPolarize(brainRoot, dryRun)
+	case "symlink":
+		targetDir := ""
+		for i, arg := range os.Args {
+			if arg == "--symlink" && i+1 < len(os.Args) {
+				targetDir = os.Args[i+1]
+				break
+			}
+		}
+		if targetDir == "" {
+			fmt.Println("[FATAL] Usage: neuronfs <brain> --symlink <global_path>")
+			os.Exit(1)
+		}
+		
+		sharedDir := filepath.Join(brainRoot, ".neuronfs", "shared")
+		os.MkdirAll(filepath.Dir(sharedDir), 0755)
+		
+		absTarget, _ := filepath.Abs(targetDir)
+		err := os.Symlink(absTarget, sharedDir)
+		if err != nil {
+			out, e2 := exec.Command("cmd", "/c", "mklink", "/J", sharedDir, absTarget).CombinedOutput()
+			if e2 != nil {
+				fmt.Printf("\033[31m[ERROR] Symlink/Junction failed: %v, out: %s\033[0m\n", e2, string(out))
+			} else {
+				fmt.Printf("\033[32m[OK] Created Junction %s -> %s\033[0m\n", sharedDir, absTarget)
+			}
+		} else {
+			fmt.Printf("\033[32m[OK] Created symlink %s -> %s\033[0m\n", sharedDir, absTarget)
+		}
 	}
 }
 
@@ -366,23 +413,30 @@ func findBrainRoot() string {
 func scanBrain(root string) Brain {
 	brain := Brain{Root: root}
 
+	regionsToScan := make(map[string]string)
 	entries, err := os.ReadDir(root)
-	if err != nil {
-		return brain
+	if err == nil {
+		for _, entry := range entries {
+			if entry.IsDir() {
+				name := entry.Name()
+				if _, ok := regionPriority[name]; ok {
+					regionsToScan[name] = filepath.Join(root, name)
+				}
+			}
+		}
 	}
 
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
+	sharedPath := filepath.Join(root, ".neuronfs", "shared")
+	if _, err := os.Stat(sharedPath); err == nil {
+		regionsToScan["shared"] = sharedPath
+		regionPriority["shared"] = 7
+		regionIcons["shared"] = "🔗"
+		regionKo["shared"] = "공유 지식"
+	}
 
-		name := entry.Name()
-		priority, ok := regionPriority[name]
-		if !ok {
-			continue
-		}
+	for name, regionPath := range regionsToScan {
+		priority := regionPriority[name]
 
-		regionPath := filepath.Join(root, name)
 		region := Region{
 			Name:     name,
 			Priority: priority,
@@ -659,29 +713,34 @@ func activationBar(counter int) string {
 // INJECT: Write rules into GEMINI.md
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func injectToGemini(brainRoot string, rules string) {
-	// Walk up to find .gemini/GEMINI.md
+	injected := false
+
+	// Walk up to find .gemini/GEMINI.md near brainRoot
 	dir := filepath.Dir(brainRoot)
 	for i := 0; i < 3; i++ {
 		geminiPath := filepath.Join(dir, ".gemini", "GEMINI.md")
 		if _, err := os.Stat(geminiPath); err == nil {
 			doInject(geminiPath, rules)
-			return
+			injected = true
+			break
 		}
 		dir = filepath.Dir(dir)
 	}
 
-	// Try USERPROFILE
+	// ALWAYS also write to USERPROFILE/.gemini/GEMINI.md (Antigravity reads here)
 	home := os.Getenv("USERPROFILE")
 	if home != "" {
 		geminiPath := filepath.Join(home, ".gemini", "GEMINI.md")
-		if _, err := os.Stat(geminiPath); err == nil {
-			doInject(geminiPath, rules)
-			return
-		}
+		homeDir := filepath.Join(home, ".gemini")
+		os.MkdirAll(homeDir, 0755)
+		doInject(geminiPath, rules)
+		injected = true
 	}
 
-	fmt.Println("[WARN] GEMINI.md not found, outputting to stdout:")
-	fmt.Print(rules)
+	if !injected {
+		fmt.Println("[WARN] GEMINI.md not found, outputting to stdout:")
+		fmt.Print(rules)
+	}
 }
 
 // doInject executes the injection of aggregated rules into target AI configuration files.
@@ -719,26 +778,128 @@ func doInject(geminiPath string, rules string) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// WATCH: Monitor + auto-inject
+// WATCH: fsnotify Event-Driven Monitor + auto-inject
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ANSI escape codes for premium CLI aesthetics
+const (
+	ansiReset   = "\033[0m"
+	ansiCyan    = "\033[36m"
+	ansiMagenta = "\033[35m"
+	ansiYellow  = "\033[33m"
+	ansiGreen   = "\033[32m"
+	ansiRed     = "\033[31m"
+	ansiDimGray = "\033[90m"
+	ansiWhite   = "\033[37m"
+)
+
 func runWatch(brainRoot string) {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		fmt.Printf("%s[TRAUMA] Failed to initialize neural watcher: %v%s\n", ansiRed, err, ansiReset)
+		return
+	}
+	defer watcher.Close()
+
+	// Recursively add all region directories to the watcher
+	watchCount := 0
+	for regionName := range regionPriority {
+		regionPath := filepath.Join(brainRoot, regionName)
+		if info, err := os.Stat(regionPath); err == nil && info.IsDir() {
+			filepath.Walk(regionPath, func(path string, info os.FileInfo, err error) error {
+				if err != nil || !info.IsDir() {
+					return nil
+				}
+				baseName := filepath.Base(path)
+				if strings.HasPrefix(baseName, ".") || baseName == "node_modules" {
+					return filepath.SkipDir
+				}
+				if wErr := watcher.Add(path); wErr == nil {
+					watchCount++
+				}
+				return nil
+			})
+		}
+	}
+	// Also watch _inbox for agent communication events
+	inboxPath := filepath.Join(brainRoot, "_inbox")
+	if info, err := os.Stat(inboxPath); err == nil && info.IsDir() {
+		watcher.Add(inboxPath)
+		watchCount++
+	}
+
+	fmt.Printf("%s[NEURON] Core Initialization Complete.%s\n", ansiCyan, ansiReset)
+	fmt.Printf("%s[SYNAPSE] Watching %d neural pathways via fsnotify. Zero polling.%s\n", ansiMagenta, watchCount, ansiReset)
+	fmt.Printf("%s  - Waiting for synaptic pulses...%s\n", ansiWhite, ansiReset)
+
+	// Initial injection on startup
+	processInbox(brainRoot)
+	writeAllTiers(brainRoot)
+
+	// Debounce timer: batch rapid filesystem events into a single re-scan
+	var debounceTimer *time.Timer
+	var debounceMu sync.Mutex
+	debounceMs := 500 * time.Millisecond
 	lastHash := ""
-	for {
+
+	triggerRescan := func() {
+		start := time.Now()
 		brain := scanBrain(brainRoot)
 		result := runSubsumption(brain)
 		hash := fmt.Sprintf("%d-%s-%d-%d",
 			result.FiredNeurons, result.BombSource, result.TotalNeurons, result.TotalCounter)
 		if hash != lastHash {
 			lastHash = hash
+			processInbox(brainRoot)
 			writeAllTiers(brainRoot)
+			elapsed := time.Since(start)
 			if result.BombSource != "" {
-				fmt.Printf("[%s] 💀 BOMB in %s\n", time.Now().Format("15:04:05"), result.BombSource)
+				fmt.Printf("%s[TRAUMA] 💀 BOMB detected in %s — cascading shutdown%s\n",
+					ansiRed, result.BombSource, ansiReset)
 			} else {
-				fmt.Printf("[%s] ✅ %d/%d neurons | activation: %d | brain_state.json updated\n",
-					time.Now().Format("15:04:05"), result.FiredNeurons, result.TotalNeurons, result.TotalCounter)
+				fmt.Printf("%s[PULSE] %d/%d neurons active | Δ activation: %d (%dms)%s\n",
+					ansiGreen, result.FiredNeurons, result.TotalNeurons, result.TotalCounter,
+					elapsed.Milliseconds(), ansiReset)
 			}
 		}
-		time.Sleep(2 * time.Second)
+	}
+
+	for {
+		select {
+		case event, ok := <-watcher.Events:
+			if !ok {
+				return
+			}
+			// Log individual pulse events with biological naming
+			relPath, _ := filepath.Rel(brainRoot, event.Name)
+			ts := time.Now().Format("15:04:05")
+			if event.Op&(fsnotify.Create|fsnotify.Write) != 0 {
+				fmt.Printf("%s[%s] [PULSE] %s evolved.%s\n", ansiYellow, ts, relPath, ansiReset)
+			} else if event.Op&fsnotify.Remove != 0 {
+				fmt.Printf("%s[%s] [PRUNE] 데드 시냅스 제거: %s%s\n", ansiDimGray, ts, relPath, ansiReset)
+			}
+
+			// If a new directory was created, add it to the watcher
+			if event.Op&fsnotify.Create != 0 {
+				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+					watcher.Add(event.Name)
+				}
+			}
+
+			// Debounce: reset timer on each event, fire rescan after debounceMs of silence
+			debounceMu.Lock()
+			if debounceTimer != nil {
+				debounceTimer.Stop()
+			}
+			debounceTimer = time.AfterFunc(debounceMs, triggerRescan)
+			debounceMu.Unlock()
+
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return
+			}
+			fmt.Printf("%s[TRAUMA] Watcher error: %v%s\n", ansiRed, err, ansiReset)
+		}
 	}
 }
 
@@ -781,6 +942,32 @@ func printDiag(brain Brain, result SubsumptionResult) {
 			fmt.Printf("    - %s\n", r)
 		}
 	}
+
+	// Shadow Context (Dashboard UI Panel logic inline for CLI)
+	diffCmd := exec.Command("git", "status", "--porcelain")
+	diffCmd.Dir = brain.Root
+	out, err := diffCmd.Output()
+	var shadowFiles []string
+	if err == nil {
+		lines := strings.Split(string(out), "\n")
+		for _, idx := range lines {
+			idx = strings.TrimSpace(idx)
+			if len(idx) > 2 {
+				shadowFiles = append(shadowFiles, idx[2:])
+			}
+		}
+	}
+	
+	fmt.Printf("\n  [Shadow Context: %d active working files]\n", len(shadowFiles))
+	limit := 5
+	if len(shadowFiles) < 5 { limit = len(shadowFiles) }
+	for i:=0; i<limit; i++ {
+		fmt.Printf("    * %s\n", strings.TrimSpace(shadowFiles[i]))
+	}
+	if len(shadowFiles) > 5 {
+		fmt.Printf("    * ... (%d more)\n", len(shadowFiles)-5)
+	}
+
 	fmt.Printf("\n  Total: %d/%d neurons | Activation: %d | Status: ",
 		result.FiredNeurons, result.TotalNeurons, result.TotalCounter)
 	if result.BombSource == "" {
@@ -2209,6 +2396,12 @@ func startAPI(brainRoot string, port int) {
 	// POST /api/evolve  {"dry_run": false}
 	mux.HandleFunc("/api/evolve", withCORS(handleEvolveAPI(brainRoot)))
 
+	// POST /api/neuronize {"dry_run": true} — Groq 기반 contra 뉴런 자동 생성
+	mux.HandleFunc("/api/neuronize", withCORS(handleNeuronizeAPI(brainRoot)))
+
+	// POST /api/polarize — 긍정형→부정형 전환 대상 조회
+	mux.HandleFunc("/api/polarize", withCORS(handlePolarizeAPI(brainRoot)))
+
 	// POST /api/dedup — 중복 뉴런 Jaccard 병합
 	mux.HandleFunc("/api/dedup", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
@@ -2615,8 +2808,147 @@ func startAPI(brainRoot string, port int) {
 		json.NewEncoder(w).Encode(map[string]interface{}{"pending": len(reports), "reports": reports})
 	}))
 
+	// GET /api/evolution — Git-based neural evolution timeline
+	mux.HandleFunc("/api/evolution", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		// Check git availability
+		if _, err := exec.LookPath("git"); err != nil {
+			json.NewEncoder(w).Encode(map[string]interface{}{"error": "git not found", "events": []interface{}{}})
+			return
+		}
+
+		// Get recent git log with file status (last 50 commits)
+		cmd := exec.Command("git", "log", "--pretty=format:%H|%ai|%s", "--name-status", "-n", "50")
+		cmd.Dir = brainRoot
+		out, err := cmd.Output()
+		if err != nil {
+			json.NewEncoder(w).Encode(map[string]interface{}{"error": err.Error(), "events": []interface{}{}})
+			return
+		}
+
+		type EvolutionEvent struct {
+			Hash      string `json:"hash"`
+			Timestamp string `json:"timestamp"`
+			Message   string `json:"message"`
+			Action    string `json:"action"`   // created, modified, suppressed
+			Path      string `json:"path"`
+			Region    string `json:"region"`
+		}
+
+		var events []EvolutionEvent
+		var currentHash, currentTime, currentMsg string
+
+		for _, line := range strings.Split(string(out), "\n") {
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
+
+			// Commit header line: hash|datetime|message
+			if parts := strings.SplitN(line, "|", 3); len(parts) == 3 && len(parts[0]) >= 40 {
+				currentHash = parts[0][:8]
+				currentTime = parts[1]
+				currentMsg = parts[2]
+				continue
+			}
+
+			// File status line: A/M/D\tpath
+			if len(line) >= 2 && (line[0] == 'A' || line[0] == 'M' || line[0] == 'D') && line[1] == '\t' {
+				filePath := line[2:]
+				// Only track neuron-relevant files
+				if !strings.HasSuffix(filePath, ".neuron") && !strings.HasSuffix(filePath, ".contra") &&
+					!strings.HasSuffix(filePath, ".axon") && !strings.HasSuffix(filePath, ".goal") {
+					continue
+				}
+
+				action := "modified"
+				switch line[0] {
+				case 'A':
+					action = "created"
+				case 'D':
+					action = "suppressed"
+				}
+
+				// Extract region from path
+				region := ""
+				pathParts := strings.SplitN(filePath, "/", 2)
+				if len(pathParts) > 0 {
+					if _, ok := regionPriority[pathParts[0]]; ok {
+						region = pathParts[0]
+					}
+				}
+
+				events = append(events, EvolutionEvent{
+					Hash:      currentHash,
+					Timestamp: currentTime,
+					Message:   currentMsg,
+					Action:    action,
+					Path:      filePath,
+					Region:    region,
+				})
+			}
+		}
+
+		// Also include unstaged changes as "live" brainwaves
+		diffCmd := exec.Command("git", "status", "--porcelain")
+		diffCmd.Dir = brainRoot
+		diffOut, err := diffCmd.Output()
+		if err == nil {
+			for _, line := range strings.Split(string(diffOut), "\n") {
+				line = strings.TrimSpace(line)
+				if len(line) < 4 {
+					continue
+				}
+				filePath := strings.TrimSpace(line[2:])
+				if !strings.HasSuffix(filePath, ".neuron") && !strings.HasSuffix(filePath, ".contra") {
+					continue
+				}
+
+				action := "modified"
+				switch line[0] {
+				case '?', 'A':
+					action = "created"
+				case 'D':
+					action = "suppressed"
+				}
+
+				region := ""
+				pathParts := strings.SplitN(filePath, "/", 2)
+				if len(pathParts) > 0 {
+					if _, ok := regionPriority[pathParts[0]]; ok {
+						region = pathParts[0]
+					}
+				}
+
+				events = append([]EvolutionEvent{{
+					Hash:      "unstaged",
+					Timestamp: time.Now().Format("2006-01-02 15:04:05 -0700"),
+					Message:   "🧠 Active brainwave (uncommitted)",
+					Action:    action,
+					Path:      filePath,
+					Region:    region,
+				}}, events...)
+			}
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"events": events,
+			"total":  len(events),
+		})
+	}))
+
 	fmt.Printf("  POST /api/report  {message,priority} — Stackable report queue\n")
 	fmt.Printf("  GET  /api/reports                — List pending reports\n")
+	fmt.Printf("  GET  /api/evolution              — Git-based neural evolution timeline\n")
+	fmt.Printf("  GET  /api/retrieve               — Hebbian Retrieval & LLM Router (Phase 8)\n")
+	mux.HandleFunc("/api/retrieve", handleRetrieve(brainRoot))
+	
+	// Expose pprof
+	mux.HandleFunc("/debug/pprof/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.DefaultServeMux.ServeHTTP(w, r)
+	}))
+	
 	http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
 }
 
@@ -2624,9 +2956,30 @@ func startAPI(brainRoot string, port int) {
 func rollbackAll(brainRoot string) error {
 	cmd := exec.Command("git", "reset", "--hard", "HEAD~1")
 	cmd.Dir = brainRoot
-	out, err := cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("git reset --hard HEAD~1 failed: %v, output: %s", err, string(out))
+		fmt.Printf("\033[33m[WARNING] Hard reset failed! Initiating Quarantine Protocol...\033[0m\n")
+		qBranch := fmt.Sprintf("quarantine-%s", time.Now().Format("20060102-150405"))
+		
+		cmdBranch := exec.Command("git", "checkout", "-b", qBranch)
+		cmdBranch.Dir = brainRoot
+		cmdBranch.Run()
+		
+		cmdAdd := exec.Command("git", "add", ".")
+		cmdAdd.Dir = brainRoot
+		cmdAdd.Run()
+		
+		cmdCommit := exec.Command("git", "commit", "-m", "Auto-quarantine corrupted state")
+		cmdCommit.Dir = brainRoot
+		cmdCommit.Run()
+		
+		fmt.Printf("\033[35m[QUARANTINE] Corrupted state isolated to branch: %s\033[0m\n", qBranch)
+		
+		cmdCheckout := exec.Command("git", "checkout", "main")
+		cmdCheckout.Dir = brainRoot
+		cmdCheckout.Run()
+		
+		return fmt.Errorf("git reset failed, isolated to %s. err: %v", qBranch, err)
 	}
 	
 	cmdClean := exec.Command("git", "clean", "-fd")

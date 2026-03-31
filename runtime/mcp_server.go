@@ -540,6 +540,42 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 		},
 	)
 
+	// ─── Tool 11: rollback ───
+	server.AddTool(
+		&mcp.Tool{
+			Name:        "rollback",
+			Description: "기존 뉴런의 카운터를 1 감소시킨다(최소 0). 잘못된 방향으로 진화한 뉴런을 교정할 때 사용한다.",
+			InputSchema: json.RawMessage(`{
+				"type": "object",
+				"properties": {
+					"path": {
+						"type": "string",
+						"description": "뉴런 경로. 예: cortex/testing/검증_E2E"
+					}
+				},
+				"required": ["path"]
+			}`),
+		},
+		func(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			var args struct {
+				Path string `json:"path"`
+			}
+			if err := json.Unmarshal(req.Params.Arguments, &args); err != nil {
+				return mcpError("invalid arguments"), nil
+			}
+			if args.Path == "" {
+				return mcpError("path required"), nil
+			}
+
+			if err := rollbackNeuron(brainRoot, args.Path); err != nil {
+				return mcpError(err.Error()), nil
+			}
+			return &mcp.CallToolResult{
+				Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("⏪ rolled back: %s", args.Path)}},
+			}, nil
+		},
+	)
+
 	// ─── Register new feature suite ───
 	RegisterNativeTools(server, brainRoot)
 }

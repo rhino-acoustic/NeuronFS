@@ -173,23 +173,41 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			groups[groupKey] = append(groups[groupKey], n)
 		}
 
-		// Render: 그룹별로 뉴런들을 하나의 요약 문장으로 합성
+		// Render: 같은 강도의 플랫 뉴런을 한 문장으로 합성
+		// 플랫 뉴런 = group에 뉴런 1개이고 leafNames == nil인 경우
+		type flatEntry struct {
+			name     string
+			strength string
+		}
+		var flatNeurons []flatEntry
+		
 		for _, groupKey := range groupOrder {
 			neurons := groups[groupKey]
 			groupName := strings.ReplaceAll(groupKey, "_", " ")
 
 			// 강도: 그룹 내 최대 카운터 기준
 			maxIntensity := 0
+			hasKanjiOpcode := false  // 한자 마이크로옵코드 감지
 			for _, n := range neurons {
 				if v := n.Counter + n.Dopamine; v > maxIntensity {
 					maxIntensity = v
 				}
+				// 禁/必/推/警가 이미 강도를 표현하므로 접두어 불필요
+				if strings.ContainsAny(n.Path, "禁必推警") {
+					hasKanjiOpcode = true
+				}
+			}
+			// 그룹명에도 한자가 포함되어 있으면 동일
+			if strings.ContainsAny(groupKey, "禁必推警") {
+				hasKanjiOpcode = true
 			}
 			strength := ""
-			if maxIntensity >= 10 {
-				strength = "절대 "
-			} else if maxIntensity >= 5 {
-				strength = "반드시 "
+			if !hasKanjiOpcode {
+				if maxIntensity >= 10 {
+					strength = "절대 "
+				} else if maxIntensity >= 5 {
+					strength = "반드시 "
+				}
 			}
 
 			// 뉴런들의 리프 이름 수집 (동어반복 제거)
@@ -202,7 +220,7 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 				// 동어반복 방지: 그룹명과 리프가 같은 뉴런은 스킵
 				if leaf == groupName {
 					if len(parts) == 1 && isOnlyFlat {
-						// 진짜 플랫 뉴런 (하위 없음): 단독 출력
+						// 진짜 플랫 뉴런 (하위 없음): 배치 수집
 						leafNames = nil
 						break
 					}
@@ -224,8 +242,8 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			}
 
 			if leafNames == nil {
-				// 플랫 뉴런: 강도+이름만
-				sb.WriteString(fmt.Sprintf("%s%s.\n", strength, groupName))
+				// 플랫 뉴런: 배치로 모아서 나중에 한 줄로 출력
+				flatNeurons = append(flatNeurons, flatEntry{name: groupName, strength: strength})
 			} else if len(leafNames) == 0 {
 				continue
 			} else if len(leafNames) <= 5 {
@@ -241,6 +259,34 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 					}
 				}
 				sb.WriteString(".\n")
+			}
+		}
+		
+		// 플랫 뉴런: 같은 강도끼리 한 문장으로 합성
+		if len(flatNeurons) > 0 {
+			batchMap := make(map[string][]string)
+			batchOrder := []string{}
+			for _, f := range flatNeurons {
+				if _, exists := batchMap[f.strength]; !exists {
+					batchOrder = append(batchOrder, f.strength)
+				}
+				batchMap[f.strength] = append(batchMap[f.strength], f.name)
+			}
+			for _, s := range batchOrder {
+				names := batchMap[s]
+				if len(names) <= 7 {
+					sb.WriteString(fmt.Sprintf("%s%s.\n", s, strings.Join(names, ", ")))
+				} else {
+					sb.WriteString(fmt.Sprintf("%s%s", s, names[0]))
+					for i := 1; i < len(names); i++ {
+						if i%7 == 0 {
+							sb.WriteString(fmt.Sprintf(".\n(cont): %s", names[i]))
+						} else {
+							sb.WriteString(fmt.Sprintf(", %s", names[i]))
+						}
+					}
+					sb.WriteString(".\n")
+				}
 			}
 		}
 		sb.WriteString("\n")
@@ -572,6 +618,11 @@ func writeAllTiers(brainRoot string) {
 	brain := scanBrain(brainRoot)
 	result := runSubsumption(brain)
 
+	dropped := applyOOMProtection(brainRoot, &result)
+	if dropped > 0 {
+		fmt.Printf("\033[33m[WARNING] OOM Limit. Dropped %d low-weight neurons.\033[0m\n", dropped)
+	}
+
 	// Tier 1: GEMINI.md
 	bootstrap := emitBootstrap(result, brainRoot)
 	injectToGemini(brainRoot, bootstrap)
@@ -599,6 +650,59 @@ func writeAllTiers(brainRoot string) {
 		result.FiredNeurons, result.TotalCounter)
 }
 
+func applyOOMProtection(brainRoot string, result *SubsumptionResult) int {
+	type nInfo struct {
+		rIdx   int
+		nIdx   int
+		weight int
+		size   int
+	}
+	var flat []*nInfo
+	
+	totalBytes := 0
+	for i := range result.ActiveRegions {
+		region := &result.ActiveRegions[i]
+		for j := range region.Neurons {
+			n := &region.Neurons[j]
+			if n.IsDormant {
+				continue
+			}
+			size := 0
+			files, _ := filepath.Glob(filepath.Join(n.FullPath, "*.neuron"))
+			for _, f := range files {
+				if info, err := os.Stat(f); err == nil {
+					size += int(info.Size())
+				}
+			}
+			if size == 0 {
+				size = 50 
+			}
+			totalBytes += size
+			weight := n.Counter + n.Dopamine - n.Contra
+			flat = append(flat, &nInfo{rIdx: i, nIdx: j, weight: weight, size: size})
+		}
+	}
+	
+	if totalBytes <= 50000 {
+		return 0
+	}
+	
+	sort.Slice(flat, func(i, j int) bool {
+		return flat[i].weight < flat[j].weight
+	})
+	
+	dropped := 0
+	for _, info := range flat {
+		if totalBytes <= 50000 {
+			break
+		}
+		result.ActiveRegions[info.rIdx].Neurons[info.nIdx].IsDormant = true
+		totalBytes -= info.size
+		dropped++
+	}
+	return dropped
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // EMIT TARGETS — Multi-editor support
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -624,6 +728,11 @@ var emitTargetMap = map[string]EmitTarget{
 func writeAllTiersForTargets(brainRoot string, target string) {
 	brain := scanBrain(brainRoot)
 	result := runSubsumption(brain)
+
+	dropped := applyOOMProtection(brainRoot, &result)
+	if dropped > 0 {
+		fmt.Printf("\033[33m[WARNING] OOM Limit. Dropped %d low-weight neurons.\033[0m\n", dropped)
+	}
 
 	// Generate bootstrap content (same for all targets)
 	bootstrap := emitBootstrap(result, brainRoot)

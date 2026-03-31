@@ -1,3 +1,4 @@
+// RULE: ZERO EXTERNAL DEPENDENCY PRESERVED
 // supervisor.go — NeuronFS 네이티브 프로세스 매니저
 //
 // watchdog.ps1 + 프로세스 관리를 Go 바이너리로 통합.
@@ -15,7 +16,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"strconv"
 	"net/http"
+	"runtime"
 )
 
 type ChildSpec struct {
@@ -95,7 +98,7 @@ func runSupervisor(brainRoot string) {
 		{Name: "headless-executor", Cmd: "node", Args: []string{filepath.Join(hijackDir, "headless-executor.mjs")}, Dir: hijackDir, Enabled: svPathExists(filepath.Join(hijackDir, "headless-executor.mjs"))},
 	}
 
-	svLog("🚀 Supervisor 시작")
+	svLog("\033[35m[AURA] Awakening cognitive architecture... Supervisor online.\033[0m")
 	svLog(fmt.Sprintf("   brain: %s", brainRoot))
 	for _, c := range children {
 		s := "활성"
@@ -138,21 +141,26 @@ func runSupervisor(brainRoot string) {
 	harnessTk := time.NewTicker(10 * time.Minute)
 	statusTk := time.NewTicker(60 * time.Second)
 	lockTk := time.NewTicker(5 * time.Second)
+	decayTk := time.NewTicker(1 * time.Hour)
 	defer harnessTk.Stop()
 	defer statusTk.Stop()
 	defer lockTk.Stop()
+	defer decayTk.Stop()
+
+	// Initial decay run
+	go svTTLDecay(brainRoot)
 
 	svLog("━━━ 감시 루프 진입 ━━━")
 	for {
 		select {
 		case <-sigCh:
-			svLog("🛑 종료 신호")
+			svLog("\033[90m[SLUMBER] Initiating graceful shutdown sequence...\033[0m")
 			close(stopCh)
 			for _, c := range children {
 				c.stop()
 			}
 			wg.Wait()
-			svLog("🛑 완료")
+			svLog("\033[90m[SLUMBER] Cognitive architecture offline.\033[0m")
 			return
 		case <-harnessTk.C:
 			go svHarness(harnessScript, brainRoot)
@@ -172,7 +180,95 @@ func runSupervisor(brainRoot string) {
 					c.stop()
 				}
 			}
+		case <-decayTk.C:
+			go svTTLDecay(brainRoot)
 		}
+	}
+}
+
+func svParseFrontmatter(content string) (int, time.Time, int) {
+	lines := strings.Split(content, "\n")
+	if len(lines) < 3 || strings.TrimSpace(lines[0]) != "---" {
+		return -1, time.Time{}, -1
+	}
+	weight := -1
+	var lastAct time.Time
+	endIdx := len(lines[0]) + 1
+	for i := 1; i < len(lines); i++ {
+		line := strings.TrimSpace(lines[i])
+		if line == "---" {
+			endIdx += len(lines[i]) + 1
+			return weight, lastAct, endIdx
+		}
+		if strings.HasPrefix(line, "weight:") {
+			if w, err := strconv.Atoi(strings.TrimSpace(strings.TrimPrefix(line, "weight:"))); err == nil {
+				weight = w
+			}
+		} else if strings.HasPrefix(line, "last_activated:") {
+			if t, err := time.Parse(time.RFC3339, strings.TrimSpace(strings.TrimPrefix(line, "last_activated:"))); err == nil {
+				lastAct = t
+			}
+		}
+		endIdx += len(lines[i]) + 1
+	}
+	return -1, time.Time{}, -1
+}
+
+func svUpdateWeightFrontmatter(content string, newWeight int) string {
+	lines := strings.Split(content, "\n")
+	for i, l := range lines {
+		if strings.HasPrefix(strings.TrimSpace(l), "weight:") {
+			lines[i] = fmt.Sprintf("weight: %d", newWeight)
+			break
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
+func svTTLDecay(brainRoot string) {
+	// Let's implement TTL decay
+	// Note: regionPriority is exported from main.go
+	for regionName := range regionPriority {
+		regionPath := filepath.Join(brainRoot, regionName)
+		if !svPathExists(regionPath) {
+			continue
+		}
+		filepath.Walk(regionPath, func(path string, info os.FileInfo, err error) error {
+			if err != nil || info.IsDir() {
+				return nil
+			}
+			if !strings.HasSuffix(path, ".neuron") {
+				return nil
+			}
+			contentBytes, err := os.ReadFile(path)
+			if err != nil {
+				return nil
+			}
+			content := string(contentBytes)
+			weight, lastAct, endIdx := svParseFrontmatter(content)
+			
+			if weight == -1 || lastAct.IsZero() {
+				return nil
+			}
+			
+			if time.Since(lastAct) > 24*time.Hour {
+				newWeight := weight - 1
+				if newWeight <= 0 {
+					archiveDir := filepath.Join(brainRoot, ".archive")
+					os.MkdirAll(archiveDir, 0755)
+					dest := filepath.Join(archiveDir, filepath.Base(path))
+					os.Rename(path, dest)
+					svLog(fmt.Sprintf("\033[90m[PRUNE] Synaptic decay complete: %s moved to archive (weight 0)\033[0m", filepath.Base(path)))
+					return nil
+				}
+				
+				newFrontmatter := svUpdateWeightFrontmatter(content[:endIdx], newWeight)
+				newContent := newFrontmatter + content[endIdx:]
+				os.WriteFile(path, []byte(newContent), 0644)
+				svLog(fmt.Sprintf("\033[33m[DECAY] Synaptic weight degraded for %s (new weight: %d)\033[0m", filepath.Base(path), newWeight))
+			}
+			return nil
+		})
 	}
 }
 
@@ -194,7 +290,7 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 
 		// Circuit breaker: too many rapid restarts → suspend + alert
 		if c.restartCount >= maxCrashBeforeCircuitBreak {
-			svLog(fmt.Sprintf("🚨 %s 서킷 브레이커 발동 — %d회 연속 크래시. 재시작 중단.", c.Name, c.restartCount))
+			svLog(fmt.Sprintf("\033[31m[TRAUMA] Circuit breaker triggered for %s. Vital signs critical (%d failures).\033[0m", c.Name, c.restartCount))
 			svCrashAlert(c)
 			// Wait until crash window resets (60s) or stopCh
 			select {
@@ -202,7 +298,7 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 				return
 			case <-time.After(60 * time.Second):
 				c.restartCount = 0
-				svLog(fmt.Sprintf("♻️ %s 쿨다운 완료 — 재시작 재개", c.Name))
+				svLog(fmt.Sprintf("\033[32m[HEAL] Trauma stabilized for %s. Re-engaging neurogenesis.\033[0m", c.Name))
 			}
 			continue
 		}
@@ -222,14 +318,14 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 
 		svLog(fmt.Sprintf("▶ %s 시작 (#%d)", c.Name, c.restartCount))
 		if err := cmd.Start(); err != nil {
-			svLog(fmt.Sprintf("❌ %s 실패: %v", c.Name, err))
+			svLog(fmt.Sprintf("\033[33m[FRACTURE] %s neurogenesis failed: %v\033[0m", c.Name, err))
 			if lf != nil {
 				lf.Close()
 			}
 			time.Sleep(base)
 			continue
 		}
-		svLog(fmt.Sprintf("\033[32m[NEURON] Cortex online. Heartbeat stabilized.\033[0m"))
+		svLog("\033[32m[NEURON] Cortex online. Heartbeat stabilized.\033[0m")
 
 		c.mu.Lock()
 		c.running = true
@@ -367,8 +463,56 @@ func svStatus(children []*ChildSpec) {
 					memStr = strings.TrimSpace(memStr)
 					var memKB int64
 					fmt.Sscanf(memStr, "%d", &memKB)
-					if memKB > 1024*500 { // 500MB Limit
-						svLog(fmt.Sprintf("\033[31m[TRAUMA] Synaptic overload detected. Memory integrity compromised.\033[0m"))
+					if memKB > 1024*50 { // 50MB Limit
+						svLog("\033[31m[TRAUMA] Synaptic overload detected (Amyloid Plaque > 50MB). Triggering in-memory profile...\033[0m")
+						
+						// In-Memory Parsing (Zero External Dependency)
+						var records []runtime.MemProfileRecord
+						n, ok := runtime.MemProfile(nil, true)
+						for {
+							records = make([]runtime.MemProfileRecord, n+50)
+							n, ok = runtime.MemProfile(records, true)
+							if ok {
+								records = records[:n]
+								break
+							}
+						}
+						
+						// Sort manually
+						for i := 0; i < len(records); i++ {
+							for j := i + 1; j < len(records); j++ {
+								if records[i].InUseBytes() < records[j].InUseBytes() {
+									records[i], records[j] = records[j], records[i]
+								}
+							}
+						}
+						
+						outbox := filepath.Join(filepath.Dir(svLogPath), "..", "brain_v4", "_agents", "bot1", "outbox")
+						if !svPathExists(outbox) {
+							outbox = filepath.Join(filepath.Dir(svLogPath), "..", "brain", "_agents", "bot1", "outbox")
+						}
+						os.MkdirAll(outbox, 0755)
+						dumpPath := filepath.Join(outbox, "pprof_heap_dump.txt")
+						
+						dumpOut := "=== Top 5 Memory Leaks (In-Memory Parsed) ===\n"
+						limit := 5
+						if len(records) < 5 { limit = len(records) }
+						for i := 0; i < limit; i++ {
+							r := records[i]
+							caller := "unknown"
+							if len(r.Stack0) > 0 {
+								fn := runtime.FuncForPC(r.Stack0[0])
+								if fn != nil { caller = fn.Name() }
+							}
+							dumpOut += fmt.Sprintf("InUse: %d KB | Objects: %d | Func: %s\n", r.InUseBytes()/1024, r.InUseObjects(), caller)
+						}
+						
+						if err := os.WriteFile(dumpPath, []byte(dumpOut), 0644); err == nil {
+							svLog(fmt.Sprintf("\033[35m[DIAG] Saved top 5 heap allocs to %s\033[0m", dumpPath))
+						} else {
+						    svLog(fmt.Sprintf("\033[33m[WARN] profile write failed: %v\033[0m", err))
+						}
+						
 						c.stop()
 					}
 				}
@@ -379,7 +523,7 @@ func svStatus(children []*ChildSpec) {
 				client := http.Client{Timeout: 3 * time.Second}
 				resp, err := client.Get("http://127.0.0.1:9090/api/health")
 				if err != nil {
-					svLog(fmt.Sprintf("\033[31m[TRAUMA] Synaptic overload detected. Memory integrity compromised.\033[0m"))
+					svLog("\033[31m[TRAUMA] Synaptic overload detected. Memory integrity compromised.\033[0m")
 					c.stop()
 				} else if resp != nil {
 					resp.Body.Close()

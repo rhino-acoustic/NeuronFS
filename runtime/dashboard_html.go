@@ -226,6 +226,47 @@ const dashboardHTML = `<!DOCTYPE html>
   }
   .hover-tooltip .tt-region { color: #b6cfdd; font-weight: 700; display: block; margin-bottom: 4px; letter-spacing: 0.5px; }
   .hover-tooltip .tt-stats { color: #eadccf; font-size: 11px; }
+
+  /* ── Evolution Timeline ── */
+  .evo-section {
+    padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
+    display: none; max-height: 400px; overflow-y: auto;
+  }
+  .evo-section.visible { display: block; }
+  .evo-timeline { position: relative; padding-left: 20px; }
+  .evo-timeline::before {
+    content: ''; position: absolute; left: 5px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, rgba(59,130,246,0.5), rgba(139,92,246,0.3), rgba(59,130,246,0.1));
+  }
+  .evo-event {
+    position: relative; padding: 8px 0 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    animation: fadeInEvo 0.3s ease;
+  }
+  @keyframes fadeInEvo { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; } }
+  .evo-event::before {
+    content: ''; position: absolute; left: -11px; top: 12px;
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 2px solid transparent; box-shadow: 0 0 8px currentColor;
+  }
+  .evo-event.created::before { background: #10b981; color: #10b981; }
+  .evo-event.modified::before { background: #f59e0b; color: #f59e0b; }
+  .evo-event.suppressed::before { background: #8b5cf6; color: #8b5cf6; }
+  .evo-event.unstaged::before { background: #3b82f6; color: #3b82f6; animation: pulse-dot 1.5s infinite; }
+  @keyframes pulse-dot { 0%,100% { transform: scale(1); } 50% { transform: scale(1.4); } }
+  .evo-path { font-size: 11px; color: #e0e0e0; font-family: monospace; word-break: break-all; }
+  .evo-meta { font-size: 9px; color: #555; margin-top: 2px; display: flex; gap: 8px; align-items: center; }
+  .evo-tag {
+    font-size: 8px; padding: 1px 6px; border-radius: 4px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .evo-tag.created { background: #064e3b; color: #34d399; }
+  .evo-tag.modified { background: #451a03; color: #fbbf24; }
+  .evo-tag.suppressed { background: #2e1065; color: #a78bfa; }
+  .evo-region-tag {
+    font-size: 8px; padding: 1px 5px; border-radius: 3px;
+    background: #1a1a2e; color: #888;
+  }
 </style>
 </head>
 <body>
@@ -291,6 +332,14 @@ const dashboardHTML = `<!DOCTYPE html>
       <div class="sandbox-paths" id="sandboxPaths"></div>
     </div>
 
+    <div class="evo-section" id="evoSection">
+      <div class="add-label" style="margin-bottom:12px;display:flex;align-items:center;gap:6px;justify-content:space-between">
+        <span>🧬 EVOLUTION TIMELINE</span>
+        <span id="evo-count" style="font-size:9px;padding:2px 8px;border-radius:10px;background:#1e3a5f;color:#93c5fd;font-weight:700">0</span>
+      </div>
+      <div class="evo-timeline" id="evoTimeline"></div>
+    </div>
+
     <div class="system-health" id="healthPanel">
       <div class="add-label" style="margin-bottom:8px;display:flex;align-items:center;gap:6px">
         ⚙️ SYSTEM STATUS
@@ -304,6 +353,7 @@ const dashboardHTML = `<!DOCTYPE html>
       <button class="btn btn-primary" onclick="doInject()">⚡ INJECT</button>
       <button class="btn btn-add" onclick="toggleAdd()">+ 뉴런</button>
       <button class="btn btn-ghost" onclick="doDedup()">🔀 DEDUP</button>
+      <button class="btn btn-ghost" onclick="toggleEvo()" style="font-size:10px">🧬</button>
       <button class="btn btn-ghost" onclick="toggleSandbox()" style="font-size:10px">🧪</button>
       <select id="bombRegion" style="background:#1a1a2e;color:#fca5a5;border:1px solid #7f1d1d;border-radius:6px;padding:6px 8px;font-size:10px;cursor:pointer;"><option value="">💀 영역 선택</option></select>
       <button class="btn btn-danger" onclick="doBomb()">💀 BOMB</button>
@@ -971,6 +1021,50 @@ async function loadHealth() {
     }
 
     meta.textContent = 'OS: ' + data.os + ' | .neuron files: ' + data.neuronFiles;
+  } catch(e) { /* silent */ }
+}
+
+// ── Evolution Timeline ──
+function toggleEvo() {
+  const section = document.getElementById('evoSection');
+  section.classList.toggle('visible');
+  if (section.classList.contains('visible')) loadEvolution();
+}
+async function loadEvolution() {
+  try {
+    const res = await fetch('/api/evolution');
+    const data = await res.json();
+    const container = document.getElementById('evoTimeline');
+    const countBadge = document.getElementById('evo-count');
+    const events = data.events || [];
+    countBadge.textContent = events.length;
+
+    if (events.length === 0) {
+      container.innerHTML = '<div style="font-size:10px;color:#555;text-align:center;padding:20px">진화 기록 없음 (git 초기화 필요)</div>';
+      return;
+    }
+
+    const actionLabels = { created: '뉴런 탄생', modified: '시냅스 강화', suppressed: '억제 발동' };
+    const actionIcons = { created: '🌱', modified: '⚡', suppressed: '🔮' };
+    let html = '';
+    const displayed = events.slice(0, 50);
+    displayed.forEach(ev => {
+      const pathParts = ev.path.split('/');
+      const shortPath = pathParts.length > 2 ? pathParts.slice(-2).join('/') : ev.path;
+      const isLive = ev.hash === 'unstaged';
+      const liveClass = isLive ? ' unstaged' : '';
+      const ts = ev.timestamp ? ev.timestamp.substring(0, 16) : '';
+      html += '<div class="evo-event ' + ev.action + liveClass + '">' +
+        '<div class="evo-path">' + (actionIcons[ev.action]||'') + ' ' + shortPath + '</div>' +
+        '<div class="evo-meta">' +
+          '<span class="evo-tag ' + ev.action + '">' + (actionLabels[ev.action]||ev.action) + '</span>' +
+          (ev.region ? '<span class="evo-region-tag">' + (regionEmoji[ev.region]||'') + ' ' + ev.region + '</span>' : '') +
+          '<span>' + ts + '</span>' +
+          (isLive ? '<span style="color:#3b82f6;font-weight:700">LIVE</span>' : '<span style="color:#444">' + ev.hash + '</span>') +
+        '</div>' +
+      '</div>';
+    });
+    container.innerHTML = html;
   } catch(e) { /* silent */ }
 }
 
