@@ -78,6 +78,16 @@ function scanBrain() {
         });
         lines.push(`[${labels[r]}] ${items.join(' | ')}`);
     }
+
+    // Self-growth protocol — tells the AI HOW to record corrections
+    const inboxPath = path.join(BRAIN_PATH, '_inbox', 'corrections.jsonl');
+    lines.push('');
+    lines.push('[Growth Protocol]');
+    lines.push(`When user corrects a mistake, immediately append to ${inboxPath}:`);
+    lines.push('{"type":"correction","path":"cortex/[category]/[rule_name]","text":"reason","counter_add":1}');
+    lines.push('When user praises, append: {"type":"correction","path":"[existing_neuron_path]","text":"praise","counter_add":1}');
+    lines.push('Same mistake 3x → create bomb.neuron in that neuron folder.');
+
     return lines.join('\n');
 }
 

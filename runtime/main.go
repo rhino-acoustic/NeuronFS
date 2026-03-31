@@ -1938,7 +1938,6 @@ func runHeartbeatLoop(brainRoot string) {
 	homeDir, _ := os.UserHomeDir()
 	antigravityBrain := filepath.Join(homeDir, ".gemini", "antigravity", "brain")
 	var lastLogFile string
-	var lastLogSize int64
 
 	lastInjection := time.Time{} // 마지막 주입 시각
 
@@ -1974,43 +1973,79 @@ func runHeartbeatLoop(brainRoot string) {
 		// ── Priority 0: Memory Observer (전사 기반 뉴런화) ──
 		var nextPrompt string
 		if entries, err := os.ReadDir(antigravityBrain); err == nil {
-			// Find latest session overview.txt
-			var latestFile string
+			// Find latest session with messages
+			var latestDir string
 			var latestTime int64
 			for _, s := range entries {
 				if !s.IsDir() {
 					continue
 				}
-				op := filepath.Join(antigravityBrain, s.Name(), ".system_generated", "logs", "overview.txt")
-				if info, err := os.Stat(op); err == nil {
+				msgDir := filepath.Join(antigravityBrain, s.Name(), ".system_generated", "messages")
+				if info, err := os.Stat(msgDir); err == nil {
 					if info.ModTime().UnixMilli() > latestTime {
 						latestTime = info.ModTime().UnixMilli()
-						latestFile = op
+						latestDir = msgDir
 					}
 				}
 			}
 
-			if latestFile != "" {
-				info, _ := os.Stat(latestFile)
-				currentSize := info.Size()
-				const chunkSize int64 = 3000
+			if latestDir != "" {
+				// Read newest message JSON files from this session
+				msgEntries, err := os.ReadDir(latestDir)
+				if err == nil && len(msgEntries) > 0 {
+					// Collect all json files sorted by mtime (newest last)
+					type msgFile struct {
+						path string
+						mod  int64
+					}
+					var files []msgFile
+					for _, me := range msgEntries {
+						if !strings.HasSuffix(me.Name(), ".json") {
+							continue
+						}
+						fp := filepath.Join(latestDir, me.Name())
+						if fi, err := os.Stat(fp); err == nil {
+							files = append(files, msgFile{fp, fi.ModTime().UnixMilli()})
+						}
+					}
+					// Sort by mod time
+					for i := 0; i < len(files); i++ {
+						for j := i + 1; j < len(files); j++ {
+							if files[i].mod > files[j].mod {
+								files[i], files[j] = files[j], files[i]
+							}
+						}
+					}
 
-				// Reset if file changed
-				if lastLogFile != latestFile {
-					lastLogFile = latestFile
-					lastLogSize = max64(0, currentSize-chunkSize)
-				}
+					// Check if new messages since last scan
+					totalFiles := len(files)
+					newFileKey := fmt.Sprintf("%s:%d", latestDir, totalFiles)
+					if newFileKey != lastLogFile && totalFiles > 0 {
+						// Read last N messages (max 5)
+						startIdx := totalFiles - 5
+						if startIdx < 0 {
+							startIdx = 0
+						}
+						var recentLogs strings.Builder
+						for _, mf := range files[startIdx:] {
+							data, err := os.ReadFile(mf.path)
+							if err != nil {
+								continue
+							}
+							// Extract content field from JSON
+							var msg map[string]interface{}
+							if err := json.Unmarshal(data, &msg); err == nil {
+								if content, ok := msg["content"].(string); ok {
+									recentLogs.WriteString(content)
+									recentLogs.WriteString("\n---\n")
+								}
+							}
+						}
 
-				if currentSize-lastLogSize >= chunkSize {
-					f, err := os.Open(latestFile)
-					if err == nil {
-						buf := make([]byte, currentSize-lastLogSize)
-						f.ReadAt(buf, lastLogSize)
-						f.Close()
-						lastLogSize = currentSize
-
-						recentLogs := string(buf)
-						nextPrompt = fmt.Sprintf(`[MEMORY_OBSERVER %s] 아래는 최근 시스템 대화 로그 (%d바이트)이다.
+						lastLogFile = newFileKey
+						logText := recentLogs.String()
+						if len(logText) > 500 {
+							nextPrompt = fmt.Sprintf(`[MEMORY_OBSERVER %s] 아래는 최근 시스템 대화 로그 (%d바이트)이다.
 ---
 %s
 ---
@@ -2023,12 +2058,11 @@ func runHeartbeatLoop(brainRoot string) {
 
 ⚠️ 완료 후 반드시 수신 확인:
   [IO.File]::WriteAllText("%s\_inbox\heartbeat_ack.json", '{"acked_at":"' + (Get-Date -F "yyyy-MM-dd HH:mm:ss") + '","result":"처리결과"}')
-둘 중 하나를 반드시 실행하라. 안 하면 다음 heartbeat가 오지 않는다.`,
-							time.Now().Format("15:04"), len(buf), recentLogs, brainRoot, brainRoot, brainRoot)
-						fmt.Printf("[HEARTBEAT] 📡 MEMORY_OBSERVER: %d bytes from session log\n", len(buf))
+안 하면 다음 heartbeat가 오지 않는다.`,
+								time.Now().Format("15:04"), len(logText), logText, brainRoot, brainRoot, brainRoot)
+							fmt.Printf("[HEARTBEAT] 📡 MEMORY_OBSERVER: %d bytes from %d session messages\n", len(logText), totalFiles-startIdx)
+						}
 					}
-				} else {
-					fmt.Printf("[HEARTBEAT] 📡 로그 청크 미달 (%d/%d bytes)\n", currentSize-lastLogSize, chunkSize)
 				}
 			}
 		}
@@ -2122,12 +2156,6 @@ func runHeartbeatLoop(brainRoot string) {
 	}
 }
 
-func max64(a, b int64) int64 {
-	if a > b {
-		return a
-	}
-	return b
-}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // REST API: Programmatic growth for n8n/dashboard/webhooks
