@@ -499,6 +499,46 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 		},
 	)
 
+	// ─── Tool 10: heartbeat_ack ───
+	server.AddTool(
+		&mcp.Tool{
+			Name:        "heartbeat_ack",
+			Description: "Heartbeat 주입 수신 확인. bot1이 heartbeat 프롬프트를 받으면 반드시 이 도구를 호출하여 수신 완료를 기록한다. result: 작업 결과 요약.",
+			InputSchema: json.RawMessage(`{
+				"type": "object",
+				"properties": {
+					"result": {
+						"type": "string",
+						"description": "처리 결과 요약. 예: '로그 스캔 완료: 뉴런 2개 생성' 또는 '추출할 뉴런 없음'"
+					}
+				},
+				"required": ["result"]
+			}`),
+		},
+		func(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			var args struct {
+				Result string `json:"result"`
+			}
+			if err := json.Unmarshal(req.Params.Arguments, &args); err != nil {
+				return mcpError("invalid arguments"), nil
+			}
+
+			ackFile := filepath.Join(brainRoot, "_inbox", "heartbeat_ack.json")
+			ackData := map[string]interface{}{
+				"acked_at": time.Now().Format("2006-01-02 15:04:05"),
+				"result":   args.Result,
+			}
+			data, _ := json.MarshalIndent(ackData, "", "  ")
+			os.WriteFile(ackFile, data, 0644)
+
+			return &mcp.CallToolResult{
+				Content: []mcp.Content{&mcp.TextContent{
+					Text: fmt.Sprintf("✅ Heartbeat 수신 확인 완료.\n결과: %s\n다음 heartbeat는 쿨다운 후 전송됩니다.", args.Result),
+				}},
+			}, nil
+		},
+	)
+
 	// ─── Register new feature suite ───
 	RegisterNativeTools(server, brainRoot)
 }

@@ -173,6 +173,7 @@ func runSupervisor(brainRoot string) {
 func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 	const base = 2 * time.Second
 	const maxD = 5 * time.Minute
+	const maxCrashBeforeCircuitBreak = 10
 
 	for {
 		select {
@@ -182,6 +183,21 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 		}
 		if c.isLocked() {
 			time.Sleep(3 * time.Second)
+			continue
+		}
+
+		// Circuit breaker: too many rapid restarts → suspend + alert
+		if c.restartCount >= maxCrashBeforeCircuitBreak {
+			svLog(fmt.Sprintf("🚨 %s 서킷 브레이커 발동 — %d회 연속 크래시. 재시작 중단.", c.Name, c.restartCount))
+			svCrashAlert(c)
+			// Wait until crash window resets (60s) or stopCh
+			select {
+			case <-stopCh:
+				return
+			case <-time.After(60 * time.Second):
+				c.restartCount = 0
+				svLog(fmt.Sprintf("♻️ %s 쿨다운 완료 — 재시작 재개", c.Name))
+			}
 			continue
 		}
 
@@ -253,7 +269,7 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 		if cmd.ProcessState != nil {
 			ec = cmd.ProcessState.ExitCode()
 		}
-		svLog(fmt.Sprintf("⚠️ %s exit(%d) → %v 후 재시작", c.Name, ec, delay.Round(time.Second)))
+		svLog(fmt.Sprintf("⚠️ %s exit(%d) — 재시작 %d/%d → %v 후 재시작", c.Name, ec, c.restartCount, maxCrashBeforeCircuitBreak, delay.Round(time.Second)))
 
 		select {
 		case <-stopCh:
@@ -322,6 +338,41 @@ func svStatus(children []*ChildSpec) {
 		c.mu.Unlock()
 	}
 	svLog("💓 " + strings.Join(p, " | "))
+}
+
+func svCrashAlert(c *ChildSpec) {
+	// Write crash alert to _agents/bot1/inbox for automatic pickup
+	brainRoot := ""
+	if svLogPath != "" {
+		brainRoot = filepath.Dir(filepath.Dir(svLogPath))
+		// svLogPath = .../logs/supervisor.log → parent of logs = NeuronFS root
+		// brain is brainRoot's child brain_v4/
+		candidates := []string{
+			filepath.Join(brainRoot, "brain_v4"),
+			filepath.Join(brainRoot, "brain"),
+		}
+		for _, c := range candidates {
+			if svPathExists(c) {
+				brainRoot = c
+				break
+			}
+		}
+	}
+	if brainRoot == "" {
+		return
+	}
+
+	inboxDir := filepath.Join(brainRoot, "_agents", "bot1", "inbox")
+	os.MkdirAll(inboxDir, 0755)
+	fname := fmt.Sprintf("%s_sv_crash_alert_%s.md", time.Now().Format("20060102_150405"), c.Name)
+	content := fmt.Sprintf("# from: supervisor\n# priority: urgent\n\n## 🚨 프로세스 서킷 브레이커\n\n"+
+		"**프로세스:** %s\n"+
+		"**연속 크래시:** %d회\n"+
+		"**시각:** %s\n\n"+
+		"60초 쿨다운 후 재시작을 시도합니다. 반복 발생 시 수동 개입이 필요합니다.\n",
+		c.Name, c.restartCount, time.Now().Format("2006-01-02 15:04:05"))
+	os.WriteFile(filepath.Join(inboxDir, fname), []byte(content), 0644)
+	svLog(fmt.Sprintf("📨 크래시 알림 → %s", fname))
 }
 
 func svPathExists(p string) bool {

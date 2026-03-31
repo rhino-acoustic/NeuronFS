@@ -1952,6 +1952,17 @@ func runHeartbeatLoop(brainRoot string) {
 			continue
 		}
 
+		// ACK 체크: 이전 주입이 확인되지 않았으면 스킵 (중복 전송 방지)
+		ackFile := filepath.Join(brainRoot, "_inbox", "heartbeat_ack.json")
+		if !lastInjection.IsZero() {
+			ackInfo, err := os.Stat(ackFile)
+			if err != nil || ackInfo.ModTime().Before(lastInjection) {
+				// ack 파일이 없거나, 마지막 주입 이전의 ack → 아직 미확인
+				fmt.Printf("[HEARTBEAT] ⏳ 이전 주입 미확인 (ack 없음) — 재전송 보류\n")
+				continue
+			}
+		}
+
 		// ── Priority 0: Memory Observer (전사 기반 뉴런화) ──
 		var nextPrompt string
 		if entries, err := os.ReadDir(antigravityBrain); err == nil {
@@ -1996,9 +2007,12 @@ func runHeartbeatLoop(brainRoot string) {
 %s
 ---
 위 로그에서 뉴런화되지 않은 중요 아키텍처 결정(암묵적 룰, 해결책)을 찾아라.
-발견되면 [Folder-as-Neuron] 온톨로지에 맞춰:
-1. mkdir brain_v4/[region]/[카테고리]/[행동_강령]
-2. 최종 리프 폴더에만 touch 1.neuron
+발견되면 NeuronFS의 MCP grow 도구를 호출하여 뉴런을 생성하라:
+  예: grow(path="cortex/NAS파일전송/禁Copy-Item_UNC비호환")
+또는 터미널에서 직접:
+  mkdir "c:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4\cortex\[카테고리]\[행동_강령]"
+  echo.> "c:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4\cortex\[카테고리]\[행동_강령]\1.neuron"
+[Path=Sentence 원칙] 폴더명이 곧 규칙 문장이다. 짧고 애매하게 짓지 마라.
 새로운 룰이 없으면 "로그 스캔 완료: 추출할 뉴런 없음"이라 보고하라.`,
 							time.Now().Format("15:04"), len(buf), recentLogs)
 						fmt.Printf("[HEARTBEAT] 📡 MEMORY_OBSERVER: %d bytes from session log\n", len(buf))
