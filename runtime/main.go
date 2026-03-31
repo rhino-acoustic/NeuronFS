@@ -1925,10 +1925,10 @@ func deduplicateNeurons(brainRoot string) {
 func runHeartbeatLoop(brainRoot string) {
 	pulseScript := filepath.Join(filepath.Dir(brainRoot), "runtime", "pulse.mjs")
 	todoDir := filepath.Join(brainRoot, "prefrontal", "todo")
-	transcriptsDir := filepath.Join(brainRoot, "_transcripts")
 
-	// Antigravity session logs
-	antigravityBrain := filepath.Join(filepath.Dir(brainRoot), ".gemini", "antigravity", "brain")
+	// Antigravity session logs — home dir, not brainRoot parent
+	homeDir, _ := os.UserHomeDir()
+	antigravityBrain := filepath.Join(homeDir, ".gemini", "antigravity", "brain")
 	var lastLogFile string
 	var lastLogSize int64
 
@@ -1949,35 +1949,6 @@ func runHeartbeatLoop(brainRoot string) {
 
 		// 쿨다운: 주입 후 N분 이내면 스킵
 		if !lastInjection.IsZero() && time.Since(lastInjection) < cooldown {
-			continue
-		}
-
-		// 전사 로그의 최신 파일 mtime으로 AI 활동 판단
-		transcriptActive := true
-		entries, err := os.ReadDir(transcriptsDir)
-		if err == nil && len(entries) > 0 {
-			var latestMod time.Time
-			for _, e := range entries {
-				if info, err := e.Info(); err == nil {
-					if info.ModTime().After(latestMod) {
-						latestMod = info.ModTime()
-					}
-				}
-			}
-			// 전사 로그가 60초 이상 갱신 안 됐으면 AI 정지
-			if !latestMod.IsZero() && time.Since(latestMod) > 60*time.Second {
-				transcriptActive = false
-				fmt.Printf("[HEARTBEAT] 📡 전사 중단 감지: %s 이후 출력 없음\n", latestMod.Format("15:04:05"))
-			}
-		} else {
-			// 전사 디렉토리 없으면 폴백: API activity
-			lastAct := getLastActivity()
-			if time.Since(lastAct) > 3*time.Minute {
-				transcriptActive = false
-			}
-		}
-
-		if transcriptActive {
 			continue
 		}
 
@@ -2116,8 +2087,8 @@ func runHeartbeatLoop(brainRoot string) {
 		}
 
 		if nextPrompt != "" {
-			fmt.Printf("[HEARTBEAT] ⚡ 주입: %s\n", nextPrompt[:min(80, len(nextPrompt))])
-			cmd := exec.Command("node", pulseScript, nextPrompt)
+			fmt.Printf("[HEARTBEAT] ⚡ → bot1 주입: %s\n", nextPrompt[:min(80, len(nextPrompt))])
+			cmd := exec.Command("node", pulseScript, nextPrompt, "bot1")
 			if err := cmd.Run(); err != nil {
 				fmt.Printf("[HEARTBEAT] ⚠️ CDP injection failed: %v\n", err)
 			}
