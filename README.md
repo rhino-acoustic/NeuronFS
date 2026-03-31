@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Neurons-293-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Neurons-420-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/Zero_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
 </p>
@@ -14,13 +14,16 @@
 
 <p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 Manifesto</a> · <a href="LIFECYCLE.md">🧬 Lifecycle</a></p>
 
-> **⚠️ v4.1 (2026-03-31) — Hardening for general use in progress**
+> **⚠️ v4.2 (2026-03-31) — Auto-Evolution Pipeline Complete**
 >
-> **Fixed:** Neuron migration (307→293), PII purge, supervisor v2.0 (dead mjs scripts removed), heartbeat/idle engine documented, watchdog lifecycle audited
+> **Completed:**
+> - **Emit engine optimization:** Dual-path sync (local `.gemini/` + global `~/.gemini/`), strength prefix batch rendering, Kanji micro-opcode double-expression removal for massive token savings
+> - **Auto-evolution:** `--neuronize` (Groq-powered correction log analysis → auto contra neuron generation) and `--polarize` (positive English neurons → negative/inhibitory auto-conversion)
+> - **Maintenance:** Duplicate neuron (similar/EN-KR) auto-merge complete (420 neurons stabilized), full PII purge
 >
-> **In Progress:** OS auto-start registration (L0), transcript chunk auto-neuronize, EN/KR duplicate auto-merge, PII git-hook scanner, empty folder quarantine
+> **In Progress:** OS auto-start registration (L0), PII git-hook scanner, empty folder quarantine
 >
-> **Breaking:** `brain_v4/` excluded from git — users must `neuronfs --init` to create their own brain. Supervisor no longer depends on Node.js scripts.
+> **Breaking:** `brain_v4/` excluded from git — users must `neuronfs --init` to create their own brain.
 >
 > Full changelog: [LIFECYCLE.md](LIFECYCLE.md) · [LIFECYCLE_EN.md](LIFECYCLE_EN.md)
 
@@ -68,7 +71,7 @@ cd NeuronFS/runtime; go build -o ../neuronfs .
 ./neuronfs ./my_brain --grow cortex/backend/禁raw_SQL        # Create neuron
 ```
 
-Go gives you: `--init`, `--emit`, `--watch`, `--fire`, `--grow`, `--decay`, `--api`, `--supervisor`.
+Go gives you: `--init`, `--emit`, `--watch`, `--fire`, `--grow`, `--decay`, `--api`, `--supervisor`, `--neuronize`, `--polarize`.
 
 **Option B — Live injection only (No Go needed)**
 
@@ -155,6 +158,10 @@ AI makes mistake → correction → corrections.jsonl → mkdir (auto neuron gro
 AI does well → praise → dopamine.neuron (reward signal)
 Same mistake 3x → bomb.neuron (entire output halted)
 30 days unused → *.dormant (auto sleep)
+
+**🔥 v4.2 Auto-Evolution:**
+1. **auto-neuronize**: Groq LLM analyzes correction logs and auto-generates inhibitory (Contra) rules that prevent the same mistakes from ever recurring.
+2. **auto-polarize**: Detects positive-form `use_X` rules and auto-converts them to strong Kanji micro-opcode inhibitory forms (`禁X_dependency`).
      ↓
 Automatically reflected in next session's system prompt
 ```
@@ -207,6 +214,8 @@ cortex/shortcut_to_hippocampus.axon   → "hippocampus" # learning results → m
 | **Tier 2** | Full region summary (GEMINI.md) | ~800 | System prompt |
 | **Tier 3** | Specific region `_rules.md` full | ~2000 | On-demand when task detected |
 
+*※ v4.2: `GEMINI.md` is now **dual-synced** to both workspace-local (`.gemini/`) and global user profile (`~/.gemini/`) to ensure all agent environments (including Antigravity extension) see the latest brain state immediately.*
+
 ### Circuit Breaker
 
 | bomb location | Result |
@@ -251,7 +260,8 @@ Birth → Reinforcement → Maturation → Dormancy/Bomb → (Apoptosis or Reviv
 | Idle / API | Duplicate detection (Jaccard similarity) | ✅ `deduplicateNeurons()` |
 | `--decay` / Idle | Dormant marking (30d untouched) | ✅ `runDecay()` |
 | Every scan | Bomb detection + physical alarm | ✅ `triggerPhysicalHook()` |
-| Weekly | EN/KR duplicate merge | 🔧 Planned |
+| `--neuronize` | Error-log-driven Contra evolution | ✅ Groq / Llama 3 70B pipeline |
+| `--polarize` | Positive → inhibitory rule conversion | ✅ Groq / rule-based hybrid |
 | Per commit | PII path scan | 🔧 Planned |
 | **Quarterly** | Region integrity, naming, hierarchy audit | 🔧 Manual |
 
@@ -281,6 +291,8 @@ neuronfs <brain> --fire <path>     # Increment counter
 neuronfs <brain> --decay           # 30-day dormancy sweep
 neuronfs <brain> --init <path>     # Initialize new brain
 neuronfs <brain> --snapshot        # Git snapshot
+neuronfs <brain> --neuronize       # LLM-powered error/correction → auto contra neuron generation
+neuronfs <brain> --polarize        # Positive neurons → negative/inhibitory auto-conversion
 ```
 
 ### Live Context Injection (`v4-hook.cjs`)
@@ -354,7 +366,7 @@ Measured 2026-03-29, local Windows 11 SSD:
 
 | Metric | Value |
 |--------|-------|
-| Full scan (293 neurons) | ~1ms |
+| Full scan (420 neurons) | ~1ms |
 | Add rule | `touch` <1ms |
 | 1,000 neuron stress | 271ms (3-run avg) |
 | Disk usage | 4.3MB |
