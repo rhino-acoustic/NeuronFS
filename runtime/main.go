@@ -1976,25 +1976,85 @@ func runHeartbeatLoop(brainRoot string) {
 			continue
 		}
 
-		// Todo 하나를 집어온다
-		var nextTask string
-		filepath.Walk(todoDir, func(path string, info os.FileInfo, err error) error {
-			if err != nil || !info.IsDir() || path == todoDir {
-				return nil
-			}
-			if _, err := os.Stat(filepath.Join(path, "decay.dormant")); err == nil {
-				return nil
-			}
-			nextTask = filepath.Base(path)
-			return filepath.SkipDir
-		})
+		// ── Priority 1: Pending reports (적층형 보고 큐) ──
+		var nextPrompt string
+		reportsDir := filepath.Join(brainRoot, "_inbox", "reports")
+		if reportEntries, err := os.ReadDir(reportsDir); err == nil && len(reportEntries) > 0 {
+			// Find highest priority: urgent > normal > low
+			priorityOrder := []string{"urgent", "normal", "low"}
+			for _, prio := range priorityOrder {
+				for _, e := range reportEntries {
+					if strings.HasSuffix(e.Name(), ".report") && strings.Contains(e.Name(), prio) {
+						data, _ := os.ReadFile(filepath.Join(reportsDir, e.Name()))
+						// Move to done
+						doneDir := filepath.Join(brainRoot, "_inbox", "reports_done")
+						os.MkdirAll(doneDir, 0755)
+						os.Rename(filepath.Join(reportsDir, e.Name()), filepath.Join(doneDir, e.Name()))
 
-		if nextTask != "" {
-			prompt := fmt.Sprintf("[%s] 유휴 상태 감지됨. 다음 할 일 '%s'을(를) 즉시 분석 및 실행하고 보고할 것.",
-				time.Now().Format("15:04"), nextTask)
-			fmt.Printf("[HEARTBEAT] ⚡ 전사 중단 → 강제 주입: %s\n", nextTask)
+						remaining := 0
+						if updated, _ := os.ReadDir(reportsDir); updated != nil {
+							for _, u := range updated {
+								if strings.HasSuffix(u.Name(), ".report") {
+									remaining++
+								}
+							}
+						}
 
-			cmd := exec.Command("node", pulseScript, prompt)
+						nextPrompt = fmt.Sprintf("[HEARTBEAT %s] 사용자 보고 처리 요청 (우선순위: %s, 대기열 잔여: %d건)\n\n--- 보고 내용 ---\n%s\n--- 끝 ---\n\n위 보고 내용을 분석하고 즉시 실행하세요. 완료 후 결과를 보고하세요.",
+							time.Now().Format("15:04"), prio, remaining, string(data))
+						break
+					}
+				}
+				if nextPrompt != "" {
+					break
+				}
+			}
+		}
+
+		// ── Priority 2: System health check (5분마다 1회) ──
+		if nextPrompt == "" {
+			// Check critical system state
+			var issues []string
+
+			// Check supervisor log freshness
+			svLog := filepath.Join(filepath.Dir(brainRoot), "logs", "supervisor.log")
+			if info, err := os.Stat(svLog); err != nil {
+				issues = append(issues, "supervisor.log 없음 — supervisor 미실행 가능성")
+			} else if time.Since(info.ModTime()) > 5*time.Minute {
+				issues = append(issues, fmt.Sprintf("supervisor.log %s 이후 갱신 없음", info.ModTime().Format("15:04")))
+			}
+
+			// Check corrections inbox
+			cPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
+			if info, err := os.Stat(cPath); err == nil && info.Size() > 0 {
+				issues = append(issues, fmt.Sprintf("미처리 교정 %d바이트 대기 중", info.Size()))
+			}
+
+			if len(issues) > 0 {
+				nextPrompt = fmt.Sprintf("[WATCHDOG %s] 시스템 상태 점검 결과:\n\n%s\n\n각 항목을 확인하고 조치하세요.",
+					time.Now().Format("15:04"), strings.Join(issues, "\n- "))
+			}
+		}
+
+		// ── Priority 3: Todo fallback ──
+		if nextPrompt == "" {
+			filepath.Walk(todoDir, func(path string, info os.FileInfo, err error) error {
+				if err != nil || !info.IsDir() || path == todoDir {
+					return nil
+				}
+				if _, err := os.Stat(filepath.Join(path, "decay.dormant")); err == nil {
+					return nil
+				}
+				taskName := filepath.Base(path)
+				nextPrompt = fmt.Sprintf("[HEARTBEAT %s] 유휴 상태 감지. prefrontal/todo에서 작업 발견: '%s'\n\n이 작업을 분석하고 실행 계획을 세운 뒤 즉시 착수하세요. 완료 후 결과를 보고하세요.",
+					time.Now().Format("15:04"), taskName)
+				return filepath.SkipDir
+			})
+		}
+
+		if nextPrompt != "" {
+			fmt.Printf("[HEARTBEAT] ⚡ 주입: %s\n", nextPrompt[:min(80, len(nextPrompt))])
+			cmd := exec.Command("node", pulseScript, nextPrompt)
 			if err := cmd.Run(); err != nil {
 				fmt.Printf("[HEARTBEAT] ⚠️ CDP injection failed: %v\n", err)
 			}
@@ -2002,6 +2062,13 @@ func runHeartbeatLoop(brainRoot string) {
 			lastInjection = time.Now()
 		}
 	}
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
