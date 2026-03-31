@@ -56,15 +56,15 @@ neuronfs ./brain --emit all      # → All AI formats at once
 
 ```bash
 git clone https://github.com/rhino-acoustic/NeuronFS.git
-cd NeuronFS/runtime && go build -o ../neuronfs .
+cd NeuronFS/runtime; go build -o ../neuronfs .
 
-./neuronfs ./brain_v4             # Diagnostic scan
-./neuronfs ./brain_v4 --emit all  # Compile prompts
-./neuronfs ./brain_v4 --api       # Dashboard (localhost:9090)
-./neuronfs ./brain_v4 --mcp       # MCP server (stdio)
+./neuronfs --init ./my_brain      # Create your first brain
+./neuronfs ./my_brain             # Diagnostic scan
+./neuronfs ./my_brain --emit all  # Compile to .cursorrules / CLAUDE.md / GEMINI.md
+./neuronfs ./my_brain --api       # Dashboard (localhost:9090)
 ```
 
-293 neurons. Daily driver since January 2026. Single Go binary. Zero dependencies.
+Daily driver since January 2026. Single Go binary. Zero dependencies.
 
 ---
 
@@ -247,8 +247,7 @@ User correction → corrections.jsonl → neuronfs (fsnotify) → mkdir (neuron 
 ```bash
 neuronfs <brain> --emit <target>   # Compile prompts (gemini/cursor/claude/copilot/all)
 neuronfs <brain> --api             # Dashboard (localhost:9090)
-neuronfs <brain> --mcp             # MCP server (stdio)
-neuronfs <brain> --watch           # File watch + auto-maturation
+neuronfs <brain> --watch           # File watch + auto-recompile
 neuronfs <brain> --supervisor      # Process manager
 neuronfs <brain> --grow <path>     # Create neuron
 neuronfs <brain> --fire <path>     # Increment counter
@@ -257,26 +256,51 @@ neuronfs <brain> --init <path>     # Initialize new brain
 neuronfs <brain> --snapshot        # Git snapshot
 ```
 
-### MCP Server
+### Live Context Injection (`v4-hook.cjs`)
 
-```json
-{
-  "mcpServers": {
-    "neuronfs": {
-      "command": "/path/to/neuronfs",
-      "args": ["/path/to/brain", "--mcp"]
-    }
-  }
-}
+Instead of compiling rules to static files, you can inject your live brain state into every API request. The AI sees your latest neurons mid-conversation — not just at conversation start.
+
+**How it works:**
+
 ```
+Your IDE (VS Code, Cursor, Windsurf, etc.)
+  │
+  ├─ outgoing API request
+  │    └─ v4-hook.cjs intercepts → scans brain_v4/ → appends neuron rules to system prompt
+  │
+  └─ AI sees your live neuron state on every turn
+```
+
+**Setup (any Electron-based AI IDE):**
+
+```bash
+# 1. Set your brain path
+export NEURONFS_BRAIN="/path/to/your/brain_v4"
+
+# 2. Tell Node.js to load the hook before the IDE starts
+export NODE_OPTIONS="--require /path/to/NeuronFS/runtime/v4-hook.cjs"
+
+# 3. Start your IDE normally
+cursor .     # or code . / windsurf . / etc.
+```
+
+Windows:
+```cmd
+set NEURONFS_BRAIN=C:\path\to\brain_v4
+set NODE_OPTIONS=--require "C:\path\to\NeuronFS\runtime\v4-hook.cjs"
+start cursor .
+```
+
+That's it. No MCP server, no config files, no dependencies. The hook reads your filesystem directly and injects a compact summary (only neurons with counter ≥ 5) into every LLM call.
 
 ### AI Tool Integration
 
-| AI Tool | Integration | Difficulty |
-|---------|------------|-----------|
-| Gemini CLI / Claude Code | GEMINI.md / CLAUDE.md auto-load | ⭐ Ready |
-| Cursor / Windsurf | .cursorrules auto-load | ⭐ Ready |
-| Claude Desktop | MCP server (`--mcp`) | ⭐⭐ Config needed |
+| AI Tool | Method | Live Updates |
+|---------|--------|--------------|
+| Cursor / Windsurf / VS Code | `v4-hook.cjs` (NODE_OPTIONS) | ✅ Every turn |
+| Gemini CLI | GEMINI.md (`--emit gemini`) | At session start |
+| Claude Code | CLAUDE.md (`--emit claude`) | At session start |
+| GitHub Copilot | copilot-instructions.md (`--emit copilot`) | At session start |
 
 ### Why Go
 

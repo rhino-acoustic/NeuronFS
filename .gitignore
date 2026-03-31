@@ -119,8 +119,7 @@ runtime/anti_forgery_test.go
 runtime/coverage_deep_test.go
 runtime/watch_stress_test.ps1
 
-# V4 Network Injection (security-sensitive, not for public)
-runtime/v4-hook.cjs
+# V4 Swarm launcher (contains local paths)
 start_v4_swarm.bat
 
 # Reverse-Engineered Agentic Context Exploits (DO NOT PUBLISH)
