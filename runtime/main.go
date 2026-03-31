@@ -1934,9 +1934,6 @@ func deduplicateNeurons(brainRoot string) {
 func runHeartbeatLoop(brainRoot string) {
 	todoDir := filepath.Join(brainRoot, "prefrontal", "todo")
 
-	// Antigravity session logs — home dir, not brainRoot parent
-	homeDir, _ := os.UserHomeDir()
-	antigravityBrain := filepath.Join(homeDir, ".gemini", "antigravity", "brain")
 	var lastLogFile string
 
 	lastInjection := time.Time{} // 마지막 주입 시각
@@ -1972,85 +1969,23 @@ func runHeartbeatLoop(brainRoot string) {
 
 		// ── Priority 0: Memory Observer (전사 기반 뉴런화) ──
 		var nextPrompt string
-		if entries, err := os.ReadDir(antigravityBrain); err == nil {
-			// Find latest session with messages
-			var latestDir string
-			var latestTime int64
-			for _, s := range entries {
-				if !s.IsDir() {
-					continue
-				}
-				msgDir := filepath.Join(antigravityBrain, s.Name(), ".system_generated", "messages")
-				if info, err := os.Stat(msgDir); err == nil {
-					if info.ModTime().UnixMilli() > latestTime {
-						latestTime = info.ModTime().UnixMilli()
-						latestDir = msgDir
+		transcriptPath := filepath.Join(brainRoot, "_agents", "global_inbox", "transcript_latest.jsonl")
+		if info, err := os.Stat(transcriptPath); err == nil {
+			newFileKey := fmt.Sprintf("%s:%d", transcriptPath, info.Size())
+			if newFileKey != lastLogFile && info.Size() > 200 {
+				data, err := os.ReadFile(transcriptPath)
+				if err == nil {
+					logText := string(data)
+					lastLogFile = newFileKey
+					// Keep only last 3000 bytes
+					if len(logText) > 3000 {
+						logText = logText[len(logText)-3000:]
 					}
-				}
-			}
-
-			if latestDir != "" {
-				// Read newest message JSON files from this session
-				msgEntries, err := os.ReadDir(latestDir)
-				if err == nil && len(msgEntries) > 0 {
-					// Collect all json files sorted by mtime (newest last)
-					type msgFile struct {
-						path string
-						mod  int64
-					}
-					var files []msgFile
-					for _, me := range msgEntries {
-						if !strings.HasSuffix(me.Name(), ".json") {
-							continue
-						}
-						fp := filepath.Join(latestDir, me.Name())
-						if fi, err := os.Stat(fp); err == nil {
-							files = append(files, msgFile{fp, fi.ModTime().UnixMilli()})
-						}
-					}
-					// Sort by mod time
-					for i := 0; i < len(files); i++ {
-						for j := i + 1; j < len(files); j++ {
-							if files[i].mod > files[j].mod {
-								files[i], files[j] = files[j], files[i]
-							}
-						}
-					}
-
-					// Check if new messages since last scan
-					totalFiles := len(files)
-					newFileKey := fmt.Sprintf("%s:%d", latestDir, totalFiles)
-					if newFileKey != lastLogFile && totalFiles > 0 {
-						// Read last N messages (max 5)
-						startIdx := totalFiles - 5
-						if startIdx < 0 {
-							startIdx = 0
-						}
-						var recentLogs strings.Builder
-						for _, mf := range files[startIdx:] {
-							data, err := os.ReadFile(mf.path)
-							if err != nil {
-								continue
-							}
-							// Extract content field from JSON
-							var msg map[string]interface{}
-							if err := json.Unmarshal(data, &msg); err == nil {
-								if content, ok := msg["content"].(string); ok {
-									recentLogs.WriteString(content)
-									recentLogs.WriteString("\n---\n")
-								}
-							}
-						}
-
-						lastLogFile = newFileKey
-						logText := recentLogs.String()
-						if len(logText) > 500 {
-							// Write to reports inbox — active AI session picks this up via hook
-							nextPrompt = fmt.Sprintf(`[MEMORY_OBSERVER %s] 아래는 최근 시스템 대화 로그 (%d바이트)이다.
+					nextPrompt = fmt.Sprintf(`[MEMORY_OBSERVER %s] 아래는 최근 대화 전사 (%d바이트)이다.
 ---
 %s
 ---
-위 로그에서 뉴런화되지 않은 중요 아키텍처 결정(암묵적 룰, 해결책)을 찾아라.
+위 전사에서 뉴런화되지 않은 중요 아키텍처 결정(암묵적 룰, 해결책)을 찾아라.
 발견되면 터미널에서 직접 뉴런을 생성하라:
   mkdir "%s\cortex\[카테고리]\[행동_강령]"
   echo.> "%s\cortex\[카테고리]\[행동_강령]\1.neuron"
@@ -2060,10 +1995,8 @@ func runHeartbeatLoop(brainRoot string) {
 ⚠️ 완료 후 반드시 수신 확인:
   [IO.File]::WriteAllText("%s\_inbox\heartbeat_ack.json", '{"acked_at":"' + (Get-Date -F "yyyy-MM-dd HH:mm:ss") + '","result":"처리결과"}')
 안 하면 다음 heartbeat가 오지 않는다.`,
-								time.Now().Format("15:04"), len(logText), logText, brainRoot, brainRoot, brainRoot)
-							fmt.Printf("[HEARTBEAT] 📡 MEMORY_OBSERVER: %d bytes from %d session messages\n", len(logText), totalFiles-startIdx)
-						}
-					}
+						time.Now().Format("15:04"), len(logText), logText, brainRoot, brainRoot, brainRoot)
+					fmt.Printf("[HEARTBEAT] 📡 MEMORY_OBSERVER: %d bytes from transcript\n", len(logText))
 				}
 			}
 		}
