@@ -23,6 +23,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -129,6 +130,9 @@ var dopamineRegex = regexp.MustCompile(`^dopamine(\d+)\.neuron$`)
 
 // main is the entry point for the NeuronFS CLI and background daemon.
 func main() {
+	// ── Flatline Death Screen: catch any unrecoverable panic ──
+	defer RenderFlatlineOnPanic()
+
 	brainRoot := findBrainRoot()
 	if brainRoot == "" {
 		fmt.Println("[FATAL] brain directory not found")
@@ -139,6 +143,8 @@ func main() {
 	mode := "diag"
 	port := 9090
 	dryRun := false
+	quietMode := false
+	forceAwakening := false
 	emitTarget := "" // --emit target: gemini, cursor, claude, copilot, generic, all
 	for i, arg := range os.Args {
 		switch arg {
@@ -201,8 +207,21 @@ func main() {
 			mode = "symlink"
 		case "--dry-run":
 			dryRun = true
+		case "--quiet", "-q":
+			quietMode = true
+		case "--awakening":
+			forceAwakening = true
 		}
 	}
+
+	// ── Awakening Sequence (first-run boot animation) ──
+	// Propagate quiet mode to flatline handler too
+	FlatlineQuiet = quietMode
+	RunAwakening(context.Background(), AwakeningConfig{
+		BrainRoot:      brainRoot,
+		Quiet:          quietMode,
+		ForceAwakening: forceAwakening,
+	})
 
 	switch mode {
 	case "init":
@@ -1723,10 +1742,17 @@ func processInbox(brainRoot string) {
 	}
 
 	if processed > 0 {
+		// Append to persistent history before clearing (for --neuronize)
+		historyPath := filepath.Join(brainRoot, "_inbox", "corrections_history.jsonl")
+		f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err == nil {
+			f.Write(data)
+			f.Close()
+		}
 		// Clear inbox
 		os.WriteFile(inboxPath, []byte{}, 0644)
 		markBrainDirty()
-		fmt.Printf("[INBOX] ✅ %d entries processed, inbox cleared\n", processed)
+		fmt.Printf("[INBOX] ✅ %d entries processed, inbox cleared (history preserved)\n", processed)
 	}
 }
 

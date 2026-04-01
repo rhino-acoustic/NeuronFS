@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 )
@@ -91,7 +92,17 @@ func runNeuronize(brainRoot string, dryRun bool) {
 	// 1. Collect correction sources
 	var corrections []string
 
-	// Source A: corrections.jsonl
+	// Source A: corrections_history.jsonl (persistent, not cleared by --watch)
+	historyPath := filepath.Join(brainRoot, "_inbox", "corrections_history.jsonl")
+	if data, err := os.ReadFile(historyPath); err == nil && len(data) > 0 {
+		for _, line := range strings.Split(string(data), "\n") {
+			line = strings.TrimSpace(line)
+			if line != "" {
+				corrections = append(corrections, line)
+			}
+		}
+	}
+	// Fallback: corrections.jsonl (may be empty if --watch already processed)
 	correctionsPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
 	if data, err := os.ReadFile(correctionsPath); err == nil && len(data) > 0 {
 		for _, line := range strings.Split(string(data), "\n") {
@@ -154,12 +165,33 @@ func runNeuronize(brainRoot string, dryRun bool) {
 	sb.WriteString("```\n\n")
 
 	// Add current brain state for context (avoid duplicates)
+	// 토큰 절약: 전체 뉴런 대신 카운터 상위 50개만 전송
 	brain := scanBrain(brainRoot)
-	sb.WriteString("## 기존 뉴런 목록 (중복 생성 금지)\n")
+	type scoredNeuron struct {
+		path    string
+		counter int
+	}
+	var allNeurons []scoredNeuron
 	for _, region := range brain.Regions {
 		for _, n := range region.Neurons {
-			sb.WriteString(fmt.Sprintf("- %s/%s (counter:%d)\n", region.Name, n.Path, n.Counter))
+			allNeurons = append(allNeurons, scoredNeuron{
+				path:    region.Name + "/" + n.Path,
+				counter: n.Counter,
+			})
 		}
+	}
+	// 카운터 내림차순 정렬
+	sort.Slice(allNeurons, func(i, j int) bool {
+		return allNeurons[i].counter > allNeurons[j].counter
+	})
+	// 상위 50개만 전송
+	limit := 50
+	if len(allNeurons) < limit {
+		limit = len(allNeurons)
+	}
+	sb.WriteString(fmt.Sprintf("## 기존 뉴런 TOP %d (중복 생성 금지, 총 %d개)\n", limit, len(allNeurons)))
+	for _, n := range allNeurons[:limit] {
+		sb.WriteString(fmt.Sprintf("- %s (c:%d)\n", n.path, n.counter))
 	}
 	sb.WriteString("\n위 기존 뉴런과 겹치지 않는 새로운 contra 규칙만 생성하라. 최대 5개.\n")
 

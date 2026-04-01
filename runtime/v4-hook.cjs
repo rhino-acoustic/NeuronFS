@@ -191,6 +191,25 @@ function scanBrain() {
     lines.push('When user praises, append: {"type":"correction","path":"[existing_neuron_path]","text":"praise","counter_add":1}');
     lines.push('Same mistake 3x → create bomb.neuron in that neuron folder.');
 
+    // Recent corrections — real-time neuron activity feed
+    try {
+        const histPath = path.join(BRAIN_PATH, '_inbox', 'corrections_history.jsonl');
+        if (fs.existsSync(histPath)) {
+            const histData = fs.readFileSync(histPath, 'utf-8').trim().split('\n').filter(l => l.trim());
+            if (histData.length > 0) {
+                const recent = histData.slice(-5); // last 5 entries only
+                lines.push('');
+                lines.push('[Recent Neuron Activity]');
+                for (const line of recent) {
+                    try {
+                        const e = JSON.parse(line);
+                        lines.push(`- ${e.path}: ${e.text} (+${e.counter_add || 1})`);
+                    } catch { lines.push(`- ${line.substring(0, 80)}`); }
+                }
+            }
+        }
+    } catch {}
+
     return lines.join('\n');
 }
 
