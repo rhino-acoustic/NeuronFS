@@ -2,7 +2,7 @@
 // supervisor.go — NeuronFS 네이티브 프로세스 매니저
 //
 // watchdog.ps1 + 프로세스 관리를 Go 바이너리로 통합.
-// heartbeat 비활성화: brain_v4/_agents/pm/heartbeat.lock 생성 시 자동 중지.
+//
 //
 // Usage: neuronfs <brain_path> --supervisor
 package main
@@ -82,8 +82,8 @@ func runSupervisor(brainRoot string) {
 
 	fmt.Println("")
 	fmt.Println("╔══════════════════════════════════════════════════╗")
-	fmt.Println("║  NeuronFS Supervisor v2.0 — Self-Monitoring      ║")
-	fmt.Println("║  프로세스 자동재시작 + heartbeat + 자기 감시      ║")
+	fmt.Println("║  NeuronFS Supervisor v2.1 — Self-Monitoring      ║")
+	fmt.Println("║  프로세스 자동재시작 + 자기 감시                  ║")
 	fmt.Println("╚══════════════════════════════════════════════════╝")
 	fmt.Println("")
 
@@ -94,7 +94,6 @@ func runSupervisor(brainRoot string) {
 		{Name: "neuronfs-watch", Cmd: nfsExe, Args: []string{brainRoot, "--watch"}, Dir: nfsRoot, Enabled: true},
 		{Name: "auto-accept", Cmd: "node", Args: []string{filepath.Join(aaDir, "auto-accept.mjs")}, Dir: aaDir, Enabled: svPathExists(filepath.Join(aaDir, "auto-accept.mjs"))},
 		{Name: "agent-bridge", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "agent-bridge.mjs")}, Dir: nfsRoot, Enabled: true},
-		{Name: "bot-heartbeat", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "bot-heartbeat.mjs")}, Dir: nfsRoot, Enabled: true, Lockable: true, LockPath: filepath.Join(brainRoot, "_agents", "pm", "heartbeat.lock")},
 		{Name: "headless-executor", Cmd: "node", Args: []string{filepath.Join(hijackDir, "headless-executor.mjs")}, Dir: hijackDir, Enabled: svPathExists(filepath.Join(hijackDir, "headless-executor.mjs"))},
 	}
 
@@ -325,7 +324,7 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 			time.Sleep(base)
 			continue
 		}
-		svLog("\033[32m[NEURON] Cortex online. Heartbeat stabilized.\033[0m")
+		svLog("\033[32m[NEURON] Cortex online. Process stabilized.\033[0m")
 
 		c.mu.Lock()
 		c.running = true
@@ -513,6 +512,9 @@ func svStatus(children []*ChildSpec) {
 						    svLog(fmt.Sprintf("\033[33m[WARN] profile write failed: %v\033[0m", err))
 						}
 						
+						// Flatline death screen — OOM visual feedback
+						RenderFlatlineOnOOM(c.Name, memKB, dumpOut)
+
 						c.stop()
 					}
 				}

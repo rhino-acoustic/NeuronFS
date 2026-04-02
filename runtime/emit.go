@@ -184,6 +184,9 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		for _, groupKey := range groupOrder {
 			neurons := groups[groupKey]
 			groupName := strings.ReplaceAll(groupKey, "_", " ")
+			for hanja, korean := range hanjaToKorean {
+				groupName = strings.ReplaceAll(groupName, hanja, korean)
+			}
 
 			// 강도: 그룹 내 최대 카운터 기준
 			maxIntensity := 0
@@ -192,21 +195,21 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 				if v := n.Counter + n.Dopamine; v > maxIntensity {
 					maxIntensity = v
 				}
-				// 禁/必/推/警가 이미 강도를 표현하므로 접두어 불필요
-				if strings.ContainsAny(n.Path, "禁必推警") {
+				// 禁/必/推/警 또는 한국어 등가(금지/반드시/추천/경고)가 이미 강도를 표현하므로 접두어 불필요
+				if strings.ContainsAny(n.Path, "禁必推警") || strings.Contains(n.Path, "금지") || strings.Contains(n.Path, "절대로") {
 					hasKanjiOpcode = true
 				}
 			}
-			// 그룹명에도 한자가 포함되어 있으면 동일
-			if strings.ContainsAny(groupKey, "禁必推警") {
+			// 그룹명에 한자 또는 한국어 키워드가 포함되어 있으면 동일
+			if strings.ContainsAny(groupKey, "禁必推警") || strings.Contains(groupName, "금지:") || strings.Contains(groupName, "반드시") {
 				hasKanjiOpcode = true
 			}
 			strength := ""
 			if !hasKanjiOpcode {
 				if maxIntensity >= 10 {
-					strength = "절대 "
+					strength = "핵심: "
 				} else if maxIntensity >= 5 {
-					strength = "반드시 "
+					strength = "중요: "
 				}
 			}
 
@@ -216,6 +219,9 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			for _, n := range neurons {
 				parts := splitNeuronPath(n.Path)
 				leaf := strings.ReplaceAll(parts[len(parts)-1], "_", " ")
+				for hanja, korean := range hanjaToKorean {
+					leaf = strings.ReplaceAll(leaf, hanja, korean)
+				}
 
 				// 동어반복 방지: 그룹명과 리프가 같은 뉴런은 스킵
 				if leaf == groupName {
@@ -333,8 +339,125 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	sb.WriteString(fmt.Sprintf("| NeuronFS 자체 | `%s\\cortex\\_rules.md` |\n", brainRoot))
 	sb.WriteString(fmt.Sprintf("\n뇌 경로: `%s`\n\n", brainRoot))
 
+	// ━━━ AGENT INBOX: 에이전트 간 소통 (인젝션 기반) ━━━
+	agentInbox := emitAgentInbox(brainRoot)
+	if agentInbox != "" {
+		sb.WriteString(agentInbox)
+	}
+
 	sb.WriteString("<!-- NEURONFS:END -->\n")
 	return sb.String()
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// AGENT INBOX: 에이전트 간 소통 (인젝션 기반)
+// _agents/<name>/inbox/ 스캔 → GEMINI.md에 요약 삽입
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+func emitAgentInbox(brainRoot string) string {
+	agentsDir := filepath.Join(brainRoot, "_agents")
+	entries, err := os.ReadDir(agentsDir)
+	if err != nil {
+		return ""
+	}
+
+	var sb strings.Builder
+	hasMessages := false
+
+	for _, agent := range entries {
+		if !agent.IsDir() {
+			continue
+		}
+		agentName := agent.Name()
+
+		// 시스템 디렉토리 스킵
+		if agentName == "scripts" || agentName == "pm" || strings.HasPrefix(agentName, ".") {
+			continue
+		}
+
+		inboxDir := filepath.Join(agentsDir, agentName, "inbox")
+		inboxFiles, err := os.ReadDir(inboxDir)
+		if err != nil {
+			continue
+		}
+
+		// 처리 안 된(언더스코어 없는) .md 파일만 수집
+		var messages []string
+		for _, f := range inboxFiles {
+			if f.IsDir() || !strings.HasSuffix(f.Name(), ".md") || strings.HasPrefix(f.Name(), "_") {
+				continue
+			}
+
+			// 파일 첫 줄에서 발신자/제목 추출
+			fPath := filepath.Join(inboxDir, f.Name())
+			content, err := os.ReadFile(fPath)
+			if err != nil {
+				continue
+			}
+
+			preview := extractInboxPreview(string(content), f.Name())
+			messages = append(messages, preview)
+		}
+
+		if len(messages) > 0 {
+			if !hasMessages {
+				sb.WriteString("### 📬 에이전트 수신함\n\n")
+				hasMessages = true
+			}
+			sb.WriteString(fmt.Sprintf("**[%s] inbox (%d건)**\n", agentName, len(messages)))
+			for _, msg := range messages {
+				sb.WriteString(fmt.Sprintf("- %s\n", msg))
+			}
+			sb.WriteString("\n")
+		}
+	}
+
+	return sb.String()
+}
+
+// extractInboxPreview는 inbox 파일에서 발신자와 제목을 추출한다.
+func extractInboxPreview(content string, filename string) string {
+	lines := strings.Split(content, "\n")
+
+	sender := ""
+	title := filename
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "---") {
+			continue
+		}
+
+		// "발신:" 또는 "**발신:" 패턴
+		if strings.Contains(line, "발신") {
+			sender = line
+			// 발신자 이름만 추출
+			if idx := strings.Index(line, ":"); idx >= 0 {
+				sender = strings.TrimSpace(line[idx+1:])
+			}
+			continue
+		}
+
+		// 첫 번째 "# " 제목
+		if strings.HasPrefix(line, "# ") {
+			title = strings.TrimPrefix(line, "# ")
+			break
+		}
+
+		// 제목을 못 찾으면 첫 비어있지 않은 줄
+		if title == filename {
+			title = line
+			if len(title) > 60 {
+				title = title[:60] + "..."
+			}
+			break
+		}
+	}
+
+	if sender != "" {
+		return fmt.Sprintf("`%s` ← %s", title, sender)
+	}
+	return fmt.Sprintf("`%s`", title)
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -571,6 +694,9 @@ func renderTree(sb *strings.Builder, node *treeNode, depth int, prefix string) {
 	for _, child := range children {
 		n := child.node
 		name := strings.ReplaceAll(child.key, "_", " ")
+		for hanja, korean := range hanjaToKorean {
+			name = strings.ReplaceAll(name, hanja, korean)
+		}
 
 		if n.isLeaf && len(n.children) == 0 {
 			// Pure leaf — show with counter + intensity prefix
@@ -823,7 +949,11 @@ func doInjectToFile(filePath string, rules string) {
 
 	if startIdx >= 0 && endIdx >= 0 {
 		after := strings.TrimRight(content[endIdx+len(endMarker):], "\r\n\t ")
-		content = content[:startIdx] + rules + after
+		if after != "" {
+			content = content[:startIdx] + rules + "\n" + after
+		} else {
+			content = content[:startIdx] + rules
+		}
 	} else {
 		content = rules + "\n\n" + content
 	}
@@ -905,12 +1035,26 @@ func splitNeuronPath(p string) []string {
 	return result
 }
 
+// hanjaToKorean 한자 마이크로옵코드 → 한국어 자연어 변환
+// 디스크에는 한자 1글자로 압축, AI 주입 시 한국어로 풀어서 전달
+var hanjaToKorean = map[string]string{
+	"禁": "절대 금지: ",  // 필수 부정 — ~하지 마라
+	"必": "반드시 ",  // 필수 긍정 — ~해라
+	"推": "추천: ",   // 권장 — ~하는 게 좋다
+	"警": "경고: ",   // 주의 — ~하면 위험
+}
+
 // pathToSentence converts path to readable sentence
 // "frontend\css\glass_blur20" → "frontend > css > glass blur20"
+// 한자 prefix는 한국어로 자동 변환
 func pathToSentence(p string) string {
 	s := strings.ReplaceAll(p, string(filepath.Separator), " > ")
 	s = strings.ReplaceAll(s, "/", " > ")
 	s = strings.ReplaceAll(s, "_", " ")
+	// 한자→한국어 변환
+	for hanja, korean := range hanjaToKorean {
+		s = strings.ReplaceAll(s, hanja, korean)
+	}
 	return s
 }
 

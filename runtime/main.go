@@ -25,6 +25,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
@@ -331,7 +332,7 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Printf("%s[RESTORE] Brainstem architecture fully re-aligned via SSOT.%s\n", ansiWhite, ansiReset)
-		fmt.Printf("%s[NEURON] Cortex online. Heartbeat stabilized.%s\n", ansiGreen, ansiReset)
+		fmt.Printf("%s[NEURON] Cortex online. Process stabilized.%s\n", ansiGreen, ansiReset)
 	case "stats":
 		runStats(brainRoot)
 	case "vacuum":
@@ -732,34 +733,26 @@ func activationBar(counter int) string {
 // INJECT: Write rules into GEMINI.md
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func injectToGemini(brainRoot string, rules string) {
-	injected := false
-
-	// Walk up to find .gemini/GEMINI.md near brainRoot
-	dir := filepath.Dir(brainRoot)
-	for i := 0; i < 3; i++ {
-		geminiPath := filepath.Join(dir, ".gemini", "GEMINI.md")
-		if _, err := os.Stat(geminiPath); err == nil {
-			doInject(geminiPath, rules)
-			injected = true
-			break
-		}
-		dir = filepath.Dir(dir)
+	// 테스트 격리: brainRoot 내부에만 쓴다
+	if os.Getenv("NEURONFS_TEST_ISOLATION") != "" {
+		safePath := filepath.Join(brainRoot, ".gemini", "GEMINI.md")
+		os.MkdirAll(filepath.Dir(safePath), 0755)
+		os.WriteFile(safePath, []byte(rules), 0644)
+		fmt.Printf("[OK] Rules injected → %s (test isolation)\n", safePath)
+		return
 	}
 
-	// ALWAYS also write to USERPROFILE/.gemini/GEMINI.md (Antigravity reads here)
+	// 글로벌 단일 경로: USERPROFILE/.gemini/GEMINI.md
 	home := os.Getenv("USERPROFILE")
-	if home != "" {
-		geminiPath := filepath.Join(home, ".gemini", "GEMINI.md")
-		homeDir := filepath.Join(home, ".gemini")
-		os.MkdirAll(homeDir, 0755)
-		doInject(geminiPath, rules)
-		injected = true
+	if home == "" {
+		fmt.Println("[WARN] USERPROFILE not set, outputting to stdout:")
+		fmt.Print(rules)
+		return
 	}
 
-	if !injected {
-		fmt.Println("[WARN] GEMINI.md not found, outputting to stdout:")
-		fmt.Print(rules)
-	}
+	geminiPath := filepath.Join(home, ".gemini", "GEMINI.md")
+	os.MkdirAll(filepath.Dir(geminiPath), 0755)
+	doInject(geminiPath, rules)
 }
 
 // doInject executes the injection of aggregated rules into target AI configuration files.
@@ -889,8 +882,12 @@ func runWatch(brainRoot string) {
 			if !ok {
 				return
 			}
-			// Log individual pulse events with biological naming
+			// .git 디렉토리 이벤트 무시 — git snapshot과 데드락 방지
 			relPath, _ := filepath.Rel(brainRoot, event.Name)
+			if strings.HasPrefix(relPath, ".git") || strings.Contains(relPath, string(filepath.Separator)+".git") {
+				continue
+			}
+			// Log individual pulse events with biological naming
 			ts := time.Now().Format("15:04:05")
 			if event.Op&(fsnotify.Create|fsnotify.Write) != 0 {
 				fmt.Printf("%s[%s] [PULSE] %s evolved.%s\n", ansiYellow, ts, relPath, ansiReset)
@@ -898,10 +895,13 @@ func runWatch(brainRoot string) {
 				fmt.Printf("%s[%s] [PRUNE] 데드 시냅스 제거: %s%s\n", ansiDimGray, ts, relPath, ansiReset)
 			}
 
-			// If a new directory was created, add it to the watcher
+			// If a new directory was created, add it to the watcher (skip .git)
 			if event.Op&fsnotify.Create != 0 {
 				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
-					watcher.Add(event.Name)
+					baseName := filepath.Base(event.Name)
+					if !strings.HasPrefix(baseName, ".") {
+						watcher.Add(event.Name)
+					}
 				}
 			}
 
@@ -1807,7 +1807,7 @@ func runInjectionLoop(brainRoot string) {
 		case <-triggerChan:
 			queueUpdate()
 		case <-time.After(5 * time.Minute):
-			// fallback heartbeat
+			// 주기적 폴백 확인 (5분)
 			queueUpdate()
 		case err, ok := <-watcher.Errors:
 			if !ok {
@@ -1911,12 +1911,6 @@ var (
 	lastAPIActivity   time.Time
 	lastAPIActivityMu sync.Mutex
 	idleEvolveRunning bool
-
-	// Heartbeat control
-	heartbeatEnabled  = true // 기본 ON
-	heartbeatInterval = 10   // 초 (켜져 있을 때 즉각 반응)
-	heartbeatCooldown = 3    // 분 (주입 후 쿨다운)
-	heartbeatMu       sync.Mutex
 )
 
 // touchActivity updates the system's last recorded activity timestamp.
@@ -1934,7 +1928,7 @@ func getLastActivity() time.Time {
 }
 
 // runIdleLoop runs in a goroutine, checking for idle state periodically.
-// When idle is detected: evolve (if GROQ_API_KEY set) → snapshot → NAS sync
+// When idle is detected: digest transcripts → neuronize → evolve → snapshot → NAS sync
 func runIdleLoop(brainRoot string) {
 	lastEvolveTime := time.Now()
 
@@ -1958,8 +1952,17 @@ func runIdleLoop(brainRoot string) {
 		idleEvolveRunning = true
 		fmt.Printf("\n[IDLE] 💤 %s idle detected — starting autonomous cycle...\n", idleDuration.Round(time.Second))
 
-		// 1. Evolve (if GROQ_API_KEY available)
+		// 0. Transcript Digestion — 전사 파일에서 교정 턴 추출 후 neuronize
 		apiKey := os.Getenv("GROQ_API_KEY")
+		if apiKey != "" {
+			pendingTurns := digestTranscripts(brainRoot)
+			if pendingTurns >= 10 {
+				fmt.Printf("[IDLE] 🧬 전사 청크 %d턴 누적 — Auto-Neuronize 실행...\n", pendingTurns)
+				runNeuronize(brainRoot, false)
+			}
+		}
+
+		// 1. Evolve (if GROQ_API_KEY available)
 		if apiKey != "" {
 			fmt.Println("[IDLE] 🧬 Running Groq evolve...")
 			runEvolve(brainRoot, false)
@@ -1994,7 +1997,7 @@ func runIdleLoop(brainRoot string) {
 		fmt.Println("[IDLE] 📸 Git snapshot...")
 		gitSnapshot(brainRoot)
 
-		// 3. NAS sync (if Z: available)
+		// 6. NAS sync (if Z: available)
 		nasTarget := `Z:\VOL1\VGVR\BRAIN\LW\system\neurons\brain_v4`
 		if _, err := os.Stat(nasTarget); err == nil {
 			fmt.Println("[IDLE] 📡 NAS sync...")
@@ -2014,9 +2017,175 @@ func runIdleLoop(brainRoot string) {
 			fmt.Println("[IDLE] ⚠️  NAS Z: not available — skipping sync")
 		}
 
+		// 7. Heartbeat 기록
+		writeHeartbeat(brainRoot, result)
+
 		lastEvolveTime = time.Now()
 		idleEvolveRunning = false
 		fmt.Printf("[IDLE] ✅ Autonomous cycle complete at %s\n\n", lastEvolveTime.Format("15:04:05"))
+	}
+}
+
+// digestTranscripts는 _transcripts/ 파일에서 교정/에러 턴을 추출하여
+// corrections_history.jsonl에 추가한다. cursor.json으로 위치 추적.
+// 반환값: 이번에 추출된 교정 턴 수
+func digestTranscripts(brainRoot string) int {
+	transcriptsDir := filepath.Join(brainRoot, "_transcripts")
+	cursorPath := filepath.Join(transcriptsDir, ".cursor.json")
+
+	// cursor 읽기
+	type cursorEntry struct {
+		ByteOffset int64  `json:"byte_offset"`
+		LastProc   string `json:"last_processed"`
+	}
+	cursors := make(map[string]cursorEntry)
+	if data, err := os.ReadFile(cursorPath); err == nil {
+		json.Unmarshal(data, &cursors)
+	}
+
+	// 오늘 날짜 파일
+	today := time.Now().Format("2006-01-02") + ".txt"
+	todayPath := filepath.Join(transcriptsDir, today)
+
+	info, err := os.Stat(todayPath)
+	if err != nil {
+		return 0
+	}
+
+	cursor := cursors[today]
+	if info.Size() <= cursor.ByteOffset {
+		return 0 // 새 내용 없음
+	}
+
+	// 새 내용 읽기 (cursor 위치부터)
+	file, err := os.Open(todayPath)
+	if err != nil {
+		return 0
+	}
+	defer file.Close()
+
+	file.Seek(cursor.ByteOffset, 0)
+	// 최대 1MB만 읽기 (메모리 절약)
+	maxRead := int64(1024 * 1024)
+	remaining := info.Size() - cursor.ByteOffset
+	if remaining > maxRead {
+		remaining = maxRead
+	}
+	buf := make([]byte, remaining)
+	n, _ := file.Read(buf)
+	newContent := string(buf[:n])
+
+	// 교정/에러 키워드 필터링
+	correctionKeywords := []string{
+		"아니", "아냐", "잘못", "다시", "왜 ", "왜또", "안돼", "안됨",
+		"에러", "오류", "실패", "멈춤", "404", "500",
+		"금지", "하지마", "반드시", "항상", "절대",
+	}
+
+	lines := strings.Split(newContent, "\n")
+	var corrections []string
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if len(line) < 10 {
+			continue
+		}
+		// [HH:MM:SS PD] 패턴이면 사용자 발화
+		if !strings.Contains(line, " PD]") && !strings.Contains(line, "교정") {
+			continue
+		}
+		for _, kw := range correctionKeywords {
+			if strings.Contains(line, kw) {
+				if len(line) > 300 {
+					line = line[:300]
+				}
+				corrections = append(corrections, line)
+				break
+			}
+		}
+	}
+
+	// cursor 갱신
+	cursor.ByteOffset = cursor.ByteOffset + int64(n)
+	cursor.LastProc = time.Now().Format(time.RFC3339)
+	cursors[today] = cursor
+	cursorData, _ := json.MarshalIndent(cursors, "", "  ")
+	os.WriteFile(cursorPath, cursorData, 0644)
+
+	// 교정 턴을 corrections_history.jsonl에 추가
+	if len(corrections) > 0 {
+		historyPath := filepath.Join(brainRoot, "_inbox", "corrections_history.jsonl")
+		f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err == nil {
+			for _, c := range corrections {
+				entry := fmt.Sprintf(`{"type":"transcript_correction","text":"%s","time":"%s"}`,
+					strings.ReplaceAll(c, `"`, `\"`),
+					time.Now().Format(time.RFC3339))
+				f.WriteString(entry + "\n")
+			}
+			f.Close()
+		}
+		fmt.Printf("[DIGEST] 📝 전사에서 %d건 교정 턴 추출\n", len(corrections))
+	}
+
+	return len(corrections)
+}
+
+// writeHeartbeat는 idle engine 상태를 _heartbeat.json에 기록하고,
+// 뉴런 폭발 감지 시 git snapshot 후 GEMINI.md에 통합 지시를 주입한다.
+func writeHeartbeat(brainRoot string, result SubsumptionResult) {
+	heartbeatPath := filepath.Join(brainRoot, "_heartbeat.json")
+
+	// 이전 heartbeat 읽기
+	prevNeurons := 0
+	if prev, err := os.ReadFile(heartbeatPath); err == nil {
+		var prevHB map[string]interface{}
+		if json.Unmarshal(prev, &prevHB) == nil {
+			if n, ok := prevHB["neurons"].(float64); ok {
+				prevNeurons = int(n)
+			}
+		}
+	}
+
+	// 현재 상태 기록
+	hb := map[string]interface{}{
+		"last_cycle":    time.Now().Format(time.RFC3339),
+		"neurons":       result.TotalNeurons,
+		"activation":    result.TotalCounter,
+		"regions":       len(result.ActiveRegions),
+		"prev_neurons":  prevNeurons,
+		"growth_delta":  result.TotalNeurons - prevNeurons,
+	}
+	data, _ := json.MarshalIndent(hb, "", "  ")
+	os.WriteFile(heartbeatPath, data, 0644)
+
+	// 뉴런 폭발 감지: 20개 이상 증가 시 통합 지시 주입
+	growth := result.TotalNeurons - prevNeurons
+	if prevNeurons > 0 && growth >= 20 {
+		fmt.Printf("[HEARTBEAT] 🔥 뉴런 폭발 감지: %d→%d (+%d) — 통합 지시 주입\n",
+			prevNeurons, result.TotalNeurons, growth)
+
+		// 1. git snapshot 선행 (롤백 보장)
+		fmt.Println("[HEARTBEAT] 📸 통합 전 git snapshot...")
+		gitSnapshot(brainRoot)
+
+		// 2. GEMINI.md에 통합 지시 주입
+		directive := fmt.Sprintf(
+			"\n\n> [!IMPORTANT]\n> **[HEARTBEAT %s] 뉴런 폭발 감지: %d→%d (+%d)**\n"+
+				"> 유사 뉴런 통합이 필요합니다. `neuronfs --dedup` 실행 또는 수동으로 유사 폴더를 병합하세요.\n"+
+				"> git snapshot이 선행되었으므로 롤백 가능합니다.\n",
+			time.Now().Format("15:04"),
+			prevNeurons, result.TotalNeurons, growth)
+
+		// brainstem에 통합 지시 뉴런 생성 (임시)
+		consolidateDir := filepath.Join(brainRoot, "brainstem", "뉴런통합_필요")
+		os.MkdirAll(consolidateDir, 0755)
+		counterFile := filepath.Join(consolidateDir, fmt.Sprintf("%d.neuron", growth))
+		os.WriteFile(counterFile, []byte(directive), 0644)
+
+		// writeAllTiers로 GEMINI.md 즉시 갱신
+		writeAllTiers(brainRoot)
+
+		fmt.Printf("[HEARTBEAT] ✅ 통합 지시 주입 완료 — brainstem/뉴런통합_필요 생성\n")
 	}
 }
 
@@ -2137,171 +2306,6 @@ func deduplicateNeurons(brainRoot string) {
 		writeAllTiers(brainRoot)
 	} else {
 		fmt.Println("[DEDUP] ✓ 중복 뉴런 없음")
-	}
-}
-
-// runHeartbeatLoop monitors session transcripts and queues neuronization tasks.
-// V4 Architecture: the active AI session receives growth protocol via v4-hook.cjs.
-// Heartbeat no longer injects prompts via CDP. It writes report files to _inbox/reports/
-// which the AI picks up via the existing report queue mechanism.
-func runHeartbeatLoop(brainRoot string) {
-	todoDir := filepath.Join(brainRoot, "prefrontal", "todo")
-
-	var lastLogFile string
-
-	lastInjection := time.Time{} // 마지막 주입 시각
-
-	for {
-		heartbeatMu.Lock()
-		enabled := heartbeatEnabled
-		interval := heartbeatInterval
-		cooldown := time.Duration(heartbeatCooldown) * time.Minute
-		heartbeatMu.Unlock()
-
-		time.Sleep(time.Duration(interval) * time.Second)
-
-		if !enabled {
-			continue
-		}
-
-		// 쿨다운: 주입 후 N분 이내면 스킵
-		if !lastInjection.IsZero() && time.Since(lastInjection) < cooldown {
-			continue
-		}
-
-		// ACK 체크: 이전 주입이 확인되지 않았으면 스킵 (중복 전송 방지)
-		ackFile := filepath.Join(brainRoot, "_inbox", "heartbeat_ack.json")
-		if !lastInjection.IsZero() {
-			ackInfo, err := os.Stat(ackFile)
-			if err != nil || ackInfo.ModTime().Before(lastInjection) {
-				// ack 파일이 없거나, 마지막 주입 이전의 ack → 아직 미확인
-				fmt.Printf("[HEARTBEAT] ⏳ 이전 주입 미확인 (ack 없음) — 재전송 보류\n")
-				continue
-			}
-		}
-
-		// ── Priority 0: Memory Observer (전사 기반 뉴런화) ──
-		var nextPrompt string
-		transcriptPath := filepath.Join(brainRoot, "_agents", "global_inbox", "transcript_latest.jsonl")
-		if info, err := os.Stat(transcriptPath); err == nil {
-			newFileKey := fmt.Sprintf("%s:%d", transcriptPath, info.Size())
-			if newFileKey != lastLogFile && info.Size() > 200 {
-				data, err := os.ReadFile(transcriptPath)
-				if err == nil {
-					logText := string(data)
-					lastLogFile = newFileKey
-					// Keep only last 3000 bytes
-					if len(logText) > 3000 {
-						logText = logText[len(logText)-3000:]
-					}
-					nextPrompt = fmt.Sprintf(`[MEMORY_OBSERVER %s] 아래는 최근 대화 전사 (%d바이트)이다.
----
-%s
----
-위 전사에서 뉴런화되지 않은 중요 아키텍처 결정(암묵적 룰, 해결책)을 찾아라.
-발견되면 터미널에서 직접 뉴런을 생성하라:
-  mkdir "%s\cortex\[카테고리]\[행동_강령]"
-  echo.> "%s\cortex\[카테고리]\[행동_강령]\1.neuron"
-[Path=Sentence 원칙] 폴더명이 곧 규칙 문장이다. 짧고 애매하게 짓지 마라.
-새로운 룰이 없으면 "로그 스캔 완료: 추출할 뉴런 없음"이라 보고하라.
-
-⚠️ 완료 후 반드시 수신 확인:
-  [IO.File]::WriteAllText("%s\_inbox\heartbeat_ack.json", '{"acked_at":"' + (Get-Date -F "yyyy-MM-dd HH:mm:ss") + '","result":"처리결과"}')
-안 하면 다음 heartbeat가 오지 않는다.`,
-						time.Now().Format("15:04"), len(logText), logText, brainRoot, brainRoot, brainRoot)
-					fmt.Printf("[HEARTBEAT] 📡 MEMORY_OBSERVER: %d bytes from transcript\n", len(logText))
-				}
-			}
-		}
-
-		// ── Priority 1: Pending reports (적층형 보고 큐) ──
-		if nextPrompt == "" {
-		reportsDir := filepath.Join(brainRoot, "_inbox", "reports")
-		if reportEntries, err := os.ReadDir(reportsDir); err == nil && len(reportEntries) > 0 {
-			// Find highest priority: urgent > normal > low
-			priorityOrder := []string{"urgent", "normal", "low"}
-			for _, prio := range priorityOrder {
-				for _, e := range reportEntries {
-					if strings.HasSuffix(e.Name(), ".report") && strings.Contains(e.Name(), prio) {
-						data, _ := os.ReadFile(filepath.Join(reportsDir, e.Name()))
-						// Move to done
-						doneDir := filepath.Join(brainRoot, "_inbox", "reports_done")
-						os.MkdirAll(doneDir, 0755)
-						os.Rename(filepath.Join(reportsDir, e.Name()), filepath.Join(doneDir, e.Name()))
-
-						remaining := 0
-						if updated, _ := os.ReadDir(reportsDir); updated != nil {
-							for _, u := range updated {
-								if strings.HasSuffix(u.Name(), ".report") {
-									remaining++
-								}
-							}
-						}
-
-						nextPrompt = fmt.Sprintf("[HEARTBEAT %s] 사용자 보고 처리 요청 (우선순위: %s, 대기열 잔여: %d건)\n\n--- 보고 내용 ---\n%s\n--- 끝 ---\n\n위 보고 내용을 분석하고 즉시 실행하세요. 완료 후 결과를 보고하세요.",
-							time.Now().Format("15:04"), prio, remaining, string(data))
-						break
-					}
-				}
-				if nextPrompt != "" {
-					break
-				}
-			}
-		}
-		}
-
-		// ── Priority 2: System health check (5분마다 1회) ──
-		if nextPrompt == "" {
-			// Check critical system state
-			var issues []string
-
-			// Check supervisor log freshness
-			svLog := filepath.Join(filepath.Dir(brainRoot), "logs", "supervisor.log")
-			if info, err := os.Stat(svLog); err != nil {
-				issues = append(issues, "supervisor.log 없음 — supervisor 미실행 가능성")
-			} else if time.Since(info.ModTime()) > 5*time.Minute {
-				issues = append(issues, fmt.Sprintf("supervisor.log %s 이후 갱신 없음", info.ModTime().Format("15:04")))
-			}
-
-			// Check corrections inbox
-			cPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
-			if info, err := os.Stat(cPath); err == nil && info.Size() > 0 {
-				issues = append(issues, fmt.Sprintf("미처리 교정 %d바이트 대기 중", info.Size()))
-			}
-
-			if len(issues) > 0 {
-				nextPrompt = fmt.Sprintf("[WATCHDOG %s] 시스템 상태 점검 결과:\n\n%s\n\n각 항목을 확인하고 조치하세요.",
-					time.Now().Format("15:04"), strings.Join(issues, "\n- "))
-			}
-		}
-
-		// ── Priority 3: Todo fallback ──
-		if nextPrompt == "" {
-			filepath.Walk(todoDir, func(path string, info os.FileInfo, err error) error {
-				if err != nil || !info.IsDir() || path == todoDir {
-					return nil
-				}
-				if _, err := os.Stat(filepath.Join(path, "decay.dormant")); err == nil {
-					return nil
-				}
-				taskName := filepath.Base(path)
-				nextPrompt = fmt.Sprintf("[HEARTBEAT %s] 유휴 상태 감지. prefrontal/todo에서 작업 발견: '%s'\n\n이 작업을 분석하고 실행 계획을 세운 뒤 즉시 착수하세요. 완료 후 결과를 보고하세요.",
-					time.Now().Format("15:04"), taskName)
-				return filepath.SkipDir
-			})
-		}
-
-		if nextPrompt != "" {
-			// Write to reports inbox — active AI session reads this via v4-hook growth protocol
-			reportsDir := filepath.Join(brainRoot, "_inbox", "reports")
-			os.MkdirAll(reportsDir, 0755)
-			reportFile := filepath.Join(reportsDir, fmt.Sprintf("%s_normal_heartbeat.report", time.Now().Format("150405")))
-			if err := os.WriteFile(reportFile, []byte(nextPrompt), 0644); err == nil {
-				fmt.Printf("[HEARTBEAT] 📝 Report queued: %s\n", reportFile)
-			}
-			touchActivity()
-			lastInjection = time.Now()
-		}
 	}
 }
 
@@ -2589,6 +2593,92 @@ func startAPI(brainRoot string, port int) {
 		json.NewEncoder(w).Encode(map[string]string{"status": "rolled_back", "message": "Global git rollback executed successfully (P0 included)."})
 	}))
 
+	// GET /api/integrity?region=cortex — Merkle Hash Chain 무결성 검증
+	// 전체: GET /api/integrity (7개 영역 모두 검증)
+	// 단일: GET /api/integrity?region=cortex
+	mux.HandleFunc("/api/integrity", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, "GET only", 405)
+			return
+		}
+
+		// HMAC 키 로드 (없으면 자동 생성)
+		hmacKey := loadOrCreateHMACKey(brainRoot)
+
+		targetRegion := r.URL.Query().Get("region")
+
+		regions := []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"}
+		if targetRegion != "" {
+			if _, ok := regionPriority[targetRegion]; !ok {
+				http.Error(w, `{"error":"invalid region"}`, 400)
+				return
+			}
+			regions = []string{targetRegion}
+		}
+
+		type regionResult struct {
+			Region   string `json:"region"`
+			Status   string `json:"status"`    // "intact" | "violated" | "empty"
+			RootHash string `json:"root_hash"`
+			Files    int    `json:"files"`
+			Detail   string `json:"detail,omitempty"`
+		}
+
+		var results []regionResult
+		allOK := true
+
+		for _, reg := range regions {
+			regionPath := filepath.Join(brainRoot, reg)
+			chain, err := BuildChain(regionPath, hmacKey)
+			if err != nil {
+				if errors.Is(err, errNoFiles) {
+					results = append(results, regionResult{Region: reg, Status: "empty", Files: 0})
+				} else {
+					results = append(results, regionResult{Region: reg, Status: "error", Detail: err.Error()})
+					allOK = false
+				}
+				continue
+			}
+
+			// 검증: chain 재구축하여 비교
+			valid, brokenAt, verr := VerifyChain(chain, regionPath)
+			if valid {
+				results = append(results, regionResult{
+					Region:   reg,
+					Status:   "intact",
+					RootHash: chain.RootHash[:16] + "...",
+					Files:    len(chain.Nodes),
+				})
+			} else {
+				detail := "chain verification failed"
+				if brokenAt != "" {
+					detail = fmt.Sprintf("broken at: %s", brokenAt)
+				}
+				if verr != nil {
+					detail = verr.Error()
+				}
+				results = append(results, regionResult{
+					Region: reg,
+					Status: "violated",
+					Files:  len(chain.Nodes),
+					Detail: detail,
+				})
+				allOK = false
+			}
+		}
+
+		overall := "NOMINAL"
+		if !allOK {
+			overall = "VIOLATION_DETECTED"
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  overall,
+			"regions": results,
+		})
+	}))
+
 	// GET / — Dashboard HTML (same as --dashboard mode)
 	// Static files: 3D dashboard, brain.obj, brain_state.json
 	neuronfsRoot := filepath.Dir(brainRoot) // NeuronFS/ directory (parent of brain_v4)
@@ -2704,54 +2794,7 @@ func startAPI(brainRoot string, port int) {
 		json.NewEncoder(w).Encode(data)
 	}))
 
-	// GET/POST /api/heartbeat — heartbeat 토글 + 상태 조회
-	mux.HandleFunc("/api/heartbeat", withCORS(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "POST" {
-			var req struct {
-				Enabled  *bool `json:"enabled"`
-				Interval *int  `json:"interval"`
-				Cooldown *int  `json:"cooldown"`
-			}
-			json.NewDecoder(r.Body).Decode(&req)
 
-			heartbeatMu.Lock()
-			if req.Enabled != nil {
-				heartbeatEnabled = *req.Enabled
-			}
-			if req.Interval != nil && *req.Interval >= 5 {
-				heartbeatInterval = *req.Interval
-			}
-			if req.Cooldown != nil && *req.Cooldown >= 1 {
-				heartbeatCooldown = *req.Cooldown
-			}
-			state := map[string]interface{}{
-				"enabled":  heartbeatEnabled,
-				"interval": heartbeatInterval,
-				"cooldown": heartbeatCooldown,
-			}
-			heartbeatMu.Unlock()
-
-			action := "OFF"
-			if heartbeatEnabled {
-				action = "ON"
-			}
-			fmt.Printf("[HEARTBEAT] ⚡ %s (interval=%ds, cooldown=%dm)\n", action, heartbeatInterval, heartbeatCooldown)
-
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(state)
-			return
-		}
-		// GET
-		heartbeatMu.Lock()
-		state := map[string]interface{}{
-			"enabled":  heartbeatEnabled,
-			"interval": heartbeatInterval,
-			"cooldown": heartbeatCooldown,
-		}
-		heartbeatMu.Unlock()
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(state)
-	}))
 
 	// Start injection loop (inbox processing + auto-reinject) in background
 	go runInjectionLoop(brainRoot)
@@ -2759,28 +2802,7 @@ func startAPI(brainRoot string, port int) {
 	// Start idle engine in background
 	go runIdleLoop(brainRoot)
 
-	// Start heartbeat in background
-	go runHeartbeatLoop(brainRoot)
 
-	fmt.Printf("[NeuronFS API] 🧠 Serving on http://localhost:%d\n", port)
-	fmt.Printf("  GET  /                           — Dashboard (카드 UI)\n")
-	fmt.Printf("  GET  /3d                         — 3D Brain Topology\n")
-	fmt.Printf("  POST /api/grow    {path}          — Create neuron\n")
-	fmt.Printf("  POST /api/fire    {path}          — Increment counter\n")
-	fmt.Printf("  POST /api/signal  {path, type}    — Add dopamine/bomb/memory\n")
-	fmt.Printf("  POST /api/decay   {days}          — Dormant sweep\n")
-	fmt.Printf("  POST /api/evolve  {dry_run}       — Groq autonomous evolution\n")
-	fmt.Printf("  GET  /api/read    ?region=cortex  — Read region rules (RAG, auto-fire)\n")
-	fmt.Printf("  GET  /api/state                   — Brain state JSON\n")
-	fmt.Printf("  GET  /api/brain                   — Full brain state for dashboard\n")
-	fmt.Printf("  GET  /api/heartbeat               — Heartbeat status\n")
-	fmt.Printf("  POST /api/heartbeat {enabled,interval,cooldown} — Toggle heartbeat\n")
-	fmt.Printf("  💓 HEARTBEAT: %s (interval=%ds, cooldown=%dm)\n", func() string {
-		if heartbeatEnabled {
-			return "ON"
-		}
-		return "OFF"
-	}(), heartbeatInterval, heartbeatCooldown)
 	fmt.Printf("  🔄 IDLE ENGINE: auto evolve/snapshot/NAS every %dm idle\n", idleThresholdMinutes)
 	// POST /api/report — stackable report queue
 	mux.HandleFunc("/api/report", withCORS(func(w http.ResponseWriter, r *http.Request) {

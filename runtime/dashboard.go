@@ -134,7 +134,6 @@ func buildHealthJSON(brainRoot string) HealthJSON {
 		// 인프라 데몬
 		{Name: "neuronfs", Role: "인지 엔진 (API 서버 + 대시보드)", Running: isProcessRunning("neuronfs.exe")},
 		{Name: "agent-bridge", Role: "CDP 에이전트 통신 브릿지", Running: isNodeScriptRunning("agent-bridge")},
-		{Name: "bot-heartbeat", Role: "유휴 감지 + Groq 진화 + 백로그 관리 + 인젝션", Running: isNodeScriptRunning("bot-heartbeat")},
 		{Name: "auto-accept", Role: "CDP 자동 수락 + 교정 감지", Running: isNodeScriptRunning("auto-accept")},
 		{Name: "watchdog", Role: "전체 프로세스 생존 감시 + harness 주기 실행", Running: isNodeScriptRunning("watchdog") || isProcessRunning("powershell.exe")},
 	}
