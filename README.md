@@ -14,14 +14,14 @@
 
 <p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 Manifesto</a> · <a href="LIFECYCLE.md">🧬 Lifecycle</a></p>
 
-> **⚠️ v4.3 (2026-04-02) — Llama 3 Zero-Cost Consolidation & Absolute Harness**
+> **v4.3 (2026-04-02) — Auto-Consolidation & SafeExec Harness**
 >
 > **Completed:**
-> - **Cost $0 Auto-Consolidation:** The heavy lifting of neuron merging (`--consolidate`) was completely ported from expensive Claude to **Llama 3 70B (Groq)**. The brain now cleans its own fragmentation at 1000 tokens/sec for free.
-> - **Absolute Harness Protection:** Integrated a physical Pre-Git Snapshot lock before any neuro-destructive operations, and embedded a global `SafeExec (30s Timeout)` to completely eradicate infinite terminal deadlocks (e.g., `index.lock` zombies).
+> - **Auto-Consolidation:** The neuron merging pipeline (`--consolidate`) now supports external APIs (e.g., Groq Llama 3) as an optional integration to reduce maintenance cost. Local LLM fallback is structurally supported.
+> - **Harness Protection:** Integrated a `Pre-Git Lock` snapshot before neuro-destructive operations and embedded a global `SafeExec (30s Timeout)` to mitigate infinite terminal deadlocks.
 > - **Emit engine optimization:** Dual-path sync (local `.gemini/` + global `~/.gemini/`), strength prefix batch rendering
 >
-> **In Progress:** Local LLM (`Ollama` / `localhost:11434`) offline integration for completely air-gapped evolution, OS auto-start registration
+> **In Progress:** Local LLM (`Ollama` / `localhost:11434`) offline integration, OS auto-start registration
 >
 > **Breaking:** `brain_v4/` excluded from git — users must `neuronfs --init` to create their own brain.
 >
@@ -165,10 +165,10 @@ AI does well → praise → dopamine.neuron (reward signal)
 Same mistake 3x → bomb.neuron (entire output halted)
 30 days unused → *.dormant (auto sleep)
 
-**🔥 v4.3 Auto-Evolution:**
-1. **auto-consolidate**: Fragments(ADHD) swept cleanly! Llama 3 70B detects redundant/error folders and merges them into a clean Super Neuron, transferring raw activation weight natively. Cost: $0.
-2. **auto-neuronize**: Groq LLM analyzes correction logs and auto-generates inhibitory (Contra) rules that prevent the same mistakes from ever recurring.
-3. **auto-polarize**: Detects positive-form `use_X` rules and auto-converts them to strong Kanji micro-opcode inhibitory forms (`禁X_dependency`).
+**v4.3 Auto-Evolution:**
+1. **auto-consolidate**: Mitigates folder fragmentation. LLM (Groq or local) detects redundant error folders and merges them into a single Super Neuron, transferring activation weights.
+2. **auto-neuronize**: Analyzes correction logs to generate inhibitory (Contra) rules.
+3. **auto-polarize**: Detects positive-form `use_X` rules and proposes conversions to inhibitory (`禁X`) micro-opcode formats.
      ↓
 Automatically reflected in next session's system prompt
 ```

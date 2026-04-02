@@ -14,14 +14,14 @@
 
 <p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 매니페스토</a> · <a href="LIFECYCLE.md">🧬 생애주기</a></p>
 
-> **⚠️ v4.3 (2026-04-02) — Llama 3 비용 0원 통합 엔진 & 절대 하네스 락 완성**
+> **v4.3 (2026-04-02) — 무비용 통합 연동 및 SafeExec 캡슐화**
 >
 > **수정 완료:**
-> - **$0 자가 통합 엔진 (Auto-Consolidation):** 비용 폭탄의 원흉이었던 뇌 파편화 통합(`--consolidate`) 엔진을 초고속/비용 0원인 **Llama 3 70B (Groq)** 로 전면 포팅. 초당 1,000토큰 속도로 뇌 스스로 파편을 핵융합함.
-> - **절대 하네스 (Absolute Harness Protection):** 파괴적 병합 수행 전 반드시 백업 스냅샷을 찍는 `Pre-Git Lock`과 무한 데드락(`index.lock`)을 방지하는 시스템 전역 캡슐화 모듈 `SafeExec (30초 타임아웃 제한)` 이식 완료.
-> - **Emit 엔진 최적화:** 이중 경로 동기화 (로컬 `.gemini/` + 글로벌 `~/.gemini/` 동시 주입), 강도 접두어 일괄 렌더링.
+> - **통합 파이프라인 (Auto-Consolidation):** `--consolidate` 통합 모듈에 외부 API (Groq Llama 3) 통신을 옵션으로 이식하여 유지보수 비용을 절감. (로컬 Ollama로도 대체 가능)
+> - **하네스 방어망 (Harness Protection):** 파괴적 병합 수행 전 `Pre-Git Lock` 스냅샷을 강제하고, 무한 데드락을 방지하는 전역 타임아웃 캡슐화 모듈 `SafeExec (30sec)` 이식 완료.
+> - **Emit 엔진 최적화:** 이중 경로 동기화 (로컬 `.gemini/` + 글로벌 `~/.gemini/` 주입), 강도 접두어 일괄 렌더링.
 >
-> **진행중:** 로컬 LLM 통합 (`Ollama` / `localhost:11434`) 오프라인 진화망 연결, PII git-hook 스캐너
+> **진행중:** 로컬 LLM 통합 (Ollama 기반 100% 오프라인 운영 지원), PII git-hook 스캐너
 >
 > **Breaking:** `brain_v4/`가 git에서 제외됨 — 사용자는 `neuronfs --init`로 자체 뇌 생성 필요.
 >
@@ -143,10 +143,10 @@ AI 잘함 → 칭찬 → dopamine.neuron (보상 신호)
 같은 실수 3회 → bomb.neuron (해당 출력 전체 중단)
 30일 미사용 → *.dormant (자동 수면)
 
-**🔥 v4.3 신규 자율 진화:**
-1. **auto-consolidate**: 잔가지(ADHD) 완벽 소각! 초고속 Llama 3 70B 모델이 중복된 에러들을 감지하여 단일 슈퍼 뉴런(Super Neuron)으로 압축, 물리적 가중치를 승계합니다. 비용: $0.
-2. **auto-neuronize**: 교정 로그(corrections)를 분석하여 "절대 반복하지 못할" 억제형(Contra) 규칙을 자동 생성.
-3. **auto-polarize**: 기존 긍정형 "use_X" 규칙들을 감지하여, 강력한 한자 마이크로옵코드 기반의 부정/억제형("禁X")으로 자동 전환 제안.
+**v4.3 자율 진화 항목:**
+1. **auto-consolidate**: 폴더 파편화 해결. LLM(Groq 또는 로컬 모델)이 유사한 에러 폴더들을 분류하여 단일 뉴런으로 병합하고 기존 카운터를 승계합니다.
+2. **auto-neuronize**: 교정 로그(corrections)를 분석하여 반복을 방지하는 억제형(Contra) 규칙을 생성합니다.
+3. **auto-polarize**: 긍정형 "use_X" 규칙을 감지해 마이크로옵코드 기반의 억제형("禁X")으로 전환을 제안합니다.
      ↓
 다음 세션 시스템 프롬프트에 자동 반영
 ```
