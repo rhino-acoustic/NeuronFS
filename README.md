@@ -15,19 +15,25 @@
 <p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 Manifesto</a></p>
 
 # NeuronFS
-### *Filesystem-Native Hierarchical Ruleset Memory — A Zero-Dependency Prompt Compiler*
+### *Filesystem-Native Hierarchical Ruleset Memory — A Zero-Dependency Harness Engineering Platform*
 
-> *"Don't beg with prompts. Build a pipeline."*
+> *"Instead of cramming more context into a massive AI model, design the skeleton (structure) perfectly so that your reliance on the AI converges to zero."*
 >
 > An AI violated the "no console.log" rule 9 times. On the 10th time, we executed `mkdir brain/cortex/frontend/coding/禁console_log`. The folder itself became a physical rule injected into the system prompt. The counter (weight) hit 17. The AI never made that mistake again.
 > 
-> Advanced models are to be used for building structure. The endgame of NeuronFS is to minimize AI reliance to the level of a 'transistor', reclaiming total control.
+> This is the true essence of **Harness Engineering** that NeuronFS pursues.
 
 ---
 
 ## TL;DR
 
 **`mkdir` replaces the system prompt.** Folders are Neurons, paths are sentences, and files are synaptic weights.
+
+### 3 Core Advantages over Legacy Systems
+
+1. **Zero Cost:** While vector DBs like Mem0 or Letta incur server hosting fees to manage an agent's memory, NeuronFS uses your local OS filesystem natively, reducing your infrastructure cost to **$0**.
+2. **Token Efficiency & Ultimate Manageability:** Finding and editing a specific rule inside a thousand-line text blob drives humans insane. In a hierarchical folder tree (`ls -R`), discovering, layering, and physically deleting rules is visually intuitive and instantly effective.
+3. **Extreme Portability:** Built as a single Go binary with absolutely zero external dependencies. Drop it into any OS environment, and it runs immediately. It also seamlessly operates as an MCP (Model Context Protocol) server.
 
 ```bash
 # Create a rule = Create a folder
@@ -39,14 +45,6 @@ neuronfs ./brain --emit cursor   # → .cursorrules
 neuronfs ./brain --emit claude   # → CLAUDE.md
 neuronfs ./brain --emit all      # → Emit all AI formats simultaneously
 ```
-
-| Legacy Method | NeuronFS |
-|-----------|----------|
-| Editing a 1000-line spaghetti prompt | Physical disconnection via `mkdir` |
-| Vector DB $70/mo | **$0** (Local Folders = DB) |
-| Tool Migration | `cp -r brain/` — 1 sec copy |
-| Rule Violation → Developer Stress | `bomb.neuron` → Physical quarantine |
-| Manual Rule Management | Automated neuron folder creation upon correction |
 
 ---
 
