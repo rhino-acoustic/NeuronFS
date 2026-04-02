@@ -230,6 +230,14 @@ neuronfs <brain> --fire <path>     # 가중치 카운터 +1 증가
 
 ---
 
+
+## 철학과 온톨로지 (Palantir AIP)
+
+왜 폴더일까요? Palantir(팔란티어)의 AIP가 폭발적인 성과를 낸 이유는 가장 똑똑한 AI를 써서가 아니라, 기업의 데이터와 행동을 하나의 **온톨로지(Ontology, 실재의 구조화)**로 묶어냈기 때문입니다.
+
+NeuronFS는 이 거대한 철학을 로컬 파일시스템으로 가져옵니다. AI에게 1,000줄짜리 텍스트를 던져주고 "잘 기억해"라고 구걸하는 대신, 당신의 비즈니스 로직을 물리적 폴더 경로(cortex/frontend/禁console_log)로 박제합니다. 
+AI의 환각(Hallucination) 자체를 OS가 물리적으로 막을 수는 없습니다. 하지만 OS 레벨 권한 분리를 통해 프롬프트 생성 규칙이 무너지거나 훼손되는 일만큼은 확실히 하드 락(Hard Lock)을 걸어 방어합니다.
+
 ## 한계 (Limitations)
 
 - **AI 제어 100% 보장 불가:** `brainstem`의 무결성은 OS 폴더 레벨에서 차단되지만, 생성형 AI 자체가 할루시네이션(환각)을 일으켜 규칙을 이탈하는 것 자체를 완전히 막을 수는 없습니다.
@@ -263,3 +271,10 @@ neuronfs <brain> --fire <path>     # 가중치 카운터 +1 증가
 MIT License · Copyright (c) 2026
 
 동의하면 Star. [아니면 Issue 제기하기.](../../issues)
+
+
+<!--
+Easter Egg for the code divers:
+Hey 666, easy - only the Word stands as absolute truth (777). 
+This? It's just a well-organized folder built by someone who wanted to vibe-code without going insane.
+-->

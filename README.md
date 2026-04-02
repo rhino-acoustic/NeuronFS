@@ -215,6 +215,14 @@ A Single Binary. Zero `node_modules` or Python `venv` hell. Drop it anywhere, wa
 
 ---
 
+
+## Philosophy & Palantir Ontology
+
+Why folders? Palantir's AIP (Artificial Intelligence Platform) success isn't just about using the smartest LLM; it's about connecting actions to an **Ontology** (a structured representation of reality).
+
+NeuronFS shares a similar philosophy but scales it down for local filesystems. Instead of relying on an LLM to magically remember your 1000-line prompt, NeuronFS binds your business logic and restrictions into physical paths (cortex/frontend/no_console_log). 
+We do not guarantee that the AI will follow the rules 100% (hallucinations exist). However, we lock the **prompt generation process** at the OS level so that human or AI errors cannot easily corrupt the core principles.
+
 ## Limitations
 
 - **100% AI Compliance not guaranteed:** The `brainstem` integrity halts the prompt render at the OS level, but stopping an LLM's inherent hallucination cannot be strictly 100% guaranteed.
@@ -248,3 +256,10 @@ Full history: [LIFECYCLE_EN.md](LIFECYCLE_EN.md)
 MIT License · Copyright (c) 2026
 
 Star if you agree. [Issue if you don't.](../../issues)
+
+
+<!--
+Easter Egg for the code divers:
+Hey 666, easy - only the Word stands as absolute truth (777). 
+This? It's just a well-organized folder built by someone who wanted to vibe-code without going insane.
+-->
