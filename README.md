@@ -1,18 +1,18 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
-  <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Neurons-340+-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/Zero_Dependencies-black?style=flat-square" />
-  <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
+ <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
+ <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
+ <img src="https://img.shields.io/badge/Neurons-340+-blue?style=flat-square" />
+ <img src="https://img.shields.io/badge/Zero_Dependencies-black?style=flat-square" />
+ <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
 </p>
 
 <p align="center">
-  <img src="docs/dashboard.png" alt="NeuronFS Dashboard — 3D Brain Visualization" width="800" />
-  <br/>
-  <a href="https://dashboarddeploy-six.vercel.app/"><strong>🔥 Live 3D Dashboard Demo</strong></a>
+ <img src="docs/dashboard.png" alt="NeuronFS Dashboard — 3D Brain Visualization" width="800" />
+ <br/>
+ <a href="https://dashboarddeploy-six.vercel.app/"><strong> Live 3D Dashboard Demo</strong></a>
 </p>
 
-<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 Manifesto</a> · <a href="LIFECYCLE.md">🧬 Lifecycle</a></p>
+<p align="center"><a href="README.ko.md"> 한국어</a> · <a href="README.md"> English</a> · <a href="MANIFESTO.md"> Manifesto</a> · <a href="LIFECYCLE.md"> Lifecycle</a></p>
 
 > **v4.3 (2026-04-02) — Auto-Consolidation & SafeExec Harness**
 >
@@ -27,33 +27,10 @@
 >
 > Full changelog: [LIFECYCLE.md](LIFECYCLE.md) · [LIFECYCLE_EN.md](LIFECYCLE_EN.md)
 
-# 🧠 NeuronFS
+#NeuronFS
 ### *A filesystem-native hierarchical rule memory & prompt compiler for AI agents.*
 
 ---
-
-## TL;DR
-
-**`mkdir` replaces system prompts.** Folders are neurons. Paths are sentences. Counter files are synaptic weights.
-
-```bash
-# Create a rule = create a folder
-mkdir -p brain/brainstem/禁fallback
-touch brain/brainstem/禁fallback/1.neuron
-
-# Compile = auto-generate system prompts
-neuronfs ./brain --emit cursor   # → .cursorrules
-neuronfs ./brain --emit claude   # → CLAUDE.md
-neuronfs ./brain --emit all      # → All AI formats at once
-```
-
-| Before | NeuronFS |
-|--------|----------|
-| 1000-line prompts, manually edited | `mkdir` one folder |
-| Vector DB $70/mo | **$0** (folders = DB) |
-| Switch AI → migration | `cp -r brain/` — 1 second |
-| Rule violation → wishful thinking | `bomb.neuron` → **physical halt** |
-| Rules managed by humans | Correction → auto neuron growth |
 
 ### Quickstart
 
@@ -67,14 +44,14 @@ curl -sL https://neuronfs.com/install | bash
 iwr https://neuronfs.com/install.ps1 -useb | iex
 
 # Initialize your brain
-neuronfs --init ./my_brain        # Interactive scaffolding (7 regions)
-export GROQ_API_KEY="gsk_..."      # For $0 auto-consolidation (Ollama local support coming soon!)
+neuronfs --init ./my_brain    # Interactive scaffolding (7 regions)
+export GROQ_API_KEY="gsk_..."   # For $0 auto-consolidation (Ollama local support coming soon!)
 
 # Compile & Run
-neuronfs ./my_brain --emit all    # Compile to .cursorrules / CLAUDE.md / GEMINI.md
+neuronfs ./my_brain --emit all  # Compile to .cursorrules / CLAUDE.md / GEMINI.md
 neuronfs ./my_brain --consolidate # Llama 3 merges fragmented neurons into Super Neurons
-neuronfs ./my_brain --api         # Dashboard at localhost:9090
-neuronfs ./my_brain --watch       # Auto-recompile on changes
+neuronfs ./my_brain --api     # Dashboard at localhost:9090
+neuronfs ./my_brain --watch    # Auto-recompile on changes
 ```
 
 CLI commands available: `--init`, `--emit`, `--watch`, `--consolidate`, `--fire`, `--grow`, `--decay`, `--api`, `--supervisor`, `--neuronize`, `--polarize`.
@@ -104,19 +81,44 @@ Daily driver since January 2026. MIT License.
 
 ---
 
+## TL;DR
+
+**`mkdir` replaces system prompts.** Folders are neurons. Paths are sentences. Counter files are synaptic weights.
+
+```bash
+# Create a rule = create a folder
+mkdir -p brain/brainstem/禁fallback
+touch brain/brainstem/禁fallback/1.neuron
+
+# Compile = auto-generate system prompts
+neuronfs ./brain --emit cursor  # → .cursorrules
+neuronfs ./brain --emit claude  # → CLAUDE.md
+neuronfs ./brain --emit all   # → All AI formats at once
+```
+
+| Before |NeuronFS |
+|--------|----------|
+| 1000-line prompts, manually edited | `mkdir` one folder |
+| Vector DB $70/mo | **$0** (folders = DB) |
+| Switch AI → migration | `cp -r brain/` — 1 second |
+| Rule violation → wishful thinking | `bomb.neuron` → **physical halt** |
+| Rules managed by humans | Correction → auto neuron growth |
+
+
+
 ## Contents
 
 | | Section | Description |
 |---|---|---|
-| 💡 | [Core Structure](#core-structure) | Folder = Neuron, Path = Sentence, Counter = Weight |
-| 🧬 | [Brain Regions](#brain-regions) | 7 regions, priority cascade, hormone system |
+| | [Core Structure](#core-structure) | Folder = Neuron, Path = Sentence, Counter = Weight |
+| | [Brain Regions](#brain-regions) | 7 regions, priority cascade, hormone system |
 | ⚖️ | [Governance](#governance) | 3-Tier injection, bomb circuit breaker, harness |
-| 🧬 | [Neuron Lifecycle](#neuron-lifecycle) | Birth → Reinforcement → Dormancy → Apoptosis |
-| 🏗️ | [Architecture](#architecture) | Autonomous loop, CLI, MCP, multi-agent |
-| 📊 | [Benchmarks](#benchmarks) | Performance, competitor comparison |
-| ⚠️ | [Limitations](#limitations) | Honest assessment |
-| ❓ | [FAQ](#faq) | Expected questions and answers |
-| 📖 | [Story](#story) | Why this exists |
+| | [Neuron Lifecycle](#neuron-lifecycle) | Birth → Reinforcement → Dormancy → Apoptosis |
+| ️ | [Architecture](#architecture) | Autonomous loop, CLI, MCP, multi-agent |
+| | [Benchmarks](#benchmarks) | Performance, competitor comparison |
+| | [Limitations](#limitations) | Honest assessment |
+| | [FAQ](#faq) | Expected questions and answers |
+| | [Story](#story) | Why this exists |
 
 ---
 
@@ -124,7 +126,7 @@ Daily driver since January 2026. MIT License.
 
 > **Unix said "Everything is a file." We say: Everything is folders.**
 
-| Concept | Biology | NeuronFS | OS Primitive |
+| Concept | Biology |NeuronFS | OS Primitive |
 |---------|---------|----------|-------------|
 | Neuron | Cell body | Directory | `mkdir` |
 | Rule | Firing pattern | Full path | Path string |
@@ -139,9 +141,9 @@ Daily driver since January 2026. MIT License.
 Paths are natural language commands. Depth equals specificity:
 
 ```
-brain/cortex/NAS_file_transfer/                    → Category
-brain/cortex/NAS_file_transfer/禁Copy-Item_UNC/     → Specific rule
-brain/cortex/NAS_file_transfer/robocopy_large/       → Sub-context
+brain/cortex/NAS_file_transfer/          → Category
+brain/cortex/NAS_file_transfer/禁Copy-Item_UNC/   → Specific rule
+brain/cortex/NAS_file_transfer/robocopy_large/    → Sub-context
 ```
 
 ### Hanja Micro-Opcodes
@@ -157,7 +159,7 @@ brain/cortex/NAS_file_transfer/robocopy_large/       → Sub-context
 
 ### Self-Evolution
 
-`.cursorrules` is a static file you edit manually. NeuronFS is different:
+`.cursorrules` is a static file you edit manually.NeuronFS is different:
 
 ```
 AI makes mistake → correction → corrections.jsonl → mkdir (auto neuron growth)
@@ -169,7 +171,7 @@ Same mistake 3x → bomb.neuron (entire output halted)
 1. **auto-consolidate**: Mitigates folder fragmentation. LLM (Groq or local) detects redundant error folders and merges them into a single Super Neuron, transferring activation weights.
 2. **auto-neuronize**: Analyzes correction logs to generate inhibitory (Contra) rules.
 3. **auto-polarize**: Detects positive-form `use_X` rules and proposes conversions to inhibitory (`禁X`) micro-opcode formats.
-     ↓
+   ↓
 Automatically reflected in next session's system prompt
 ```
 
@@ -204,9 +206,9 @@ brainstem(P0) > limbic(P1) > hippocampus(P2) > sensors(P3) > cortex(P4) > ego(P5
 16 `.axon` files connect 7 regions into a layered network:
 
 ```bash
-brainstem/cascade_to_limbic.axon      → "limbic"     # bomb → block emotions
-sensors/cascade_to_cortex.axon        → "cortex"     # env constraints filter knowledge
-cortex/shortcut_to_hippocampus.axon   → "hippocampus" # learning results → memory
+brainstem/cascade_to_limbic.axon   → "limbic"   # bomb → block emotions
+sensors/cascade_to_cortex.axon    → "cortex"   # env constraints filter knowledge
+cortex/shortcut_to_hippocampus.axon  → "hippocampus" # learning results → memory
 ```
 
 ---
@@ -264,13 +266,13 @@ Birth → Reinforcement → Maturation → Dormancy/Bomb → (Apoptosis or Reviv
 
 | Frequency | Item | Status |
 |-----------|------|--------|
-| Idle / API | Duplicate detection (Jaccard similarity) | ✅ `deduplicateNeurons()` |
-| `--decay` / Idle | Dormant marking (30d untouched) | ✅ `runDecay()` |
-| Every scan | Bomb detection + physical alarm | ✅ `triggerPhysicalHook()` |
-| `--neuronize` | Error-log-driven Contra evolution | ✅ Groq / Llama 3 70B pipeline |
-| `--polarize` | Positive → inhibitory rule conversion | ✅ Groq / rule-based hybrid |
-| Per commit | PII path scan | 🔧 Planned |
-| **Quarterly** | Region integrity, naming, hierarchy audit | 🔧 Manual |
+| Idle / API | Duplicate detection (Jaccard similarity) | `deduplicateNeurons()` |
+| `--decay` / Idle | Dormant marking (30d untouched) | `runDecay()` |
+| Every scan | Bomb detection + physical alarm | `triggerPhysicalHook()` |
+| `--neuronize` | Error-log-driven Contra evolution | Groq / Llama 3 70B pipeline |
+| `--polarize` | Positive → inhibitory rule conversion | Groq / rule-based hybrid |
+| Per commit | PII path scan | Planned |
+| **Quarterly** | Region integrity, naming, hierarchy audit | Manual |
 
 ---
 
@@ -280,26 +282,26 @@ Birth → Reinforcement → Maturation → Dormancy/Bomb → (Apoptosis or Reviv
 
 ```
 User correction → corrections.jsonl → neuronfs (fsnotify) → mkdir (neuron growth)
-                                                              ↓
-                                                   _rules.md regenerated → GEMINI.md
-                                                              ↓
-                                                   Next session AI behavior changes
+                               ↓
+                          _rules.md regenerated → GEMINI.md
+                               ↓
+                          Next session AI behavior changes
 ```
 
 ### CLI
 
 ```bash
-neuronfs <brain> --emit <target>   # Compile prompts (gemini/cursor/claude/copilot/all)
-neuronfs <brain> --api             # Dashboard (localhost:9090)
-neuronfs <brain> --watch           # File watch + auto-recompile
-neuronfs <brain> --supervisor      # Process manager
-neuronfs <brain> --grow <path>     # Create neuron
-neuronfs <brain> --fire <path>     # Increment counter
-neuronfs <brain> --decay           # 30-day dormancy sweep
-neuronfs <brain> --init <path>     # Initialize new brain
-neuronfs <brain> --snapshot        # Git snapshot
-neuronfs <brain> --neuronize       # LLM-powered error/correction → auto contra neuron generation
-neuronfs <brain> --polarize        # Positive neurons → negative/inhibitory auto-conversion
+neuronfs <brain> --emit <target>  # Compile prompts (gemini/cursor/claude/copilot/all)
+neuronfs <brain> --api       # Dashboard (localhost:9090)
+neuronfs <brain> --watch      # File watch + auto-recompile
+neuronfs <brain> --supervisor   # Process manager
+neuronfs <brain> --grow <path>   # Create neuron
+neuronfs <brain> --fire <path>   # Increment counter
+neuronfs <brain> --decay      # 30-day dormancy sweep
+neuronfs <brain> --init <path>   # Initialize new brain
+neuronfs <brain> --snapshot    # Git snapshot
+neuronfs <brain> --neuronize    # LLM-powered error/correction → auto contra neuron generation
+neuronfs <brain> --polarize    # Positive neurons → negative/inhibitory auto-conversion
 ```
 
 ### Live Context Injection (`v4-hook.cjs`)
@@ -310,11 +312,11 @@ Instead of compiling rules to static files, you can inject your live brain state
 
 ```
 Your IDE (VS Code, Cursor, Windsurf, etc.)
-  │
-  ├─ outgoing API request
-  │    └─ v4-hook.cjs intercepts → scans brain_v4/ → appends neuron rules to system prompt
-  │
-  └─ AI sees your live neuron state on every turn
+ │
+ ├─ outgoing API request
+ │  └─ v4-hook.cjs intercepts → scans brain_v4/ → appends neuron rules to system prompt
+ │
+ └─ AI sees your live neuron state on every turn
 ```
 
 **Setup (any Electron-based AI IDE):**
@@ -327,7 +329,7 @@ export NEURONFS_BRAIN="/path/to/your/brain_v4"
 export NODE_OPTIONS="--require /path/to/NeuronFS/runtime/v4-hook.cjs"
 
 # 3. Start your IDE normally
-cursor .     # or code . / windsurf . / etc.
+cursor .   # or code . / windsurf . / etc.
 ```
 
 Windows:
@@ -343,7 +345,7 @@ That's it. No MCP server, no config files, no dependencies. The hook reads your 
 
 | AI Tool | Method | Live Updates |
 |---------|--------|--------------|
-| Cursor / Windsurf / VS Code | `v4-hook.cjs` (NODE_OPTIONS) | ✅ Every turn |
+| Cursor / Windsurf / VS Code | `v4-hook.cjs` (NODE_OPTIONS) | Every turn |
 | Gemini CLI | GEMINI.md (`--emit gemini`) | At session start |
 | Claude Code | CLAUDE.md (`--emit claude`) | At session start |
 | GitHub Copilot | copilot-instructions.md (`--emit copilot`) | At session start |
@@ -384,11 +386,11 @@ Measured 2026-03-29, local Windows 11 SSD:
 
 | | .cursorrules | Mem0 | Letta | **NeuronFS** |
 |---|---|---|---|---|
-| 1000+ rules | Token overflow ❌ | ✅ (vector DB) | ✅ | ✅ (folder tree) |
+| 1000+ rules | Token overflow | (vector DB) | | (folder tree) |
 | Infrastructure | ₩0 | Server $$$ | Server $$$ | **₩0** |
 | Switch AI | Copy file | Migration | Migration | **As-is** |
-| Self-growth | ❌ | ✅ | ✅ | **✅ (correction→neuron)** |
-| Immutable guardrails | ❌ | ❌ | ❌ | **✅ (brainstem + bomb)** |
+| Self-growth | | | | ** (correction→neuron)** |
+| Immutable guardrails | | | | ** (brainstem + bomb)** |
 | Audit | git diff | Query | Log | **ls -R** |
 
 ---
@@ -426,7 +428,7 @@ For personal use, yes. For enterprise, no. The point isn't the number — it's m
 
 AI broke the "don't use console.log" rule 9 times. On the 10th, `mkdir brain/cortex/frontend/coding/禁console_log` was made. The folder name became the rule. Counter reached 17. AI doesn't break it anymore.
 
-**Why NeuronFS exists:** Not to feed more context to bigger models, but to make the structure so solid that **AI dependency converges to zero**. The brain is the product. AI is just the reader.
+**WhyNeuronFS exists:** Not to feed more context to bigger models, but to make the structure so solid that **AI dependency converges to zero**. The brain is the product. AI is just the reader.
 
 > *"Use top models to build structure. In the final act, normalize until AI usage approaches zero."*
 
@@ -436,4 +438,4 @@ AI broke the "don't use console.log" rule 9 times. On the 10th, `mkdir brain/cor
 
 MIT License · Copyright (c) 2026
 
-[📜 Full Manifesto](MANIFESTO.md) · [LIFECYCLE.md](LIFECYCLE.md)
+[ Full Manifesto](MANIFESTO.md) · [LIFECYCLE.md](LIFECYCLE.md)
