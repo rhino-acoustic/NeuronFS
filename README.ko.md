@@ -56,10 +56,10 @@ neuronfs ./brain --emit all      # → 모든 AI 포맷 동시 출력
 
 ```bash
 # Mac / Linux
-curl -sL https://neuronfs.com/install | bash
+curl -sL https://raw.githubusercontent.com/rhino-acoustic/NeuronFS/main/install.sh | bash
 
 # Windows (PowerShell)
-iwr https://neuronfs.com/install.ps1 -useb | iex
+iwr https://raw.githubusercontent.com/rhino-acoustic/NeuronFS/main/install.ps1 -useb | iex
 
 # 나만의 오프라인 뇌 초기화 (비어있는 7개 영역 기본 스캐폴딩 생성)
 # ※ 대화형 프롬프트에서 [2]번 Master's Brain 옵션 선택 시 프리미엄 거버넌스 뼈대 복사 가능

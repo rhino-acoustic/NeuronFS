@@ -56,10 +56,10 @@ Open-source standalone Go engine. Zero external dependencies.
 
 ```bash
 # Mac / Linux
-curl -sL https://neuronfs.com/install | bash
+curl -sL https://raw.githubusercontent.com/rhino-acoustic/NeuronFS/main/install.sh | bash
 
 # Windows (PowerShell)
-iwr https://neuronfs.com/install.ps1 -useb | iex
+iwr https://raw.githubusercontent.com/rhino-acoustic/NeuronFS/main/install.ps1 -useb | iex
 
 # Initialize your offline brain (Creates the baseline scaffolding of 7 regions)
 # ※ Select option [2] Master's Brain to clone standard premium engineering governance!
