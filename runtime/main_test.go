@@ -51,8 +51,7 @@ func setupTestBrain(t *testing.T) string {
 	return dir
 }
 
-// ━━━ TEST 1: Normal — all 7 regions active ━━━
-func TestNormal_AllRegionsActive(t *testing.T) {
+// ?�━??TEST 1: Normal ??all 7 regions active ?�━??func TestNormal_AllRegionsActive(t *testing.T) {
 	brain := scanBrain(setupTestBrain(t))
 	result := runSubsumption(brain)
 
@@ -72,8 +71,7 @@ func TestNormal_AllRegionsActive(t *testing.T) {
 	t.Logf("OK: %d/%d neurons active, 7 regions", result.FiredNeurons, result.TotalNeurons)
 }
 
-// ━━━ TEST 2: P0 bomb blocks everything ━━━
-func TestP0Bomb_AllBlocked(t *testing.T) {
+// ?�━??TEST 2: P0 bomb blocks everything ?�━??func TestP0Bomb_AllBlocked(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	bombDir := filepath.Join(dir, "brainstem", "canon", "never_use_fallback")
@@ -98,8 +96,7 @@ func TestP0Bomb_AllBlocked(t *testing.T) {
 	t.Logf("OK: bomb in brainstem, all %d neurons blocked", result.TotalNeurons)
 }
 
-// ━━━ TEST 3: limbic bomb — brainstem survives ━━━
-func TestLimbicBomb_BrainstemSurvives(t *testing.T) {
+// ?�━??TEST 3: limbic bomb ??brainstem survives ?�━??func TestLimbicBomb_BrainstemSurvives(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	bombDir := filepath.Join(dir, "limbic", "emotion_parser", "detect_urgency")
@@ -128,8 +125,7 @@ func TestLimbicBomb_BrainstemSurvives(t *testing.T) {
 		result.FiredNeurons, len(result.BlockedRegions))
 }
 
-// ━━━ TEST 4: growNeuron creates new neuron ━━━
-func TestGrowNeuron_CountIncreases(t *testing.T) {
+// ?�━??TEST 4: growNeuron creates new neuron ?�━??func TestGrowNeuron_CountIncreases(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	brain1 := scanBrain(dir)
@@ -158,8 +154,7 @@ func TestGrowNeuron_CountIncreases(t *testing.T) {
 	t.Logf("OK: %d -> %d neurons, new_rule created", before, after)
 }
 
-// ━━━ TEST 5: delete neuron counter file ━━━
-func TestDeleteNeuron_CountDecreases(t *testing.T) {
+// ?�━??TEST 5: delete neuron counter file ?�━??func TestDeleteNeuron_CountDecreases(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	brain1 := scanBrain(dir)
@@ -181,8 +176,7 @@ func TestDeleteNeuron_CountDecreases(t *testing.T) {
 	t.Logf("OK: %d -> %d neurons, hooks_pattern gone", before, after)
 }
 
-// ━━━ TEST 6: emitBootstrap format ━━━
-func TestEmitFormat_MarkersAndOrder(t *testing.T) {
+// ?�━??TEST 6: emitBootstrap format ?�━??func TestEmitFormat_MarkersAndOrder(t *testing.T) {
 	dir := setupTestBrain(t)
 	brain := scanBrain(dir)
 	result := runSubsumption(brain)
@@ -204,8 +198,7 @@ func TestEmitFormat_MarkersAndOrder(t *testing.T) {
 	t.Logf("OK: markers present, brainstem TOP 5 rendered")
 }
 
-// ━━━ TEST 7: bomb and restore recovery flow ━━━
-func TestRecoveryFlow_BombAndRestore(t *testing.T) {
+// ?�━??TEST 7: bomb and restore recovery flow ?�━??func TestRecoveryFlow_BombAndRestore(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	bombDir := filepath.Join(dir, "brainstem", "canon", "never_use_fallback")
@@ -241,8 +234,7 @@ func TestRecoveryFlow_BombAndRestore(t *testing.T) {
 		resultA.TotalNeurons, resultB.FiredNeurons, resultB.TotalNeurons)
 }
 
-// ━━━ TEST 8: Axon crosslinks ━━━
-func TestAxonCrosslinks(t *testing.T) {
+// ?�━??TEST 8: Axon crosslinks ?�━??func TestAxonCrosslinks(t *testing.T) {
 	dir := setupTestBrain(t)
 	brain := scanBrain(dir)
 
@@ -272,8 +264,7 @@ func TestAxonCrosslinks(t *testing.T) {
 	t.Logf("OK: %d axons, brainstem->limbic link verified", totalAxons)
 }
 
-// ━━━ TEST 9: invalid folders ignored ━━━
-func TestInvalidFolders_Ignored(t *testing.T) {
+// ?�━??TEST 9: invalid folders ignored ?�━??func TestInvalidFolders_Ignored(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	os.MkdirAll(filepath.Join(dir, "random_stuff"), 0755)
@@ -295,8 +286,7 @@ func TestInvalidFolders_Ignored(t *testing.T) {
 	t.Logf("OK: invalid folders ignored, 7 valid regions")
 }
 
-// ━━━ TEST 10: fireNeuron counter increment ━━━
-func TestFireNeuron_CounterIncrement(t *testing.T) {
+// ?�━??TEST 10: fireNeuron counter increment ?�━??func TestFireNeuron_CounterIncrement(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	brain1 := scanBrain(dir)
@@ -343,8 +333,7 @@ func TestFireNeuron_CounterIncrement(t *testing.T) {
 	t.Logf("OK: hooks_pattern counter %d -> %d", counterBefore, counterAfter)
 }
 
-// ━━━ TEST 11: signalNeuron dopamine ━━━
-func TestSignalDopamine(t *testing.T) {
+// ?�━??TEST 11: signalNeuron dopamine ?�━??func TestSignalDopamine(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	err := signalNeuron(dir, "cortex/left/frontend/hooks_pattern", "dopamine")
@@ -370,8 +359,7 @@ func TestSignalDopamine(t *testing.T) {
 	t.Logf("OK: dopamine signals created correctly")
 }
 
-// ━━━ TEST 12: Jaccard similarity ━━━
-func TestJaccardSimilarity(t *testing.T) {
+// ?�━??TEST 12: Jaccard similarity ?�━??func TestJaccardSimilarity(t *testing.T) {
 	tests := []struct {
 		a, b     []string
 		expected float64
@@ -396,8 +384,7 @@ func TestJaccardSimilarity(t *testing.T) {
 	t.Logf("OK: Jaccard similarity calculations correct")
 }
 
-// ━━━ TEST 13: tokenize + stem ━━━
-func TestTokenizeAndStem(t *testing.T) {
+// ?�━??TEST 13: tokenize + stem ?�━??func TestTokenizeAndStem(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected []string
@@ -422,3 +409,4 @@ func TestTokenizeAndStem(t *testing.T) {
 
 	t.Logf("OK: tokenize + stem working correctly")
 }
+

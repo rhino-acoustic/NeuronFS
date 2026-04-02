@@ -11,7 +11,7 @@ import (
 
 // ============================================================================
 // Module: Access Control (Zero Trust Layer 2)
-// Policy: RBAC — Role → Region → {read, write, deny}
+// Policy: RBAC ??Role ??Region ??{read, write, deny}
 // Source: .neuronfs/access_policy.yaml
 // ============================================================================
 
@@ -87,7 +87,7 @@ func LoadAccessPolicyFromBytes(data []byte) error {
 
 // CanAccess checks whether a given role can perform an action on a region.
 // Returns (allowed bool, error).
-// Deny is explicit — if "deny" appears in actions, access is refused.
+// Deny is explicit ??if "deny" appears in actions, access is refused.
 // If a region is not listed for the role, default is DENY.
 func CanAccess(role string, region string, action string) (bool, error) {
 	if globalPolicy == nil {
@@ -150,3 +150,4 @@ func ListRolePermissions(role string) (string, error) {
 	}
 	return sb.String(), nil
 }
+

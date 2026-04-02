@@ -15,7 +15,7 @@ import (
 // ============================================================================
 // Module: Integrity Verification (Zero Trust Layer 3)
 // Algorithm: HMAC-SHA256 Merkle Hash Chain
-// Granularity: Per-neuron file → per-region chain → brain root
+// Granularity: Per-neuron file ??per-region chain ??brain root
 // ============================================================================
 
 var (
@@ -139,7 +139,7 @@ func VerifyChain(chain *MerkleChain, regionPath string) (valid bool, brokenAt st
 }
 
 // IncrementalUpdate recalculates the chain from a specific index forward.
-// Use when a single file is modified — avoids full rebuild.
+// Use when a single file is modified ??avoids full rebuild.
 func IncrementalUpdate(chain *MerkleChain, regionPath string, fromIndex int) error {
 	if chain == nil {
 		return errors.New("merkle: nil chain")
@@ -181,8 +181,8 @@ func IncrementalUpdate(chain *MerkleChain, regionPath string, fromIndex int) err
 	return nil
 }
 
-// loadOrCreateHMACKey는 .neuronfs/integrity.key에서 HMAC 키를 읽는다.
-// 파일이 없으면 32바이트 랜덤 키를 생성하고 저장한다.
+// loadOrCreateHMACKey??.neuronfs/integrity.key?�서 HMAC ?��? ?�는??
+// ?�일???�으�?32바이???�덤 ?��? ?�성?�고 ?�?�한??
 func loadOrCreateHMACKey(brainRoot string) []byte {
 	neuronfsDir := filepath.Join(filepath.Dir(brainRoot), ".neuronfs")
 	keyPath := filepath.Join(neuronfsDir, "integrity.key")
@@ -192,14 +192,15 @@ func loadOrCreateHMACKey(brainRoot string) []byte {
 		return data[:32]
 	}
 
-	// 자동 생성
+	// ?�동 ?�성
 	key := make([]byte, 32)
-	// crypto/rand 대신 deterministic fallback (빌드 안전)
+	// crypto/rand ?�??deterministic fallback (빌드 ?�전)
 	h := sha256.Sum256([]byte(brainRoot + "neuronfs-integrity-v1"))
 	copy(key, h[:])
 
 	os.MkdirAll(neuronfsDir, 0755)
-	os.WriteFile(keyPath, key, 0600) // 키 파일은 600 권한
+	os.WriteFile(keyPath, key, 0600) // ???�일?� 600 권한
 
 	return key
 }
+

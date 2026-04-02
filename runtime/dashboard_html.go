@@ -1,13 +1,13 @@
 package main
 
-// Dashboard HTML for NeuronFS v5.0 â€” 3D Brain Topology + Card UI
+// Dashboard HTML for NeuronFS v5.0 ??3D Brain Topology + Card UI
 
 const dashboardHTML = `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuronFS v5 â€” ì¸ì§€ ì—”ì§„</title>
+<title>NeuronFS v5 ???¸ì? ?”ì§„</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -18,7 +18,7 @@ const dashboardHTML = `<!DOCTYPE html>
     min-height: 100vh; overflow: hidden;
   }
 
-  /* â”€â”€ Layout â”€â”€ */
+  /* ?€?€ Layout ?€?€ */
   .app { display: flex; height: 100vh; }
   #canvas3d { flex: 1; position: relative; }
   .sidebar {
@@ -27,7 +27,7 @@ const dashboardHTML = `<!DOCTYPE html>
     backdrop-filter: blur(20px); z-index: 10;
   }
 
-  /* â”€â”€ Header â”€â”€ */
+  /* ?€?€ Header ?€?€ */
   .header {
     padding: 20px 24px; border-bottom: 1px solid #1a1a2e;
     display: flex; align-items: center; gap: 12px;
@@ -43,7 +43,7 @@ const dashboardHTML = `<!DOCTYPE html>
     color: #fff; margin-left: auto; font-size: 12px; padding: 4px 14px;
   }
 
-  /* â”€â”€ Stats Bar â”€â”€ */
+  /* ?€?€ Stats Bar ?€?€ */
   .stats {
     display: grid; grid-template-columns: repeat(3, 1fr);
     padding: 16px 24px; gap: 12px; border-bottom: 1px solid #1a1a2e;
@@ -56,7 +56,7 @@ const dashboardHTML = `<!DOCTYPE html>
   }
   .stat-label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; }
 
-  /* â”€â”€ Detail Panel (appears on sphere click) â”€â”€ */
+  /* ?€?€ Detail Panel (appears on sphere click) ?€?€ */
   .detail-panel {
     padding: 20px 24px; border-bottom: 1px solid #1a1a2e;
     display: none; animation: slideIn 0.2s ease;
@@ -73,7 +73,7 @@ const dashboardHTML = `<!DOCTYPE html>
   }
   .detail-panel .close-btn:hover { color: #fff; }
 
-  /* â”€â”€ Connections (axons) â”€â”€ */
+  /* ?€?€ Connections (axons) ?€?€ */
   .connections { margin: 8px 0 12px; }
   .conn-line {
     display: flex; align-items: center; gap: 8px;
@@ -83,7 +83,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .conn-target { color: #e0e0e0; cursor: pointer; }
   .conn-target:hover { color: #3b82f6; text-decoration: underline; }
 
-  /* â”€â”€ Neuron list in detail â”€â”€ */
+  /* ?€?€ Neuron list in detail ?€?€ */
   .neuron-list { max-height: 300px; overflow-y: auto; }
   .neuron-item {
     display: flex; align-items: center; gap: 8px;
@@ -101,7 +101,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .n-str-abs { background: #7f1d1d; color: #fca5a5; }
   .n-str-must { background: #1e3a5f; color: #93c5fd; }
 
-  /* â”€â”€ Search â”€â”€ */
+  /* ?€?€ Search ?€?€ */
   .search-bar {
     padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
   }
@@ -113,7 +113,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .search-bar input:focus { border-color: #3b82f6; }
   .search-bar input::placeholder { color: #555; }
 
-  /* â”€â”€ Add neuron form â”€â”€ */
+  /* ?€?€ Add neuron form ?€?€ */
   .add-section {
     padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
     display: none;
@@ -131,7 +131,7 @@ const dashboardHTML = `<!DOCTYPE html>
   }
   .add-section button:hover { background: #047857; }
 
-  /* â”€â”€ Sandbox â”€â”€ */
+  /* ?€?€ Sandbox ?€?€ */
   .sandbox-section {
     padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
     display: none;
@@ -149,7 +149,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .sandbox-paths div { padding: 2px 0; }
   .add-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; }
 
-  /* â”€â”€ Region list â”€â”€ */
+  /* ?€?€ Region list ?€?€ */
   .region-list { padding: 8px 24px; }
   .region-chip {
     display: inline-flex; align-items: center; gap: 6px;
@@ -164,7 +164,7 @@ const dashboardHTML = `<!DOCTYPE html>
     font-size: 9px; color: #888;
   }
 
-  /* â”€â”€ Controls â”€â”€ */
+  /* ?€?€ Controls ?€?€ */
   .controls {
     padding: 16px 24px; border-top: 1px solid #1a1a2e;
     display: flex; gap: 8px; position: sticky; bottom: 0;
@@ -183,7 +183,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .btn-add { background: #059669; color: #fff; }
   .btn-add:hover { background: #047857; }
 
-  /* â”€â”€ Toast notification â”€â”€ */
+  /* ?€?€ Toast notification ?€?€ */
   .toast {
     position: fixed; top: 16px; left: 16px; max-width: 300px;
     background: rgba(12,12,24,0.9); backdrop-filter: blur(16px);
@@ -198,7 +198,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .toast-close:hover { color: #fff; }
   @keyframes slideInFromLeft { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-  /* â”€â”€ System Health Panel â”€â”€ */
+  /* ?€?€ System Health Panel ?€?€ */
   .system-health {
     padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
   }
@@ -216,7 +216,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .health-name { color: #e0e0e0; font-weight: 600; width: 100px; }
   .health-role { color: #666; font-size: 10px; flex: 1; }
 
-  /* â”€â”€ 3D overlay info â”€â”€ */
+  /* ?€?€ 3D overlay info ?€?€ */
   .hover-tooltip {
     position: absolute; pointer-events: none;
     background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -227,7 +227,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .hover-tooltip .tt-region { color: #b6cfdd; font-weight: 700; display: block; margin-bottom: 4px; letter-spacing: 0.5px; }
   .hover-tooltip .tt-stats { color: #eadccf; font-size: 11px; }
 
-  /* â”€â”€ Evolution Timeline â”€â”€ */
+  /* ?€?€ Evolution Timeline ?€?€ */
   .evo-section {
     padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
     display: none; max-height: 400px; overflow-y: auto;
@@ -279,24 +279,24 @@ const dashboardHTML = `<!DOCTYPE html>
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="header">
-      <h1>ğŸ§  NeuronFS v5</h1>
+      <h1>?§  NeuronFS v5</h1>
       <span class="badge badge-ok" id="status">NOMINAL</span>
       <span class="badge badge-score" id="score">0</span>
     </div>
 
     <div class="stats">
-      <div class="stat"><div class="stat-value" id="s-neurons">0</div><div class="stat-label">ë‰´ëŸ°</div></div>
-      <div class="stat"><div class="stat-value" id="s-activation">0</div><div class="stat-label">í™œì„±ë„</div></div>
-      <div class="stat"><div class="stat-value" id="s-regions">0</div><div class="stat-label">ì˜ì—­</div></div>
+      <div class="stat"><div class="stat-value" id="s-neurons">0</div><div class="stat-label">?´ëŸ°</div></div>
+      <div class="stat"><div class="stat-value" id="s-activation">0</div><div class="stat-label">?œì„±??/div></div>
+      <div class="stat"><div class="stat-value" id="s-regions">0</div><div class="stat-label">?ì—­</div></div>
     </div>
 
     <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="ë‰´ëŸ° ê²€ìƒ‰ (Ctrl+K)" oninput="filterNeurons()">
+      <input type="text" id="searchInput" placeholder="?´ëŸ° ê²€??(Ctrl+K)" oninput="filterNeurons()">
     </div>
 
     <div class="recent-neurons-section" id="recentSection" style="padding: 16px 24px; border-bottom: 1px solid #1a1a2e;">
       <div class="add-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <span>ğŸŒ± ìµœê·¼ ìë¼ë‚œ ë‰´ëŸ° (Live)</span>
+        <span>?Œ± ìµœê·¼ ?ë¼???´ëŸ° (Live)</span>
       </div>
       <div id="recentGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;"></div>
     </div>
@@ -305,7 +305,7 @@ const dashboardHTML = `<!DOCTYPE html>
       <h2>
         <span id="detail-icon"></span>
         <span id="detail-name"></span>
-        <button class="close-btn" onclick="closeDetail()">âœ•</button>
+        <button class="close-btn" onclick="closeDetail()">??/button>
       </h2>
       <div class="connections" id="detail-axons"></div>
       <div class="neuron-list" id="detail-neurons"></div>
@@ -314,27 +314,27 @@ const dashboardHTML = `<!DOCTYPE html>
     <div class="region-list" id="regionChips"></div>
 
     <div class="add-section" id="addSection">
-      <div class="add-label">ìƒˆ ë‰´ëŸ° ìƒì„±</div>
+      <div class="add-label">???´ëŸ° ?ì„±</div>
       <div class="add-row">
         <select id="addRegion"></select>
-        <input type="text" id="addPath" placeholder="ê²½ë¡œ (ì˜ˆ: methodology/tdd)">
+        <input type="text" id="addPath" placeholder="ê²½ë¡œ (?? methodology/tdd)">
         <button onclick="addNeuron()">+</button>
       </div>
     </div>
 
     <div class="sandbox-section" id="sandboxSection">
-      <div class="add-label">ğŸ§ª Sandbox â€” ê·œì¹™ ì‹¤í—˜</div>
-      <textarea id="sandboxText" placeholder="í•œ ì¤„ì— í•˜ë‚˜ì”© ê·œì¹™ ì…ë ¥&#10;ì˜ˆ: ç¦ì¸ë¼ì¸ìŠ¤íƒ€ì¼&#10;    í•­ìƒ_íƒ€ì…ì²´í¬"></textarea>
+      <div class="add-label">?§ª Sandbox ??ê·œì¹™ ?¤í—˜</div>
+      <textarea id="sandboxText" placeholder="??ì¤„ì— ?˜ë‚˜??ê·œì¹™ ?…ë ¥&#10;?? ç¦ì¸?¼ì¸?¤í???#10;    ??ƒ_?€?…ì²´??></textarea>
       <div class="sandbox-row">
-        <button class="btn btn-primary" onclick="applySandbox()" style="font-size:10px">âœ… ì ìš©</button>
-        <button class="btn btn-ghost" onclick="clearSandbox()" style="font-size:10px">ğŸ—‘ ì´ˆê¸°í™”</button>
+        <button class="btn btn-primary" onclick="applySandbox()" style="font-size:10px">???ìš©</button>
+        <button class="btn btn-ghost" onclick="clearSandbox()" style="font-size:10px">?—‘ ì´ˆê¸°??/button>
       </div>
       <div class="sandbox-paths" id="sandboxPaths"></div>
     </div>
 
     <div class="evo-section" id="evoSection">
       <div class="add-label" style="margin-bottom:12px;display:flex;align-items:center;gap:6px;justify-content:space-between">
-        <span>ğŸ§¬ EVOLUTION TIMELINE</span>
+        <span>?§¬ EVOLUTION TIMELINE</span>
         <span id="evo-count" style="font-size:9px;padding:2px 8px;border-radius:10px;background:#1e3a5f;color:#93c5fd;font-weight:700">0</span>
       </div>
       <div class="evo-timeline" id="evoTimeline"></div>
@@ -342,7 +342,7 @@ const dashboardHTML = `<!DOCTYPE html>
 
     <div class="system-health" id="healthPanel">
       <div class="add-label" style="margin-bottom:8px;display:flex;align-items:center;gap:6px">
-        âš™ï¸ SYSTEM STATUS
+        ?™ï¸ SYSTEM STATUS
         <span id="health-badge" style="font-size:9px;padding:2px 8px;border-radius:10px;background:#064e3b;color:#34d399;font-weight:700">ALL OK</span>
       </div>
       <div id="healthList"></div>
@@ -350,20 +350,20 @@ const dashboardHTML = `<!DOCTYPE html>
     </div>
 
     <div class="controls">
-      <button class="btn btn-primary" onclick="doInject()">âš¡ INJECT</button>
-      <button class="btn btn-add" onclick="toggleAdd()">+ ë‰´ëŸ°</button>
-      <button class="btn btn-ghost" onclick="doDedup()">ğŸ”€ DEDUP</button>
-      <button class="btn btn-ghost" onclick="toggleEvo()" style="font-size:10px">ğŸ§¬</button>
-      <button class="btn btn-ghost" onclick="toggleSandbox()" style="font-size:10px">ğŸ§ª</button>
-      <select id="bombRegion" style="background:#1a1a2e;color:#fca5a5;border:1px solid #7f1d1d;border-radius:6px;padding:6px 8px;font-size:10px;cursor:pointer;"><option value="">ğŸ’€ ì˜ì—­ ì„ íƒ</option></select>
-      <button class="btn btn-danger" onclick="doBomb()">ğŸ’€ BOMB</button>
+      <button class="btn btn-primary" onclick="doInject()">??INJECT</button>
+      <button class="btn btn-add" onclick="toggleAdd()">+ ?´ëŸ°</button>
+      <button class="btn btn-ghost" onclick="doDedup()">?? DEDUP</button>
+      <button class="btn btn-ghost" onclick="toggleEvo()" style="font-size:10px">?§¬</button>
+      <button class="btn btn-ghost" onclick="toggleSandbox()" style="font-size:10px">?§ª</button>
+      <select id="bombRegion" style="background:#1a1a2e;color:#fca5a5;border:1px solid #7f1d1d;border-radius:6px;padding:6px 8px;font-size:10px;cursor:pointer;"><option value="">?? ?ì—­ ? íƒ</option></select>
+      <button class="btn btn-danger" onclick="doBomb()">?? BOMB</button>
     </div>
   </div>
-  <div class="toast" id="toast"><span id="toast-msg"></span><button class="toast-close" onclick="closeToast()">âœ•</button></div>
+  <div class="toast" id="toast"><span id="toast-msg"></span><button class="toast-close" onclick="closeToast()">??/button></div>
 </div>
 
 <script>
-// â”€â”€ State â”€â”€
+// ?€?€ State ?€?€
 let brainData = null;
 let regionSpheres = {};
 let selectedRegion = null;
@@ -371,7 +371,7 @@ let scene, camera, renderer, raycaster, mouse;
 let particleSystem;
 let axonLines = [];
 
-// â”€â”€ Colors per region â”€â”€
+// ?€?€ Colors per region ?€?€
 const regionColors = {
   brainstem: 0xff4444,
   limbic: 0xff8844,
@@ -382,11 +382,11 @@ const regionColors = {
   prefrontal: 0xff44aa
 };
 const regionEmoji = {
-  brainstem: 'ğŸ«€', limbic: 'ğŸ’“', hippocampus: 'ğŸ“',
-  sensors: 'ğŸ‘ï¸', cortex: 'ğŸ§ ', ego: 'ğŸ­', prefrontal: 'ğŸ¯'
+  brainstem: '??', limbic: '?’“', hippocampus: '?“',
+  sensors: '?‘ï¸?, cortex: '?§ ', ego: '?­', prefrontal: '?¯'
 };
 
-// â”€â”€ Three.js Setup â”€â”€
+// ?€?€ Three.js Setup ?€?€
 function initThree() {
   const container = document.getElementById('canvas3d');
   scene = new THREE.Scene();
@@ -434,7 +434,7 @@ function initThree() {
   });
 }
 
-// â”€â”€ Create Brain Spheres â”€â”€
+// ?€?€ Create Brain Spheres ?€?€
 function createBrain(data) {
   // Clear old
   Object.values(regionSpheres).forEach(s => scene.remove(s.mesh));
@@ -538,7 +538,7 @@ function createBrain(data) {
   });
 }
 
-// â”€â”€ Mouse interaction â”€â”€
+// ?€?€ Mouse interaction ?€?€
 function onMouseMove(e) {
   const rect = renderer.domElement.getBoundingClientRect();
   mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -564,8 +564,8 @@ function onMouseMove(e) {
 
     if (hitObj.userData && hitObj.userData.isNeuron) {
       let dispPath = hitObj.userData.path.replace(/\\/g, "/");
-      tooltip.innerHTML = '<span class="tt-region">ğŸ§  ' + hitObj.userData.region + '/' + dispPath.split('/').pop() + '</span>' +
-        '<span class="tt-stats">í™œì„±ë„(Synapse): ' + hitObj.userData.counter + '</span>';
+      tooltip.innerHTML = '<span class="tt-region">?§  ' + hitObj.userData.region + '/' + dispPath.split('/').pop() + '</span>' +
+        '<span class="tt-stats">?œì„±??Synapse): ' + hitObj.userData.counter + '</span>';
       renderer.domElement.style.cursor = 'crosshair';
       return;
     }
@@ -573,7 +573,7 @@ function onMouseMove(e) {
     const entry = Object.values(regionSpheres).find(s => s.mesh === hitObj);
     if (entry) {
       tooltip.innerHTML = '<span class="tt-region">' + (regionEmoji[entry.region.name]||'') + ' ' + entry.region.name + '</span>' +
-        '<span class="tt-stats">ë‰´ëŸ° ' + entry.neuronCount + ' | í™œì„±ë„ ' + entry.totalAct + '</span>';
+        '<span class="tt-stats">?´ëŸ° ' + entry.neuronCount + ' | ?œì„±??' + entry.totalAct + '</span>';
       renderer.domElement.style.cursor = 'pointer';
     }
   } else {
@@ -593,7 +593,7 @@ function onSphereClick(e) {
   }
 }
 
-// â”€â”€ Select Region (show detail) â”€â”€
+// ?€?€ Select Region (show detail) ?€?€
 function selectRegion(name) {
   selectedRegion = name;
   const entry = regionSpheres[name];
@@ -615,15 +615,15 @@ function selectRegion(name) {
   // Detail panel
   const panel = document.getElementById('detail');
   panel.classList.add('active');
-  document.getElementById('detail-icon').textContent = regionEmoji[name] || 'ğŸ“';
-  document.getElementById('detail-name').textContent = name.toUpperCase() + ' â€” ' + (region.ko || '');
+  document.getElementById('detail-icon').textContent = regionEmoji[name] || '?“';
+  document.getElementById('detail-name').textContent = name.toUpperCase() + ' ??' + (region.ko || '');
 
   // Axons
   let axonHtml = '';
   if (region.axons && region.axons.length > 0) {
-    axonHtml += '<div style="font-size:10px;color:#666;margin-bottom:4px;">ì¶•ì‚­ ì—°ê²°:</div>';
+    axonHtml += '<div style="font-size:10px;color:#666;margin-bottom:4px;">ì¶•ì‚­ ?°ê²°:</div>';
     region.axons.forEach(a => {
-      axonHtml += '<div class="conn-line"><span class="conn-arrow">â†’</span><span class="conn-target" onclick="selectRegion(\'' + a + '\')">' +
+      axonHtml += '<div class="conn-line"><span class="conn-arrow">??/span><span class="conn-target" onclick="selectRegion(\'' + a + '\')">' +
         (regionEmoji[a]||'') + ' ' + a + '</span></div>';
     });
   }
@@ -644,15 +644,15 @@ function selectRegion(name) {
       else barColor = '#3b82f6';
 
       let signals = '';
-      if (n.dopamine > 0) signals += 'ğŸŸ¢';
-      if (n.hasBomb) signals += 'ğŸ’€';
-      if (n.isDormant) signals += 'ğŸ’¤';
-      if (pol > 0.6) signals += 'â†‘';
-      else if (pol < 0.3 && intensity > 3) signals += 'â†“';
+      if (n.dopamine > 0) signals += '?Ÿ¢';
+      if (n.hasBomb) signals += '??';
+      if (n.isDormant) signals += '?’¤';
+      if (pol > 0.6) signals += '??;
+      else if (pol < 0.3 && intensity > 3) signals += '??;
 
       let strengthHtml = '';
-      if (intensity >= 10) strengthHtml = '<span class="n-strength n-str-abs">ì ˆëŒ€</span>';
-      else if (intensity >= 5) strengthHtml = '<span class="n-strength n-str-must">ë°˜ë“œì‹œ</span>';
+      if (intensity >= 10) strengthHtml = '<span class="n-strength n-str-abs">?ˆë?</span>';
+      else if (intensity >= 5) strengthHtml = '<span class="n-strength n-str-must">ë°˜ë“œ??/span>';
 
       const path = n.path.replace(/\//g, ' > ');
       const regionName = selectedRegion;
@@ -662,7 +662,7 @@ function selectRegion(name) {
         '<div class="n-bar"><div class="n-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>' +
         '<div class="n-counter">' + intensity + '</div>' +
         '<div class="n-signals">' + signals + '</div>' +
-        '<button class="n-fire" onclick="event.stopPropagation();fireNeuron(\'' + regionName + '\',\'' + n.path.replace(/'/g,"\\'" ) + '\')">â–²</button>' +
+        '<button class="n-fire" onclick="event.stopPropagation();fireNeuron(\'' + regionName + '\',\'' + n.path.replace(/'/g,"\\'" ) + '\')">??/button>' +
         '</div>';
     });
   }
@@ -686,7 +686,7 @@ function closeDetail() {
   document.querySelectorAll('.region-chip').forEach(c => c.classList.remove('active'));
 }
 
-// â”€â”€ Render loop â”€â”€
+// ?€?€ Render loop ?€?€
 let frame = 0;
 function animate() {
   requestAnimationFrame(animate);
@@ -733,18 +733,18 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-// â”€â”€ UI Updates â”€â”€
+// ?€?€ UI Updates ?€?€
 function updateUI(data) {
   document.getElementById('s-neurons').textContent = data.totalNeurons;
   document.getElementById('s-activation').textContent = data.totalCounter;
   document.getElementById('s-regions').textContent = (data.regions || []).length;
-  document.getElementById('score').textContent = 'âš¡ ' + data.totalCounter;
+  document.getElementById('score').textContent = '??' + data.totalCounter;
 
   if (data.bombSource) {
     document.getElementById('status').className = 'badge';
     document.getElementById('status').style.background = '#7f1d1d';
     document.getElementById('status').style.color = '#fca5a5';
-    document.getElementById('status').textContent = 'ğŸ’€ BOMB: ' + data.bombSource;
+    document.getElementById('status').textContent = '?? BOMB: ' + data.bombSource;
   } else {
     document.getElementById('status').className = 'badge badge-ok';
     document.getElementById('status').textContent = 'NOMINAL';
@@ -785,12 +785,12 @@ function updateUI(data) {
       '<div style="color:#b6cfdd; font-size:11px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="' + n.path + '">' + shortPath + '</div>' +
       '</div>';
   });
-  document.getElementById('recentGrid').innerHTML = recentHtml || '<div style="color:#666; font-size:9px; grid-column:span 2; text-align:center;">ìƒì¥ ì¤‘ì¸ ë‰´ëŸ° ê¸°ë¡ ì—†ìŒ</div>';
+  document.getElementById('recentGrid').innerHTML = recentHtml || '<div style="color:#666; font-size:9px; grid-column:span 2; text-align:center;">?ì¥ ì¤‘ì¸ ?´ëŸ° ê¸°ë¡ ?†ìŒ</div>';
 
   updateBombDropdown();
 }
 
-// â”€â”€ API â”€â”€
+// ?€?€ API ?€?€
 let previousNeuronCount = 0;
 
 async function loadBrain() {
@@ -805,31 +805,31 @@ async function loadBrain() {
     // Auto-Evolution Detection
     if (previousNeuronCount > 0 && brainData.totalNeurons > previousNeuronCount) {
         const diff = brainData.totalNeurons - previousNeuronCount;
-        showToast('ğŸŒ± ìê°€ ì§„í™” ë°œìƒ: +' + diff + ' ì‹ ê·œ ê·œì¹™ í¡ìˆ˜ì™„ë£Œ');
+        showToast('?Œ± ?ê? ì§„í™” ë°œìƒ: +' + diff + ' ? ê·œ ê·œì¹™ ?¡ìˆ˜?„ë£Œ');
     }
     previousNeuronCount = brainData.totalNeurons;
-  } catch(e) { /* silent â€” ç¦console_log */ }
+  } catch(e) { /* silent ??ç¦console_log */ }
 }
 
-// â”€â”€ Inject â”€â”€
+// ?€?€ Inject ?€?€
 async function doInject() {
-  showToast('âš¡ Injecting...');
+  showToast('??Injecting...');
   const res = await fetch('/api/inject', { method: 'POST' });
   const text = await res.text();
-  showToast('âœ… ' + text);
+  showToast('??' + text);
   loadBrain();
 }
 async function doDedup() {
-  showToast('ğŸ”€ Dedup...');
+  showToast('?? Dedup...');
   await fetch('/api/dedup', { method: 'POST' });
-  showToast('âœ… Dedup ì™„ë£Œ');
+  showToast('??Dedup ?„ë£Œ');
   loadBrain();
 }
 function updateBombDropdown() {
   const sel = document.getElementById('bombRegion');
   if (!sel || !brainData) return;
   const current = sel.value;
-  sel.innerHTML = '<option value="">ğŸ’€ ì˜ì—­ ì„ íƒ</option>';
+  sel.innerHTML = '<option value="">?? ?ì—­ ? íƒ</option>';
   (brainData.regions || []).forEach(r => {
     const opt = document.createElement('option');
     opt.value = r.name; opt.textContent = (regionEmoji[r.name]||'') + ' ' + r.name;
@@ -839,27 +839,27 @@ function updateBombDropdown() {
 }
 async function doBomb() {
   const region = document.getElementById('bombRegion').value;
-  if (!region) { showToast('âš ï¸ ì˜ì—­ì„ ë¨¼ì € ì„ íƒí•˜ì„¸ìš”'); return; }
+  if (!region) { showToast('? ï¸ ?ì—­??ë¨¼ì? ? íƒ?˜ì„¸??); return; }
   await fetch('/api/signal', {
     method: 'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({path: region + '/halt', type: 'bomb'})
   });
-  showToast('ğŸ’€ BOMB: ' + region);
+  showToast('?? BOMB: ' + region);
   document.getElementById('bombRegion').value = '';
   loadBrain();
 }
 
-// â”€â”€ Fire neuron â”€â”€
+// ?€?€ Fire neuron ?€?€
 async function fireNeuron(region, path) {
   await fetch('/api/fire', {
     method: 'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({path: region + '/' + path})
   });
-  showToast('ğŸ”¥ fired: ' + path);
+  showToast('?”¥ fired: ' + path);
   loadBrain();
 }
 
-// â”€â”€ Add neuron â”€â”€
+// ?€?€ Add neuron ?€?€
 function toggleAdd() {
   const section = document.getElementById('addSection');
   section.classList.toggle('visible');
@@ -885,11 +885,11 @@ async function addNeuron() {
   });
   document.getElementById('addPath').value = '';
   document.getElementById('addSection').classList.remove('visible');
-  showToast('ğŸŒ± ë‰´ëŸ° ìƒì„±: ' + region + '/' + path);
+  showToast('?Œ± ?´ëŸ° ?ì„±: ' + region + '/' + path);
   loadBrain();
 }
 
-// â”€â”€ Search â”€â”€
+// ?€?€ Search ?€?€
 function filterNeurons() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   if (!q) { if (selectedRegion) selectRegion(selectedRegion); return; }
@@ -906,7 +906,7 @@ function filterNeurons() {
   });
   results.sort((a,b) => b.counter - a.counter);
 
-  let nHtml = '<div style="font-size:10px;color:#666;margin-bottom:6px;">ê²€ìƒ‰ ê²°ê³¼: ' + results.length + 'ê±´</div>';
+  let nHtml = '<div style="font-size:10px;color:#666;margin-bottom:6px;">ê²€??ê²°ê³¼: ' + results.length + 'ê±?/div>';
   results.forEach(n => {
     const pct = Math.min(100, n.counter * 5);
     let barColor = '#475569';
@@ -914,11 +914,11 @@ function filterNeurons() {
     else if (n.counter >= 5) barColor = '#22c55e';
     else if (n.counter >= 2) barColor = '#3b82f6';
     let strengthHtml = '';
-    if (n.counter >= 10) strengthHtml = '<span class="n-strength n-str-abs">ì ˆëŒ€</span>';
-    else if (n.counter >= 5) strengthHtml = '<span class="n-strength n-str-must">ë°˜ë“œì‹œ</span>';
+    if (n.counter >= 10) strengthHtml = '<span class="n-strength n-str-abs">?ˆë?</span>';
+    else if (n.counter >= 5) strengthHtml = '<span class="n-strength n-str-must">ë°˜ë“œ??/span>';
     let signals = '';
-    if (n.dopamine > 0) signals += 'ğŸŸ¢';
-    if (n.hasBomb) signals += 'ğŸ’€';
+    if (n.dopamine > 0) signals += '?Ÿ¢';
+    if (n.hasBomb) signals += '??';
     nHtml += '<div class="neuron-item">' +
       strengthHtml +
       '<div class="n-name" style="font-size:10px"><span style="color:#3b82f6">' + n.regionName + '</span> > ' + n.path.replace(/\//g, ' > ') + '</div>' +
@@ -930,13 +930,13 @@ function filterNeurons() {
 
   const panel = document.getElementById('detail');
   panel.classList.add('active');
-  document.getElementById('detail-icon').textContent = 'ğŸ”';
-  document.getElementById('detail-name').textContent = 'ê²€ìƒ‰: "' + q + '"';
+  document.getElementById('detail-icon').textContent = '?”';
+  document.getElementById('detail-name').textContent = 'ê²€?? "' + q + '"';
   document.getElementById('detail-axons').innerHTML = '';
   document.getElementById('detail-neurons').innerHTML = nHtml;
 }
 
-// â”€â”€ Sandbox â”€â”€
+// ?€?€ Sandbox ?€?€
 function toggleSandbox() {
   const section = document.getElementById('sandboxSection');
   section.classList.toggle('visible');
@@ -949,7 +949,7 @@ function toggleSandbox() {
 }
 async function applySandbox() {
   const text = document.getElementById('sandboxText').value.trim();
-  if (!text) { showToast('âš ï¸ ê·œì¹™ì„ ì…ë ¥í•˜ì„¸ìš”'); return; }
+  if (!text) { showToast('? ï¸ ê·œì¹™???…ë ¥?˜ì„¸??); return; }
   const res = await fetch('/api/sandbox', {
     method: 'POST', headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({text: text})
@@ -957,11 +957,11 @@ async function applySandbox() {
   const data = await res.json();
   const pathsDiv = document.getElementById('sandboxPaths');
   if (data.paths && data.paths.length > 0) {
-    pathsDiv.innerHTML = data.paths.map(p => '<div>âœ“ ' + p + ' ìƒì„±ë¨</div>').join('');
+    pathsDiv.innerHTML = data.paths.map(p => '<div>??' + p + ' ?ì„±??/div>').join('');
   } else {
-    pathsDiv.innerHTML = '<div>âœ“ ' + (data.created || 0) + 'ê°œ ì ìš©</div>';
+    pathsDiv.innerHTML = '<div>??' + (data.created || 0) + 'ê°??ìš©</div>';
   }
-  showToast('ğŸ§ª Sandbox: ' + (data.created || 0) + 'ê°œ ê·œì¹™ ì ìš©');
+  showToast('?§ª Sandbox: ' + (data.created || 0) + 'ê°?ê·œì¹™ ?ìš©');
   loadBrain();
 }
 async function clearSandbox() {
@@ -971,7 +971,7 @@ async function clearSandbox() {
   });
   document.getElementById('sandboxText').value = '';
   document.getElementById('sandboxPaths').innerHTML = '';
-  showToast('ğŸ—‘ Sandbox ì´ˆê¸°í™”');
+  showToast('?—‘ Sandbox ì´ˆê¸°??);
   loadBrain();
 }
 
@@ -979,7 +979,7 @@ let toastTimeout;
 function showToast(msg) {
   const t = document.getElementById('toast');
   document.getElementById('toast-msg').textContent = msg;
-  if (msg.includes('âš ï¸') || msg.includes('ğŸ’€')) t.classList.add('error'); else t.classList.remove('error');
+  if (msg.includes('? ï¸') || msg.includes('??')) t.classList.add('error'); else t.classList.remove('error');
   t.classList.add('show');
   clearTimeout(toastTimeout);
   toastTimeout = setTimeout(() => t.classList.remove('show'), 5000);
@@ -988,7 +988,7 @@ function closeToast() {
   document.getElementById('toast').classList.remove('show');
 }
 
-// â”€â”€ Health monitoring â”€â”€
+// ?€?€ Health monitoring ?€?€
 async function loadHealth() {
   try {
     const res = await fetch('/api/health');
@@ -1024,7 +1024,7 @@ async function loadHealth() {
   } catch(e) { /* silent */ }
 }
 
-// â”€â”€ Evolution Timeline â”€â”€
+// ?€?€ Evolution Timeline ?€?€
 function toggleEvo() {
   const section = document.getElementById('evoSection');
   section.classList.toggle('visible');
@@ -1040,12 +1040,12 @@ async function loadEvolution() {
     countBadge.textContent = events.length;
 
     if (events.length === 0) {
-      container.innerHTML = '<div style="font-size:10px;color:#555;text-align:center;padding:20px">ì§„í™” ê¸°ë¡ ì—†ìŒ (git ì´ˆê¸°í™” í•„ìš”)</div>';
+      container.innerHTML = '<div style="font-size:10px;color:#555;text-align:center;padding:20px">ì§„í™” ê¸°ë¡ ?†ìŒ (git ì´ˆê¸°???„ìš”)</div>';
       return;
     }
 
-    const actionLabels = { created: 'ë‰´ëŸ° íƒ„ìƒ', modified: 'ì‹œëƒ…ìŠ¤ ê°•í™”', suppressed: 'ì–µì œ ë°œë™' };
-    const actionIcons = { created: 'ğŸŒ±', modified: 'âš¡', suppressed: 'ğŸ”®' };
+    const actionLabels = { created: '?´ëŸ° ?„ìƒ', modified: '?œëƒ…??ê°•í™”', suppressed: '?µì œ ë°œë™' };
+    const actionIcons = { created: '?Œ±', modified: '??, suppressed: '?”®' };
     let html = '';
     const displayed = events.slice(0, 50);
     displayed.forEach(ev => {
@@ -1068,13 +1068,13 @@ async function loadEvolution() {
   } catch(e) { /* silent */ }
 }
 
-// â”€â”€ Init â”€â”€
+// ?€?€ Init ?€?€
 loadBrain();
 loadHealth();
 setInterval(loadBrain, 10000);
 setInterval(loadHealth, 15000);
 
-// â”€â”€ Keyboard shortcuts â”€â”€
+// ?€?€ Keyboard shortcuts ?€?€
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     e.preventDefault();
@@ -1094,4 +1094,5 @@ document.addEventListener('keydown', (e) => {
 </script>
 </body>
 </html>` + "\n"
+
 

@@ -7,10 +7,8 @@ import (
 	"testing"
 )
 
-// ━━━ Evolve Engine Unit Tests (Groq-independent) ━━━
-
-// ━━━ TEST 32: truncate ━━━
-func TestTruncate(t *testing.T) {
+// ?�━??Evolve Engine Unit Tests (Groq-independent) ?�━??
+// ?�━??TEST 32: truncate ?�━??func TestTruncate(t *testing.T) {
 	if truncate("hello", 10) != "hello" {
 		t.Fatal("short string should not be truncated")
 	}
@@ -21,8 +19,7 @@ func TestTruncate(t *testing.T) {
 	t.Logf("OK: truncate works correctly")
 }
 
-// ━━━ TEST 33: boolStr ━━━
-func TestBoolStr(t *testing.T) {
+// ?�━??TEST 33: boolStr ?�━??func TestBoolStr(t *testing.T) {
 	if boolStr(true, "yes", "no") != "yes" {
 		t.Fatal("true case failed")
 	}
@@ -32,16 +29,15 @@ func TestBoolStr(t *testing.T) {
 	t.Logf("OK: boolStr returns correct value")
 }
 
-// ━━━ TEST 34: actionIcon ━━━
-func TestActionIcon(t *testing.T) {
+// ?�━??TEST 34: actionIcon ?�━??func TestActionIcon(t *testing.T) {
 	cases := map[string]string{
-		"grow":   "🌱",
-		"fire":   "🔥",
-		"signal": "📡",
-		"prune":  "💤",
-		"decay":  "💤",
-		"merge":  "🔗",
-		"other":  "❓",
+		"grow":   "?��",
+		"fire":   "?��",
+		"signal": "?��",
+		"prune":  "?��",
+		"decay":  "?��",
+		"merge":  "?��",
+		"other":  "??,
 	}
 	for input, expected := range cases {
 		if got := actionIcon(input); got != expected {
@@ -51,16 +47,14 @@ func TestActionIcon(t *testing.T) {
 	t.Logf("OK: actionIcon maps all types correctly")
 }
 
-// ━━━ TEST 35: collectEpisodes ━━━
-func TestCollectEpisodes_Empty(t *testing.T) {
+// ?�━??TEST 35: collectEpisodes ?�━??func TestCollectEpisodes_Empty(t *testing.T) {
 	dir := setupTestBrain(t)
 	episodes := collectEpisodes(dir)
-	// Test brain may or may not have episodes — just verify no crash
+	// Test brain may or may not have episodes ??just verify no crash
 	t.Logf("OK: collectEpisodes returned %d episodes (no crash)", len(episodes))
 }
 
-// ━━━ TEST 36: collectEpisodes with data ━━━
-func TestCollectEpisodes_WithData(t *testing.T) {
+// ?�━??TEST 36: collectEpisodes with data ?�━??func TestCollectEpisodes_WithData(t *testing.T) {
 	dir := setupTestBrain(t)
 	logDir := filepath.Join(dir, "hippocampus", "session_log")
 	os.MkdirAll(logDir, 0755)
@@ -82,8 +76,7 @@ func TestCollectEpisodes_WithData(t *testing.T) {
 	t.Logf("OK: collectEpisodes returns sorted episodes")
 }
 
-// ━━━ TEST 37: buildBrainSummary ━━━
-func TestBuildBrainSummary(t *testing.T) {
+// ?�━??TEST 37: buildBrainSummary ?�━??func TestBuildBrainSummary(t *testing.T) {
 	dir := setupTestBrain(t)
 	brain := scanBrain(dir)
 	result := runSubsumption(brain)
@@ -101,8 +94,7 @@ func TestBuildBrainSummary(t *testing.T) {
 	t.Logf("OK: buildBrainSummary produces valid summary (%d bytes)", len(summary))
 }
 
-// ━━━ TEST 38: buildEvolvePrompt ━━━
-func TestBuildEvolvePrompt(t *testing.T) {
+// ?�━??TEST 38: buildEvolvePrompt ?�━??func TestBuildEvolvePrompt(t *testing.T) {
 	dir := setupTestBrain(t)
 	brain := scanBrain(dir)
 	result := runSubsumption(brain)
@@ -130,3 +122,4 @@ func TestBuildEvolvePrompt(t *testing.T) {
 	}
 	t.Logf("OK: buildEvolvePrompt produces complete prompt (%d bytes)", len(prompt))
 }
+

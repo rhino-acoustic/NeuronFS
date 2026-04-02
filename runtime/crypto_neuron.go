@@ -11,8 +11,8 @@ import (
 // ============================================================================
 // Module: Neuron Encryption (Zero Trust Layer 1)
 // Cipher: XChaCha20-Poly1305 (AEAD)
-// DEK:    256-bit (32 bytes) — Data Encryption Key
-// Nonce:  192-bit (24 bytes) — Extended nonce, safe for random generation
+// DEK:    256-bit (32 bytes) ??Data Encryption Key
+// Nonce:  192-bit (24 bytes) ??Extended nonce, safe for random generation
 // ============================================================================
 
 var (
@@ -79,3 +79,4 @@ func GenerateDEK() ([]byte, error) {
 	}
 	return dek, nil
 }
+

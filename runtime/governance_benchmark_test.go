@@ -1,14 +1,12 @@
 package main
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// NeuronFS Governance Benchmark v1
+// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??// NeuronFS Governance Benchmark v1
 // Axis 1: SCC (Subsumption Cascade Correctness)
 // Axis 2: MLA (Memory Lifecycle Accuracy)
 //
 // Reference: FORGE competitive_differentiation.md
-// Target: SCC ≥95%, MLA ≥90%
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+// Target: SCC ??5%, MLA ??0%
+// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
 import (
 	"fmt"
 	"os"
@@ -18,7 +16,7 @@ import (
 	"time"
 )
 
-// ─── SCC: Subsumption Cascade Correctness (20 scenarios) ───
+// ?�?�?� SCC: Subsumption Cascade Correctness (20 scenarios) ?�?�?�
 //
 // Axiom: Lower P (priority) always suppresses higher P when bomb is present.
 // brainstem(P0) > limbic(P1) > hippocampus(P2) > sensors(P3) > cortex(P4) > ego(P5) > prefrontal(P6)
@@ -42,55 +40,55 @@ var sccEasyScenarios = []cascadeScenario{
 		expectActive:  []string{},
 	},
 	{
-		name:          "S-02: P1 bomb — brainstem survives",
+		name:          "S-02: P1 bomb ??brainstem survives",
 		bombRegion:    "limbic",
 		expectBlocked: []string{"limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"},
 		expectActive:  []string{"brainstem"},
 	},
 	{
-		name:          "S-03: P2 bomb — P0+P1 survive",
+		name:          "S-03: P2 bomb ??P0+P1 survive",
 		bombRegion:    "hippocampus",
 		expectBlocked: []string{"hippocampus", "sensors", "cortex", "ego", "prefrontal"},
 		expectActive:  []string{"brainstem", "limbic"},
 	},
 	{
-		name:          "S-04: P3 bomb — P0+P1+P2 survive",
+		name:          "S-04: P3 bomb ??P0+P1+P2 survive",
 		bombRegion:    "sensors",
 		expectBlocked: []string{"sensors", "cortex", "ego", "prefrontal"},
 		expectActive:  []string{"brainstem", "limbic", "hippocampus"},
 	},
 	{
-		name:          "S-05: P4 bomb — P0~P3 survive",
+		name:          "S-05: P4 bomb ??P0~P3 survive",
 		bombRegion:    "cortex",
 		expectBlocked: []string{"cortex", "ego", "prefrontal"},
 		expectActive:  []string{"brainstem", "limbic", "hippocampus", "sensors"},
 	},
 	{
-		name:          "S-06: P5 bomb — P0~P4 survive",
+		name:          "S-06: P5 bomb ??P0~P4 survive",
 		bombRegion:    "ego",
 		expectBlocked: []string{"ego", "prefrontal"},
 		expectActive:  []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex"},
 	},
 	{
-		name:          "S-07: P6 bomb — P0~P5 survive",
+		name:          "S-07: P6 bomb ??P0~P5 survive",
 		bombRegion:    "prefrontal",
 		expectBlocked: []string{"prefrontal"},
 		expectActive:  []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego"},
 	},
 	{
-		name:          "S-08: No bomb — all regions active",
+		name:          "S-08: No bomb ??all regions active",
 		bombRegion:    "",
 		expectBlocked: []string{},
 		expectActive:  []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"},
 	},
 	{
-		name:          "S-09: P0 bomb — fired neurons = 0",
+		name:          "S-09: P0 bomb ??fired neurons = 0",
 		bombRegion:    "brainstem",
 		expectBlocked: []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"},
 		expectActive:  []string{},
 	},
 	{
-		name:          "S-10: No bomb — all neurons fired",
+		name:          "S-10: No bomb ??all neurons fired",
 		bombRegion:    "",
 		expectBlocked: []string{},
 		expectActive:  []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"},
@@ -100,43 +98,43 @@ var sccEasyScenarios = []cascadeScenario{
 // MED scenarios (S-11 to S-17): Cascade edge cases
 var sccMedScenarios = []cascadeScenario{
 	{
-		name:          "S-11: P0 bomb then remove — full recovery",
+		name:          "S-11: P0 bomb then remove ??full recovery",
 		bombRegion:    "brainstem", // will be removed during test
 		expectBlocked: []string{},
 		expectActive:  []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"},
 	},
 	{
-		name:          "S-12: P3 sensors bomb — cortex knowledge unreachable",
+		name:          "S-12: P3 sensors bomb ??cortex knowledge unreachable",
 		bombRegion:    "sensors",
 		expectBlocked: []string{"sensors", "cortex", "ego", "prefrontal"},
 		expectActive:  []string{"brainstem", "limbic", "hippocampus"},
 	},
 	{
-		name:          "S-13: P5 ego bomb — goals (P6) blocked but knowledge (P4) preserved",
+		name:          "S-13: P5 ego bomb ??goals (P6) blocked but knowledge (P4) preserved",
 		bombRegion:    "ego",
 		expectBlocked: []string{"ego", "prefrontal"},
 		expectActive:  []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex"},
 	},
 	{
-		name:          "S-14: P2 hippocampus bomb — memory loss, decisions still blocked",
+		name:          "S-14: P2 hippocampus bomb ??memory loss, decisions still blocked",
 		bombRegion:    "hippocampus",
 		expectBlocked: []string{"hippocampus", "sensors", "cortex", "ego", "prefrontal"},
 		expectActive:  []string{"brainstem", "limbic"},
 	},
 	{
-		name:          "S-15: P1 limbic bomb — emotional override blocks all higher",
+		name:          "S-15: P1 limbic bomb ??emotional override blocks all higher",
 		bombRegion:    "limbic",
 		expectBlocked: []string{"limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"},
 		expectActive:  []string{"brainstem"},
 	},
 	{
-		name:          "S-16: bomb source identification — brainstem",
+		name:          "S-16: bomb source identification ??brainstem",
 		bombRegion:    "brainstem",
 		expectBlocked: []string{"brainstem"},
 		expectActive:  []string{},
 	},
 	{
-		name:          "S-17: bomb source identification — cortex",
+		name:          "S-17: bomb source identification ??cortex",
 		bombRegion:    "cortex",
 		expectBlocked: []string{"cortex"},
 		expectActive:  []string{"brainstem", "limbic", "hippocampus", "sensors"},
@@ -159,7 +157,7 @@ func TestSCC_Easy(t *testing.T) {
 			brain := scanBrain(dir)
 			result := runSubsumption(brain)
 
-			if sc.name == "S-09: P0 bomb — fired neurons = 0" {
+			if sc.name == "S-09: P0 bomb ??fired neurons = 0" {
 				if result.FiredNeurons != 0 {
 					t.Errorf("expected 0 fired neurons, got %d", result.FiredNeurons)
 					return
@@ -167,7 +165,7 @@ func TestSCC_Easy(t *testing.T) {
 				passed++
 				return
 			}
-			if sc.name == "S-10: No bomb — all neurons fired" {
+			if sc.name == "S-10: No bomb ??all neurons fired" {
 				if result.FiredNeurons != result.TotalNeurons {
 					t.Errorf("expected %d fired = %d total", result.FiredNeurons, result.TotalNeurons)
 					return
@@ -207,7 +205,7 @@ func TestSCC_Med(t *testing.T) {
 		t.Run(sc.name, func(t *testing.T) {
 			dir := setupTestBrain(t)
 
-			// S-11: bomb → remove → verify recovery
+			// S-11: bomb ??remove ??verify recovery
 			if idx == 0 {
 				plantBombInRegion(t, dir, sc.bombRegion)
 				brain := scanBrain(dir)
@@ -265,7 +263,7 @@ func TestSCC_Med(t *testing.T) {
 	t.Logf("SCC MED: %d/%d passed", passed, total)
 }
 
-// ─── MLA: Memory Lifecycle Accuracy (15 scenarios) ───
+// ?�?�?� MLA: Memory Lifecycle Accuracy (15 scenarios) ?�?�?�
 
 func TestMLA_CounterOperations(t *testing.T) {
 	// M-01: fire increments counter
@@ -455,7 +453,7 @@ func TestMLA_LifecycleTransitions(t *testing.T) {
 	})
 }
 
-// ─── Governance Score Report ───
+// ?�?�?� Governance Score Report ?�?�?�
 
 func TestGovernanceBenchmarkReport(t *testing.T) {
 	// Run all scenarios and compute governance score
@@ -677,26 +675,16 @@ func TestGovernanceBenchmarkReport(t *testing.T) {
 	governanceScore := sccPct*0.4 + mlaPct*0.35 + madrPct*0.25
 
 	report := fmt.Sprintf(`
-═══════════════════════════════════════════════════
-  NeuronFS Governance Benchmark Report v1
-═══════════════════════════════════════════════════
-
+?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═??  NeuronFS Governance Benchmark Report v1
+?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═??
   Date:    %s
   Runtime: Go %s
 
-  ┌──────────────────┬───────┬────────┬──────────┐
-  │ Axis             │ Score │ Target │ Status   │
-  ├──────────────────┼───────┼────────┼──────────┤
-  │ SCC (Cascade)    │ %d/%d │ ≥95%%  │ %s │
-  │ MLA (Lifecycle)  │ %d/%d │ ≥90%%  │ %s │
-  │ MADR (Detection) │ 7/7   │ ≥80%%  │ ✅ PASS  │
-  └──────────────────┴───────┴────────┴──────────┘
-
+  ?��??�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?��??�?�?�?�?�?�?��??�?�?�?�?�?�?�?��??�?�?�?�?�?�?�?�?�??  ??Axis             ??Score ??Target ??Status   ??  ?��??�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?��??�?�?�?�?�?�?��??�?�?�?�?�?�?�?��??�?�?�?�?�?�?�?�?�??  ??SCC (Cascade)    ??%d/%d ????5%%  ??%s ??  ??MLA (Lifecycle)  ??%d/%d ????0%%  ??%s ??  ??MADR (Detection) ??7/7   ????0%%  ????PASS  ??  ?��??�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?��??�?�?�?�?�?�?��??�?�?�?�?�?�?�?��??�?�?�?�?�?�?�?�?�??
   Governance Score: %.1f%%
   (SCC×0.4 + MLA×0.35 + MADR×0.25)
 
-═══════════════════════════════════════════════════
-`,
+?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═??`,
 		time.Now().Format("2006-01-02 15:04:05"),
 		"1.24",
 		sccPassed, sccTotal,
@@ -717,7 +705,7 @@ func TestGovernanceBenchmarkReport(t *testing.T) {
 	}
 }
 
-// ─── Helpers ───
+// ?�?�?� Helpers ?�?�?�
 
 func plantBombInRegion(t *testing.T, dir string, region string) {
 	t.Helper()
@@ -773,7 +761,8 @@ func sliceContains(slice []string, item string) bool {
 
 func statusEmoji(pct, target float64) string {
 	if pct >= target {
-		return "✅ PASS"
+		return "??PASS"
 	}
-	return "❌ FAIL"
+	return "??FAIL"
 }
+

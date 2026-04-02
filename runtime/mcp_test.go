@@ -4,10 +4,8 @@ import (
 	"testing"
 )
 
-// ━━━ MCP Server Unit Tests ━━━
-
-// ━━━ TEST 28: mcpError returns error result ━━━
-func TestMCPError_Format(t *testing.T) {
+// ?�━??MCP Server Unit Tests ?�━??
+// ?�━??TEST 28: mcpError returns error result ?�━??func TestMCPError_Format(t *testing.T) {
 	result := mcpError("test error message")
 
 	if !result.IsError {
@@ -20,8 +18,7 @@ func TestMCPError_Format(t *testing.T) {
 	t.Logf("OK: mcpError returns correct error format")
 }
 
-// ━━━ TEST 29: boolPtr helper ━━━
-func TestBoolPtr(t *testing.T) {
+// ?�━??TEST 29: boolPtr helper ?�━??func TestBoolPtr(t *testing.T) {
 	truePtr := boolPtr(true)
 	falsePtr := boolPtr(false)
 
@@ -35,11 +32,10 @@ func TestBoolPtr(t *testing.T) {
 	t.Logf("OK: boolPtr returns correct pointer values")
 }
 
-// ━━━ TEST 30: registerMCPTools — no panic ━━━
-func TestRegisterMCPTools_NoPanic(t *testing.T) {
+// ?�━??TEST 30: registerMCPTools ??no panic ?�━??func TestRegisterMCPTools_NoPanic(t *testing.T) {
 	dir := setupTestBrain(t)
 
-	// MCP SDK requires server instance — test that registration doesn't panic
+	// MCP SDK requires server instance ??test that registration doesn't panic
 	// We can't easily test full server without stdio, but we can verify
 	// the dependency functions work with a test brain
 
@@ -73,8 +69,7 @@ func TestRegisterMCPTools_NoPanic(t *testing.T) {
 	t.Logf("OK: all MCP tool handler dependencies work correctly")
 }
 
-// ━━━ TEST 31: logWriter returns stderr ━━━
-func TestLogWriter_ReturnsStderr(t *testing.T) {
+// ?�━??TEST 31: logWriter returns stderr ?�━??func TestLogWriter_ReturnsStderr(t *testing.T) {
 	w := logWriter()
 	if w == nil {
 		t.Fatal("logWriter returned nil")
@@ -85,3 +80,4 @@ func TestLogWriter_ReturnsStderr(t *testing.T) {
 	}
 	t.Logf("OK: logWriter returns stderr (fd=%d)", w.Fd())
 }
+

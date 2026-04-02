@@ -9,7 +9,7 @@ import (
 )
 
 // ============================================================================
-// Coverage Boost Phase 3 — Push to 50%+
+// Coverage Boost Phase 3 ??Push to 50%+
 // Targeting: svLog, svTTLDecay, dumpForensicLog, touchActivity, getLastActivity,
 //            consumeDirty, autoReinject, svCrashAlert, rollbackAll, getNonFlagArg
 // ============================================================================
@@ -78,7 +78,7 @@ func TestSvTTLDecay_RecentNeuron(t *testing.T) {
 	dir := t.TempDir()
 	initBrain(dir)
 
-	// Create a neuron with recent last_activated — should NOT decay
+	// Create a neuron with recent last_activated ??should NOT decay
 	neuronDir := filepath.Join(dir, "cortex", "recent_neuron")
 	os.MkdirAll(neuronDir, 0755)
 
@@ -98,7 +98,7 @@ func TestSvTTLDecay_ZeroWeight(t *testing.T) {
 	dir := t.TempDir()
 	initBrain(dir)
 
-	// neuron with weight=1, old date — should be archived (weight → 0)
+	// neuron with weight=1, old date ??should be archived (weight ??0)
 	neuronDir := filepath.Join(dir, "cortex", "dying_neuron")
 	os.MkdirAll(neuronDir, 0755)
 
@@ -115,7 +115,7 @@ func TestSvTTLDecay_ZeroWeight(t *testing.T) {
 	// Check if archive dir was created
 	archiveDir := filepath.Join(dir, ".archive")
 	if _, err := os.Stat(archiveDir); err == nil {
-		t.Log("OK: dying neuron archived (weight→0)")
+		t.Log("OK: dying neuron archived (weight??)")
 	} else {
 		t.Log("OK: svTTLDecay processed dying neuron (archive may not match test structure)")
 	}
@@ -168,7 +168,7 @@ func TestDumpForensicLog(t *testing.T) {
 }
 
 func TestSoftClear(t *testing.T) {
-	// softClear writes ANSI to os.Stderr — just verify no panic
+	// softClear writes ANSI to os.Stderr ??just verify no panic
 	softClear()
 	t.Log("OK: softClear executed without panic")
 }
@@ -188,7 +188,7 @@ func TestTouchGetLastActivity(t *testing.T) {
 	if time.Since(last) > 5*time.Second {
 		t.Fatal("last activity should be very recent")
 	}
-	t.Logf("OK: touchActivity→getLastActivity round-trip verified (last=%s)", last.Format(time.RFC3339))
+	t.Logf("OK: touchActivity?�getLastActivity round-trip verified (last=%s)", last.Format(time.RFC3339))
 }
 
 // ---------------------------------------------------------------------------
@@ -318,3 +318,4 @@ func TestEmitBootstrap_Full(t *testing.T) {
 	}
 	t.Logf("OK: emitBootstrap produced %d byte output with all regions", len(bootstrap))
 }
+

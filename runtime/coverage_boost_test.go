@@ -7,24 +7,23 @@ import (
 	"testing"
 )
 
-// ━━━ activationBar ━━━
-func TestActivationBar_AllTiers(t *testing.T) {
+// ?�━??activationBar ?�━??func TestActivationBar_AllTiers(t *testing.T) {
 	tests := []struct {
 		input    int
 		expected string
 	}{
-		{100, "█████"},
-		{90, "█████"},
-		{50, "████░"},
-		{75, "████░"},
-		{20, "███░░"},
-		{35, "███░░"},
-		{10, "██░░░"},
-		{15, "██░░░"},
-		{5, "█░░░░"},
-		{7, "█░░░░"},
-		{0, "░░░░░"},
-		{3, "░░░░░"},
+		{100, "?�█?�█??},
+		{90, "?�█?�█??},
+		{50, "?�█?�█??},
+		{75, "?�█?�█??},
+		{20, "?�█?�░??},
+		{35, "?�█?�░??},
+		{10, "?�█?�░??},
+		{15, "?�█?�░??},
+		{5, "?�░?�░??},
+		{7, "?�░?�░??},
+		{0, "?�░?�░??},
+		{3, "?�░?�░??},
 	}
 	for _, tt := range tests {
 		result := activationBar(tt.input)
@@ -35,8 +34,7 @@ func TestActivationBar_AllTiers(t *testing.T) {
 	t.Logf("OK: activationBar all 6 tiers verified")
 }
 
-// ━━━ countNeuronFiles ━━━
-func TestCountNeuronFiles(t *testing.T) {
+// ?�━??countNeuronFiles ?�━??func TestCountNeuronFiles(t *testing.T) {
 	dir := t.TempDir()
 
 	// Create some .neuron files at various depths
@@ -54,8 +52,7 @@ func TestCountNeuronFiles(t *testing.T) {
 	t.Logf("OK: countNeuronFiles found %d .neuron files", count)
 }
 
-// ━━━ signalNeuron — bomb signal ━━━
-func TestSignalNeuron_Bomb(t *testing.T) {
+// ?�━??signalNeuron ??bomb signal ?�━??func TestSignalNeuron_Bomb(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	err := signalNeuron(dir, "cortex/left/frontend/hooks_pattern", "bomb")
@@ -70,8 +67,7 @@ func TestSignalNeuron_Bomb(t *testing.T) {
 	t.Logf("OK: bomb signal created correctly")
 }
 
-// ━━━ signalNeuron — memory signal ━━━
-func TestSignalNeuron_Memory(t *testing.T) {
+// ?�━??signalNeuron ??memory signal ?�━??func TestSignalNeuron_Memory(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	err := signalNeuron(dir, "cortex/left/frontend/hooks_pattern", "memory")
@@ -97,8 +93,7 @@ func TestSignalNeuron_Memory(t *testing.T) {
 	t.Logf("OK: memory signals created correctly")
 }
 
-// ━━━ signalNeuron — unknown type ━━━
-func TestSignalNeuron_UnknownType(t *testing.T) {
+// ?�━??signalNeuron ??unknown type ?�━??func TestSignalNeuron_UnknownType(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	err := signalNeuron(dir, "cortex/left/frontend/hooks_pattern", "invalid_type")
@@ -111,8 +106,7 @@ func TestSignalNeuron_UnknownType(t *testing.T) {
 	t.Logf("OK: unknown signal type returns error: %v", err)
 }
 
-// ━━━ signalNeuron — nonexistent neuron ━━━
-func TestSignalNeuron_NotFound(t *testing.T) {
+// ?�━??signalNeuron ??nonexistent neuron ?�━??func TestSignalNeuron_NotFound(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	err := signalNeuron(dir, "cortex/nonexistent/path", "dopamine")
@@ -122,8 +116,7 @@ func TestSignalNeuron_NotFound(t *testing.T) {
 	t.Logf("OK: signal to nonexistent neuron returns error: %v", err)
 }
 
-// ━━━ emitRules ━━━
-func TestEmitRules_Format(t *testing.T) {
+// ?�━??emitRules ?�━??func TestEmitRules_Format(t *testing.T) {
 	dir := setupTestBrain(t)
 	brain := scanBrain(dir)
 	result := runSubsumption(brain)
@@ -142,32 +135,28 @@ func TestEmitRules_Format(t *testing.T) {
 	t.Logf("OK: emitRules produces valid bootstrap (%d bytes)", len(rules))
 }
 
-// ━━━ runStats ━━━
-func TestRunStats_NoCrash(t *testing.T) {
+// ?�━??runStats ?�━??func TestRunStats_NoCrash(t *testing.T) {
 	dir := setupTestBrain(t)
-	// runStats just prints to stdout — verify it doesn't crash
+	// runStats just prints to stdout ??verify it doesn't crash
 	runStats(dir)
 	t.Logf("OK: runStats completed without crash")
 }
 
-// ━━━ runVacuum ━━━
-func TestRunVacuum_NoCrash(t *testing.T) {
+// ?�━??runVacuum ?�━??func TestRunVacuum_NoCrash(t *testing.T) {
 	dir := setupTestBrain(t)
-	// runVacuum is a placeholder — verify it doesn't crash
+	// runVacuum is a placeholder ??verify it doesn't crash
 	runVacuum(dir)
 	t.Logf("OK: runVacuum completed without crash")
 }
 
-// ━━━ runDecay ━━━
-func TestRunDecay_NoCrash(t *testing.T) {
+// ?�━??runDecay ?�━??func TestRunDecay_NoCrash(t *testing.T) {
 	dir := setupTestBrain(t)
 	// runDecay with 0 days should process all neurons
 	runDecay(dir, 0)
 	t.Logf("OK: runDecay completed without crash")
 }
 
-// ━━━ printDiag ━━━
-func TestPrintDiag_NoCrash(t *testing.T) {
+// ?�━??printDiag ?�━??func TestPrintDiag_NoCrash(t *testing.T) {
 	dir := setupTestBrain(t)
 	brain := scanBrain(dir)
 	result := runSubsumption(brain)
@@ -176,8 +165,7 @@ func TestPrintDiag_NoCrash(t *testing.T) {
 	t.Logf("OK: printDiag completed without crash")
 }
 
-// ━━━ printDiag with bomb ━━━
-func TestPrintDiag_WithBomb(t *testing.T) {
+// ?�━??printDiag with bomb ?�━??func TestPrintDiag_WithBomb(t *testing.T) {
 	dir := setupTestBrain(t)
 	bombDir := filepath.Join(dir, "brainstem", "canon", "never_use_fallback")
 	os.WriteFile(filepath.Join(bombDir, "bomb.neuron"), []byte{}, 0644)
@@ -188,15 +176,13 @@ func TestPrintDiag_WithBomb(t *testing.T) {
 	t.Logf("OK: printDiag with bomb completed without crash")
 }
 
-// ━━━ deduplicateNeurons ━━━
-func TestDeduplicateNeurons_NoCrash(t *testing.T) {
+// ?�━??deduplicateNeurons ?�━??func TestDeduplicateNeurons_NoCrash(t *testing.T) {
 	dir := setupTestBrain(t)
 	deduplicateNeurons(dir)
 	t.Logf("OK: deduplicateNeurons completed without crash")
 }
 
-// ━━━ buildHealthJSON ━━━
-func TestBuildHealthJSON(t *testing.T) {
+// ?�━??buildHealthJSON ?�━??func TestBuildHealthJSON(t *testing.T) {
 	dir := setupTestBrain(t)
 	health := buildHealthJSON(dir)
 
@@ -211,3 +197,4 @@ func TestBuildHealthJSON(t *testing.T) {
 	}
 	t.Logf("OK: buildHealthJSON returns %d processes, %d neuron files", len(health.Processes), health.NeuronFile)
 }
+
