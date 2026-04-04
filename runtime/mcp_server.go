@@ -122,7 +122,7 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 			var content string
 			for _, region := range brain.Regions {
 				if region.Name == regionName {
-					content = emitRegionRules(region)
+					content = emitRegionRules(region, brain)
 					// Write to file for view_file access
 					rulesPath := filepath.Join(brainRoot, regionName, "_rules.md")
 					os.WriteFile(rulesPath, []byte(content), 0644)
@@ -287,7 +287,7 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 	server.AddTool(
 		&mcp.Tool{
 			Name:        "correct",
-			Description: "PD 교정을 기록한다. corrections.jsonl에 쓰는 대신 직접 뉴런을 생성/발화한다. 교정은 즉시 뉴런으로 변환된다.",
+			Description: "PD 교정을 기록한다. 뉴런 생성/발화 + corrections 로그 동시 기록. 하네스 사이클이 이 로그를 분석하여 개인화 뉴런을 자동 생성한다.",
 			InputSchema: json.RawMessage(`{
 				"type": "object",
 				"properties": {
@@ -315,26 +315,48 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 				return mcpError("path and text required"), nil
 			}
 
-			// Normalize path
+			// ── 1. 교정 로그 기록 (하네스 개인화 데이터 소스) ──
+			inboxDir := filepath.Join(brainRoot, "_inbox")
+			os.MkdirAll(inboxDir, 0755)
+
+			corrEntry := fmt.Sprintf(`{"path":"%s","text":"%s","ts":"%s"}`,
+				strings.ReplaceAll(args.Path, `"`, `\"`),
+				strings.ReplaceAll(args.Text, `"`, `\"`),
+				time.Now().Format("2006-01-02T15:04:05"))
+
+			// corrections.jsonl — 하네스 사이클 입력 (processInbox가 소비 후 비움)
+			corrPath := filepath.Join(inboxDir, "corrections.jsonl")
+			f, _ := os.OpenFile(corrPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if f != nil {
+				f.WriteString(corrEntry + "\n")
+				f.Close()
+			}
+
+			// corrections_history.jsonl — 영구 이력 (status 도구에서 조회)
+			histPath := filepath.Join(inboxDir, "corrections_history.jsonl")
+			h, _ := os.OpenFile(histPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if h != nil {
+				h.WriteString(corrEntry + "\n")
+				h.Close()
+			}
+
+			// ── 2. 뉴런 생성/발화 ──
 			neuronPath := strings.ReplaceAll(args.Path, "/", string(filepath.Separator))
 			fullPath := filepath.Join(brainRoot, neuronPath)
 
-			// Check if exists → fire, else → grow + fire
+			action := "grown"
 			if info, err := os.Stat(fullPath); err == nil && info.IsDir() {
 				fireNeuron(brainRoot, args.Path)
-				return &mcp.CallToolResult{
-					Content: []mcp.Content{&mcp.TextContent{
-						Text: fmt.Sprintf("📝 교정 반영: %s\n사유: %s\n결과: fired (카운터 +1)", args.Path, args.Text),
-					}},
-				}, nil
+				action = "fired (카운터 +1)"
+			} else {
+				if err := growNeuron(brainRoot, args.Path); err != nil {
+					return mcpError("grow failed: " + err.Error()), nil
+				}
 			}
 
-			if err := growNeuron(brainRoot, args.Path); err != nil {
-				return mcpError("grow failed: " + err.Error()), nil
-			}
 			return &mcp.CallToolResult{
 				Content: []mcp.Content{&mcp.TextContent{
-					Text: fmt.Sprintf("📝 교정 반영 (신규): %s\n사유: %s\n결과: grown", args.Path, args.Text),
+					Text: fmt.Sprintf("📝 교정 반영: %s\n사유: %s\n결과: %s\n⚡ 하네스 로그 기록됨 → 개인화 뉴런 자동 생성 대기", args.Path, args.Text, action),
 				}},
 			}, nil
 		},
