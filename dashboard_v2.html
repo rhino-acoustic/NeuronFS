@@ -279,8 +279,24 @@ function renderBrain(){
   for(let i=0;i<SUB.length-1;i++){
     links.push({source:'__r__'+SUB[i],target:'__r__'+SUB[i+1],color:'#a8a29e',opacity:0.12,width:1.5});
   }
-  // Axon cross-links
-  if(BD.edges){const seen=new Set();BD.edges.forEach(e=>{const k=[e.from,e.to].sort().join('|');if(seen.has(k))return;seen.add(k);links.push({source:'__r__'+e.from,target:'__r__'+e.to,color:RC[e.from],opacity:0.04})})}
+  // Axon cross-links: neuron-to-neuron (not region center)
+  if(BD.edges){
+    const regionNeuronIds={};
+    BD.regions.forEach(r=>{regionNeuronIds[r.name]=(r.neurons||[]).map(n=>n.path)});
+    const seen=new Set();
+    BD.edges.forEach(e=>{
+      const k=[e.from,e.to].sort().join('|');if(seen.has(k))return;seen.add(k);
+      const fromIds=regionNeuronIds[e.from]||[];
+      const toIds=regionNeuronIds[e.to]||[];
+      if(!fromIds.length||!toIds.length)return;
+      // Connect up to 2 random neuron pairs
+      for(let c=0;c<Math.min(2,fromIds.length,toIds.length);c++){
+        const fId=fromIds[Math.floor(Math.random()*fromIds.length)];
+        const tId=toIds[Math.floor(Math.random()*toIds.length)];
+        links.push({source:fId,target:tId,color:RC[e.from],opacity:0.06,width:0.4});
+      }
+    });
+  }
 
   BrainGraph=ForceGraph3D()(container)
     .graphData({nodes,links})
