@@ -9,7 +9,7 @@ import (
 )
 
 // ============================================================================
-// Coverage Boost Phase 2 ??Targeting 0% functions
+// Coverage Boost Phase 2 — Targeting 0% functions
 // Focus: supervisor, neuronize, init, emit, main utilities
 // ============================================================================
 
@@ -76,7 +76,7 @@ func TestSvUpdateWeightFrontmatter(t *testing.T) {
 	if w2 != 5 {
 		t.Fatalf("expected updated weight=5, got %d", w2)
 	}
-	t.Logf("OK: weight updated 10??")
+	t.Logf("OK: weight updated 10→5")
 }
 
 func TestSvPathExists(t *testing.T) {
@@ -101,18 +101,18 @@ func TestChildSpec_IsLocked(t *testing.T) {
 		LockPath: lockFile,
 	}
 
-	// No lock file ??not locked
+	// No lock file → not locked
 	if child.isLocked() {
 		t.Fatal("should not be locked without lock file")
 	}
 
-	// Create lock file ??locked
+	// Create lock file → locked
 	os.WriteFile(lockFile, []byte{}, 0644)
 	if !child.isLocked() {
 		t.Fatal("should be locked with lock file present")
 	}
 
-	// Non-lockable ??never locked
+	// Non-lockable → never locked
 	child2 := &ChildSpec{Name: "non-lockable", Lockable: false}
 	if child2.isLocked() {
 		t.Fatal("non-lockable child should never be locked")
@@ -143,14 +143,14 @@ func TestRuleBasedPolarize(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"use_fast_routing", "禁fast_routing_?�존"},
-		{"always_check", "禁무조건_check_?�존"},
-		{"prefer_dark_mode", "禁dark_mode_?�존"},
-		{"enable_caching", "禁caching_?�존"},
-		{"ensure_validation", "禁강??validation_?�존"},
-		{"must_log_errors", "禁필??log_errors_?�존"},
-		{"keep_history", "禁유지강제_history_?�존"},
-		{"apply_theme", "禁적?�강??theme_?�존"},
+		{"use_fast_routing", "禁fast_routing_의존"},
+		{"always_check", "禁무조건_check_의존"},
+		{"prefer_dark_mode", "禁dark_mode_의존"},
+		{"enable_caching", "禁caching_의존"},
+		{"ensure_validation", "禁강제_validation_의존"},
+		{"must_log_errors", "禁필수_log_errors_의존"},
+		{"keep_history", "禁유지강제_history_의존"},
+		{"apply_theme", "禁적용강제_theme_의존"},
 		{"some_other_name", "禁some_other_name"},
 	}
 
@@ -170,7 +170,7 @@ func TestSanitizeNeuronName(t *testing.T) {
 	}{
 		{"simple_name", "simple_name"},
 		{"name with spaces", "name_with_spaces"},
-		{"禁시뮬레?�션", "禁시뮬레?�션"},
+		{"禁시뮬레이션", "禁시뮬레이션"},
 		{"name!@#$%^&*()", "name"},
 		{"  trimmed  ", "trimmed"},
 		{"a", "a"},
@@ -192,18 +192,35 @@ func TestSanitizeNeuronName_MaxLength(t *testing.T) {
 		longName += "a"
 	}
 	result := sanitizeNeuronName(longName)
-	if len(result) > 40 {
-		t.Fatalf("expected max 40 chars, got %d", len(result))
+	if len([]rune(result)) > 40 {
+		t.Fatalf("expected max 40 runes, got %d", len([]rune(result)))
 	}
-	t.Logf("OK: sanitizeNeuronName truncates to 40 chars (%d??d)", len(longName), len(result))
+	t.Logf("OK: sanitizeNeuronName truncates to 40 runes (%d→%d)", len(longName), len([]rune(result)))
 }
 
 func TestSanitizeNeuronName_Korean(t *testing.T) {
-	result := sanitizeNeuronName("禁인?�인?��????�용")
+	result := sanitizeNeuronName("禁인라인스타일_사용")
 	if result == "" {
 		t.Fatal("Korean+CJK name should not be empty")
 	}
 	t.Logf("OK: Korean neuron name preserved: %s", result)
+}
+
+func TestSanitizeNeuronName_KoreanTruncation(t *testing.T) {
+	// 50 Korean runes — must truncate to 40 runes without mid-char corruption
+	input := "가나다라마바사아자차카타파하갈날달랄말발살알잘찰칼탈팔할감남담람맘밤삼암잠참캄탐팜함관난단란만"
+	result := sanitizeNeuronName(input)
+	runes := []rune(result)
+	if len(runes) > 40 {
+		t.Fatalf("expected max 40 runes, got %d", len(runes))
+	}
+	// Verify no invalid UTF-8 sequences
+	for i, r := range runes {
+		if r == 0xFFFD {
+			t.Fatalf("invalid UTF-8 replacement char at rune index %d", i)
+		}
+	}
+	t.Logf("OK: Korean rune-safe truncation: %d runes → %d runes", len([]rune(input)), len(runes))
 }
 
 // ---------------------------------------------------------------------------
@@ -300,13 +317,13 @@ func TestComputeMountHash(t *testing.T) {
 		t.Fatal("expected non-empty hash")
 	}
 
-	// Same content ??same hash
+	// Same content → same hash
 	hash2 := computeMountHash(dir)
 	if hash != hash2 {
 		t.Fatal("same content should produce same hash")
 	}
 
-	// Different content ??different hash
+	// Different content → different hash
 	n2 := filepath.Join(dir, "cortex", "test2")
 	os.MkdirAll(n2, 0755)
 	os.WriteFile(filepath.Join(n2, "1.neuron"), []byte{}, 0644)
@@ -683,4 +700,3 @@ func TestAwakening_ColorFunctions(t *testing.T) {
 	}
 	t.Log("OK: all awakening color functions produce output for all modes")
 }
-

@@ -1,0 +1,5 @@
+$globalDb = "$env:APPDATA\Antigravity\User\globalStorage\state.vscdb"
+$idx = sqlite3 $globalDb "SELECT length(value) FROM ItemTable WHERE key = 'chat.ChatSessionStore.index';"
+$traj = sqlite3 $globalDb "SELECT length(value) FROM ItemTable WHERE key = 'antigravityUnifiedStateSync.trajectorySummaries';"
+Write-Host "ChatSessionStore.index: $idx chars"
+Write-Host "trajectorySummaries: $traj chars"

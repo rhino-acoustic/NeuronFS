@@ -1,0 +1,22 @@
+﻿=== Global state.vscdb ===
+Path: C:\Users\BASEMENT_ADMIN\AppData\Roaming\Antigravity\User\globalStorage\state.vscdb
+Size: 464 KB
+Modified: 04/04/2026 12:05:52
+
+=== Workspace state.vscdb ===
+Path: C:\Users\BASEMENT_ADMIN\AppData\Roaming\Antigravity\User\workspaceStorage\a121af1d17ada311c1352eea3a6eeead\state.vscdb
+Size: 160 KB
+Modified: 04/04/2026 12:05:50
+
+=== Tables in globalStorage ===
+ItemTable
+
+=== Keys containing 'chat' or 'conversation' or 'history' ===
+chat.ChatSessionStore.index
+chat.participantNameRegistry
+chat.workspaceTransfer
+history.recentlyOpenedPathsList
+terminal.history.entries.commands
+terminal.history.entries.dirs
+terminal.history.timestamp.commands
+terminal.history.timestamp.dirs

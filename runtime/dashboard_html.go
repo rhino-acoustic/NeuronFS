@@ -1,13 +1,13 @@
 package main
 
-// Dashboard HTML for NeuronFS v5.0 ??3D Brain Topology + Card UI
+// Dashboard HTML for NeuronFS v5.0 — 3D Brain Topology + Card UI
 
 const dashboardHTML = `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuronFS v5 ???��? ?�진</title>
+<title>NeuronFS v5 — 인지 엔진</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -18,7 +18,7 @@ const dashboardHTML = `<!DOCTYPE html>
     min-height: 100vh; overflow: hidden;
   }
 
-  /* ?�?� Layout ?�?� */
+  /* ── Layout ── */
   .app { display: flex; height: 100vh; }
   #canvas3d { flex: 1; position: relative; }
   .sidebar {
@@ -27,7 +27,7 @@ const dashboardHTML = `<!DOCTYPE html>
     backdrop-filter: blur(20px); z-index: 10;
   }
 
-  /* ?�?� Header ?�?� */
+  /* ── Header ── */
   .header {
     padding: 20px 24px; border-bottom: 1px solid #1a1a2e;
     display: flex; align-items: center; gap: 12px;
@@ -43,7 +43,7 @@ const dashboardHTML = `<!DOCTYPE html>
     color: #fff; margin-left: auto; font-size: 12px; padding: 4px 14px;
   }
 
-  /* ?�?� Stats Bar ?�?� */
+  /* ── Stats Bar ── */
   .stats {
     display: grid; grid-template-columns: repeat(3, 1fr);
     padding: 16px 24px; gap: 12px; border-bottom: 1px solid #1a1a2e;
@@ -56,7 +56,7 @@ const dashboardHTML = `<!DOCTYPE html>
   }
   .stat-label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; }
 
-  /* ?�?� Detail Panel (appears on sphere click) ?�?� */
+  /* ── Detail Panel (appears on sphere click) ── */
   .detail-panel {
     padding: 20px 24px; border-bottom: 1px solid #1a1a2e;
     display: none; animation: slideIn 0.2s ease;
@@ -73,7 +73,7 @@ const dashboardHTML = `<!DOCTYPE html>
   }
   .detail-panel .close-btn:hover { color: #fff; }
 
-  /* ?�?� Connections (axons) ?�?� */
+  /* ── Connections (axons) ── */
   .connections { margin: 8px 0 12px; }
   .conn-line {
     display: flex; align-items: center; gap: 8px;
@@ -83,7 +83,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .conn-target { color: #e0e0e0; cursor: pointer; }
   .conn-target:hover { color: #3b82f6; text-decoration: underline; }
 
-  /* ?�?� Neuron list in detail ?�?� */
+  /* ── Neuron list in detail ── */
   .neuron-list { max-height: 300px; overflow-y: auto; }
   .neuron-item {
     display: flex; align-items: center; gap: 8px;
@@ -101,7 +101,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .n-str-abs { background: #7f1d1d; color: #fca5a5; }
   .n-str-must { background: #1e3a5f; color: #93c5fd; }
 
-  /* ?�?� Search ?�?� */
+  /* ── Search ── */
   .search-bar {
     padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
   }
@@ -113,7 +113,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .search-bar input:focus { border-color: #3b82f6; }
   .search-bar input::placeholder { color: #555; }
 
-  /* ?�?� Add neuron form ?�?� */
+  /* ── Add neuron form ── */
   .add-section {
     padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
     display: none;
@@ -131,7 +131,7 @@ const dashboardHTML = `<!DOCTYPE html>
   }
   .add-section button:hover { background: #047857; }
 
-  /* ?�?� Sandbox ?�?� */
+  /* ── Sandbox ── */
   .sandbox-section {
     padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
     display: none;
@@ -149,7 +149,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .sandbox-paths div { padding: 2px 0; }
   .add-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; }
 
-  /* ?�?� Region list ?�?� */
+  /* ── Region list ── */
   .region-list { padding: 8px 24px; }
   .region-chip {
     display: inline-flex; align-items: center; gap: 6px;
@@ -164,7 +164,7 @@ const dashboardHTML = `<!DOCTYPE html>
     font-size: 9px; color: #888;
   }
 
-  /* ?�?� Controls ?�?� */
+  /* ── Controls ── */
   .controls {
     padding: 16px 24px; border-top: 1px solid #1a1a2e;
     display: flex; gap: 8px; position: sticky; bottom: 0;
@@ -183,7 +183,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .btn-add { background: #059669; color: #fff; }
   .btn-add:hover { background: #047857; }
 
-  /* ?�?� Toast notification ?�?� */
+  /* ── Toast notification ── */
   .toast {
     position: fixed; top: 16px; left: 16px; max-width: 300px;
     background: rgba(12,12,24,0.9); backdrop-filter: blur(16px);
@@ -198,7 +198,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .toast-close:hover { color: #fff; }
   @keyframes slideInFromLeft { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-  /* ?�?� System Health Panel ?�?� */
+  /* ── System Health Panel ── */
   .system-health {
     padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
   }
@@ -216,7 +216,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .health-name { color: #e0e0e0; font-weight: 600; width: 100px; }
   .health-role { color: #666; font-size: 10px; flex: 1; }
 
-  /* ?�?� 3D overlay info ?�?� */
+  /* ── 3D overlay info ── */
   .hover-tooltip {
     position: absolute; pointer-events: none;
     background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -227,7 +227,7 @@ const dashboardHTML = `<!DOCTYPE html>
   .hover-tooltip .tt-region { color: #b6cfdd; font-weight: 700; display: block; margin-bottom: 4px; letter-spacing: 0.5px; }
   .hover-tooltip .tt-stats { color: #eadccf; font-size: 11px; }
 
-  /* ?�?� Evolution Timeline ?�?� */
+  /* ── Evolution Timeline ── */
   .evo-section {
     padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
     display: none; max-height: 400px; overflow-y: auto;
@@ -267,6 +267,21 @@ const dashboardHTML = `<!DOCTYPE html>
     font-size: 8px; padding: 1px 5px; border-radius: 3px;
     background: #1a1a2e; color: #888;
   }
+
+  /* ── Topology / Arch ── */
+  .arch-section {
+    padding: 12px 24px; border-bottom: 1px solid #1a1a2e;
+    display: none; background: rgba(10,10,15,0.95); max-height: 450px; overflow-y: auto;
+  }
+  .arch-section.visible { display: block; animation: fadeInEvo 0.3s ease; }
+  .arch-flow { display: flex; flex-direction: column; gap: 8px; font-size: 10px; margin-top: 10px; }
+  .arch-node { background: #111; border: 1px solid #222; border-radius: 6px; padding: 10px 14px; position: relative; }
+  .arch-node.highlight { border-color: #f59e0b; box-shadow: 0 0 12px rgba(245,158,11,0.15); background: #1a1505; }
+  .arch-node.core { border-color: #3b82f6; background: #0f172a; }
+  .arch-title { color: #fff; font-weight: 700; font-size: 11px; margin-bottom: 4px; display:flex; align-items:center; gap:6px; }
+  .arch-desc { color: #888; line-height: 1.4; }
+  .arch-desc code { font-family: monospace; color: #34d399; background: #111; padding: 1px 4px; border-radius: 3px; font-size: 9px; }
+  .arch-arrow { text-align: center; color: #3b82f6; font-size: 14px; margin: -2px 0; font-weight: 900;}
 </style>
 </head>
 <body>
@@ -279,24 +294,24 @@ const dashboardHTML = `<!DOCTYPE html>
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="header">
-      <h1>?�� NeuronFS v5</h1>
+      <h1>🧠 NeuronFS v5</h1>
       <span class="badge badge-ok" id="status">NOMINAL</span>
       <span class="badge badge-score" id="score">0</span>
     </div>
 
     <div class="stats">
-      <div class="stat"><div class="stat-value" id="s-neurons">0</div><div class="stat-label">?�런</div></div>
-      <div class="stat"><div class="stat-value" id="s-activation">0</div><div class="stat-label">?�성??/div></div>
-      <div class="stat"><div class="stat-value" id="s-regions">0</div><div class="stat-label">?�역</div></div>
+      <div class="stat"><div class="stat-value" id="s-neurons">0</div><div class="stat-label">뉴런</div></div>
+      <div class="stat"><div class="stat-value" id="s-activation">0</div><div class="stat-label">활성도</div></div>
+      <div class="stat"><div class="stat-value" id="s-regions">0</div><div class="stat-label">영역</div></div>
     </div>
 
     <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="?�런 검??(Ctrl+K)" oninput="filterNeurons()">
+      <input type="text" id="searchInput" placeholder="뉴런 검색 (Ctrl+K)" oninput="filterNeurons()">
     </div>
 
     <div class="recent-neurons-section" id="recentSection" style="padding: 16px 24px; border-bottom: 1px solid #1a1a2e;">
       <div class="add-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <span>?�� 최근 ?�라???�런 (Live)</span>
+        <span>🌱 최근 자라난 뉴런 (Live)</span>
       </div>
       <div id="recentGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;"></div>
     </div>
@@ -305,7 +320,7 @@ const dashboardHTML = `<!DOCTYPE html>
       <h2>
         <span id="detail-icon"></span>
         <span id="detail-name"></span>
-        <button class="close-btn" onclick="closeDetail()">??/button>
+        <button class="close-btn" onclick="closeDetail()">✕</button>
       </h2>
       <div class="connections" id="detail-axons"></div>
       <div class="neuron-list" id="detail-neurons"></div>
@@ -314,27 +329,27 @@ const dashboardHTML = `<!DOCTYPE html>
     <div class="region-list" id="regionChips"></div>
 
     <div class="add-section" id="addSection">
-      <div class="add-label">???�런 ?�성</div>
+      <div class="add-label">새 뉴런 생성</div>
       <div class="add-row">
         <select id="addRegion"></select>
-        <input type="text" id="addPath" placeholder="경로 (?? methodology/tdd)">
+        <input type="text" id="addPath" placeholder="경로 (예: methodology/tdd)">
         <button onclick="addNeuron()">+</button>
       </div>
     </div>
 
     <div class="sandbox-section" id="sandboxSection">
-      <div class="add-label">?�� Sandbox ??규칙 ?�험</div>
-      <textarea id="sandboxText" placeholder="??줄에 ?�나??규칙 ?�력&#10;?? 禁인?�인?��???#10;    ??��_?�?�체??></textarea>
+      <div class="add-label">🧪 Sandbox — 규칙 실험</div>
+      <textarea id="sandboxText" placeholder="한 줄에 하나씩 규칙 입력&#10;예: 禁인라인스타일&#10;    항상_타입체크"></textarea>
       <div class="sandbox-row">
-        <button class="btn btn-primary" onclick="applySandbox()" style="font-size:10px">???�용</button>
-        <button class="btn btn-ghost" onclick="clearSandbox()" style="font-size:10px">?�� 초기??/button>
+        <button class="btn btn-primary" onclick="applySandbox()" style="font-size:10px">✅ 적용</button>
+        <button class="btn btn-ghost" onclick="clearSandbox()" style="font-size:10px">🗑 초기화</button>
       </div>
       <div class="sandbox-paths" id="sandboxPaths"></div>
     </div>
 
     <div class="evo-section" id="evoSection">
       <div class="add-label" style="margin-bottom:12px;display:flex;align-items:center;gap:6px;justify-content:space-between">
-        <span>?�� EVOLUTION TIMELINE</span>
+        <span>🧬 EVOLUTION TIMELINE</span>
         <span id="evo-count" style="font-size:9px;padding:2px 8px;border-radius:10px;background:#1e3a5f;color:#93c5fd;font-weight:700">0</span>
       </div>
       <div class="evo-timeline" id="evoTimeline"></div>
@@ -342,28 +357,65 @@ const dashboardHTML = `<!DOCTYPE html>
 
     <div class="system-health" id="healthPanel">
       <div class="add-label" style="margin-bottom:8px;display:flex;align-items:center;gap:6px">
-        ?�️ SYSTEM STATUS
+        ⚙️ SYSTEM STATUS
         <span id="health-badge" style="font-size:9px;padding:2px 8px;border-radius:10px;background:#064e3b;color:#34d399;font-weight:700">ALL OK</span>
       </div>
       <div id="healthList"></div>
       <div style="margin-top:8px;font-size:9px;color:#444" id="healthMeta"></div>
     </div>
 
+    <div class="arch-section" id="archSection">
+      <div class="add-label" style="margin-bottom:12px;display:flex;align-items:center;gap:6px">
+        🗺️ SYSTEM TOPOLOGY & LIFECYCLE
+      </div>
+      <div class="arch-flow">
+        <div class="arch-node">
+          <div class="arch-title">🚀 1. Boot & Agent Inject</div>
+          <div class="arch-desc"><code>start_v4_swarm.bat</code> → <code>kickstart.mjs</code> (CDP 9000)<br>IDE 구동 및 워크스페이스마다 역할(Anchor/Muse/Forge) 페르소나 강제 주입</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-node highlight">
+          <div class="arch-title">🎣 2. Network Snipe & Chat Intercept</div>
+          <div class="arch-desc"><code>hijack-launcher.mjs</code><br>HTTP2(h2) 프로토타입 패치 + CDP 포트 동적 탐지로 사용자와 AI의 전체 채팅/패킷 100% 탈취</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-node highlight">
+          <div class="arch-title">🧠 3. Context Consolidation (10-Chunk)</div>
+          <div class="arch-desc"><code>groqExtractNeurons</code> (LLaMA-3.3-70B)<br>대화 버퍼 10개 누적 시 백그라운드 모델이 단기 기억을 분석해 '재사용 가능 패턴' 자율 추론</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-node core">
+          <div class="arch-title">🌱 4. Physical Neuron Grow</div>
+          <div class="arch-desc"><code>brain_v4/*</code> 물리 폴더 자동 파생 및 <code>session_log</code> 기록<br>자율 추론된 규칙들이 OS 폴더 스키마로 영구 육체화 (Subsumption)</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-node">
+          <div class="arch-title">🔄 5. Serialization & Cleanup</div>
+          <div class="arch-desc"><code>neuronfs --watch</code> → <code>emit.go</code><br>0.1초 이벤트 워치. 폴더 변경 즉시 P0~P6 룰로 <code>GEMINI.md</code> 재압축 + <code>bomb.neuron</code> 발견 구역 원천 마스킹</div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-node core">
+          <div class="arch-title">⚡ 6. Zero-Latency Context Override</div>
+          <div class="arch-desc"><code>v4-hook.cjs</code><br>에이전트가 다음 채팅(API)을 쏠 때, 가장 최신 상태로 조립된 GEMINI.md와 성장 프로토콜이 실시간 병합되며 1번으로 무한 루프</div>
+        </div>
+      </div>
+    </div>
+
     <div class="controls">
-      <button class="btn btn-primary" onclick="doInject()">??INJECT</button>
-      <button class="btn btn-add" onclick="toggleAdd()">+ ?�런</button>
-      <button class="btn btn-ghost" onclick="doDedup()">?? DEDUP</button>
-      <button class="btn btn-ghost" onclick="toggleEvo()" style="font-size:10px">?��</button>
-      <button class="btn btn-ghost" onclick="toggleSandbox()" style="font-size:10px">?��</button>
-      <select id="bombRegion" style="background:#1a1a2e;color:#fca5a5;border:1px solid #7f1d1d;border-radius:6px;padding:6px 8px;font-size:10px;cursor:pointer;"><option value="">?? ?�역 ?�택</option></select>
-      <button class="btn btn-danger" onclick="doBomb()">?? BOMB</button>
+      <button class="btn btn-primary" onclick="doInject()">⚡ INJECT</button>
+      <button class="btn btn-add" onclick="toggleAdd()">+ 뉴런</button>
+      <button class="btn btn-ghost" onclick="toggleEvo()" style="font-size:10px">🧬 EVO</button>
+      <button class="btn btn-ghost" onclick="toggleArch()" style="font-size:10px">🗺️ TOP</button>
+      <button class="btn btn-ghost" onclick="toggleSandbox()" style="font-size:10px">🧪</button>
+      <select id="bombRegion" style="background:#1a1a2e;color:#fca5a5;border:1px solid #7f1d1d;border-radius:6px;padding:6px 8px;font-size:10px;cursor:pointer;"><option value="">💀 영역 선택</option></select>
+      <button class="btn btn-danger" onclick="doBomb()">💀 BOMB</button>
     </div>
   </div>
-  <div class="toast" id="toast"><span id="toast-msg"></span><button class="toast-close" onclick="closeToast()">??/button></div>
+  <div class="toast" id="toast"><span id="toast-msg"></span><button class="toast-close" onclick="closeToast()">✕</button></div>
 </div>
 
 <script>
-// ?�?� State ?�?�
+// ── State ──
 let brainData = null;
 let regionSpheres = {};
 let selectedRegion = null;
@@ -371,7 +423,7 @@ let scene, camera, renderer, raycaster, mouse;
 let particleSystem;
 let axonLines = [];
 
-// ?�?� Colors per region ?�?�
+// ── Colors per region ──
 const regionColors = {
   brainstem: 0xff4444,
   limbic: 0xff8844,
@@ -382,11 +434,11 @@ const regionColors = {
   prefrontal: 0xff44aa
 };
 const regionEmoji = {
-  brainstem: '??', limbic: '?��', hippocampus: '?��',
-  sensors: '?���?, cortex: '?��', ego: '?��', prefrontal: '?��'
+  brainstem: '🫀', limbic: '💓', hippocampus: '📝',
+  sensors: '👁️', cortex: '🧠', ego: '🎭', prefrontal: '🎯'
 };
 
-// ?�?� Three.js Setup ?�?�
+// ── Three.js Setup ──
 function initThree() {
   const container = document.getElementById('canvas3d');
   scene = new THREE.Scene();
@@ -434,7 +486,7 @@ function initThree() {
   });
 }
 
-// ?�?� Create Brain Spheres ?�?�
+// ── Create Brain Spheres ──
 function createBrain(data) {
   // Clear old
   Object.values(regionSpheres).forEach(s => scene.remove(s.mesh));
@@ -538,7 +590,7 @@ function createBrain(data) {
   });
 }
 
-// ?�?� Mouse interaction ?�?�
+// ── Mouse interaction ──
 function onMouseMove(e) {
   const rect = renderer.domElement.getBoundingClientRect();
   mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -564,8 +616,8 @@ function onMouseMove(e) {
 
     if (hitObj.userData && hitObj.userData.isNeuron) {
       let dispPath = hitObj.userData.path.replace(/\\/g, "/");
-      tooltip.innerHTML = '<span class="tt-region">?�� ' + hitObj.userData.region + '/' + dispPath.split('/').pop() + '</span>' +
-        '<span class="tt-stats">?�성??Synapse): ' + hitObj.userData.counter + '</span>';
+      tooltip.innerHTML = '<span class="tt-region">🧠 ' + hitObj.userData.region + '/' + dispPath.split('/').pop() + '</span>' +
+        '<span class="tt-stats">활성도(Synapse): ' + hitObj.userData.counter + '</span>';
       renderer.domElement.style.cursor = 'crosshair';
       return;
     }
@@ -573,7 +625,7 @@ function onMouseMove(e) {
     const entry = Object.values(regionSpheres).find(s => s.mesh === hitObj);
     if (entry) {
       tooltip.innerHTML = '<span class="tt-region">' + (regionEmoji[entry.region.name]||'') + ' ' + entry.region.name + '</span>' +
-        '<span class="tt-stats">?�런 ' + entry.neuronCount + ' | ?�성??' + entry.totalAct + '</span>';
+        '<span class="tt-stats">뉴런 ' + entry.neuronCount + ' | 활성도 ' + entry.totalAct + '</span>';
       renderer.domElement.style.cursor = 'pointer';
     }
   } else {
@@ -593,7 +645,7 @@ function onSphereClick(e) {
   }
 }
 
-// ?�?� Select Region (show detail) ?�?�
+// ── Select Region (show detail) ──
 function selectRegion(name) {
   selectedRegion = name;
   const entry = regionSpheres[name];
@@ -615,15 +667,15 @@ function selectRegion(name) {
   // Detail panel
   const panel = document.getElementById('detail');
   panel.classList.add('active');
-  document.getElementById('detail-icon').textContent = regionEmoji[name] || '?��';
-  document.getElementById('detail-name').textContent = name.toUpperCase() + ' ??' + (region.ko || '');
+  document.getElementById('detail-icon').textContent = regionEmoji[name] || '📁';
+  document.getElementById('detail-name').textContent = name.toUpperCase() + ' — ' + (region.ko || '');
 
   // Axons
   let axonHtml = '';
   if (region.axons && region.axons.length > 0) {
-    axonHtml += '<div style="font-size:10px;color:#666;margin-bottom:4px;">축삭 ?�결:</div>';
+    axonHtml += '<div style="font-size:10px;color:#666;margin-bottom:4px;">축삭 연결:</div>';
     region.axons.forEach(a => {
-      axonHtml += '<div class="conn-line"><span class="conn-arrow">??/span><span class="conn-target" onclick="selectRegion(\'' + a + '\')">' +
+      axonHtml += '<div class="conn-line"><span class="conn-arrow">→</span><span class="conn-target" onclick="selectRegion(\'' + a + '\')">' +
         (regionEmoji[a]||'') + ' ' + a + '</span></div>';
     });
   }
@@ -644,15 +696,15 @@ function selectRegion(name) {
       else barColor = '#3b82f6';
 
       let signals = '';
-      if (n.dopamine > 0) signals += '?��';
-      if (n.hasBomb) signals += '??';
-      if (n.isDormant) signals += '?��';
-      if (pol > 0.6) signals += '??;
-      else if (pol < 0.3 && intensity > 3) signals += '??;
+      if (n.dopamine > 0) signals += '🟢';
+      if (n.hasBomb) signals += '💀';
+      if (n.isDormant) signals += '💤';
+      if (pol > 0.6) signals += '↑';
+      else if (pol < 0.3 && intensity > 3) signals += '↓';
 
       let strengthHtml = '';
-      if (intensity >= 10) strengthHtml = '<span class="n-strength n-str-abs">?��?</span>';
-      else if (intensity >= 5) strengthHtml = '<span class="n-strength n-str-must">반드??/span>';
+      if (intensity >= 10) strengthHtml = '<span class="n-strength n-str-abs">절대</span>';
+      else if (intensity >= 5) strengthHtml = '<span class="n-strength n-str-must">반드시</span>';
 
       const path = n.path.replace(/\//g, ' > ');
       const regionName = selectedRegion;
@@ -662,7 +714,7 @@ function selectRegion(name) {
         '<div class="n-bar"><div class="n-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>' +
         '<div class="n-counter">' + intensity + '</div>' +
         '<div class="n-signals">' + signals + '</div>' +
-        '<button class="n-fire" onclick="event.stopPropagation();fireNeuron(\'' + regionName + '\',\'' + n.path.replace(/'/g,"\\'" ) + '\')">??/button>' +
+        '<button class="n-fire" onclick="event.stopPropagation();fireNeuron(\'' + regionName + '\',\'' + n.path.replace(/'/g,"\\'" ) + '\')">▲</button>' +
         '</div>';
     });
   }
@@ -686,7 +738,7 @@ function closeDetail() {
   document.querySelectorAll('.region-chip').forEach(c => c.classList.remove('active'));
 }
 
-// ?�?� Render loop ?�?�
+// ── Render loop ──
 let frame = 0;
 function animate() {
   requestAnimationFrame(animate);
@@ -733,18 +785,18 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-// ?�?� UI Updates ?�?�
+// ── UI Updates ──
 function updateUI(data) {
   document.getElementById('s-neurons').textContent = data.totalNeurons;
   document.getElementById('s-activation').textContent = data.totalCounter;
   document.getElementById('s-regions').textContent = (data.regions || []).length;
-  document.getElementById('score').textContent = '??' + data.totalCounter;
+  document.getElementById('score').textContent = '⚡ ' + data.totalCounter;
 
   if (data.bombSource) {
     document.getElementById('status').className = 'badge';
     document.getElementById('status').style.background = '#7f1d1d';
     document.getElementById('status').style.color = '#fca5a5';
-    document.getElementById('status').textContent = '?? BOMB: ' + data.bombSource;
+    document.getElementById('status').textContent = '💀 BOMB: ' + data.bombSource;
   } else {
     document.getElementById('status').className = 'badge badge-ok';
     document.getElementById('status').textContent = 'NOMINAL';
@@ -785,12 +837,12 @@ function updateUI(data) {
       '<div style="color:#b6cfdd; font-size:11px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="' + n.path + '">' + shortPath + '</div>' +
       '</div>';
   });
-  document.getElementById('recentGrid').innerHTML = recentHtml || '<div style="color:#666; font-size:9px; grid-column:span 2; text-align:center;">?�장 중인 ?�런 기록 ?�음</div>';
+  document.getElementById('recentGrid').innerHTML = recentHtml || '<div style="color:#666; font-size:9px; grid-column:span 2; text-align:center;">생장 중인 뉴런 기록 없음</div>';
 
   updateBombDropdown();
 }
 
-// ?�?� API ?�?�
+// ── API ──
 let previousNeuronCount = 0;
 
 async function loadBrain() {
@@ -805,31 +857,31 @@ async function loadBrain() {
     // Auto-Evolution Detection
     if (previousNeuronCount > 0 && brainData.totalNeurons > previousNeuronCount) {
         const diff = brainData.totalNeurons - previousNeuronCount;
-        showToast('?�� ?��? 진화 발생: +' + diff + ' ?�규 규칙 ?�수?�료');
+        showToast('🌱 자가 진화 발생: +' + diff + ' 신규 규칙 흡수완료');
     }
     previousNeuronCount = brainData.totalNeurons;
-  } catch(e) { /* silent ??禁console_log */ }
+  } catch(e) { /* silent — 禁console_log */ }
 }
 
-// ?�?� Inject ?�?�
+// ── Inject ──
 async function doInject() {
-  showToast('??Injecting...');
+  showToast('⚡ Injecting...');
   const res = await fetch('/api/inject', { method: 'POST' });
   const text = await res.text();
-  showToast('??' + text);
+  showToast('✅ ' + text);
   loadBrain();
 }
 async function doDedup() {
-  showToast('?? Dedup...');
+  showToast('🔀 Dedup...');
   await fetch('/api/dedup', { method: 'POST' });
-  showToast('??Dedup ?�료');
+  showToast('✅ Dedup 완료');
   loadBrain();
 }
 function updateBombDropdown() {
   const sel = document.getElementById('bombRegion');
   if (!sel || !brainData) return;
   const current = sel.value;
-  sel.innerHTML = '<option value="">?? ?�역 ?�택</option>';
+  sel.innerHTML = '<option value="">💀 영역 선택</option>';
   (brainData.regions || []).forEach(r => {
     const opt = document.createElement('option');
     opt.value = r.name; opt.textContent = (regionEmoji[r.name]||'') + ' ' + r.name;
@@ -839,27 +891,27 @@ function updateBombDropdown() {
 }
 async function doBomb() {
   const region = document.getElementById('bombRegion').value;
-  if (!region) { showToast('?�️ ?�역??먼�? ?�택?�세??); return; }
+  if (!region) { showToast('⚠️ 영역을 먼저 선택하세요'); return; }
   await fetch('/api/signal', {
     method: 'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({path: region + '/halt', type: 'bomb'})
   });
-  showToast('?? BOMB: ' + region);
+  showToast('💀 BOMB: ' + region);
   document.getElementById('bombRegion').value = '';
   loadBrain();
 }
 
-// ?�?� Fire neuron ?�?�
+// ── Fire neuron ──
 async function fireNeuron(region, path) {
   await fetch('/api/fire', {
     method: 'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({path: region + '/' + path})
   });
-  showToast('?�� fired: ' + path);
+  showToast('🔥 fired: ' + path);
   loadBrain();
 }
 
-// ?�?� Add neuron ?�?�
+// ── Add neuron ──
 function toggleAdd() {
   const section = document.getElementById('addSection');
   section.classList.toggle('visible');
@@ -885,11 +937,11 @@ async function addNeuron() {
   });
   document.getElementById('addPath').value = '';
   document.getElementById('addSection').classList.remove('visible');
-  showToast('?�� ?�런 ?�성: ' + region + '/' + path);
+  showToast('🌱 뉴런 생성: ' + region + '/' + path);
   loadBrain();
 }
 
-// ?�?� Search ?�?�
+// ── Search ──
 function filterNeurons() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   if (!q) { if (selectedRegion) selectRegion(selectedRegion); return; }
@@ -906,7 +958,7 @@ function filterNeurons() {
   });
   results.sort((a,b) => b.counter - a.counter);
 
-  let nHtml = '<div style="font-size:10px;color:#666;margin-bottom:6px;">검??결과: ' + results.length + '�?/div>';
+  let nHtml = '<div style="font-size:10px;color:#666;margin-bottom:6px;">검색 결과: ' + results.length + '건</div>';
   results.forEach(n => {
     const pct = Math.min(100, n.counter * 5);
     let barColor = '#475569';
@@ -914,11 +966,11 @@ function filterNeurons() {
     else if (n.counter >= 5) barColor = '#22c55e';
     else if (n.counter >= 2) barColor = '#3b82f6';
     let strengthHtml = '';
-    if (n.counter >= 10) strengthHtml = '<span class="n-strength n-str-abs">?��?</span>';
-    else if (n.counter >= 5) strengthHtml = '<span class="n-strength n-str-must">반드??/span>';
+    if (n.counter >= 10) strengthHtml = '<span class="n-strength n-str-abs">절대</span>';
+    else if (n.counter >= 5) strengthHtml = '<span class="n-strength n-str-must">반드시</span>';
     let signals = '';
-    if (n.dopamine > 0) signals += '?��';
-    if (n.hasBomb) signals += '??';
+    if (n.dopamine > 0) signals += '🟢';
+    if (n.hasBomb) signals += '💀';
     nHtml += '<div class="neuron-item">' +
       strengthHtml +
       '<div class="n-name" style="font-size:10px"><span style="color:#3b82f6">' + n.regionName + '</span> > ' + n.path.replace(/\//g, ' > ') + '</div>' +
@@ -930,13 +982,13 @@ function filterNeurons() {
 
   const panel = document.getElementById('detail');
   panel.classList.add('active');
-  document.getElementById('detail-icon').textContent = '?��';
-  document.getElementById('detail-name').textContent = '검?? "' + q + '"';
+  document.getElementById('detail-icon').textContent = '🔍';
+  document.getElementById('detail-name').textContent = '검색: "' + q + '"';
   document.getElementById('detail-axons').innerHTML = '';
   document.getElementById('detail-neurons').innerHTML = nHtml;
 }
 
-// ?�?� Sandbox ?�?�
+// ── Sandbox ──
 function toggleSandbox() {
   const section = document.getElementById('sandboxSection');
   section.classList.toggle('visible');
@@ -949,7 +1001,7 @@ function toggleSandbox() {
 }
 async function applySandbox() {
   const text = document.getElementById('sandboxText').value.trim();
-  if (!text) { showToast('?�️ 규칙???�력?�세??); return; }
+  if (!text) { showToast('⚠️ 규칙을 입력하세요'); return; }
   const res = await fetch('/api/sandbox', {
     method: 'POST', headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({text: text})
@@ -957,11 +1009,11 @@ async function applySandbox() {
   const data = await res.json();
   const pathsDiv = document.getElementById('sandboxPaths');
   if (data.paths && data.paths.length > 0) {
-    pathsDiv.innerHTML = data.paths.map(p => '<div>??' + p + ' ?�성??/div>').join('');
+    pathsDiv.innerHTML = data.paths.map(p => '<div>✓ ' + p + ' 생성됨</div>').join('');
   } else {
-    pathsDiv.innerHTML = '<div>??' + (data.created || 0) + '�??�용</div>';
+    pathsDiv.innerHTML = '<div>✓ ' + (data.created || 0) + '개 적용</div>';
   }
-  showToast('?�� Sandbox: ' + (data.created || 0) + '�?규칙 ?�용');
+  showToast('🧪 Sandbox: ' + (data.created || 0) + '개 규칙 적용');
   loadBrain();
 }
 async function clearSandbox() {
@@ -971,7 +1023,7 @@ async function clearSandbox() {
   });
   document.getElementById('sandboxText').value = '';
   document.getElementById('sandboxPaths').innerHTML = '';
-  showToast('?�� Sandbox 초기??);
+  showToast('🗑 Sandbox 초기화');
   loadBrain();
 }
 
@@ -979,7 +1031,7 @@ let toastTimeout;
 function showToast(msg) {
   const t = document.getElementById('toast');
   document.getElementById('toast-msg').textContent = msg;
-  if (msg.includes('?�️') || msg.includes('??')) t.classList.add('error'); else t.classList.remove('error');
+  if (msg.includes('⚠️') || msg.includes('💀')) t.classList.add('error'); else t.classList.remove('error');
   t.classList.add('show');
   clearTimeout(toastTimeout);
   toastTimeout = setTimeout(() => t.classList.remove('show'), 5000);
@@ -988,7 +1040,7 @@ function closeToast() {
   document.getElementById('toast').classList.remove('show');
 }
 
-// ?�?� Health monitoring ?�?�
+// ── Health monitoring ──
 async function loadHealth() {
   try {
     const res = await fetch('/api/health');
@@ -1024,7 +1076,7 @@ async function loadHealth() {
   } catch(e) { /* silent */ }
 }
 
-// ?�?� Evolution Timeline ?�?�
+// ── Evolution Timeline ──
 function toggleEvo() {
   const section = document.getElementById('evoSection');
   section.classList.toggle('visible');
@@ -1040,12 +1092,12 @@ async function loadEvolution() {
     countBadge.textContent = events.length;
 
     if (events.length === 0) {
-      container.innerHTML = '<div style="font-size:10px;color:#555;text-align:center;padding:20px">진화 기록 ?�음 (git 초기???�요)</div>';
+      container.innerHTML = '<div style="font-size:10px;color:#555;text-align:center;padding:20px">진화 기록 없음 (git 초기화 필요)</div>';
       return;
     }
 
-    const actionLabels = { created: '?�런 ?�생', modified: '?�냅??강화', suppressed: '?�제 발동' };
-    const actionIcons = { created: '?��', modified: '??, suppressed: '?��' };
+    const actionLabels = { created: '뉴런 탄생', modified: '시냅스 강화', suppressed: '억제 발동' };
+    const actionIcons = { created: '🌱', modified: '⚡', suppressed: '🔮' };
     let html = '';
     const displayed = events.slice(0, 50);
     displayed.forEach(ev => {
@@ -1068,13 +1120,19 @@ async function loadEvolution() {
   } catch(e) { /* silent */ }
 }
 
-// ?�?� Init ?�?�
+// ── Architecture Topology ──
+function toggleArch() {
+  const section = document.getElementById('archSection');
+  section.classList.toggle('visible');
+}
+
+// ── Init ──
 loadBrain();
 loadHealth();
 setInterval(loadBrain, 10000);
 setInterval(loadHealth, 15000);
 
-// ?�?� Keyboard shortcuts ?�?�
+// ── Keyboard shortcuts ──
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     e.preventDefault();
@@ -1094,5 +1152,4 @@ document.addEventListener('keydown', (e) => {
 </script>
 </body>
 </html>` + "\n"
-
 

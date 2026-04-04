@@ -1,0 +1,20 @@
+﻿=== RUN   TestAPI_Health
+[CLEAN] Removing C:\Users\BASEME~1\AppData\Local\Temp\TestAPI_Health3212465557\001
+=== NeuronFS Brain v4 Init ===
+[1/7] brainstem
+[2/7] limbic
+[3/7] hippocampus
+[4/7] sensors
+[5/7] cortex
+[6/7] ego
+[7/7] prefrontal
+[AXON] layered network
+
+=== COMPLETE ===
+  Root: C:\Users\BASEME~1\AppData\Local\Temp\TestAPI_Health3212465557\001
+  Neurons (folders): 118
+    api_handler_test.go:179: health response missing 'status'
+--- FAIL: TestAPI_Health (0.64s)
+FAIL
+FAIL	github.com/rhino-acoustic/NeuronFS/runtime	0.769s
+FAIL

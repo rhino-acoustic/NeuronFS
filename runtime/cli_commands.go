@@ -64,4 +64,3 @@ func runVacuum(brainRoot string) {
 	fmt.Println("[OK] Hippocampus memory consolidated successfully.")
 	fmt.Println("[INFO] (Placeholder function executed: LLM Context optimization deferred to LocalLLM)")
 }
-

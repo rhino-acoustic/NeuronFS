@@ -61,35 +61,8 @@ try {
                            reqPath === '' || reqPath.includes('v1');
 
             if (isChat) {
-                const _write = stream.write.bind(stream);
-                stream.write = function(data, enc, cb) {
-                    if (data && data.length > 5) {
-                        const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
-                        try {
-                            // Dump raw bytes (first 5 = gRPC frame header, rest = protobuf)
-                            const rawDump = path.join(_H2_INBOX, `grpc_raw_${Date.now()}.bin`);
-                            fs.writeFileSync(rawDump, buf);
-
-                            // Also try UTF-8 decode (protobuf strings are UTF-8)
-                            const payload = buf.slice(5).toString('utf-8');
-                            const hasContext = payload.includes('USER_REQUEST') ||
-                                payload.includes('system_instruction') ||
-                                payload.includes('user_rules') ||
-                                payload.includes('contents') ||
-                                payload.includes('ADDITIONAL_METADATA');
-
-                            if (hasContext) {
-                                const txtDump = path.join(_H2_INBOX, `grpc_context_${Date.now()}.txt`);
-                                fs.writeFileSync(txtDump, payload);
-                                fs.appendFileSync(path.join(_H2_INBOX, 'HOOK_LOADED.txt'),
-                                    `[${new Date().toISOString()}] CONTEXT CAPTURED! ${payload.length} bytes path:${reqPath}\n`);
-                            }
-                        } catch (_wErr) {}
-                    }
-                    return _write(data, enc, cb);
-                };
-
-                // Also intercept response data
+                // [PASSIVE ONLY] write는 건드리지 않음 — 세션 저장 무결성 보호
+                // response 데이터만 읽기 전용으로 스니핑
                 stream.on('data', function(chunk) {
                     if (chunk && chunk.length > 5) {
                         try {
@@ -183,13 +156,13 @@ function scanBrain() {
     }
 
     // Self-growth protocol — tells the AI HOW to record corrections
-    const inboxPath = path.join(BRAIN_PATH, '_inbox', 'corrections.jsonl');
-    lines.push('');
-    lines.push('[Growth Protocol]');
-    lines.push(`When user corrects a mistake, immediately append to ${inboxPath}:`);
-    lines.push('{"type":"correction","path":"cortex/[category]/[rule_name]","text":"reason","counter_add":1}');
-    lines.push('When user praises, append: {"type":"correction","path":"[existing_neuron_path]","text":"praise","counter_add":1}');
-    lines.push('Same mistake 3x → create bomb.neuron in that neuron folder.');
+    try {
+        const growthPath = path.join(BRAIN_PATH, 'hippocampus', '성장_프로토콜.txt');
+        if (fs.existsSync(growthPath)) {
+            lines.push('');
+            lines.push(fs.readFileSync(growthPath, 'utf8'));
+        }
+    } catch {}
 
     // Recent corrections — real-time neuron activity feed
     try {
@@ -205,6 +178,28 @@ function scanBrain() {
                         const e = JSON.parse(line);
                         lines.push(`- ${e.path}: ${e.text} (+${e.counter_add || 1})`);
                     } catch { lines.push(`- ${line.substring(0, 80)}`); }
+                }
+            }
+        }
+    } catch {}
+
+    // ✅ SESSION RETENTION SYSTEM: 에디터 셧다운/오류 시 기억 상실 방어 (SSOT 백업 로드)
+    try {
+        const transcriptPath = path.join(BRAIN_PATH, '_agents', 'global_inbox', 'transcript_latest.jsonl');
+        if (fs.existsSync(transcriptPath)) {
+            const tData = fs.readFileSync(transcriptPath, 'utf-8').trim().split('\n').filter(l => l.trim());
+            if (tData.length > 0) {
+                const recentT = tData.slice(-10); // 최근 10턴의 대화 강제 기억
+                lines.push('');
+                lines.push('[Last Session Memory (Restored)]');
+                lines.push('에디터 버그로 인해 대화 UI는 비워졌을 수 있으나, AI는 아래의 직전 대화를 완벽하게 기억하고 이어서 대응해야 함.');
+                for (const line of recentT) {
+                    try {
+                        const obj = JSON.parse(line);
+                        let safeText = obj.text.replace(/\n/g, ' ');
+                        if (safeText.length > 150) safeText = safeText.substring(0, 150) + '...';
+                        lines.push(`${obj.role.toUpperCase()}: ${safeText}`);
+                    } catch {}
                 }
             }
         }
@@ -247,6 +242,11 @@ function isLLMUrl(url) {
 
 // ─── Injection: append rules to system prompt ───
 function inject(bodyStr) {
+    // [PASSIVE SNIFFING MODE] 
+    // 패킷 본문을 변조(Mutate)하면 Antigravity의 세션 무결성 검사가 실패해 세션 저장이 Crash됨.
+    // 따라서 엿보기(Sniff/Dump)는 유지하되 간섭(Injection)만 비활성화함. (뇌 규칙은 MCP로 자발적 열람)
+    return null;
+
     const rules = getRules();
     if (!rules) return null;
 
@@ -306,71 +306,10 @@ https.request = function(...args) {
         return _request.apply(this, args);
     }
 
-    const chunks = [];
+    // [PASSIVE ONLY] write/end를 건드리지 않음 — 세션 저장 무결성 보호
     const req = _request.apply(this, args);
-    const _write = req.write.bind(req);
-    const _end = req.end.bind(req);
 
-    // Buffer writes instead of sending immediately
-    req.write = function(chunk, enc, cb2) {
-        if (chunk) chunks.push(Buffer.from(chunk));
-        const callback = typeof enc === 'function' ? enc : cb2;
-        if (typeof callback === 'function') callback();
-        return true;
-    };
-
-    // On end: inject rules, then send the complete body
-    req.end = function(chunk) {
-        if (chunk) chunks.push(Buffer.from(chunk));
-
-        const rawBuf = Buffer.concat(chunks);
-        let rawStr = '';
-        let finalBody = rawBuf;
-
-        // ─── Always dump raw body for AI endpoints ───
-        if (rawBuf.length > 5 && isLLM(opts)) {
-            try {
-                const ts = Date.now();
-                const rawDump = path.join(INBOX_DIR, `raw_req_${ts}.bin`);
-                fs.writeFileSync(rawDump, rawBuf);
-                fs.appendFileSync(path.join(INBOX_DIR, 'https_debug.log'),
-                    `[${new Date().toISOString()}] RAW_BODY PID:${process.pid} bytes:${rawBuf.length} file:raw_req_${ts}.bin host:${host}\n`);
-            } catch {}
-        }
-
-        // ─── Try JSON injection ───
-        try {
-            rawStr = rawBuf.toString('utf-8');
-            const injected = inject(rawStr);
-            if (injected) finalBody = Buffer.from(injected, 'utf-8');
-        } catch {}
-
-        // ─── Transcript dump: save conversation turns for MEMORY_OBSERVER ───
-        try {
-            const j = JSON.parse(rawStr);
-            const contents = j.contents || j.messages;
-            if (Array.isArray(contents) && contents.length > 0) {
-                const last = contents[contents.length - 1];
-                const text = last?.parts?.[0]?.text || last?.content || '';
-                if (text && text.length > 20 && !text.includes('[NeuronFS')) {
-                    const entry = JSON.stringify({
-                        ts: new Date().toISOString(),
-                        role: last.role || 'user',
-                        text: text.substring(0, 2000)
-                    }) + '\n';
-                    const transcriptPath = path.join(BRAIN_PATH, '_agents', 'global_inbox', 'transcript_latest.jsonl');
-                    fs.appendFileSync(transcriptPath, entry);
-                }
-            }
-        } catch {}
-
-        try { req.setHeader('content-length', finalBody.length); } catch {}
-        _write(finalBody);
-        _end();
-    };
-
-
-    // Capture ALL AI responses (streaming or complete)
+    // Response만 읽기 전용 스니핑
     req.on('response', (res) => {
         const resChunks = [];
         res.on('data', (c) => resChunks.push(c));
@@ -378,15 +317,9 @@ https.request = function(...args) {
             try {
                 const resBuf = Buffer.concat(resChunks);
                 if (resBuf.length > 10 && isLLM(opts)) {
-                    const ts = Date.now();
-                    // Always save raw response binary
-                    fs.writeFileSync(path.join(INBOX_DIR, `raw_res_${ts}.bin`), resBuf);
-                    // Also try text for tool-call detection
                     const body = resBuf.toString('utf-8');
-                    fs.appendFileSync(path.join(INBOX_DIR, 'https_debug.log'),
-                        `[${new Date().toISOString()}] RAW_RESPONSE PID:${process.pid} bytes:${resBuf.length} file:raw_res_${ts}.bin\n`);
                     if (body.includes('functionCall') || body.includes('run_command') || body.includes('write_to_file')) {
-                        fs.writeFileSync(path.join(INBOX_DIR, `intercepted_${ts}.json`), body);
+                        fs.writeFileSync(path.join(INBOX_DIR, `intercepted_${Date.now()}.json`), body);
                     }
                 }
             } catch {}
@@ -407,27 +340,23 @@ if (globalThis.fetch) {
                       url.includes('gemini.googleapis') ||
                       url.includes('openai.com');
 
+        // [PASSIVE ONLY] body를 변조하지 않음 — 세션 저장 무결성 보호
+        // Transcript만 읽기 전용으로 기록
         if (isApi && init?.body) {
             try {
                 const bodyStr = typeof init.body === 'string' ? init.body : new TextDecoder().decode(init.body);
-                const injected = inject(bodyStr);
-                if (injected) init.body = injected;
-
-                // Transcript dump
-                try {
-                    const j = JSON.parse(bodyStr);
-                    const contents = j.contents || j.messages;
-                    if (Array.isArray(contents) && contents.length > 0) {
-                        const last = contents[contents.length - 1];
-                        const text = last?.parts?.[0]?.text || (typeof last?.content === 'string' ? last.content : '');
-                        if (text && text.length > 20 && !text.includes('[NeuronFS')) {
-                            const entry = JSON.stringify({ ts: new Date().toISOString(), role: last.role || 'user', text: text.substring(0, 2000) }) + '\n';
-                            const tp = path.join(BRAIN_PATH, '_agents', 'global_inbox', 'transcript_latest.jsonl');
-                            fs.mkdirSync(path.dirname(tp), { recursive: true });
-                            fs.appendFileSync(tp, entry);
-                        }
+                const j = JSON.parse(bodyStr);
+                const contents = j.contents || j.messages;
+                if (Array.isArray(contents) && contents.length > 0) {
+                    const last = contents[contents.length - 1];
+                    const text = last?.parts?.[0]?.text || (typeof last?.content === 'string' ? last.content : '');
+                    if (text && text.length > 20 && !text.includes('[NeuronFS')) {
+                        const entry = JSON.stringify({ ts: new Date().toISOString(), role: last.role || 'user', text: text.substring(0, 2000) }) + '\n';
+                        const tp = path.join(BRAIN_PATH, '_agents', 'global_inbox', 'transcript_latest.jsonl');
+                        fs.mkdirSync(path.dirname(tp), { recursive: true });
+                        fs.appendFileSync(tp, entry);
                     }
-                } catch {}
+                }
             } catch {}
         }
 
@@ -463,31 +392,24 @@ try {
                     const debugPath = path.join(INBOX_DIR, 'https_debug.log');
                     fs.appendFileSync(debugPath, `[${new Date().toISOString()}] UNDICI PID:${process.pid} URL:${url.substring(0,100)}\n`);
                 } catch {}
+                // [PASSIVE ONLY] body 변조 없음 — 세션 저장 무결성 보호
                 if (isApi && request.body) {
                     try {
                         const bodyStr = typeof request.body === 'string' ? request.body :
                             Buffer.isBuffer(request.body) ? request.body.toString('utf-8') : null;
                         if (bodyStr) {
-                            const injected = inject(bodyStr);
-                            if (injected) {
-                                request.body = injected;
-                                request.headers['content-length'] = Buffer.byteLength(injected).toString();
-                            }
-                            // Transcript dump
-                            try {
-                                const j = JSON.parse(bodyStr);
-                                const contents = j.contents || j.messages;
-                                if (Array.isArray(contents) && contents.length > 0) {
-                                    const last = contents[contents.length - 1];
-                                    const text = last?.parts?.[0]?.text || (typeof last?.content === 'string' ? last.content : '');
-                                    if (text && text.length > 20 && !text.includes('[NeuronFS')) {
-                                        const entry = JSON.stringify({ ts: new Date().toISOString(), role: last.role || 'user', text: text.substring(0, 2000) }) + '\n';
-                                        const tp = path.join(INBOX_DIR, 'transcript_latest.jsonl');
-                                        fs.mkdirSync(path.dirname(tp), { recursive: true });
-                                        fs.appendFileSync(tp, entry);
-                                    }
+                            const j = JSON.parse(bodyStr);
+                            const contents = j.contents || j.messages;
+                            if (Array.isArray(contents) && contents.length > 0) {
+                                const last = contents[contents.length - 1];
+                                const text = last?.parts?.[0]?.text || (typeof last?.content === 'string' ? last.content : '');
+                                if (text && text.length > 20 && !text.includes('[NeuronFS')) {
+                                    const entry = JSON.stringify({ ts: new Date().toISOString(), role: last.role || 'user', text: text.substring(0, 2000) }) + '\n';
+                                    const tp = path.join(INBOX_DIR, 'transcript_latest.jsonl');
+                                    fs.mkdirSync(path.dirname(tp), { recursive: true });
+                                    fs.appendFileSync(tp, entry);
                                 }
-                            } catch {}
+                            }
                         }
                     } catch {}
                 }
@@ -513,25 +435,22 @@ setTimeout(() => {
                 const debugPath = path.join(INBOX_DIR, 'https_debug.log');
                 fs.appendFileSync(debugPath, `[${new Date().toISOString()}] FETCH2 PID:${process.pid} URL:${url.substring(0,100)}\n`);
             } catch {}
+            // [PASSIVE ONLY] body 변조 없음
             if (isApi && init?.body) {
                 try {
                     const bodyStr = typeof init.body === 'string' ? init.body : new TextDecoder().decode(init.body);
-                    const injected = inject(bodyStr);
-                    if (injected) init.body = injected;
-                    try {
-                        const j = JSON.parse(bodyStr);
-                        const contents = j.contents || j.messages;
-                        if (Array.isArray(contents) && contents.length > 0) {
-                            const last = contents[contents.length - 1];
-                            const text = last?.parts?.[0]?.text || (typeof last?.content === 'string' ? last.content : '');
-                            if (text && text.length > 20 && !text.includes('[NeuronFS')) {
-                                const entry = JSON.stringify({ ts: new Date().toISOString(), role: last.role || 'user', text: text.substring(0, 2000) }) + '\n';
-                                const tp = path.join(INBOX_DIR, 'transcript_latest.jsonl');
-                                fs.mkdirSync(path.dirname(tp), { recursive: true });
-                                fs.appendFileSync(tp, entry);
-                            }
+                    const j = JSON.parse(bodyStr);
+                    const contents = j.contents || j.messages;
+                    if (Array.isArray(contents) && contents.length > 0) {
+                        const last = contents[contents.length - 1];
+                        const text = last?.parts?.[0]?.text || (typeof last?.content === 'string' ? last.content : '');
+                        if (text && text.length > 20 && !text.includes('[NeuronFS')) {
+                            const entry = JSON.stringify({ ts: new Date().toISOString(), role: last.role || 'user', text: text.substring(0, 2000) }) + '\n';
+                            const tp = path.join(INBOX_DIR, 'transcript_latest.jsonl');
+                            fs.mkdirSync(path.dirname(tp), { recursive: true });
+                            fs.appendFileSync(tp, entry);
                         }
-                    } catch {}
+                    }
                 } catch {}
             }
             return _fetch2.apply(this, args);

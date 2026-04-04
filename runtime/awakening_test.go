@@ -25,7 +25,7 @@ func captureStderr(fn func()) string {
 	return buf.String()
 }
 
-// TestAwakening_FullSequence verifies Step1???? execute in order
+// TestAwakening_FullSequence verifies Step1→2→3 execute in order
 // with total duration roughly within 2.5s ± 500ms.
 func TestAwakening_FullSequence(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -221,4 +221,3 @@ func containsAny(s string, needles ...string) bool {
 	}
 	return false
 }
-

@@ -75,7 +75,7 @@ func TestCanAccess_Bot1_PrefrontalDeny(t *testing.T) {
 	if allowed {
 		t.Fatal("bot1 should NOT have write access to prefrontal")
 	}
-	t.Log("OK: bot1 write?’prefrontal correctly DENIED")
+	t.Log("OK: bot1 writeâ†’prefrontal correctly DENIED")
 }
 
 func TestCanAccess_Bot1_CortexWrite(t *testing.T) {
@@ -88,7 +88,7 @@ func TestCanAccess_Bot1_CortexWrite(t *testing.T) {
 	if !allowed {
 		t.Fatal("bot1 should have write access to cortex")
 	}
-	t.Log("OK: bot1 write?’cortex correctly ALLOWED")
+	t.Log("OK: bot1 writeâ†’cortex correctly ALLOWED")
 }
 
 func TestCanAccess_Bot1_BrainstemRead(t *testing.T) {
@@ -101,7 +101,7 @@ func TestCanAccess_Bot1_BrainstemRead(t *testing.T) {
 	if !allowed {
 		t.Fatal("bot1 should have read access to brainstem")
 	}
-	t.Log("OK: bot1 read?’brainstem correctly ALLOWED")
+	t.Log("OK: bot1 readâ†’brainstem correctly ALLOWED")
 }
 
 func TestCanAccess_Bot1_BrainstemWriteDenied(t *testing.T) {
@@ -114,7 +114,7 @@ func TestCanAccess_Bot1_BrainstemWriteDenied(t *testing.T) {
 	if allowed {
 		t.Fatal("bot1 should NOT have write access to brainstem (not in actions list)")
 	}
-	t.Log("OK: bot1 write?’brainstem correctly DENIED (implicit)")
+	t.Log("OK: bot1 writeâ†’brainstem correctly DENIED (implicit)")
 }
 
 func TestCanAccess_ENFP_BrainstemExplicitDeny(t *testing.T) {
@@ -127,7 +127,7 @@ func TestCanAccess_ENFP_BrainstemExplicitDeny(t *testing.T) {
 	if allowed {
 		t.Fatal("enfp should NOT have read access to brainstem (explicit deny)")
 	}
-	t.Log("OK: enfp read?’brainstem correctly DENIED (explicit)")
+	t.Log("OK: enfp readâ†’brainstem correctly DENIED (explicit)")
 }
 
 func TestCanAccess_Admin_FullAccess(t *testing.T) {
@@ -138,7 +138,7 @@ func TestCanAccess_Admin_FullAccess(t *testing.T) {
 		for _, action := range []string{"read", "write"} {
 			allowed, err := CanAccess("admin", region, action)
 			if err != nil {
-				t.Fatalf("admin %s??s error: %v", action, region, err)
+				t.Fatalf("admin %sâ†’%s error: %v", action, region, err)
 			}
 			if !allowed {
 				t.Fatalf("admin should have %s access to %s", action, region)
@@ -151,7 +151,7 @@ func TestCanAccess_Admin_FullAccess(t *testing.T) {
 func TestCanAccess_UnlistedRegion_DefaultDeny(t *testing.T) {
 	setupTestPolicy(t)
 
-	// enfp doesn't have limbic listed ??default deny
+	// enfp doesn't have limbic listed â†’ default deny
 	allowed, err := CanAccess("enfp", "limbic", "read")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -219,4 +219,3 @@ func TestListRolePermissions(t *testing.T) {
 	}
 	t.Logf("OK: bot1 permissions summary:\n%s", summary)
 }
-

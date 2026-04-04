@@ -1,0 +1,15 @@
+﻿=== Current index ===
+Length: 13721 chars
+Value: {version:1,entries:{ae0824a4-f899-4ef1-ad52-e689d899883d:{title:",conversationId:ae0824a4-f899-4ef1-ad52-e689d899883d,lastModified:2026-04-02T23:56:53.911Z},3d22d812-ab24-4a8c-a16a-f3c023f11c72:{title:",conversationId:3d22d812-ab24-4a8c-a16a-f3c023f11c72,lastModified:2026-04-02T12:49:03.759Z},931868af-cd01-4622-a906-88b8be2ab9d6:{title:",conversationId:931868af-cd01-4622-a906-88b8be2ab9d6,lastModified:2026-04-02T07:19:51.664Z},0456c980-aea7-46f6-a0b9-cbcc85a31c17:{title:",conversationId:0456c980
+
+=== Latest .pb files ===
+6aa264bc-e491-431d-a3f0-074a63c8fcaf.pb | 2348.1 KB | 04/04/2026 12:11:21
+64745aa4-5f5d-4784-ae5c-32752a1bfdd5.pb | 141.7 KB | 04/04/2026 12:09:33
+e3947995-59c0-4e4c-bbbf-3842f1530da9.pb | 160.4 KB | 04/04/2026 12:01:36
+fcf6d5bd-14c8-4b71-9317-560018c4daf5.pb | 150.6 KB | 04/04/2026 11:57:00
+afbfd72f-5269-40ff-a5f3-1671d5df6b1b.pb | 1319.2 KB | 04/04/2026 11:15:58
+
+=== All chat keys ===
+chat.ChatSessionStore.index|13721
+chat.participantNameRegistry|1331
+chat.workspaceTransfer|2

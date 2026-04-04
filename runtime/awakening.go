@@ -1,17 +1,17 @@
-// awakening.go ??NeuronFS CLI Awakening Sequence v2
+// awakening.go — NeuronFS CLI Awakening Sequence v2
 //
 // ENFP PRD: 20260401_083600_enfp_cli_awakening_ux_prd_v2.md
 //
-// 초보 ?�용?��? 처음 `neuronfs`�??�행????바이?�해�??�이 깨어?�는 ??��
-// 3?�계 ASCII 모션 ?�퀀?��? ?�더링한??
-//   Step 1: ?�간 ?�포 ?�화 (Brainstem Ignition) ??T=0~800ms
-//   Step 2: ?�냅??링크 (First Breath) ??T=800~1500ms
-//   Step 3: 각성 ?�료 (Full Consciousness) ??T=1500~2500ms
+// 초보 사용자가 처음 `neuronfs`를 실행할 때 바이오해커 랩이 깨어나는 듯한
+// 3단계 ASCII 모션 시퀀스를 렌더링한다.
+//   Step 1: 뇌간 세포 점화 (Brainstem Ignition) — T=0~800ms
+//   Step 2: 시냅스 링크 (First Breath) — T=800~1500ms
+//   Step 3: 각성 완료 (Full Consciousness) — T=1500~2500ms
 //
-// ?��? ?�존?? 0 (Go stdlib only)
-// 반복?�행: .neuronfs_init 마커 ??축약모드
-// CI: ?�동 quiet 모드
-// ANSI: 3?�계 ?�백 (Truecolor ??256????8??
+// 외부 의존성: 0 (Go stdlib only)
+// 반복실행: .neuronfs_init 마커 → 축약모드
+// CI: 자동 quiet 모드
+// ANSI: 3단계 폴백 (Truecolor → 256색 → 8색)
 package main
 
 import (
@@ -23,18 +23,18 @@ import (
 	"time"
 )
 
-// ?�?�?� Awakening Configuration ?�?�?�
+// ─── Awakening Configuration ───
 
 // AwakeningConfig controls the awakening sequence behavior.
 type AwakeningConfig struct {
 	BrainRoot      string // brain_v4 path
-	Quiet          bool   // --quiet / -q ??skip entirely
-	ForceAwakening bool   // --awakening ??force full sequence
+	Quiet          bool   // --quiet / -q → skip entirely
+	ForceAwakening bool   // --awakening → force full sequence
 	NeuronCount    int    // pre-scanned neuron count
 	PlaqueFaults   int    // detected amyloid plaques (bomb neurons)
 }
 
-// ?�?�?� Terminal Capability Detection ?�?�?�
+// ─── Terminal Capability Detection ───
 
 // colorMode represents terminal color capability.
 type colorMode int
@@ -91,7 +91,7 @@ func isCIEnvironment() bool {
 	return os.Getenv("TERM") == "dumb"
 }
 
-// ?�?�?� ANSI Color Helpers with Fallback Chain ?�?�?�
+// ─── ANSI Color Helpers with Fallback Chain ───
 
 // awakColor wraps ANSI color codes with terminal-aware fallback.
 type awakColor struct {
@@ -160,7 +160,7 @@ func (c awakColor) alive(s string) string {
 	}
 }
 
-// ?�?�?� Marker File Management ?�?�?�
+// ─── Marker File Management ───
 
 const markerFileName = ".neuronfs_init"
 
@@ -178,7 +178,7 @@ func writeMarker(brainRoot string) {
 	os.WriteFile(markerPath(brainRoot), []byte(content), 0644)
 }
 
-// ?�?�?� Main Entry Point ?�?�?�
+// ─── Main Entry Point ───
 
 // RunAwakening executes the CLI awakening sequence.
 // Should be called at the very top of main(), before daemon loops.
@@ -229,10 +229,10 @@ func RunAwakening(ctx context.Context, cfg AwakeningConfig) {
 	}
 }
 
-// ?�?�?� Step 1: Brainstem Ignition ?�?�?�
+// ─── Step 1: Brainstem Ignition ───
 
 func stepBrainstemIgnition(ctx context.Context, clr awakColor) error {
-	spinnerFrames := []string{"??, "??, "??}
+	spinnerFrames := []string{"⠋", "⠙", "⠹"}
 	messages := []struct {
 		ts  string
 		msg string
@@ -257,7 +257,7 @@ func stepBrainstemIgnition(ctx context.Context, clr awakColor) error {
 	return nil
 }
 
-// ?�?�?� Step 2: Synapse Link ?�?�?�
+// ─── Step 2: Synapse Link ───
 
 func stepSynapseLink(ctx context.Context, clr awakColor) error {
 	select {
@@ -267,9 +267,9 @@ func stepSynapseLink(ctx context.Context, clr awakColor) error {
 	}
 
 	// Phase 1: stalled at 64% (tension)
-	bar64 := "[ ?�█?�█?�█?�█?�█?�░?�░?�░ ]"
+	bar64 := "[ ██████████░░░░░░ ]"
 	fmt.Fprintf(os.Stderr, "%s\n",
-		clr.blue(fmt.Sprintf("[1.00s] ??SYNAPSE LINK  %s 64%% - Frontal lobe locked", bar64)))
+		clr.blue(fmt.Sprintf("[1.00s] ⠼ SYNAPSE LINK  %s 64%% - Frontal lobe locked", bar64)))
 	time.Sleep(350 * time.Millisecond) // tension hold
 
 	select {
@@ -279,15 +279,15 @@ func stepSynapseLink(ctx context.Context, clr awakColor) error {
 	}
 
 	// Phase 2: snap to 100% (release)
-	bar100 := "[ ?�█?�█?�█?�█?�█?�█?�█?�█ ]"
+	bar100 := "[ ████████████████ ]"
 	fmt.Fprintf(os.Stderr, "%s\n",
-		clr.cyan(fmt.Sprintf("[1.30s] ??SYNAPSE LINK  %s 100%% - Synaptic crossover OK", bar100)))
+		clr.cyan(fmt.Sprintf("[1.30s] ⠧ SYNAPSE LINK  %s 100%% - Synaptic crossover OK", bar100)))
 	time.Sleep(350 * time.Millisecond)
 
 	return nil
 }
 
-// ?�?�?� Step 3: Full Consciousness ?�?�?�
+// ─── Step 3: Full Consciousness ───
 
 var neuronFSAsciiArt = `       _   _                             _____ ____
       | \ | | ___ _   _ _ __ ___  _ __  |  ___/ ___|
@@ -319,14 +319,14 @@ func stepFullConsciousness(ctx context.Context, clr awakColor, cfg AwakeningConf
 	if workspace == "" {
 		workspace = "unknown"
 	}
-	fmt.Fprintf(os.Stderr, "  > ?�� [SYSTEM] Workspace %s is now %s.\n",
+	fmt.Fprintf(os.Stderr, "  > 🧠 [SYSTEM] Workspace %s is now %s.\n",
 		workspace, clr.alive("ALIVE"))
 
 	// Neuron stats
-	fmt.Fprintf(os.Stderr, "  > ?�� %s\n",
+	fmt.Fprintf(os.Stderr, "  > 🧬 %s\n",
 		clr.green(fmt.Sprintf("%d neurons found. %d amyloid plaques.", cfg.NeuronCount, cfg.PlaqueFaults)))
 
-	fmt.Fprintf(os.Stderr, "  > ??Ready to mutate. Waiting for cortical input...\n")
+	fmt.Fprintf(os.Stderr, "  > ⚡ Ready to mutate. Waiting for cortical input...\n")
 	fmt.Fprintf(os.Stderr, "\n")
 
 	time.Sleep(500 * time.Millisecond) // let it sink in
@@ -334,14 +334,13 @@ func stepFullConsciousness(ctx context.Context, clr awakColor, cfg AwakeningConf
 	return nil
 }
 
-// ?�?�?� Abbreviated Boot (2nd+ runs) ?�?�?�
+// ─── Abbreviated Boot (2nd+ runs) ───
 
 func runAbbreviatedBoot(cfg AwakeningConfig) {
 	cm := detectColorMode()
 	clr := awakColor{mode: cm}
 
-	status := fmt.Sprintf("?�� NeuronFS online · %d neurons · %d plaques",
+	status := fmt.Sprintf("🧠 NeuronFS online · %d neurons · %d plaques",
 		cfg.NeuronCount, cfg.PlaqueFaults)
 	fmt.Fprintf(os.Stderr, "%s\n", clr.green(status))
 }
-

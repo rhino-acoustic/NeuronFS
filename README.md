@@ -63,7 +63,7 @@ iwr https://raw.githubusercontent.com/rhino-acoustic/NeuronFS/main/install.ps1 -
 # ※ Select option [2] Master's Brain to clone standard premium engineering governance!
 neuronfs --init ./my_brain        
 
-export GROQ_API_KEY="gsk_..."      # For Llama3 70B consolidation (Local Ollama fallback supported!)
+export GROQ_API_KEY="<your-groq-api-key>"      # For Llama3 70B consolidation (Local Ollama fallback supported!)
 
 # Compile and Run
 neuronfs ./my_brain --emit all    # Compile system prompts
@@ -221,10 +221,16 @@ Why folders? Palantir's AIP (Artificial Intelligence Platform) success isn't jus
 NeuronFS shares a similar philosophy but scales it down for local filesystems. Instead of relying on an LLM to magically remember your 1000-line prompt, NeuronFS binds your business logic and restrictions into physical paths (cortex/frontend/no_console_log). 
 We do not guarantee that the AI will follow the rules 100% (hallucinations exist). However, we lock the **prompt generation process** at the OS level so that human or AI errors cannot easily corrupt the core principles.
 
-## Limitations
+## Hybrid Memory Architecture (Overcoming Limitations)
 
-- **100% AI Compliance not guaranteed:** The `brainstem` integrity halts the prompt render at the OS level, but stopping an LLM's inherent hallucination cannot be strictly 100% guaranteed.
-- **No Semantic Vector Search:** Optimized strictly for explicit Path Matching. Vague natural language RAG routing is intentionally excluded to maintain deterministic control.
+**"We are not hostile to RAG; we are the L1 Governance Cache that controls RAG hallucinations."**
+
+NeuronFS is not designed to compete with large-scale MSA (Microservices Architecture) environments or generalized Vector DBs. Instead, the architecture is intentionally separated to act as a **perfect hybrid complement**.
+
+*   **Tier 1 & 2 (NeuronFS Deterministic Domination):** Absolute immutable rules (`brainstem`) and workflow constraints (`sensors`). Critical governance like "Force DB backups" or "Never use plain-text tokens" should never rely on 80% similarity probabilities. They require the **Hard Lock** of a 100% path-matched directory tree. Zero latency.
+*   **Tier 3 (Vector DB / RAG Delegation):** Massive API documentation or years of accumulated error logs (`hippocampus`). Splitting ambiguous, enormous context into thousands of folders is over-engineering. We delegate this to existing RAG pipelines (like LlamaIndex) for flexibility.
+
+In enterprise integration, before an AI agent recklessly scours a massive Vector DB, **NeuronFS (Tier 1 & 2) intervenes first to lay out the 'absolute constraints' as a guardrail.** OS folders serve as the L1 Instruction Cache; RAG serves as the L2 Main Memory.
 
 ---
 

@@ -62,7 +62,7 @@ main.processBatch(0xc0000ae000)
 
 // TestFlatline_TruecolorFallback verifies the 3-stage ANSI color fallback chain.
 func TestFlatline_TruecolorFallback(t *testing.T) {
-	// Truecolor mode ??#F43F5E
+	// Truecolor mode → #F43F5E
 	tc := flatColor{mode: colorTrueC}
 	roseTC := tc.rose("test")
 	if !strings.Contains(roseTC, "38;2;244;63;94") {
@@ -76,14 +76,14 @@ func TestFlatline_TruecolorFallback(t *testing.T) {
 		t.Errorf("256-color rose should contain 256-color escape, got: %q", rose256)
 	}
 
-	// Basic (8-color) fallback ??standard red
+	// Basic (8-color) fallback → standard red
 	basic := flatColor{mode: colorBasic}
 	roseBasic := basic.rose("test")
 	if !strings.Contains(roseBasic, "\033[31m") {
 		t.Errorf("basic rose should use standard red fallback, got: %q", roseBasic)
 	}
 
-	// NO_COLOR mode ??plain text
+	// NO_COLOR mode → plain text
 	none := flatColor{mode: colorNone}
 	roseNone := none.rose("test")
 	if roseNone != "test" {
@@ -116,12 +116,12 @@ func TestFlatline_EmojiSubstitution(t *testing.T) {
 		}
 	}()
 
-	skull := flatEmoji("??", "[DEAD]")
+	skull := flatEmoji("💀", "[DEAD]")
 	if skull != "[DEAD]" {
 		t.Errorf("expected ASCII substitute '[DEAD]' on dumb terminal, got: %s", skull)
 	}
 
-	bolt := flatEmoji("??, "[!!]")
+	bolt := flatEmoji("⚡", "[!!]")
 	if bolt != "[!!]" {
 		t.Errorf("expected ASCII substitute '[!!]' on dumb terminal, got: %s", bolt)
 	}
@@ -131,8 +131,8 @@ func TestFlatline_EmojiSubstitution(t *testing.T) {
 	os.Unsetenv("NO_COLOR")
 	// When TERM is unset and no NO_COLOR, should return emoji
 	// (detectColorMode returns colorBasic, not colorNone)
-	skullNormal := flatEmoji("??", "[DEAD]")
-	if skullNormal != "??" {
+	skullNormal := flatEmoji("💀", "[DEAD]")
+	if skullNormal != "💀" {
 		t.Errorf("expected emoji on normal terminal, got: %s", skullNormal)
 	}
 
@@ -182,4 +182,3 @@ func TestRenderFlatlineOnOOM_NoPanic(t *testing.T) {
 	RenderFlatlineOnOOM("neuronfs-api", 1024*80, "InUse: 4096 KB | Objects: 12 | Func: main.handleAPI\nInUse: 2048 KB | Objects: 8 | Func: main.scanBrain")
 	t.Log("OOM flatline full render: completed without panic")
 }
-

@@ -71,7 +71,7 @@ export class AutoInjector {
   async inject(): Promise<ScanResult> {
     const result = await this.scanner.scan();
     const config = vscode.workspace.getConfiguration('neuronfs');
-    const target = config.get<string>('injectTarget') || 'gemini.md';
+    const target = config.get<string>('injectTarget') || 'disabled.md';
 
     // Find all target files to inject into
     const targetPaths = await this.findTargetFiles(target);

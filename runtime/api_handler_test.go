@@ -11,7 +11,8 @@ import (
 )
 
 // ============================================================================
-// Coverage Boost Phase 4 ??HTTP API ?�들???�스??// startAPI???�라???�들?�들??httptest�??�스?�하???�??커버리�? ?�보
+// Coverage Boost Phase 4 — HTTP API 핸들러 테스트
+// startAPI의 인라인 핸들러들을 httptest로 테스트하여 대량 커버리지 확보
 // ============================================================================
 
 // setupAPIServer creates a test server with the same mux as startAPI
@@ -141,13 +142,13 @@ func setupAPIServer(t *testing.T) (*httptest.Server, string) {
 		}
 	}))
 
-	// /api/region ??uses handleReadRegion from emit.go
+	// /api/region — uses handleReadRegion from emit.go
 	mux.HandleFunc("/api/region", withCORS(handleReadRegion(brainRoot)))
 
-	// /api/neuronize ??uses handleNeuronizeAPI
+	// /api/neuronize — uses handleNeuronizeAPI
 	mux.HandleFunc("/api/neuronize", withCORS(handleNeuronizeAPI(brainRoot)))
 
-	// /api/polarize ??uses handlePolarizeAPI
+	// /api/polarize — uses handlePolarizeAPI
 	mux.HandleFunc("/api/polarize", withCORS(handlePolarizeAPI(brainRoot)))
 
 	ts := httptest.NewServer(mux)
@@ -306,7 +307,10 @@ func TestAPI_Signal_Memory(t *testing.T) {
 	defer ts.Close()
 
 	body := `{"path":"cortex/test_api/hook","type":"memory"}`
-	resp, _ := http.Post(ts.URL+"/api/signal", "application/json", strings.NewReader(body))
+	resp, err := http.Post(ts.URL+"/api/signal", "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatalf("POST /api/signal failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
@@ -356,7 +360,10 @@ func TestAPI_Region_InvalidRegion(t *testing.T) {
 	ts, _ := setupAPIServer(t)
 	defer ts.Close()
 
-	resp, _ := http.Get(ts.URL + "/api/region?region=invalid")
+	resp, err := http.Get(ts.URL + "/api/region?region=invalid")
+	if err != nil {
+		t.Fatalf("GET /api/region failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 400 {
@@ -369,7 +376,10 @@ func TestAPI_Region_NoParam(t *testing.T) {
 	ts, _ := setupAPIServer(t)
 	defer ts.Close()
 
-	resp, _ := http.Get(ts.URL + "/api/region")
+	resp, err := http.Get(ts.URL + "/api/region")
+	if err != nil {
+		t.Fatalf("GET /api/region failed: %v", err)
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 400 {
@@ -435,4 +445,3 @@ func TestAPI_CORS_Options(t *testing.T) {
 	}
 	t.Log("OK: OPTIONS returns proper CORS headers")
 }
-

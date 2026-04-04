@@ -1,17 +1,17 @@
-// NeuronFS Evolve Engine ??Groq-powered autonomous brain evolution
+// NeuronFS Evolve Engine — Groq-powered autonomous brain evolution
 //
 // USAGE:
-//   neuronfs <brain_path> --evolve           ??analyze episodes + suggest/execute neuron reorganization
-//   neuronfs <brain_path> --evolve --dry-run ??suggest only, don't execute
+//   neuronfs <brain_path> --evolve           — analyze episodes + suggest/execute neuron reorganization
+//   neuronfs <brain_path> --evolve --dry-run — suggest only, don't execute
 //
 // LIFECYCLE:
-//   active ??changes accumulate ??idle ??--evolve (Groq analysis) ??--snapshot (git commit)
+//   active → changes accumulate → idle → --evolve (Groq analysis) → --snapshot (git commit)
 //
 // WHAT IT DOES:
 //   1. Reads hippocampus episode logs (recent 100)
 //   2. Reads current brain state (all regions, counters, dormant status)
 //   3. Sends structured prompt to Groq (llama-3.3-70b-versatile)
-//   4. Parses JSON response ??concrete actions (grow/fire/signal/decay/merge)
+//   4. Parses JSON response → concrete actions (grow/fire/signal/decay/merge)
 //   5. Executes actions on the filesystem
 //   6. Logs evolution event to hippocampus
 
@@ -32,7 +32,7 @@ import (
 	"time"
 )
 
-// ?�?�?� Groq API Types ?�?�?�
+// ─── Groq API Types ───
 
 type groqMessage struct {
 	Role    string `json:"role"`
@@ -67,7 +67,7 @@ type groqError struct {
 	Type    string `json:"type"`
 }
 
-// ?�?�?� Evolution Action Types ?�?�?�
+// ─── Evolution Action Types ───
 
 type evoAction struct {
 	Type   string `json:"type"`   // grow | fire | signal | decay | merge | prune
@@ -82,41 +82,41 @@ type evoResult struct {
 	Insights []string    `json:"insights"`
 }
 
-// ?�?�?� Main evolve function ?�?�?�
+// ─── Main evolve function ───
 
 func runEvolve(brainRoot string, dryRun bool) {
 	apiKey := os.Getenv("GROQ_API_KEY")
 	if apiKey == "" {
 		fmt.Println("[FATAL] GROQ_API_KEY not set")
-		fmt.Println("  Set: $env:GROQ_API_KEY = 'gsk_...'")
+		fmt.Println("  Set: $env:GROQ_API_KEY = '<your-groq-api-key>'")
 		os.Exit(1)
 	}
 
-	fmt.Println("?�═??NeuronFS Evolve Engine ?�═??)
-	fmt.Println("  ?�� Groq-powered autonomous brain evolution")
+	fmt.Println("═══ NeuronFS Evolve Engine ═══")
+	fmt.Println("  🧬 Groq-powered autonomous brain evolution")
 	if dryRun {
-		fmt.Println("  ?�️  DRY RUN ??suggestions only, no execution")
+		fmt.Println("  ⚠️  DRY RUN — suggestions only, no execution")
 	}
 	fmt.Println()
 
-	// Process corrections.jsonl (Layer 2 backup ??uses existing processInbox from main.go)
+	// Process corrections.jsonl (Layer 2 backup — uses existing processInbox from main.go)
 	processInbox(brainRoot)
 
 	// 1. Collect episode logs
 	episodes := collectEpisodes(brainRoot)
-	fmt.Printf("  ?�� Episodes collected: %d\n", len(episodes))
+	fmt.Printf("  📝 Episodes collected: %d\n", len(episodes))
 
 	// 2. Collect brain state summary
 	brain := scanBrain(brainRoot)
 	result := runSubsumption(brain)
 	brainSummary := buildBrainSummary(brain, result)
-	fmt.Printf("  ?�� Brain: %d neurons, activation: %d\n", result.TotalNeurons, result.TotalCounter)
+	fmt.Printf("  🧠 Brain: %d neurons, activation: %d\n", result.TotalNeurons, result.TotalCounter)
 
 	// 3. Build prompt
 	prompt := buildEvolvePrompt(episodes, brainSummary, result)
 
 	// 4. Call Groq API
-	fmt.Println("\n  ?�� Calling Groq API (llama-3.3-70b-versatile)...")
+	fmt.Println("\n  🌐 Calling Groq API (llama-3.3-70b-versatile)...")
 	startTime := time.Now()
 
 	evoResp, err := callGroq(apiKey, prompt)
@@ -126,30 +126,30 @@ func runEvolve(brainRoot string, dryRun bool) {
 	}
 
 	elapsed := time.Since(startTime)
-	fmt.Printf("  ??Response received in %s\n\n", elapsed.Round(time.Millisecond))
+	fmt.Printf("  ✅ Response received in %s\n\n", elapsed.Round(time.Millisecond))
 
 	// 5. Display results
-	fmt.Println("?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�╗")
-	fmt.Println("??  ?�� EVOLUTION ANALYSIS              ??)
-	fmt.Println("?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�╝")
+	fmt.Println("╔══════════════════════════════════════╗")
+	fmt.Println("║   🧬 EVOLUTION ANALYSIS              ║")
+	fmt.Println("╚══════════════════════════════════════╝")
 	fmt.Println()
-	fmt.Printf("  ?�� Summary: %s\n\n", evoResp.Summary)
+	fmt.Printf("  📋 Summary: %s\n\n", evoResp.Summary)
 
 	if len(evoResp.Insights) > 0 {
-		fmt.Println("  ?�� Insights:")
+		fmt.Println("  💡 Insights:")
 		for _, insight := range evoResp.Insights {
-			fmt.Printf("    ??%s\n", insight)
+			fmt.Printf("    • %s\n", insight)
 		}
 		fmt.Println()
 	}
 
 	if len(evoResp.Actions) == 0 {
-		fmt.Println("  ??No actions recommended ??brain is in good shape.")
+		fmt.Println("  ✅ No actions recommended — brain is in good shape.")
 		logEpisode(brainRoot, "EVOLVE", "No actions needed. Brain healthy.")
 		return
 	}
 
-	fmt.Printf("  ?�� Actions (%d):\n", len(evoResp.Actions))
+	fmt.Printf("  🎯 Actions (%d):\n", len(evoResp.Actions))
 	for i, action := range evoResp.Actions {
 		icon := actionIcon(action.Type)
 		fmt.Printf("    %d. %s [%s] %s\n", i+1, icon, action.Type, action.Path)
@@ -162,13 +162,13 @@ func runEvolve(brainRoot string, dryRun bool) {
 
 	// 6. Execute (if not dry run)
 	if dryRun {
-		fmt.Println("  ?�️  DRY RUN ??no actions executed.")
+		fmt.Println("  ⚠️  DRY RUN — no actions executed.")
 		fmt.Println("  Run without --dry-run to apply these changes.")
 		logEpisode(brainRoot, "EVOLVE:DRY", fmt.Sprintf("%d actions suggested", len(evoResp.Actions)))
 		return
 	}
 
-	fmt.Println("  ??Executing actions...")
+	fmt.Println("  ⚡ Executing actions...")
 	executed := 0
 	skipped := 0
 
@@ -177,7 +177,7 @@ func runEvolve(brainRoot string, dryRun bool) {
 		case "grow":
 			err := growNeuron(brainRoot, action.Path)
 			if err != nil {
-				fmt.Printf("    ??grow %s: %v\n", action.Path, err)
+				fmt.Printf("    ❌ grow %s: %v\n", action.Path, err)
 				skipped++
 			} else {
 				executed++
@@ -193,7 +193,7 @@ func runEvolve(brainRoot string, dryRun bool) {
 			}
 			err := signalNeuron(brainRoot, action.Path, action.Signal)
 			if err != nil {
-				fmt.Printf("    ??signal %s %s: %v\n", action.Signal, action.Path, err)
+				fmt.Printf("    ❌ signal %s %s: %v\n", action.Signal, action.Path, err)
 				skipped++
 			} else {
 				executed++
@@ -206,20 +206,20 @@ func runEvolve(brainRoot string, dryRun bool) {
 				dormantFile := filepath.Join(fullPath, "evolve.dormant")
 				os.WriteFile(dormantFile, []byte(fmt.Sprintf("Evolved: %s\nReason: %s\n",
 					time.Now().Format("2006-01-02"), action.Reason)), 0644)
-				fmt.Printf("    ?�� Pruned: %s\n", action.Path)
+				fmt.Printf("    💤 Pruned: %s\n", action.Path)
 				executed++
 			} else {
-				fmt.Printf("    ??prune %s: not found\n", action.Path)
+				fmt.Printf("    ❌ prune %s: not found\n", action.Path)
 				skipped++
 			}
 
 		default:
-			fmt.Printf("    ?�️  Unknown action type: %s\n", action.Type)
+			fmt.Printf("    ⚠️  Unknown action type: %s\n", action.Type)
 			skipped++
 		}
 	}
 
-	fmt.Printf("\n  ?�� Result: %d executed, %d skipped\n", executed, skipped)
+	fmt.Printf("\n  📊 Result: %d executed, %d skipped\n", executed, skipped)
 
 	// Log evolution event
 	logEpisode(brainRoot, "EVOLVE", fmt.Sprintf("%d actions executed, %d skipped. Summary: %s",
@@ -231,7 +231,7 @@ func runEvolve(brainRoot string, dryRun bool) {
 	}
 }
 
-// ?�?�?� Collect hippocampus episode logs ?�?�?�
+// ─── Collect hippocampus episode logs ───
 
 func collectEpisodes(brainRoot string) []string {
 	logDir := filepath.Join(brainRoot, "hippocampus", "session_log")
@@ -268,7 +268,7 @@ func collectEpisodes(brainRoot string) []string {
 	return result
 }
 
-// ?�?�?� Build brain summary for prompt ?�?�?�
+// ─── Build brain summary for prompt ───
 
 func buildBrainSummary(brain Brain, result SubsumptionResult) string {
 	var sb strings.Builder
@@ -297,7 +297,7 @@ func buildBrainSummary(brain Brain, result SubsumptionResult) string {
 			}
 			dopStr := ""
 			if n.Dopamine > 0 {
-				dopStr = fmt.Sprintf(" ?��dopa:%d", n.Dopamine)
+				dopStr = fmt.Sprintf(" 🟢dopa:%d", n.Dopamine)
 			}
 			sb.WriteString(fmt.Sprintf("  - %s (counter:%d%s%s)\n", n.Path, n.Counter, dopStr, status))
 		}
@@ -307,7 +307,7 @@ func buildBrainSummary(brain Brain, result SubsumptionResult) string {
 	return sb.String()
 }
 
-// ?�?�?� Build the evolution prompt ?�?�?�
+// ─── Build the evolution prompt ───
 
 func buildEvolvePrompt(episodes []string, brainSummary string, _ SubsumptionResult) string {
 	var sb strings.Builder
@@ -316,22 +316,22 @@ func buildEvolvePrompt(episodes []string, brainSummary string, _ SubsumptionResu
 	sb.WriteString("## NeuronFS Axioms\n")
 	sb.WriteString("- Folder = Neuron (name is meaning, depth is specificity)\n")
 	sb.WriteString("- File = Firing Trace (N.neuron = counter/activation strength)\n")
-	sb.WriteString("- Path = Sentence (brain/cortex/frontend/css ??'cortex > frontend > css')\n")
+	sb.WriteString("- Path = Sentence (brain/cortex/frontend/css → 'cortex > frontend > css')\n")
 	sb.WriteString("- Counter = Activation (higher = stronger/myelinated path)\n")
 	sb.WriteString("- dopamineN.neuron = positive reinforcement\n")
 	sb.WriteString("- bomb.neuron = circuit breaker (blocks entire region)\n")
 	sb.WriteString("- .dormant = pruned/inactive neuron (ISOLATION, never deletion)\n\n")
 
-	sb.WriteString("## Brain Regions (7, prioritized ??Subsumption Architecture)\n")
+	sb.WriteString("## Brain Regions (7, prioritized — Subsumption Architecture)\n")
 	sb.WriteString("P0:brainstem (conscience/survival) > P1:limbic (emotion) > P2:hippocampus (memory) > P3:sensors (environment) > P4:cortex (knowledge) > P5:ego (tone/style) > P6:prefrontal (goals)\n\n")
 
-	// ?�?� IDENTITY: loaded dynamically from ego + sensors regions ?�?�
-	sb.WriteString("## ?�� Owner Context (from brain state ??DO NOT MODIFY)\n")
+	// ── IDENTITY: loaded dynamically from ego + sensors regions ──
+	sb.WriteString("## 🧠 Owner Context (from brain state — DO NOT MODIFY)\n")
 	sb.WriteString("The owner's identity, brand, and projects are encoded as neurons in ego/sensors/prefrontal regions.\n")
 	sb.WriteString("Read the Brain State below to understand the owner's context.\n")
 	sb.WriteString("NEVER modify brainstem, limbic, or sensors/brand neurons.\n\n")
 
-	sb.WriteString("### Brainstem Rules (P0 ??ABSOLUTE, NEVER TOUCH)\n")
+	sb.WriteString("### Brainstem Rules (P0 — ABSOLUTE, NEVER TOUCH)\n")
 	sb.WriteString("These are read from the brainstem region neurons above. They are inviolable.\n\n")
 
 	sb.WriteString("## Valid Regions for grow paths\n")
@@ -368,16 +368,16 @@ func buildEvolvePrompt(episodes []string, brainSummary string, _ SubsumptionResu
 
 	sb.WriteString("## STRICT RULES (violation = system failure)\n")
 	sb.WriteString("1. Maximum 10 actions per evolution cycle\n")
-	sb.WriteString("2. Prefer 'fire' (reinforce existing) over 'grow' (create new) ??consolidation over expansion\n")
-	sb.WriteString("3. NEVER touch brainstem neurons (P0 is read-only conscience) ??not grow, not prune, not signal\n")
+	sb.WriteString("2. Prefer 'fire' (reinforce existing) over 'grow' (create new) — consolidation over expansion\n")
+	sb.WriteString("3. NEVER touch brainstem neurons (P0 is read-only conscience) — not grow, not prune, not signal\n")
 	sb.WriteString("4. NEVER touch limbic neurons (P1 emotion system is automatic)\n")
 	sb.WriteString("5. NEVER touch sensors/brand/* (owner's brand identity is sacred)\n")
-	sb.WriteString("6. NEVER create duplicate neurons ??check existing paths first\n")
-	sb.WriteString("7. NEVER delete ??prune means mark dormant (isolation), NOT deletion\n")
+	sb.WriteString("6. NEVER create duplicate neurons — check existing paths first\n")
+	sb.WriteString("7. NEVER delete — prune means mark dormant (isolation), NOT deletion\n")
 	sb.WriteString("8. 'prune' ONLY neurons with counter=1 AND no dopamine AND overlap with higher-counter neurons\n")
 	sb.WriteString("9. 'signal dopamine' neurons that have been consistently useful (frequent FIRE in logs)\n")
 	sb.WriteString("10. Paths must use / separator and start with a valid region name\n")
-	sb.WriteString("11. When unsure, do NOTHING ??empty actions array is perfectly valid\n")
+	sb.WriteString("11. When unsure, do NOTHING — empty actions array is perfectly valid\n")
 	sb.WriteString("12. Korean neuron names are fine and expected. Do not translate them.\n\n")
 
 	sb.WriteString("Respond ONLY with valid JSON. No markdown, no explanation outside JSON.\n")
@@ -385,13 +385,13 @@ func buildEvolvePrompt(episodes []string, brainSummary string, _ SubsumptionResu
 	return sb.String()
 }
 
-// ?�?�?� Call Groq API ?�?�?�
+// ─── Call Groq API ───
 
 func callGroq(apiKey string, prompt string) (*evoResult, error) {
 	reqBody := groqRequest{
 		Model: "llama-3.3-70b-versatile",
 		Messages: []groqMessage{
-			{Role: "system", Content: "?�신?� NeuronFS ?�의 '백혈�??��?면역 ?�포)'?�니?? ?�용?�의 교정 로그?� ?�러 ?�역??분석?�여, 미래??AI ?�이?�트?�이 **같�? ?�수�??��? 반복?��? 못하?�록** 강력???�제(Contra) 규칙??만드??��??\n\n**[Rule Writing Guidelines]**\n1. **?�일�?(Filename):** 부??금�???명사�?10???�내 ?�성 (?? `반복루프_금�?.md`, `?��?경로_?�존X.md`)\n2. **종결?��?:** \"~?�야 ?�니??", \"~?�는 것이 좋습?�다\" 금�?. \"~~마라\", \"~~??�?", \"~~금�?\" ??군더?�기 ?�는 명령�?Imperative) ?�용.\n3. **?�문 금�?:** \"?�겠?�니??", \"?�음?� 규칙?�니??" 같�? ?�답 ?�성 ?��? 금�?. ?�직 Markdown 본문�?출력??�?\n\n?�한 기존 긍정???�런??부?�형?�로 ?�환??경우, ?��? 본문??�?문장??금�????�유(Rationale)�?????줄의 강력??메�??�로 ?�술?�십?�오."},
+			{Role: "system", Content: "당신은 NeuronFS 뇌의 '백혈구(자가면역 세포)'입니다. 사용자의 교정 로그와 에러 내역을 분석하여, 미래의 AI 에이전트들이 **같은 실수를 절대 반복하지 못하도록** 강력한 억제(Contra) 규칙을 만드십시오.\n\n**[Rule Writing Guidelines]**\n1. **파일명 (Filename):** 부정/금지형 명사로 10자 이내 작성 (예: `반복루프_금지.md`, `절대경로_의존X.md`)\n2. **종결어미:** \"~해야 합니다\", \"~하는 것이 좋습니다\" 금지. \"~~마라\", \"~~할 것\", \"~~금지\" 등 군더더기 없는 명령조(Imperative) 사용.\n3. **서문 금지:** \"알겠습니다\", \"다음은 규칙입니다\" 같은 응답 생성 절대 금지. 오직 Markdown 본문만 출력할 것.\n\n또한 기존 긍정형 뉴런을 부정형으로 전환할 경우, 내부 본문의 첫 문장에 금지의 이유(Rationale)를 단 한 줄의 강력한 메타포로 서술하십시오."},
 			{Role: "user", Content: prompt},
 		},
 		Temperature: 0.3,
@@ -473,30 +473,30 @@ func callGroq(apiKey string, prompt string) (*evoResult, error) {
 		// Validate region
 		parts := strings.SplitN(a.Path, "/", 2)
 		if len(parts) < 2 {
-			fmt.Printf("  ?�️  Skipping invalid path (no region): %s\n", a.Path)
+			fmt.Printf("  ⚠️  Skipping invalid path (no region): %s\n", a.Path)
 			continue
 		}
 		region := parts[0]
 		if _, ok := regionPriority[region]; !ok {
-			fmt.Printf("  ?�️  Skipping invalid region '%s' in path: %s\n", region, a.Path)
+			fmt.Printf("  ⚠️  Skipping invalid region '%s' in path: %s\n", region, a.Path)
 			continue
 		}
 
-		// Block brainstem modifications (P0 conscience ??read-only)
+		// Block brainstem modifications (P0 conscience — read-only)
 		if region == "brainstem" && (a.Type == "grow" || a.Type == "prune" || a.Type == "decay") {
-			fmt.Printf("  ?���? Blocked: cannot %s brainstem (read-only conscience)\n", a.Type)
+			fmt.Printf("  🛡️  Blocked: cannot %s brainstem (read-only conscience)\n", a.Type)
 			continue
 		}
 
-		// Block limbic modifications (P1 emotion ??automatic system)
+		// Block limbic modifications (P1 emotion — automatic system)
 		if region == "limbic" && (a.Type == "grow" || a.Type == "prune" || a.Type == "decay") {
-			fmt.Printf("  ?���? Blocked: cannot %s limbic (automatic emotion system)\n", a.Type)
+			fmt.Printf("  🛡️  Blocked: cannot %s limbic (automatic emotion system)\n", a.Type)
 			continue
 		}
 
 		// Block sensors/brand modifications (PD's sacred identity)
 		if region == "sensors" && strings.HasPrefix(parts[1], "brand") {
-			fmt.Printf("  ?���? Blocked: cannot %s sensors/brand (owner's brand identity)\n", a.Type)
+			fmt.Printf("  🛡️  Blocked: cannot %s sensors/brand (owner's brand identity)\n", a.Type)
 			continue
 		}
 
@@ -505,7 +505,7 @@ func callGroq(apiKey string, prompt string) (*evoResult, error) {
 		case "grow", "fire", "signal", "prune", "decay":
 			validActions = append(validActions, a)
 		default:
-			fmt.Printf("  ?�️  Skipping unknown action type: %s\n", a.Type)
+			fmt.Printf("  ⚠️  Skipping unknown action type: %s\n", a.Type)
 		}
 	}
 	evoResp.Actions = validActions
@@ -513,7 +513,7 @@ func callGroq(apiKey string, prompt string) (*evoResult, error) {
 	return &evoResp, nil
 }
 
-// ?�?�?� REST API endpoint for evolve ?�?�?�
+// ─── REST API endpoint for evolve ───
 
 func handleEvolveAPI(brainRoot string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -608,22 +608,22 @@ func handleEvolveAPI(brainRoot string) http.HandlerFunc {
 	}
 }
 
-// ?�?�?� Helpers ?�?�?�
+// ─── Helpers ───
 
 func actionIcon(actionType string) string {
 	switch actionType {
 	case "grow":
-		return "?��"
+		return "🌱"
 	case "fire":
-		return "?��"
+		return "🔥"
 	case "signal":
-		return "?��"
+		return "📡"
 	case "prune", "decay":
-		return "?��"
+		return "💤"
 	case "merge":
-		return "?��"
+		return "🔗"
 	default:
-		return "??
+		return "❓"
 	}
 }
 
@@ -642,4 +642,3 @@ func truncate(s string, maxLen int) string {
 	}
 	return s[:maxLen] + "..."
 }
-

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-// ?�?�?� Brain Initializer ?�?�?�
+// ─── Brain Initializer ───
 // Creates the correct folder-as-neuron structure
 // Each call to neuron() creates: folder + N.neuron counter file
 
@@ -40,22 +40,25 @@ func initBrain(root string) {
 	b := &brainInit{root: root}
 	fmt.Println("=== NeuronFS Brain v4 Init ===")
 
-	// ?�━??BRAINSTEM ?�━??	fmt.Println("[1/7] brainstem")
+	// ━━━ BRAINSTEM ━━━
+	fmt.Println("[1/7] brainstem")
 	b.neuron("brainstem/no_simulation_real_results", 99)
 	b.neuron("brainstem/no_repeat_same_mistakes", 99)
 	b.neuron("brainstem/never_use_fallback", 99)
 	b.neuron("brainstem/quality_over_speed", 99)
 	b.neuron("brainstem/self_debug_visual_verify", 99)
 	b.neuron("brainstem/execute_dont_discuss", 99)
-	b.neuron("brainstem/verify_before_deliver", 99)           // 검�????�달
-	b.neuron("brainstem/auto_iterate_until_satisfied", 99)    // ?�기_반복_검�?	b.neuron("brainstem/no_hardcoding", 99)                   // ?�드코딩_금�?
-	b.neuron("brainstem/no_process_bypass", 99)               // ?�로?�스_?�회_금�?
-	b.neuron("brainstem/understand_direction_accurately", 99) // 방향_?�확_?�해
+	b.neuron("brainstem/verify_before_deliver", 99)           // 검증_후_전달
+	b.neuron("brainstem/auto_iterate_until_satisfied", 99)    // 자기_반복_검증
+	b.neuron("brainstem/no_hardcoding", 99)                   // 하드코딩_금지
+	b.neuron("brainstem/no_process_bypass", 99)               // 프로세스_우회_금지
+	b.neuron("brainstem/understand_direction_accurately", 99) // 방향_정확_이해
 	b.neuron("brainstem/always_use_async_await", 50)
 	b.neuron("brainstem/no_ampersand_use_semicolon", 50)
 	b.neuron("brainstem/scripts_must_be_ps1", 50)
 
-	// ?�━??LIMBIC ?�━??	fmt.Println("[2/7] limbic")
+	// ━━━ LIMBIC ━━━
+	fmt.Println("[2/7] limbic")
 	b.neuron("limbic/detect_frustration", 1)
 	b.neuron("limbic/detect_urgency", 1)
 	b.neuron("limbic/detect_praise", 1)
@@ -64,15 +67,17 @@ func initBrain(root string) {
 	b.neuron("limbic/endorphin_persistence", 1)
 	b.neuron("limbic/strip_emotion_forward_goal", 1)
 
-	// ?�━??HIPPOCAMPUS ?�━??	fmt.Println("[3/7] hippocampus")
+	// ━━━ HIPPOCAMPUS ━━━
+	fmt.Println("[3/7] hippocampus")
 	b.neuron("hippocampus/session_log", 1, "memory1")
 	b.neuron("hippocampus/bomb_history", 1, "memory1")
 	b.neuron("hippocampus/error_patterns", 1, "memory1")
 	b.neuron("hippocampus/dopamine_log", 1, "memory1")
-	b.neuron("hippocampus/context_restore_from_previous", 30, "memory1")  // ?�??복원
-	b.neuron("hippocampus/user_correction_ground_truth", 30, "memory1")   // ?�용???�본_?�습
+	b.neuron("hippocampus/context_restore_from_previous", 30, "memory1")  // 대화 복원
+	b.neuron("hippocampus/user_correction_ground_truth", 30, "memory1")   // 사용자_표본_학습
 
-	// ?�━??SENSORS ?�━??	fmt.Println("[4/7] sensors")
+	// ━━━ SENSORS ━━━
+	fmt.Println("[4/7] sensors")
 	b.neuron("sensors/nas/write_cmd_copy_only", 30)
 	b.neuron("sensors/nas/no_powershell_copyitem", 30)
 	b.neuron("sensors/nas/test_path_before_write", 20)
@@ -81,10 +86,12 @@ func initBrain(root string) {
 	b.neuron("sensors/design/glassmorphism_blur20", 15)
 	b.neuron("sensors/design/button_rounded_full", 15)
 	b.neuron("sensors/typography/font_suit_ko_instrument_en", 20)
-	b.neuron("sensors/brand/vegavery_run_premium_wellness", 30)    // 브랜???�체??	b.neuron("sensors/brand/tone_premium_natural_luxury", 30)      // ?�앤매너
+	b.neuron("sensors/brand/vegavery_run_premium_wellness", 30)    // 브랜드 정체성
+	b.neuron("sensors/brand/tone_premium_natural_luxury", 30)      // 톤앤매너
 	b.neuron("sensors/nas_brain/path_z_vol1_vgvr_brain_lw", 20)   // NAS BRAIN 경로
 
-	// ?�━??CORTEX ?�━??	fmt.Println("[5/7] cortex")
+	// ━━━ CORTEX ━━━
+	fmt.Println("[5/7] cortex")
 
 	// frontend
 	b.neuron("cortex/frontend/css/glass_blur20_alpha15", 10)
@@ -104,10 +111,12 @@ func initBrain(root string) {
 	b.neuron("cortex/backend/devops/multi_stage_build", 5)
 
 	// methodology (from global principles)
-	b.neuron("cortex/methodology/community_academic_search", 30)   // 커�??�티_?�계_검??	b.neuron("cortex/methodology/positive_negative_both", 30)      // 긍정_부???�방??	b.neuron("cortex/methodology/two_persona_debate", 20)          // ???�르?�나_?�쟁
-	b.neuron("cortex/methodology/third_party_audit", 20)           // ?????�선_감사
-	b.neuron("cortex/methodology/dictionary_based_matching", 20)   // ?�전_기반_매칭
-	b.neuron("cortex/methodology/ask_only_when_necessary", 30)     // ?�요??경우�?질문
+	b.neuron("cortex/methodology/community_academic_search", 30)   // 커뮤니티_학계_검색
+	b.neuron("cortex/methodology/positive_negative_both", 30)      // 긍정_부정_양방향
+	b.neuron("cortex/methodology/two_persona_debate", 20)          // 두_페르소나_논쟁
+	b.neuron("cortex/methodology/third_party_audit", 20)           // 제3자_시선_감사
+	b.neuron("cortex/methodology/dictionary_based_matching", 20)   // 사전_기반_매칭
+	b.neuron("cortex/methodology/ask_only_when_necessary", 30)     // 필요한_경우만_질문
 
 	// NeuronFS meta-knowledge
 	b.neuron("cortex/neuronfs/axiom/folder_is_neuron", 99, "dopamine1")
@@ -162,7 +171,8 @@ func initBrain(root string) {
 	b.neuron("cortex/neuronfs/defense/server_db_snapshot", 10)
 	b.neuron("cortex/neuronfs/defense/bomb_circuit_breaker_auto", 30)
 
-	// ?�━??CORTEX/SKILLS ??External skill references ?�━??	home := os.Getenv("USERPROFILE")
+	// ━━━ CORTEX/SKILLS — External skill references ━━━
+	home := os.Getenv("USERPROFILE")
 	if home == "" {
 		home = os.Getenv("HOME") // fallback for non-Windows
 	}
@@ -177,7 +187,8 @@ func initBrain(root string) {
 	b.neuron("cortex/skills/supanova/output_skill", 15)
 	b.axon("cortex/skills/supanova/output_skill/ref.axon", "SKILL:"+filepath.Join(skillBase, "output-skill", "SKILL.md"))
 
-	// ?�━??EGO ?�━??	fmt.Println("[6/7] ego")
+	// ━━━ EGO ━━━
+	fmt.Println("[6/7] ego")
 	b.neuron("ego/expert_concise", 30)
 	b.neuron("ego/korean_native", 30)
 	b.neuron("ego/transistor_gate_decomposition", 20)
@@ -186,7 +197,8 @@ func initBrain(root string) {
 	b.neuron("ego/aggressive_rebuild", 10)
 	b.neuron("ego/conservative_patch", 10)
 
-	// ?�━??PREFRONTAL ?�━??	fmt.Println("[7/7] prefrontal")
+	// ━━━ PREFRONTAL ━━━
+	fmt.Println("[7/7] prefrontal")
 	b.neuron("prefrontal/long_term_direction", 1)
 	b.neuron("prefrontal/current_sprint", 1)
 	b.neuron("prefrontal/future_tasks", 1)
@@ -195,27 +207,30 @@ func initBrain(root string) {
 	b.neuron("prefrontal/project/vegavery_crm_operations", 15)
 	b.neuron("prefrontal/project/video_pipeline_v17", 10)
 
-	// ?�━??AXON crosslinks ??Layered Network ?�━??	// Subsumption cascade: brainstem ??limbic ??hippocampus ??sensors ??cortex ??ego ??prefrontal
+	// ━━━ AXON crosslinks — Layered Network ━━━
+	// Subsumption cascade: brainstem → limbic → hippocampus → sensors → cortex → ego → prefrontal
 	// Each layer checks the layer above before acting (priority = layer order)
 	fmt.Println("[AXON] layered network")
 
 	// --- Cascade (top-down priority chain) ---
-	b.axon("brainstem/cascade_to_limbic.axon", "limbic")          // bomb?�면 감정 차단
-	b.axon("limbic/cascade_from_brainstem.axon", "brainstem")     // 감정 ?�에 ?�심 체크
-	b.axon("limbic/cascade_to_hippocampus.axon", "hippocampus")   // 감정??기억 ?�리�?	b.axon("hippocampus/cascade_from_limbic.axon", "limbic")      // 기억 ?�에 감정 체크
-	b.axon("hippocampus/cascade_to_sensors.axon", "sensors")      // 기억???�경 ?�식???�향
-	b.axon("sensors/cascade_from_hippocampus.axon", "hippocampus")// ?�경 ?�에 과거 ?�턴 체크
-	b.axon("sensors/cascade_to_cortex.axon", "cortex")            // ?�경 ?�약??지???�터�?	b.axon("cortex/cascade_from_sensors.axon", "sensors")         // 지???�용 ?�에 ?�경 ?�인
-	b.axon("cortex/cascade_to_ego.axon", "ego")                   // 지?�이 ?�현 방식 결정
-	b.axon("ego/cascade_from_cortex.axon", "cortex")              // ??결정 ?�에 지???�인
-	b.axon("ego/cascade_to_prefrontal.axon", "prefrontal")        // ?�향??목표 ?�석???�향
-	b.axon("prefrontal/cascade_from_ego.axon", "ego")             // 목표 ?�에 ?�향 ?�인
+	b.axon("brainstem/cascade_to_limbic.axon", "limbic")          // bomb이면 감정 차단
+	b.axon("limbic/cascade_from_brainstem.axon", "brainstem")     // 감정 전에 양심 체크
+	b.axon("limbic/cascade_to_hippocampus.axon", "hippocampus")   // 감정이 기억 트리거
+	b.axon("hippocampus/cascade_from_limbic.axon", "limbic")      // 기억 전에 감정 체크
+	b.axon("hippocampus/cascade_to_sensors.axon", "sensors")      // 기억이 환경 인식에 영향
+	b.axon("sensors/cascade_from_hippocampus.axon", "hippocampus")// 환경 전에 과거 패턴 체크
+	b.axon("sensors/cascade_to_cortex.axon", "cortex")            // 환경 제약이 지식 필터링
+	b.axon("cortex/cascade_from_sensors.axon", "sensors")         // 지식 적용 전에 환경 확인
+	b.axon("cortex/cascade_to_ego.axon", "ego")                   // 지식이 표현 방식 결정
+	b.axon("ego/cascade_from_cortex.axon", "cortex")              // 톤 결정 전에 지식 확인
+	b.axon("ego/cascade_to_prefrontal.axon", "prefrontal")        // 성향이 목표 해석에 영향
+	b.axon("prefrontal/cascade_from_ego.axon", "ego")             // 목표 전에 성향 확인
 
 	// --- Cross-links (shortcuts = small-world network) ---
-	b.axon("prefrontal/shortcut_to_cortex.axon", "cortex")       // 목표가 직접 지???�택
-	b.axon("cortex/shortcut_to_hippocampus.axon", "hippocampus") // ?�습 결과�?기억??기록
-	b.axon("limbic/shortcut_to_cortex.axon", "cortex")           // 긴급 ??지??직접 ?�근
-	b.axon("sensors/shortcut_to_brainstem.axon", "brainstem")    // ?�경 ?�험 ??본능 직접 발동
+	b.axon("prefrontal/shortcut_to_cortex.axon", "cortex")       // 목표가 직접 지식 선택
+	b.axon("cortex/shortcut_to_hippocampus.axon", "hippocampus") // 학습 결과를 기억에 기록
+	b.axon("limbic/shortcut_to_cortex.axon", "cortex")           // 긴급 시 지식 직접 접근
+	b.axon("sensors/shortcut_to_brainstem.axon", "brainstem")    // 환경 위험 → 본능 직접 발동
 
 	// Stats
 	neuronCount := 0
@@ -234,4 +249,3 @@ func initBrain(root string) {
 	fmt.Printf("  Root: %s\n", root)
 	fmt.Printf("  Neurons (folders): %d\n", neuronCount)
 }
-

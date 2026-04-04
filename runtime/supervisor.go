@@ -1,7 +1,7 @@
 // RULE: ZERO EXTERNAL DEPENDENCY PRESERVED
-// supervisor.go ??NeuronFS ?�이?�브 ?�로?�스 매니?�
+// supervisor.go — NeuronFS 네이티브 프로세스 매니저
 //
-// watchdog.ps1 + ?�로?�스 관리�? Go 바이?�리�??�합.
+// watchdog.ps1 + 프로세스 관리를 Go 바이너리로 통합.
 //
 //
 // Usage: neuronfs <brain_path> --supervisor
@@ -81,10 +81,10 @@ func runSupervisor(brainRoot string) {
 	nasBrain := os.Getenv("NEURONFS_NAS_BRAIN")
 
 	fmt.Println("")
-	fmt.Println("?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�╗")
-	fmt.Println("?? NeuronFS Supervisor v2.1 ??Self-Monitoring      ??)
-	fmt.Println("?? ?�로?�스 ?�동?�시??+ ?�기 감시                  ??)
-	fmt.Println("?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�╝")
+	fmt.Println("╔══════════════════════════════════════════════════╗")
+	fmt.Println("║  NeuronFS Supervisor v2.1 — Self-Monitoring      ║")
+	fmt.Println("║  프로세스 자동재시작 + 자기 감시                  ║")
+	fmt.Println("╚══════════════════════════════════════════════════╝")
 	fmt.Println("")
 
 	hijackDir := filepath.Join(userHome, "_architecture_hijack_v4")
@@ -100,16 +100,16 @@ func runSupervisor(brainRoot string) {
 	svLog("\033[35m[AURA] Awakening cognitive architecture... Supervisor online.\033[0m")
 	svLog(fmt.Sprintf("   brain: %s", brainRoot))
 	for _, c := range children {
-		s := "?�성"
+		s := "활성"
 		if !c.Enabled {
-			s = "비활??
+			s = "비활성"
 		}
 		extra := ""
 		if c.Lockable {
 			if c.isLocked() {
-				extra = " [?�� LOCKED]"
+				extra = " [🔒 LOCKED]"
 			} else {
-				extra = " [PM ?�어]"
+				extra = " [PM 제어]"
 			}
 		}
 		svLog(fmt.Sprintf("   %-18s %s%s", c.Name, s, extra))
@@ -131,7 +131,7 @@ func runSupervisor(brainRoot string) {
 
 	if nasBrain != "" && svPathExists(nasBrain) {
 		go svNasSync(brainRoot, nasBrain, stopCh)
-		svLog("?�� NAS ?�기???�성 (5�?")
+		svLog("🔄 NAS 동기화 활성 (5초)")
 	}
 
 	sigCh := make(chan os.Signal, 1)
@@ -141,17 +141,15 @@ func runSupervisor(brainRoot string) {
 	statusTk := time.NewTicker(60 * time.Second)
 	lockTk := time.NewTicker(5 * time.Second)
 	decayTk := time.NewTicker(1 * time.Hour)
-	consolidationTk := time.NewTicker(30 * time.Minute)
 	defer harnessTk.Stop()
 	defer statusTk.Stop()
 	defer lockTk.Stop()
 	defer decayTk.Stop()
-	defer consolidationTk.Stop()
 
 	// Initial decay run
 	go svTTLDecay(brainRoot)
 
-	svLog("?�━??감시 루프 진입 ?�━??)
+	svLog("━━━ 감시 루프 진입 ━━━")
 	for {
 		select {
 		case <-sigCh:
@@ -177,14 +175,12 @@ func runSupervisor(brainRoot string) {
 				wasRunning := c.running
 				c.mu.Unlock()
 				if locked && wasRunning {
-					svLog(fmt.Sprintf("?�� %s ??PM lock. 중�?.", c.Name))
+					svLog(fmt.Sprintf("🔒 %s — PM lock. 중지.", c.Name))
 					c.stop()
 				}
 			}
 		case <-decayTk.C:
 			go svTTLDecay(brainRoot)
-		case <-consolidationTk.C:
-			go svConsolidationCheck(brainRoot, nfsExe)
 		}
 	}
 }
@@ -291,7 +287,7 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 			continue
 		}
 
-		// Circuit breaker: too many rapid restarts ??suspend + alert
+		// Circuit breaker: too many rapid restarts → suspend + alert
 		if c.restartCount >= maxCrashBeforeCircuitBreak {
 			svLog(fmt.Sprintf("\033[31m[TRAUMA] Circuit breaker triggered for %s. Vital signs critical (%d failures).\033[0m", c.Name, c.restartCount))
 			svCrashAlert(c)
@@ -319,7 +315,7 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 		c.proc = cmd
 		c.mu.Unlock()
 
-		svLog(fmt.Sprintf("??%s ?�작 (#%d)", c.Name, c.restartCount))
+		svLog(fmt.Sprintf("▶ %s 시작 (#%d)", c.Name, c.restartCount))
 		if err := cmd.Start(); err != nil {
 			svLog(fmt.Sprintf("\033[33m[FRACTURE] %s neurogenesis failed: %v\033[0m", c.Name, err))
 			if lf != nil {
@@ -350,7 +346,7 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 		}
 
 		if c.isLocked() {
-			svLog(fmt.Sprintf("?�� %s 종료 ??lock ?��?, c.Name))
+			svLog(fmt.Sprintf("🔒 %s 종료 — lock 대기", c.Name))
 			continue
 		}
 
@@ -402,23 +398,23 @@ func svHarness(script, brainRoot string) {
 	if !svPathExists(script) {
 		return
 	}
-	svLog("?�� harness ?�행")
+	svLog("🔍 harness 실행")
 	cmd := exec.Command("powershell", "-ExecutionPolicy", "Bypass", "-File", script)
 	cmd.Dir = filepath.Dir(script)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		svLog(fmt.Sprintf("?�️ harness ?�러: %v", err))
+		svLog(fmt.Sprintf("⚠️ harness 에러: %v", err))
 		return
 	}
 	r := string(out)
 	if strings.Contains(r, "FAIL: 0") || strings.Contains(r, "FAIL:  0") {
-		svLog("??harness PASS")
+		svLog("✅ harness PASS")
 	} else {
-		svLog("?�️ harness ?�반")
+		svLog("⚠️ harness 위반")
 		d := filepath.Join(brainRoot, "_agents", "bot1", "inbox")
 		os.MkdirAll(d, 0755)
 		f := filepath.Join(d, time.Now().Format("20060102_150405")+"_sv_harness.md")
-		os.WriteFile(f, []byte(fmt.Sprintf("# from: supervisor\n# priority: urgent\n\nharness ?�반.\n\n%s\n", r)), 0644)
+		os.WriteFile(f, []byte(fmt.Sprintf("# from: supervisor\n# priority: urgent\n\nharness 위반.\n\n%s\n", r)), 0644)
 	}
 }
 
@@ -426,20 +422,20 @@ func svStatus(children []*ChildSpec) {
 	var p []string
 	for _, c := range children {
 		c.mu.Lock()
-		s := "??
+		s := "❌"
 		if c.running {
-			s = "??
+			s = "✅"
 		}
 		if c.isLocked() {
-			s = "?��"
+			s = "🔒"
 		}
 		if !c.Enabled {
-			s = "�?
+			s = "⬛"
 		}
 		p = append(p, fmt.Sprintf("%s:%s", c.Name, s))
 		c.mu.Unlock()
 	}
-	svLog("?�� " + strings.Join(p, " | "))
+	svLog("💓 " + strings.Join(p, " | "))
 
 	// Check deadlocks and OOM for the HTTP API (NeuronFS API Server usually binds port 9090)
 	for _, c := range children {
@@ -516,7 +512,7 @@ func svStatus(children []*ChildSpec) {
 						    svLog(fmt.Sprintf("\033[33m[WARN] profile write failed: %v\033[0m", err))
 						}
 						
-						// Flatline death screen ??OOM visual feedback
+						// Flatline death screen — OOM visual feedback
 						RenderFlatlineOnOOM(c.Name, memKB, dumpOut)
 
 						c.stop()
@@ -544,7 +540,7 @@ func svCrashAlert(c *ChildSpec) {
 	brainRoot := ""
 	if svLogPath != "" {
 		brainRoot = filepath.Dir(filepath.Dir(svLogPath))
-		// svLogPath = .../logs/supervisor.log ??parent of logs = NeuronFS root
+		// svLogPath = .../logs/supervisor.log → parent of logs = NeuronFS root
 		// brain is brainRoot's child brain_v4/
 		candidates := []string{
 			filepath.Join(brainRoot, "brain_v4"),
@@ -564,69 +560,17 @@ func svCrashAlert(c *ChildSpec) {
 	inboxDir := filepath.Join(brainRoot, "_agents", "bot1", "inbox")
 	os.MkdirAll(inboxDir, 0755)
 	fname := fmt.Sprintf("%s_sv_crash_alert_%s.md", time.Now().Format("20060102_150405"), c.Name)
-	content := fmt.Sprintf("# from: supervisor\n# priority: urgent\n\n## ?�� ?�로?�스 ?�킷 브레?�커\n\n"+
-		"**?�로?�스:** %s\n"+
-		"**?�속 ?�래??** %d??n"+
-		"**?�각:** %s\n\n"+
-		"60�?쿨다?????�시?�을 ?�도?�니?? 반복 발생 ???�동 개입???�요?�니??\n",
+	content := fmt.Sprintf("# from: supervisor\n# priority: urgent\n\n## 🚨 프로세스 서킷 브레이커\n\n"+
+		"**프로세스:** %s\n"+
+		"**연속 크래시:** %d회\n"+
+		"**시각:** %s\n\n"+
+		"60초 쿨다운 후 재시작을 시도합니다. 반복 발생 시 수동 개입이 필요합니다.\n",
 		c.Name, c.restartCount, time.Now().Format("2006-01-02 15:04:05"))
 	os.WriteFile(filepath.Join(inboxDir, fname), []byte(content), 0644)
-	svLog(fmt.Sprintf("?�� ?�래???�림 ??%s", fname))
+	svLog(fmt.Sprintf("📨 크래시 알림 → %s", fname))
 }
 
 func svPathExists(p string) bool {
 	_, err := os.Stat(p)
 	return err == nil
 }
-
-func svConsolidationCheck(brainRoot string, nfsExe string) {
-	cortexPath := filepath.Join(brainRoot, "cortex")
-	if !svPathExists(cortexPath) {
-		return
-	}
-	var count int
-	filepath.Walk(cortexPath, func(path string, info os.FileInfo, err error) error {
-		if err == nil && info.IsDir() && path != cortexPath {
-			count++
-		}
-		return nil
-	})
-	
-	if count > 50 {
-		svLog(fmt.Sprintf("\033[35m[CONSOLIDATION] Synaptic density critical (>50 neurons: %d). Triggering Auto-Consolidation pipeline...\033[0m", count))
-		
-		// ?�?� [??git ?? ?�축 ???�이???�전�? ?�?�
-		svLog("\033[90m[GIT] Pre-consolidation snapshot triggered (??git 진행)...\033[0m")
-		SafeExec(30*time.Second, "git", "-C", brainRoot, "add", ".")
-		SafeExec(30*time.Second, "git", "-C", brainRoot, "commit", "-m", "Auto-checkpoint before consolidation")
-
-		cmd := exec.Command(nfsExe, brainRoot, "--consolidate")
-		cmd.Dir = filepath.Dir(brainRoot)
-		
-		lp := filepath.Join(filepath.Dir(svLogPath), "consolidate.log")
-		if lf, err := os.OpenFile(lp, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
-			cmd.Stdout = lf
-			cmd.Stderr = lf
-		}
-		
-		if err := cmd.Start(); err != nil {
-			svLog(fmt.Sprintf("\033[31m[TRAUMA] Auto-Consolidation execution failed: %v\033[0m", err))
-		} else {
-			go func() {
-				cmd.Wait()
-				svLog("\033[32m[HEAL] Auto-Consolidation complete. Cortex synapses consolidated.\033[0m")
-				
-				// ?�?� [NAS ?�질 ?�이???�?�스?�프 ?�카?�빙 ?�식] ?�?�
-				nasArchive := "Z:\\VOL1\\VGVR\\Archive"
-				if svPathExists("Z:\\VOL1\\VGVR") {
-					ts := time.Now().Format("20060102_150405")
-					archivePath := filepath.Join(nasArchive, "brain_v4_snapshot_"+ts)
-					svLog(fmt.Sprintf("\033[36m[ARCHIVE] Saving consolidated snapshot to NAS: %s\033[0m", archivePath))
-					roboCmd := exec.Command("robocopy", brainRoot, archivePath, "/MIR", "/MT:4", "/NDL", "/NJH", "/NJS", "/NC", "/NS", "/NP")
-					roboCmd.Run()
-				}
-			}()
-		}
-	}
-}
-

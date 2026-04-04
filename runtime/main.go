@@ -1,25 +1,25 @@
-// NeuronFS Runtime v4.0 ??Folder-as-Neuron Cognitive Engine
+// NeuronFS Runtime v4.0 — Folder-as-Neuron Cognitive Engine
 //
 // AXIOMS:
 //   1. Folder = Neuron (name is meaning, depth is specificity)
 //   2. File = Firing Trace (N.neuron = counter, dopamineN = reward, bomb = pain)
-//   3. Path = Sentence (brain/cortex/quality/no_hardcoded ??"cortex > quality > no_hardcoded")
+//   3. Path = Sentence (brain/cortex/quality/no_hardcoded → "cortex > quality > no_hardcoded")
 //   4. Counter = Activation (higher = stronger/myelinated path)
 //   5. AI writes back (counter increment = experience growth)
 //
 // USAGE:
-//   neuronfs <brain_path>              ??diagnostics
-//   neuronfs <brain_path> --emit       ??output rules to stdout
-//   neuronfs <brain_path> --emit <target> ??emit to editor file (gemini/cursor/claude/copilot/generic/all)
-//   neuronfs <brain_path> --inject     ??write rules to GEMINI.md
-//   neuronfs <brain_path> --watch      ??watch + auto-inject
-//   neuronfs <brain_path> --dashboard  ??web dashboard on :9090
-//   neuronfs <brain_path> --grow <path> ??create new neuron
-//   neuronfs <brain_path> --fire <path> ??increment neuron counter
-//   neuronfs <brain_path> --signal <type> <path> ??add dopamine/bomb/memory
-//   neuronfs <brain_path> --decay [days] ??move inactive neurons to dormant
-//   neuronfs <brain_path> --rollback <path> ??decrement neuron counter (min=1)
-//   neuronfs <brain_path> --api        ??start REST API on :9090
+//   neuronfs <brain_path>              — diagnostics
+//   neuronfs <brain_path> --emit       — output rules to stdout
+//   neuronfs <brain_path> --emit <target> — emit to editor file (gemini/cursor/claude/copilot/generic/all)
+//   neuronfs <brain_path> --inject     — write rules to GEMINI.md
+//   neuronfs <brain_path> --watch      — watch + auto-inject
+//   neuronfs <brain_path> --dashboard  — web dashboard on :9090
+//   neuronfs <brain_path> --grow <path> — create new neuron
+//   neuronfs <brain_path> --fire <path> — increment neuron counter
+//   neuronfs <brain_path> --signal <type> <path> — add dopamine/bomb/memory
+//   neuronfs <brain_path> --decay [days] — move inactive neurons to dormant
+//   neuronfs <brain_path> --rollback <path> — decrement neuron counter (min=1)
+//   neuronfs <brain_path> --api        — start REST API on :9090
 package main
 
 import (
@@ -42,7 +42,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-// ?�?�?� Region priority (hardcoded ??no folder prefix numbers) ?�?�?�
+// ─── Region priority (hardcoded — no folder prefix numbers) ───
 var regionPriority = map[string]int{
 	"brainstem":   0,
 	"limbic":      1,
@@ -54,26 +54,26 @@ var regionPriority = map[string]int{
 }
 
 var regionIcons = map[string]string{
-	"brainstem":   "?���?,
-	"limbic":      "?��",
-	"hippocampus": "?��",
-	"sensors":     "?���?,
-	"cortex":      "?��",
-	"ego":         "?��",
-	"prefrontal":  "?��",
+	"brainstem":   "🛡️",
+	"limbic":      "💓",
+	"hippocampus": "📝",
+	"sensors":     "👁️",
+	"cortex":      "🧠",
+	"ego":         "🎭",
+	"prefrontal":  "🎯",
 }
 
 var regionKo = map[string]string{
-	"brainstem":   "?�심/본능",
-	"limbic":      "감정 ?�터",
+	"brainstem":   "양심/본능",
+	"limbic":      "감정 필터",
 	"hippocampus": "기록/기억",
-	"sensors":     "?�경 ?�약",
-	"cortex":      "지??기술",
-	"ego":         "?�향/??,
+	"sensors":     "환경 제약",
+	"cortex":      "지식/기술",
+	"ego":         "성향/톤",
 	"prefrontal":  "목표/계획",
 }
 
-// ?�?�?� Neuron = a folder ?�?�?�
+// ─── Neuron = a folder ───
 type Neuron struct {
 	Name      string    // folder name
 	Path      string    // relative path from region root (e.g. "frontend/css/glass_blur20")
@@ -99,7 +99,7 @@ const (
 	spotlightDays = 7 // days a new neuron gets spotlight regardless of counter
 )
 
-// ?�?�?� Region ?�?�?�
+// ─── Region ───
 type Region struct {
 	Name     string
 	Priority int
@@ -109,13 +109,13 @@ type Region struct {
 	HasBomb  bool     // any neuron in this region has bomb
 }
 
-// ?�?�?� Brain ?�?�?�
+// ─── Brain ───
 type Brain struct {
 	Root    string
 	Regions []Region
 }
 
-// ?�?�?� Subsumption Result ?�?�?�
+// ─── Subsumption Result ───
 type SubsumptionResult struct {
 	ActiveRegions  []Region
 	BlockedRegions []string
@@ -125,13 +125,13 @@ type SubsumptionResult struct {
 	TotalCounter   int
 }
 
-// ?�?�?� Regex for trace files ?�?�?�
+// ─── Regex for trace files ───
 var counterRegex = regexp.MustCompile(`^(\d+)\.neuron$`)
 var dopamineRegex = regexp.MustCompile(`^dopamine(\d+)\.neuron$`)
 
 // main is the entry point for the NeuronFS CLI and background daemon.
 func main() {
-	// ?�?� Flatline Death Screen: catch any unrecoverable panic ?�?�
+	// ── Flatline Death Screen: catch any unrecoverable panic ──
 	defer RenderFlatlineOnPanic()
 
 	brainRoot := findBrainRoot()
@@ -202,8 +202,6 @@ func main() {
 			mode = "supervisor"
 		case "--neuronize":
 			mode = "neuronize"
-		case "--consolidate":
-			mode = "consolidate"
 		case "--polarize":
 			mode = "polarize"
 		case "--symlink":
@@ -217,7 +215,7 @@ func main() {
 		}
 	}
 
-	// ?�?� Awakening Sequence (first-run boot animation) ?�?�
+	// ── Awakening Sequence (first-run boot animation) ──
 	// Propagate quiet mode to flatline handler too
 	FlatlineQuiet = quietMode
 	RunAwakening(context.Background(), AwakeningConfig{
@@ -256,7 +254,7 @@ func main() {
 		processInbox(brainRoot)
 		writeAllTiers(brainRoot)
 	case "watch":
-		fmt.Println("[NeuronFS] Watch mode ??monitoring brain/ for changes...")
+		fmt.Println("[NeuronFS] Watch mode — monitoring brain/ for changes...")
 		runWatch(brainRoot)
 	case "html":
 		brain := scanBrain(brainRoot)
@@ -344,7 +342,7 @@ func main() {
 	case "mcp":
 		// MCP stdio server + background loops
 		// CRITICAL: MCP stdio protocol requires stdout to be JSON-RPC only.
-		// Redirect os.Stdout ??os.Stderr so all fmt.Print* goes to stderr.
+		// Redirect os.Stdout → os.Stderr so all fmt.Print* goes to stderr.
 		// Preserve the real stdout for the MCP transport.
 		realStdout := os.Stdout
 		os.Stdout = os.Stderr
@@ -362,8 +360,6 @@ func main() {
 		runSupervisor(brainRoot)
 	case "neuronize":
 		runNeuronize(brainRoot, dryRun)
-	case "consolidate":
-		runConsolidate(brainRoot)
 	case "polarize":
 		runPolarize(brainRoot, dryRun)
 	case "symlink":
@@ -385,7 +381,7 @@ func main() {
 		absTarget, _ := filepath.Abs(targetDir)
 		err := os.Symlink(absTarget, sharedDir)
 		if err != nil {
-			out, e2 := SafeCombinedOutput(30*time.Second, "cmd", "/c", "mklink", "/J", sharedDir, absTarget)
+			out, e2 := exec.Command("cmd", "/c", "mklink", "/J", sharedDir, absTarget).CombinedOutput()
 			if e2 != nil {
 				fmt.Printf("\033[31m[ERROR] Symlink/Junction failed: %v, out: %s\033[0m\n", e2, string(out))
 			} else {
@@ -397,7 +393,7 @@ func main() {
 	}
 }
 
-// ?�?�?� Find brain root ?�?�?�
+// ─── Find brain root ───
 func findBrainRoot() string {
 	// First non-flag arg
 	for _, arg := range os.Args[1:] {
@@ -431,9 +427,9 @@ func findBrainRoot() string {
 	return ""
 }
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
-// SCAN: Folder tree ??Brain structure
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SCAN: Folder tree → Brain structure
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func scanBrain(root string) Brain {
 	brain := Brain{Root: root}
 
@@ -454,8 +450,8 @@ func scanBrain(root string) Brain {
 	if _, err := os.Stat(sharedPath); err == nil {
 		regionsToScan["shared"] = sharedPath
 		regionPriority["shared"] = 7
-		regionIcons["shared"] = "?��"
-		regionKo["shared"] = "공유 지??
+		regionIcons["shared"] = "🔗"
+		regionKo["shared"] = "공유 지식"
 	}
 
 	for name, regionPath := range regionsToScan {
@@ -526,7 +522,7 @@ func scanBrain(root string) Brain {
 			}
 		}
 
-		// Walk for neuron folders ??Axiom: Folder=Neuron, File=Trace
+		// Walk for neuron folders — Axiom: Folder=Neuron, File=Trace
 		filepath.Walk(regionPath, func(path string, info os.FileInfo, err error) error {
 			if err != nil || !info.IsDir() || path == regionPath {
 				return nil
@@ -654,9 +650,9 @@ func scanBrain(root string) Brain {
 	return brain
 }
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // SUBSUMPTION: Priority cascade + bomb detection
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func runSubsumption(brain Brain) SubsumptionResult {
 	result := SubsumptionResult{}
 	blocked := false
@@ -720,33 +716,33 @@ func emitRules(result SubsumptionResult) string {
 // activationBar visualizes a neuron's activation counter as a discrete block bar.
 func activationBar(counter int) string {
 	if counter >= 90 {
-		return "?�█?�█??
+		return "█████"
 	} else if counter >= 50 {
-		return "?�█?�█??
+		return "████░"
 	} else if counter >= 20 {
-		return "?�█?�░??
+		return "███░░"
 	} else if counter >= 10 {
-		return "?�█?�░??
+		return "██░░░"
 	} else if counter >= 5 {
-		return "?�░?�░??
+		return "█░░░░"
 	}
-	return "?�░?�░??
+	return "░░░░░"
 }
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // INJECT: Write rules into GEMINI.md
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func injectToGemini(brainRoot string, rules string) {
-	// ?�스??격리: brainRoot ?��??�만 ?�다
+	// 테스트 격리: brainRoot 내부에만 쓴다
 	if os.Getenv("NEURONFS_TEST_ISOLATION") != "" {
 		safePath := filepath.Join(brainRoot, ".gemini", "GEMINI.md")
 		os.MkdirAll(filepath.Dir(safePath), 0755)
 		os.WriteFile(safePath, []byte(rules), 0644)
-		fmt.Printf("[OK] Rules injected ??%s (test isolation)\n", safePath)
+		fmt.Printf("[OK] Rules injected → %s (test isolation)\n", safePath)
 		return
 	}
 
-	// 글로벌 ?�일 경로: USERPROFILE/.gemini/GEMINI.md
+	// 글로벌 단일 경로: USERPROFILE/.gemini/GEMINI.md
 	home := os.Getenv("USERPROFILE")
 	if home == "" {
 		fmt.Println("[WARN] USERPROFILE not set, outputting to stdout:")
@@ -789,13 +785,13 @@ func doInject(geminiPath string, rules string) {
 
 	// Count active neurons
 	activeCount := strings.Count(rules, "- **")
-	fmt.Printf("[OK] Rules injected ??%s\n", geminiPath)
+	fmt.Printf("[OK] Rules injected → %s\n", geminiPath)
 	fmt.Printf("[OK] %d neurons active\n", activeCount)
 }
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // WATCH: fsnotify Event-Driven Monitor + auto-inject
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // ANSI escape codes for premium CLI aesthetics
 const (
@@ -870,10 +866,10 @@ func runWatch(brainRoot string) {
 			writeAllTiers(brainRoot)
 			elapsed := time.Since(start)
 			if result.BombSource != "" {
-				fmt.Printf("%s[TRAUMA] ?? BOMB detected in %s ??cascading shutdown%s\n",
+				fmt.Printf("%s[TRAUMA] 💀 BOMB detected in %s — cascading shutdown%s\n",
 					ansiRed, result.BombSource, ansiReset)
 			} else {
-				fmt.Printf("%s[PULSE] %d/%d neurons active | ? activation: %d (%dms)%s\n",
+				fmt.Printf("%s[PULSE] %d/%d neurons active | Δ activation: %d (%dms)%s\n",
 					ansiGreen, result.FiredNeurons, result.TotalNeurons, result.TotalCounter,
 					elapsed.Milliseconds(), ansiReset)
 			}
@@ -886,7 +882,7 @@ func runWatch(brainRoot string) {
 			if !ok {
 				return
 			}
-			// .git ?�렉?�리 ?�벤??무시 ??git snapshot�??�드??방�?
+			// .git 디렉토리 이벤트 무시 — git snapshot과 데드락 방지
 			relPath, _ := filepath.Rel(brainRoot, event.Name)
 			if strings.HasPrefix(relPath, ".git") || strings.Contains(relPath, string(filepath.Separator)+".git") {
 				continue
@@ -896,7 +892,7 @@ func runWatch(brainRoot string) {
 			if event.Op&(fsnotify.Create|fsnotify.Write) != 0 {
 				fmt.Printf("%s[%s] [PULSE] %s evolved.%s\n", ansiYellow, ts, relPath, ansiReset)
 			} else if event.Op&fsnotify.Remove != 0 {
-				fmt.Printf("%s[%s] [PRUNE] ?�드 ?�냅???�거: %s%s\n", ansiDimGray, ts, relPath, ansiReset)
+				fmt.Printf("%s[%s] [PRUNE] 데드 시냅스 제거: %s%s\n", ansiDimGray, ts, relPath, ansiReset)
 			}
 
 			// If a new directory was created, add it to the watcher (skip .git)
@@ -926,11 +922,11 @@ func runWatch(brainRoot string) {
 	}
 }
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // DIAGNOSTICS
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func printDiag(brain Brain, result SubsumptionResult) {
-	fmt.Println("?�═??NeuronFS v4.0 ??Folder-as-Neuron Engine ?�═??)
+	fmt.Println("═══ NeuronFS v4.0 — Folder-as-Neuron Engine ═══")
 	fmt.Printf("  Brain: %s\n", brain.Root)
 	fmt.Printf("  Axiom: Folder=Neuron | File=Trace | Path=Sentence\n\n")
 
@@ -939,7 +935,7 @@ func printDiag(brain Brain, result SubsumptionResult) {
 		ko := regionKo[region.Name]
 		bomb := " "
 		if region.HasBomb {
-			bomb = "??"
+			bomb = "💀"
 		}
 
 		totalCounter := 0
@@ -953,7 +949,7 @@ func printDiag(brain Brain, result SubsumptionResult) {
 
 	fmt.Println()
 	if result.BombSource != "" {
-		fmt.Printf("  ?? BOMB: %s\n", result.BombSource)
+		fmt.Printf("  💀 BOMB: %s\n", result.BombSource)
 	}
 	fmt.Println("  Active:")
 	for _, r := range result.ActiveRegions {
@@ -1000,9 +996,9 @@ func printDiag(brain Brain, result SubsumptionResult) {
 	}
 }
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // JSON OUTPUT: Pure data for dashboard consumption
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func generateBrainJSON(brainRoot string, _ Brain, result SubsumptionResult) {
 	type JsNeuron struct {
 		Path      string  `json:"path"`
@@ -1086,7 +1082,7 @@ func generateBrainJSON(brainRoot string, _ Brain, result SubsumptionResult) {
 		fmt.Printf("[ERROR] Write: %v\n", err)
 		return
 	}
-	// fmt.Printf("[OK] Brain state ??%s\n", abs) // Suppress for autoReinject
+	// fmt.Printf("[OK] Brain state → %s\n", abs) // Suppress for autoReinject
 }
 
 // initBrain is defined in init.go
@@ -1117,16 +1113,16 @@ func getNonFlagArg(n int) string {
 	return ""
 }
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // GROWTH ENGINE: Mechanical neuron creation & mutation
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // tokenize splits a snake_case neuron name into stemmed lowercase tokens
-// "no_console_logging" ??{"no", "console", "log"}
+// "no_console_logging" → {"no", "console", "log"}
 func tokenize(name string) []string {
-	// 밑줄�?공백 모두 분리?�로 처리
+	// 밑줄과 공백 모두 분리자로 처리
 	normalized := strings.ReplaceAll(strings.ToLower(name), "_", " ")
-	parts := strings.Fields(normalized) // Fields???�속 공백??처리
+	parts := strings.Fields(normalized) // Fields는 연속 공백도 처리
 	var tokens []string
 	for _, p := range parts {
 		p = strings.TrimSpace(p)
@@ -1141,7 +1137,7 @@ func tokenize(name string) []string {
 }
 
 // stem applies minimal suffix stripping for merge matching
-// Not a full Porter stemmer ??just handles common AI naming patterns
+// Not a full Porter stemmer — just handles common AI naming patterns
 func stem(word string) string {
 	// Order matters: check longer suffixes first
 	suffixes := []string{"ation", "ting", "ning", "ding", "ring", "sing", "ling", "ping", "ging", "ing", "ied", "ies", "ness", "ment", "able", "ible", "ful", "less", "ous", "ive", "ed"}
@@ -1150,14 +1146,14 @@ func stem(word string) string {
 			return word[:len(word)-len(s)]
 		}
 	}
-	// Trailing 's' (plural) ??only if word is 4+ chars
+	// Trailing 's' (plural) — only if word is 4+ chars
 	if len(word) >= 4 && strings.HasSuffix(word, "s") && !strings.HasSuffix(word, "ss") {
 		return word[:len(word)-1]
 	}
 	return word
 }
 
-// jaccardSimilarity computes |A?�B| / |A?�B| between two token sets
+// jaccardSimilarity computes |A∩B| / |A∪B| between two token sets
 func jaccardSimilarity(a, b []string) float64 {
 	if len(a) == 0 || len(b) == 0 {
 		return 0
@@ -1212,7 +1208,7 @@ func growNeuron(brainRoot string, neuronPath string) error {
 		return nil
 	}
 
-	// ?�?� Synaptic Consolidation: merge similar neurons ?�?�
+	// ── Synaptic Consolidation: merge similar neurons ──
 	// Tokenize the new neuron's leaf name
 	leafName := filepath.Base(neuronPath)
 	newTokens := tokenize(leafName)
@@ -1243,10 +1239,10 @@ func growNeuron(brainRoot string, neuronPath string) error {
 		})
 
 		if bestSimilarity >= 0.6 && bestMatch != "" {
-			fmt.Printf("[MERGE] ?�� '%s' ??'%s' (%.0f%% similar) ??firing existing\n",
+			fmt.Printf("[MERGE] 🔗 '%s' ≈ '%s' (%.0f%% similar) → firing existing\n",
 				neuronPath, bestMatch, bestSimilarity*100)
 			fireNeuron(brainRoot, bestMatch)
-			logEpisode(brainRoot, "MERGE", fmt.Sprintf("%s ??%s (%.0f%%)", neuronPath, bestMatch, bestSimilarity*100))
+			logEpisode(brainRoot, "MERGE", fmt.Sprintf("%s → %s (%.0f%%)", neuronPath, bestMatch, bestSimilarity*100))
 			return nil
 		}
 	}
@@ -1264,12 +1260,12 @@ func growNeuron(brainRoot string, neuronPath string) error {
 		return err
 	}
 
-	fmt.Printf("[GROW] ??%s ??1.neuron\n", neuronPath)
+	fmt.Printf("[GROW] ✅ %s → 1.neuron\n", neuronPath)
 
 	// Log to hippocampus
 	logEpisode(brainRoot, "GROW", neuronPath)
 
-	// Mark dirty ??periodic loop will handle injection
+	// Mark dirty — periodic loop will handle injection
 	markBrainDirty()
 	return nil
 }
@@ -1281,7 +1277,7 @@ func fireNeuron(brainRoot string, neuronPath string) {
 	fullPath := filepath.Join(brainRoot, neuronPath)
 
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		fmt.Printf("[WARN] Neuron not found: %s ??auto-growing...\n", neuronPath)
+		fmt.Printf("[WARN] Neuron not found: %s — auto-growing...\n", neuronPath)
 		growNeuron(brainRoot, neuronPath)
 		return
 	}
@@ -1316,9 +1312,9 @@ func fireNeuron(brainRoot string, neuronPath string) {
 		return
 	}
 
-	fmt.Printf("[FIRE] ?�� %s ??%d ??%d\n", neuronPath, currentCounter, newCounter)
+	fmt.Printf("[FIRE] 🔥 %s → %d → %d\n", neuronPath, currentCounter, newCounter)
 
-	logEpisode(brainRoot, "FIRE", fmt.Sprintf("%s (%d??d)", neuronPath, currentCounter, newCounter))
+	logEpisode(brainRoot, "FIRE", fmt.Sprintf("%s (%d→%d)", neuronPath, currentCounter, newCounter))
 	markBrainDirty()
 }
 
@@ -1331,7 +1327,7 @@ func rollbackNeuron(brainRoot string, neuronPath string) error {
 
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		err := fmt.Errorf("neuron not found: %s", neuronPath)
-		fmt.Printf("[ROLLBACK] ??%v\n", err)
+		fmt.Printf("[ROLLBACK] ❌ %v\n", err)
 		return err
 	}
 
@@ -1350,7 +1346,7 @@ func rollbackNeuron(brainRoot string, neuronPath string) error {
 	}
 
 	if currentCounter <= 1 {
-		fmt.Printf("[ROLLBACK] ?�️ %s counter already at minimum (%d)\n", neuronPath, currentCounter)
+		fmt.Printf("[ROLLBACK] ⚠️ %s counter already at minimum (%d)\n", neuronPath, currentCounter)
 		return fmt.Errorf("counter at minimum: %d", currentCounter)
 	}
 
@@ -1370,9 +1366,9 @@ func rollbackNeuron(brainRoot string, neuronPath string) error {
 		return err
 	}
 
-	fmt.Printf("[ROLLBACK] ??%s ??%d ??%d\n", neuronPath, currentCounter, newCounter)
+	fmt.Printf("[ROLLBACK] ⏪ %s → %d → %d\n", neuronPath, currentCounter, newCounter)
 
-	logEpisode(brainRoot, "ROLLBACK", fmt.Sprintf("%s (%d??d)", neuronPath, currentCounter, newCounter))
+	logEpisode(brainRoot, "ROLLBACK", fmt.Sprintf("%s (%d→%d)", neuronPath, currentCounter, newCounter))
 	markBrainDirty()
 	return nil
 }
@@ -1403,12 +1399,12 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 		}
 		df := filepath.Join(fullPath, fmt.Sprintf("dopamine%d.neuron", nextDopa))
 		os.WriteFile(df, []byte{}, 0644)
-		fmt.Printf("[SIGNAL] ?�� dopamine%d ??%s\n", nextDopa, neuronPath)
+		fmt.Printf("[SIGNAL] 🟢 dopamine%d → %s\n", nextDopa, neuronPath)
 
 	case "bomb":
 		bf := filepath.Join(fullPath, "bomb.neuron")
 		os.WriteFile(bf, []byte{}, 0644)
-		fmt.Printf("[SIGNAL] ?�� BOMB ??%s\n", neuronPath)
+		fmt.Printf("[SIGNAL] 💣 BOMB → %s\n", neuronPath)
 
 	case "memory":
 		nextMem := 1
@@ -1424,7 +1420,7 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 		}
 		mf := filepath.Join(fullPath, fmt.Sprintf("memory%d.neuron", nextMem))
 		os.WriteFile(mf, []byte{}, 0644)
-		fmt.Printf("[SIGNAL] ?�� memory%d ??%s\n", nextMem, neuronPath)
+		fmt.Printf("[SIGNAL] 📝 memory%d → %s\n", nextMem, neuronPath)
 
 	default:
 		err := fmt.Errorf("unknown signal type: %s (use dopamine|bomb|memory)", sigType)
@@ -1487,7 +1483,7 @@ func runDecay(brainRoot string, days int) {
 
 				relPath, _ := filepath.Rel(brainRoot, path)
 				ageDays := int(time.Since(newestMod).Hours() / 24)
-				fmt.Printf("[DECAY] ?�� %s (inactive %d days)\n", relPath, ageDays)
+				fmt.Printf("[DECAY] 💤 %s (inactive %d days)\n", relPath, ageDays)
 				decayed++
 			}
 
@@ -1537,7 +1533,7 @@ func logEpisode(brainRoot string, event string, detail string) {
 		for i := 0; i < evictCount; i++ {
 			os.Remove(filepath.Join(logDir, mems[i].name))
 		}
-		fmt.Printf("[MEMORY] ?���?Evicted %d old episodes (circular buffer %d)\n", evictCount, maxEpisodes)
+		fmt.Printf("[MEMORY] 🗑️ Evicted %d old episodes (circular buffer %d)\n", evictCount, maxEpisodes)
 	}
 
 	// Find next number
@@ -1551,9 +1547,9 @@ func logEpisode(brainRoot string, event string, detail string) {
 	os.WriteFile(memFile, []byte(content), 0644)
 }
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // DIRTY FLAG + BATCH INJECTION
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 var (
 	brainDirty    bool
 	brainDirtyMu  sync.Mutex
@@ -1613,12 +1609,12 @@ func autoReinject(brainRoot string) {
 	}
 	lastMountHash = newHash
 	writeAllTiers(brainRoot)
-	fmt.Printf("[INJECT] ?�️  Mount set changed ??GEMINI.md updated\n")
+	fmt.Printf("[INJECT] ♻️  Mount set changed → GEMINI.md updated\n")
 }
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
-// INBOX PROCESSOR: AI tool call ??_inbox ??neurons
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INBOX PROCESSOR: AI tool call → _inbox → neurons
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // inboxEntry represents a correction or insight from AI or auto-accept
 type inboxEntry struct {
@@ -1653,7 +1649,7 @@ func processInbox(brainRoot string) {
 
 		var entry inboxEntry
 		if err := json.Unmarshal([]byte(line), &entry); err != nil {
-			fmt.Printf("[INBOX] ?�️ parse error: %s\n", line)
+			fmt.Printf("[INBOX] ⚠️ parse error: %s\n", line)
 			continue
 		}
 
@@ -1665,9 +1661,9 @@ func processInbox(brainRoot string) {
 			sanitized := strings.Map(func(r rune) rune {
 				if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') ||
 					r == '_' || r == '-' ||
-					(r >= 0xAC00 && r <= 0xD7AF) || // ?��? ?�절
-					(r >= 0x3131 && r <= 0x318E) || // ?��? ?�모
-					(r >= 0x4E00 && r <= 0x9FFF) { // ?�자 CJK
+					(r >= 0xAC00 && r <= 0xD7AF) || // 한글 음절
+					(r >= 0x3131 && r <= 0x318E) || // 한글 자모
+					(r >= 0x4E00 && r <= 0x9FFF) { // 한자 CJK
 					return r
 				}
 				return '_'
@@ -1682,16 +1678,16 @@ func processInbox(brainRoot string) {
 		if strings.Contains(neuronPath, "..") || strings.Contains(neuronPath, `\`) ||
 			strings.Contains(neuronPath, "$") || strings.Contains(neuronPath, "&") ||
 			strings.Contains(neuronPath, "|") || strings.Contains(neuronPath, ">") {
-			fmt.Printf("[SECURITY] ?���?Injection blocked: %s\n", neuronPath)
+			fmt.Printf("[SECURITY] 🛡️ Injection blocked: %s\n", neuronPath)
 			continue
 		}
 
-		// 기계??�?��(Dopamine Inflation) ?�터�?
+		// 기계적 칭찬(Dopamine Inflation) 필터링
 		isPraise := false
-		if entry.Type == "correction" && entry.Text == "PD�?��" {
+		if entry.Type == "correction" && entry.Text == "PD칭찬" {
 			isPraise = true
 		}
-		praiseRegex := regexp.MustCompile(`(?i)(�?��|??s*?�셨?�니??좋아|?��?|?�벽|최고)`)
+		praiseRegex := regexp.MustCompile(`(?i)(칭찬|잘\s*쓰셨습니다|좋아|훌륭|완벽|최고)`)
 		if praiseRegex.MatchString(entry.Text) || strings.Contains(strings.ToLower(neuronPath), "dopamine") {
 			isPraise = true
 		}
@@ -1704,14 +1700,14 @@ func processInbox(brainRoot string) {
 			authorId = strings.ToLower(authorId)
 
 			if authorId != "pm" && authorId != "basement_admin" && !strings.Contains(authorId, "pd") {
-				fmt.Printf("[INBOX] ?���??�파�??�플?�이??차단 (침해?? %s): %s\n", authorId, entry.Text)
+				fmt.Printf("[INBOX] 🛡️ 도파민 인플레이션 차단 (침해자: %s): %s\n", authorId, entry.Text)
 				continue
 			}
-			// PM �?��?� 바로 ?�파�?발화
+			// PM 칭찬은 바로 도파민 발화
 			fullPath := filepath.Join(brainRoot, strings.ReplaceAll(neuronPath, "/", string(filepath.Separator)))
 			_ = os.MkdirAll(fullPath, 0755)
 			_ = signalNeuron(brainRoot, neuronPath, "dopamine")
-			fmt.Printf("[INBOX] ?�� PM �?�� ?�인 ???�파�?배포: %s\n", neuronPath)
+			fmt.Printf("[INBOX] 🟢 PM 칭찬 확인 — 도파민 배포: %s\n", neuronPath)
 			processed++
 			continue
 		}
@@ -1722,25 +1718,25 @@ func processInbox(brainRoot string) {
 			counterAdd = 1
 		}
 
-		// Check if neuron exists ??fire, else ??grow
+		// Check if neuron exists → fire, else → grow
 		fullPath := filepath.Join(brainRoot, strings.ReplaceAll(neuronPath, "/", string(filepath.Separator)))
 		if info, err := os.Stat(fullPath); err == nil && info.IsDir() {
-			// Exists ??fire N times
+			// Exists → fire N times
 			for i := 0; i < counterAdd; i++ {
 				fireNeuron(brainRoot, neuronPath)
 			}
-			fmt.Printf("[INBOX] ?�� fire %s (×%d)\n", neuronPath, counterAdd)
+			fmt.Printf("[INBOX] 🔥 fire %s (×%d)\n", neuronPath, counterAdd)
 		} else {
-			// New ??grow
+			// New → grow
 			if err := growNeuron(brainRoot, neuronPath); err != nil {
-				fmt.Printf("[INBOX] ??grow failed: %s ??%v\n", neuronPath, err)
+				fmt.Printf("[INBOX] ❌ grow failed: %s — %v\n", neuronPath, err)
 				continue
 			}
 			// Fire additional times if counter_add > 1
 			for i := 1; i < counterAdd; i++ {
 				fireNeuron(brainRoot, neuronPath)
 			}
-			fmt.Printf("[INBOX] ?�� grow %s (counter=%d)\n", neuronPath, counterAdd)
+			fmt.Printf("[INBOX] 🌱 grow %s (counter=%d)\n", neuronPath, counterAdd)
 		}
 		processed++
 	}
@@ -1756,7 +1752,7 @@ func processInbox(brainRoot string) {
 		// Clear inbox
 		os.WriteFile(inboxPath, []byte{}, 0644)
 		markBrainDirty()
-		fmt.Printf("[INBOX] ??%d entries processed, inbox cleared (history preserved)\n", processed)
+		fmt.Printf("[INBOX] ✅ %d entries processed, inbox cleared (history preserved)\n", processed)
 	}
 }
 
@@ -1805,13 +1801,13 @@ func runInjectionLoop(brainRoot string) {
 				fmt.Fprintf(os.Stderr, "\033[33m[PULSE] %s evolved. (27ms)\033[0m\n", filepath.Base(event.Name))
 				queueUpdate()
 			} else if event.Op&(fsnotify.Remove|fsnotify.Rename) != 0 {
-				fmt.Fprintf(os.Stderr, "\033[90m[PRUNE] ?�드 ?�냅???�거 ?�료: %s\033[0m\n", filepath.Base(event.Name))
+				fmt.Fprintf(os.Stderr, "\033[90m[PRUNE] 데드 시냅스 제거 완료: %s\033[0m\n", filepath.Base(event.Name))
 				queueUpdate()
 			}
 		case <-triggerChan:
 			queueUpdate()
 		case <-time.After(5 * time.Minute):
-			// 주기???�백 ?�인 (5�?
+			// 주기적 폴백 확인 (5분)
 			queueUpdate()
 		case err, ok := <-watcher.Errors:
 			if !ok {
@@ -1824,7 +1820,7 @@ func runInjectionLoop(brainRoot string) {
 
 // gitSnapshot takes a single git snapshot of the brain state
 // Called only during idle via --snapshot flag (not on every fire/grow)
-// Lifecycle: active ??changes accumulate ??idle ??groq analysis ??snapshot
+// Lifecycle: active → changes accumulate → idle → groq analysis → snapshot
 func gitSnapshot(brainRoot string) {
 	// Check if git is available
 	if _, err := exec.LookPath("git"); err != nil {
@@ -1838,12 +1834,12 @@ func gitSnapshot(brainRoot string) {
 		cmd := exec.Command("git", "init")
 		cmd.Dir = brainRoot
 		if err := cmd.Run(); err != nil {
-			fmt.Printf("[GIT] ?�️ init failed: %v\n", err)
+			fmt.Printf("[GIT] ⚠️ init failed: %v\n", err)
 			return
 		}
 		gitignore := filepath.Join(brainRoot, ".gitignore")
 		os.WriteFile(gitignore, []byte("*.dormant\n"), 0644)
-		fmt.Printf("[GIT] ?�� Initialized git repo in %s\n", brainRoot)
+		fmt.Printf("[GIT] 📂 Initialized git repo in %s\n", brainRoot)
 	}
 
 	// Check for changes
@@ -1859,7 +1855,7 @@ func gitSnapshot(brainRoot string) {
 	addCmd := exec.Command("git", "add", "-A")
 	addCmd.Dir = brainRoot
 	if err := addCmd.Run(); err != nil {
-		fmt.Printf("[GIT] ?�️ add failed: %v\n", err)
+		fmt.Printf("[GIT] ⚠️ add failed: %v\n", err)
 		return
 	}
 
@@ -1868,7 +1864,7 @@ func gitSnapshot(brainRoot string) {
 	result := runSubsumption(brain)
 	changes := strings.Count(string(out), "\n")
 	timestamp := time.Now().Format("01-02 15:04")
-	msg := fmt.Sprintf("[%s] %d neurons, act:%d, ?%d files",
+	msg := fmt.Sprintf("[%s] %d neurons, act:%d, Δ%d files",
 		timestamp, result.TotalNeurons, result.TotalCounter, changes)
 
 	commitCmd := exec.Command("git", "commit", "-m", msg, "--no-verify")
@@ -1876,9 +1872,9 @@ func gitSnapshot(brainRoot string) {
 	if err := commitCmd.Run(); err != nil {
 		return
 	}
-	fmt.Printf("[GIT] ?�� %s\n", msg)
+	fmt.Printf("[GIT] 📸 %s\n", msg)
 
-	// ?�?� git diff 진화?�정: ?�런 ?�감?�이�??�동 rollback ?�?�
+	// ── git diff 진화판정: 뉴런 순감소이면 자동 rollback ──
 	diffCmd := exec.Command("git", "diff", "HEAD~1", "--stat")
 	diffCmd.Dir = brainRoot
 	diffOut, err := diffCmd.Output()
@@ -1887,27 +1883,27 @@ func gitSnapshot(brainRoot string) {
 		deletions := strings.Count(diffStr, "deletion")
 		insertions := strings.Count(diffStr, "insertion")
 		if deletions > insertions*2 && deletions > 5 {
-			// ??��가 ?�입??2�??�상?�고 5�?초과?�면 ?�화�??�정
-			fmt.Printf("[GIT] ?�️ ?�화 감�? (??�� %d > ?�입 %d×2) ???�동 rollback\n", deletions, insertions)
+			// 삭제가 삽입의 2배 이상이고 5건 초과이면 퇴화로 판정
+			fmt.Printf("[GIT] ⚠️ 퇴화 감지 (삭제 %d > 삽입 %d×2) — 자동 rollback\n", deletions, insertions)
 			revertCmd := exec.Command("git", "revert", "HEAD", "--no-edit")
 			revertCmd.Dir = brainRoot
 			if err := revertCmd.Run(); err != nil {
-				fmt.Printf("[GIT] ??rollback ?�패: %v\n", err)
+				fmt.Printf("[GIT] ❌ rollback 실패: %v\n", err)
 			} else {
-				fmt.Println("[GIT] ???�화 commit??revert ?�었?�니??)
+				fmt.Println("[GIT] ✅ 퇴화 commit이 revert 되었습니다")
 			}
 		} else {
-			fmt.Printf("[GIT] ??진화 ?�정 ?�과 (ins:%d, del:%d)\n", insertions, deletions)
+			fmt.Printf("[GIT] ✅ 진화 판정 통과 (ins:%d, del:%d)\n", insertions, deletions)
 		}
 	}
 }
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
-// IDLE ENGINE: Auto evolve ??snapshot ??NAS sync
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// IDLE ENGINE: Auto evolve → snapshot → NAS sync
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const (
-	idleThresholdMinutes = 5  // minutes of no API activity ??trigger idle cycle
+	idleThresholdMinutes = 5  // minutes of no API activity → trigger idle cycle
 	idleCheckInterval    = 30 // seconds between idle checks
 )
 
@@ -1932,7 +1928,7 @@ func getLastActivity() time.Time {
 }
 
 // runIdleLoop runs in a goroutine, checking for idle state periodically.
-// When idle is detected: digest transcripts ??neuronize ??evolve ??snapshot ??NAS sync
+// When idle is detected: digest transcripts → neuronize → evolve → snapshot → NAS sync
 func runIdleLoop(brainRoot string) {
 	lastEvolveTime := time.Now()
 
@@ -1954,35 +1950,35 @@ func runIdleLoop(brainRoot string) {
 		}
 
 		idleEvolveRunning = true
-		fmt.Printf("\n[IDLE] ?�� %s idle detected ??starting autonomous cycle...\n", idleDuration.Round(time.Second))
+		fmt.Printf("\n[IDLE] 💤 %s idle detected — starting autonomous cycle...\n", idleDuration.Round(time.Second))
 
-		// 0. Transcript Digestion ???�사 ?�일?�서 교정 ??추출 ??neuronize
+		// 0. Transcript Digestion — 전사 파일에서 교정 턴 추출 후 neuronize
 		apiKey := os.Getenv("GROQ_API_KEY")
 		if apiKey != "" {
 			pendingTurns := digestTranscripts(brainRoot)
 			if pendingTurns >= 10 {
-				fmt.Printf("[IDLE] ?�� ?�사 �?�� %d???�적 ??Auto-Neuronize ?�행...\n", pendingTurns)
+				fmt.Printf("[IDLE] 🧬 전사 청크 %d턴 누적 — Auto-Neuronize 실행...\n", pendingTurns)
 				runNeuronize(brainRoot, false)
 			}
 		}
 
 		// 1. Evolve (if GROQ_API_KEY available)
 		if apiKey != "" {
-			fmt.Println("[IDLE] ?�� Running Groq evolve...")
+			fmt.Println("[IDLE] 🧬 Running Groq evolve...")
 			runEvolve(brainRoot, false)
 		} else {
-			fmt.Println("[IDLE] ?�️  GROQ_API_KEY not set ??skipping evolve")
+			fmt.Println("[IDLE] ⚠️  GROQ_API_KEY not set — skipping evolve")
 		}
 
 		// 2. Auto-decay (mark neurons untouched for 30+ days as dormant)
-		fmt.Println("[IDLE] ?�� Running auto-decay (30 days)...")
+		fmt.Println("[IDLE] 💤 Running auto-decay (30 days)...")
 		runDecay(brainRoot, 30)
 
 		// 3. Dedup (merge semantically similar neurons, Jaccard >= 0.6)
-		fmt.Println("[IDLE] ?? Running dedup (Jaccard similarity)...")
+		fmt.Println("[IDLE] 🔀 Running dedup (Jaccard similarity)...")
 		deduplicateNeurons(brainRoot)
 
-		// 4. Growth tracking (???�장 ?�력 추적)
+		// 4. Growth tracking (뇌 성장 이력 추적)
 		brain := scanBrain(brainRoot)
 		result := runSubsumption(brain)
 		growthLogDir := filepath.Join(brainRoot, "hippocampus", "session_log")
@@ -1995,30 +1991,30 @@ func runIdleLoop(brainRoot string) {
 			f.WriteString(entry)
 			f.Close()
 		}
-		fmt.Printf("[GROWTH] ?�� %s", entry)
+		fmt.Printf("[GROWTH] 📈 %s", entry)
 
 		// 5. Git snapshot
-		fmt.Println("[IDLE] ?�� Git snapshot...")
+		fmt.Println("[IDLE] 📸 Git snapshot...")
 		gitSnapshot(brainRoot)
 
 		// 6. NAS sync (if Z: available)
 		nasTarget := `Z:\VOL1\VGVR\BRAIN\LW\system\neurons\brain_v4`
 		if _, err := os.Stat(nasTarget); err == nil {
-			fmt.Println("[IDLE] ?�� NAS sync...")
+			fmt.Println("[IDLE] 📡 NAS sync...")
 			syncCmd := exec.Command("robocopy", brainRoot, nasTarget, "/MIR", "/XD", ".git", "/XF", "*.dormant", "/NFL", "/NDL", "/NP", "/NJH", "/NJS")
 			if out, err := syncCmd.CombinedOutput(); err != nil {
 				// robocopy exit code 1 = files copied (success), only >=8 is error
 				exitCode := syncCmd.ProcessState.ExitCode()
 				if exitCode >= 8 {
-					fmt.Printf("[IDLE] ??NAS sync error (exit %d): %s\n", exitCode, string(out))
+					fmt.Printf("[IDLE] ❌ NAS sync error (exit %d): %s\n", exitCode, string(out))
 				} else {
-					fmt.Printf("[IDLE] ??NAS synced (exit %d)\n", exitCode)
+					fmt.Printf("[IDLE] ✅ NAS synced (exit %d)\n", exitCode)
 				}
 			} else {
-				fmt.Println("[IDLE] ??NAS synced (no changes)")
+				fmt.Println("[IDLE] ✅ NAS synced (no changes)")
 			}
 		} else {
-			fmt.Println("[IDLE] ?�️  NAS Z: not available ??skipping sync")
+			fmt.Println("[IDLE] ⚠️  NAS Z: not available — skipping sync")
 		}
 
 		// 7. Heartbeat 기록
@@ -2026,18 +2022,18 @@ func runIdleLoop(brainRoot string) {
 
 		lastEvolveTime = time.Now()
 		idleEvolveRunning = false
-		fmt.Printf("[IDLE] ??Autonomous cycle complete at %s\n\n", lastEvolveTime.Format("15:04:05"))
+		fmt.Printf("[IDLE] ✅ Autonomous cycle complete at %s\n\n", lastEvolveTime.Format("15:04:05"))
 	}
 }
 
-// digestTranscripts??_transcripts/ ?�일?�서 교정/?�러 ?�을 추출?�여
-// corrections_history.jsonl??추�??�다. cursor.json?�로 ?�치 추적.
-// 반환�? ?�번??추출??교정 ????
+// digestTranscripts는 _transcripts/ 파일에서 교정/에러 턴을 추출하여
+// corrections_history.jsonl에 추가한다. cursor.json으로 위치 추적.
+// 반환값: 이번에 추출된 교정 턴 수
 func digestTranscripts(brainRoot string) int {
 	transcriptsDir := filepath.Join(brainRoot, "_transcripts")
 	cursorPath := filepath.Join(transcriptsDir, ".cursor.json")
 
-	// cursor ?�기
+	// cursor 읽기
 	type cursorEntry struct {
 		ByteOffset int64  `json:"byte_offset"`
 		LastProc   string `json:"last_processed"`
@@ -2047,7 +2043,7 @@ func digestTranscripts(brainRoot string) int {
 		json.Unmarshal(data, &cursors)
 	}
 
-	// ?�늘 ?�짜 ?�일
+	// 오늘 날짜 파일
 	today := time.Now().Format("2006-01-02") + ".txt"
 	todayPath := filepath.Join(transcriptsDir, today)
 
@@ -2058,10 +2054,10 @@ func digestTranscripts(brainRoot string) int {
 
 	cursor := cursors[today]
 	if info.Size() <= cursor.ByteOffset {
-		return 0 // ???�용 ?�음
+		return 0 // 새 내용 없음
 	}
 
-	// ???�용 ?�기 (cursor ?�치부??
+	// 새 내용 읽기 (cursor 위치부터)
 	file, err := os.Open(todayPath)
 	if err != nil {
 		return 0
@@ -2069,7 +2065,7 @@ func digestTranscripts(brainRoot string) int {
 	defer file.Close()
 
 	file.Seek(cursor.ByteOffset, 0)
-	// 최�? 1MB�??�기 (메모�??�약)
+	// 최대 1MB만 읽기 (메모리 절약)
 	maxRead := int64(1024 * 1024)
 	remaining := info.Size() - cursor.ByteOffset
 	if remaining > maxRead {
@@ -2079,11 +2075,11 @@ func digestTranscripts(brainRoot string) int {
 	n, _ := file.Read(buf)
 	newContent := string(buf[:n])
 
-	// 교정/?�러 ?�워???�터�?
+	// 교정/에러 키워드 필터링
 	correctionKeywords := []string{
-		"?�니", "?�냐", "?�못", "?�시", "??", "?�또", "?�돼", "?�됨",
-		"?�러", "?�류", "?�패", "멈춤", "404", "500",
-		"금�?", "?��?�?, "반드??, "??��", "?��?",
+		"아니", "아냐", "잘못", "다시", "왜 ", "왜또", "안돼", "안됨",
+		"에러", "오류", "실패", "멈춤", "404", "500",
+		"금지", "하지마", "반드시", "항상", "절대",
 	}
 
 	lines := strings.Split(newContent, "\n")
@@ -2093,7 +2089,7 @@ func digestTranscripts(brainRoot string) int {
 		if len(line) < 10 {
 			continue
 		}
-		// [HH:MM:SS PD] ?�턴?�면 ?�용??발화
+		// [HH:MM:SS PD] 패턴이면 사용자 발화
 		if !strings.Contains(line, " PD]") && !strings.Contains(line, "교정") {
 			continue
 		}
@@ -2115,7 +2111,7 @@ func digestTranscripts(brainRoot string) int {
 	cursorData, _ := json.MarshalIndent(cursors, "", "  ")
 	os.WriteFile(cursorPath, cursorData, 0644)
 
-	// 교정 ?�을 corrections_history.jsonl??추�?
+	// 교정 턴을 corrections_history.jsonl에 추가
 	if len(corrections) > 0 {
 		historyPath := filepath.Join(brainRoot, "_inbox", "corrections_history.jsonl")
 		f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -2128,18 +2124,18 @@ func digestTranscripts(brainRoot string) int {
 			}
 			f.Close()
 		}
-		fmt.Printf("[DIGEST] ?�� ?�사?�서 %d�?교정 ??추출\n", len(corrections))
+		fmt.Printf("[DIGEST] 📝 전사에서 %d건 교정 턴 추출\n", len(corrections))
 	}
 
 	return len(corrections)
 }
 
-// writeHeartbeat??idle engine ?�태�?_heartbeat.json??기록?�고,
-// ?�런 ??�� 감�? ??git snapshot ??GEMINI.md???�합 지?��? 주입?�다.
+// writeHeartbeat는 idle engine 상태를 _heartbeat.json에 기록하고,
+// 뉴런 폭발 감지 시 git snapshot 후 GEMINI.md에 통합 지시를 주입한다.
 func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 	heartbeatPath := filepath.Join(brainRoot, "_heartbeat.json")
 
-	// ?�전 heartbeat ?�기
+	// 이전 heartbeat 읽기
 	prevNeurons := 0
 	if prev, err := os.ReadFile(heartbeatPath); err == nil {
 		var prevHB map[string]interface{}
@@ -2150,7 +2146,7 @@ func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 		}
 	}
 
-	// ?�재 ?�태 기록
+	// 현재 상태 기록
 	hb := map[string]interface{}{
 		"last_cycle":    time.Now().Format(time.RFC3339),
 		"neurons":       result.TotalNeurons,
@@ -2162,40 +2158,40 @@ func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 	data, _ := json.MarshalIndent(hb, "", "  ")
 	os.WriteFile(heartbeatPath, data, 0644)
 
-	// ?�런 ??�� 감�?: 20�??�상 증�? ???�합 지??주입
+	// 뉴런 폭발 감지: 20개 이상 증가 시 통합 지시 주입
 	growth := result.TotalNeurons - prevNeurons
 	if prevNeurons > 0 && growth >= 20 {
-		fmt.Printf("[HEARTBEAT] ?�� ?�런 ??�� 감�?: %d??d (+%d) ???�합 지??주입\n",
+		fmt.Printf("[HEARTBEAT] 🔥 뉴런 폭발 감지: %d→%d (+%d) — 통합 지시 주입\n",
 			prevNeurons, result.TotalNeurons, growth)
 
-		// 1. git snapshot ?�행 (롤백 보장)
-		fmt.Println("[HEARTBEAT] ?�� ?�합 ??git snapshot...")
+		// 1. git snapshot 선행 (롤백 보장)
+		fmt.Println("[HEARTBEAT] 📸 통합 전 git snapshot...")
 		gitSnapshot(brainRoot)
 
-		// 2. GEMINI.md???�합 지??주입
+		// 2. GEMINI.md에 통합 지시 주입
 		directive := fmt.Sprintf(
-			"\n\n> [!IMPORTANT]\n> **[HEARTBEAT %s] ?�런 ??�� 감�?: %d??d (+%d)**\n"+
-				"> ?�사 ?�런 ?�합???�요?�니?? `neuronfs --dedup` ?�행 ?�는 ?�동?�로 ?�사 ?�더�?병합?�세??\n"+
-				"> git snapshot???�행?�었?��?�?롤백 가?�합?�다.\n",
+			"\n\n> [!IMPORTANT]\n> **[HEARTBEAT %s] 뉴런 폭발 감지: %d→%d (+%d)**\n"+
+				"> 유사 뉴런 통합이 필요합니다. `neuronfs --dedup` 실행 또는 수동으로 유사 폴더를 병합하세요.\n"+
+				"> git snapshot이 선행되었으므로 롤백 가능합니다.\n",
 			time.Now().Format("15:04"),
 			prevNeurons, result.TotalNeurons, growth)
 
-		// brainstem???�합 지???�런 ?�성 (?�시)
-		consolidateDir := filepath.Join(brainRoot, "brainstem", "?�런?�합_?�요")
+		// brainstem에 통합 지시 뉴런 생성 (임시)
+		consolidateDir := filepath.Join(brainRoot, "brainstem", "뉴런통합_필요")
 		os.MkdirAll(consolidateDir, 0755)
 		counterFile := filepath.Join(consolidateDir, fmt.Sprintf("%d.neuron", growth))
 		os.WriteFile(counterFile, []byte(directive), 0644)
 
-		// writeAllTiers�?GEMINI.md 즉시 갱신
+		// writeAllTiers로 GEMINI.md 즉시 갱신
 		writeAllTiers(brainRoot)
 
-		fmt.Printf("[HEARTBEAT] ???�합 지??주입 ?�료 ??brainstem/?�런?�합_?�요 ?�성\n")
+		fmt.Printf("[HEARTBEAT] ✅ 통합 지시 주입 완료 — brainstem/뉴런통합_필요 생성\n")
 	}
 }
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
-// DEDUP: 중복 ?�런 ?�더 병합 (카운???�산)
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DEDUP: 중복 뉴런 폴더 병합 (카운터 합산)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // deduplicateNeurons scans brain for semantically similar neuron folders
 // and merges them: keeps the deeper/higher-counter one, sums counters +1 bonus
@@ -2216,7 +2212,7 @@ func deduplicateNeurons(brainRoot string) {
 	var allRefs []neuronRef
 	for _, region := range brain.Regions {
 		if region.Name == "brainstem" {
-			continue // brainstem?� ?�기 ?�용 ??건드리�? ?�음
+			continue // brainstem은 읽기 전용 — 건드리지 않음
 		}
 		for _, n := range region.Neurons {
 			if n.IsDormant {
@@ -2235,7 +2231,7 @@ func deduplicateNeurons(brainRoot string) {
 		}
 	}
 
-	// Compare all pairs (O(n²) ??200 ?�런?�면 ~20,000 비교, 무시???��?)
+	// Compare all pairs (O(n²) — 200 뉴런이면 ~20,000 비교, 무시할 수준)
 	merged := make(map[int]bool) // index of already-merged victims
 	mergeCount := 0
 
@@ -2253,8 +2249,8 @@ func deduplicateNeurons(brainRoot string) {
 				continue
 			}
 
-			// ?�사??0.6 ?�상 ??병합 ?�??
-			// ?�존?? ??깊거??카운?��? ?��? �?
+			// 유사도 0.6 이상 — 병합 대상
+			// 생존자: 더 깊거나 카운터가 높은 쪽
 			survivor := &allRefs[i]
 			victim := &allRefs[j]
 			if victim.depth > survivor.depth || (victim.depth == survivor.depth && victim.counter > survivor.counter) {
@@ -2267,15 +2263,15 @@ func deduplicateNeurons(brainRoot string) {
 				merged[j] = true
 			}
 
-			// 카운???�산 + 보너??(+1)
+			// 카운터 합산 + 보너스 (+1)
 			totalCounter := survivor.counter + victim.counter + 1
-			fmt.Printf("[DEDUP] ?? 병합 (sim=%.2f): %s/%s (%d) ??%s/%s (%d) ??%d\n",
+			fmt.Printf("[DEDUP] 🔀 병합 (sim=%.2f): %s/%s (%d) ← %s/%s (%d) → %d\n",
 				sim,
 				survivor.region, filepath.Base(survivor.fullPath), survivor.counter,
 				victim.region, filepath.Base(victim.fullPath), victim.counter,
 				totalCounter)
 
-			// ?�존??카운??갱신
+			// 생존자 카운터 갱신
 			surviveFiles, _ := filepath.Glob(filepath.Join(survivor.fullPath, "*.neuron"))
 			for _, f := range surviveFiles {
 				base := filepath.Base(f)
@@ -2286,7 +2282,7 @@ func deduplicateNeurons(brainRoot string) {
 			newCounterFile := filepath.Join(survivor.fullPath, fmt.Sprintf("%d.neuron", totalCounter))
 			os.WriteFile(newCounterFile, []byte(""), 0644)
 
-			// victim??dopamine/memory ?�그?�을 ?�존?�로 ?�동
+			// victim의 dopamine/memory 시그널을 생존자로 이동
 			victimFiles, _ := filepath.Glob(filepath.Join(victim.fullPath, "*.neuron"))
 			for _, f := range victimFiles {
 				base := filepath.Base(f)
@@ -2298,7 +2294,7 @@ func deduplicateNeurons(brainRoot string) {
 				}
 			}
 
-			// victim ?�더 ??��
+			// victim 폴더 삭제
 			os.RemoveAll(victim.fullPath)
 			survivor.counter = totalCounter
 			mergeCount++
@@ -2306,17 +2302,17 @@ func deduplicateNeurons(brainRoot string) {
 	}
 
 	if mergeCount > 0 {
-		fmt.Printf("[DEDUP] ??%d �?중복 ?�런 병합 ?�료 (카운???�산+보너??\n", mergeCount)
+		fmt.Printf("[DEDUP] ✅ %d 건 중복 뉴런 병합 완료 (카운터 합산+보너스)\n", mergeCount)
 		writeAllTiers(brainRoot)
 	} else {
-		fmt.Println("[DEDUP] ??중복 ?�런 ?�음")
+		fmt.Println("[DEDUP] ✓ 중복 뉴런 없음")
 	}
 }
 
 
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // REST API: Programmatic growth for n8n/dashboard/webhooks
-// ?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━?�━??
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func startAPI(brainRoot string, port int) {
 	mux := http.NewServeMux()
 
@@ -2414,7 +2410,7 @@ func startAPI(brainRoot string, port int) {
 		json.NewEncoder(w).Encode(map[string]interface{}{"status": "decay_complete", "days": req.Days})
 	}))
 
-	// GET /api/state ??current brain state JSON
+	// GET /api/state — current brain state JSON
 	mux.HandleFunc("/api/state", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		stateFile := filepath.Join(brainRoot, "..", "brain_state.json")
 		abs, _ := filepath.Abs(stateFile)
@@ -2430,13 +2426,13 @@ func startAPI(brainRoot string, port int) {
 	// POST /api/evolve  {"dry_run": false}
 	mux.HandleFunc("/api/evolve", withCORS(handleEvolveAPI(brainRoot)))
 
-	// POST /api/neuronize {"dry_run": true} ??Groq 기반 contra ?�런 ?�동 ?�성
+	// POST /api/neuronize {"dry_run": true} — Groq 기반 contra 뉴런 자동 생성
 	mux.HandleFunc("/api/neuronize", withCORS(handleNeuronizeAPI(brainRoot)))
 
-	// POST /api/polarize ??긍정?�→부?�형 ?�환 ?�??조회
+	// POST /api/polarize — 긍정형→부정형 전환 대상 조회
 	mux.HandleFunc("/api/polarize", withCORS(handlePolarizeAPI(brainRoot)))
 
-	// POST /api/dedup ??중복 ?�런 Jaccard 병합
+	// POST /api/dedup — 중복 뉴런 Jaccard 병합
 	mux.HandleFunc("/api/dedup", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -2453,10 +2449,10 @@ func startAPI(brainRoot string, port int) {
 		})
 	}))
 
-	// GET /api/read?region=cortex ??read region rules + auto-fire top neurons (RAG retrieval)
+	// GET /api/read?region=cortex — read region rules + auto-fire top neurons (RAG retrieval)
 	mux.HandleFunc("/api/read", withCORS(handleReadRegion(brainRoot)))
 
-	// POST /api/inject ??Re-scan brain + inject into GEMINI.md
+	// POST /api/inject — Re-scan brain + inject into GEMINI.md
 	mux.HandleFunc("/api/inject", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -2469,7 +2465,7 @@ func startAPI(brainRoot string, port int) {
 		fmt.Fprintf(w, "Injected %d neurons, activation: %d", result.TotalNeurons, result.TotalCounter)
 	}))
 
-	// POST /api/sandbox ??Live test: write text ??stored as file, empty ??deleted
+	// POST /api/sandbox — Live test: write text → stored as file, empty → deleted
 	// Uses _sandbox.txt (raw text) instead of folder names to preserve emojis/special chars
 	mux.HandleFunc("/api/sandbox", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		sandboxFile := filepath.Join(brainRoot, "brainstem", "_sandbox.txt")
@@ -2558,7 +2554,7 @@ func startAPI(brainRoot string, port int) {
 		})
 	}))
 
-	// POST /api/rollback {\"path\": \"cortex/...\"} ??decrement neuron counter (min=1)
+	// POST /api/rollback {\"path\": \"cortex/...\"} — decrement neuron counter (min=1)
 	mux.HandleFunc("/api/rollback", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -2581,7 +2577,7 @@ func startAPI(brainRoot string, port int) {
 		json.NewEncoder(w).Encode(map[string]string{"status": "rolled_back", "path": req.Path})
 	}))
 
-	// POST /api/rollback/all ??Full system rollback via Git (brainstem included)
+	// POST /api/rollback/all — Full system rollback via Git (brainstem included)
 	mux.HandleFunc("/api/rollback/all", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -2597,16 +2593,16 @@ func startAPI(brainRoot string, port int) {
 		json.NewEncoder(w).Encode(map[string]string{"status": "rolled_back", "message": "Global git rollback executed successfully (P0 included)."})
 	}))
 
-	// GET /api/integrity?region=cortex ??Merkle Hash Chain 무결??검�?
-	// ?�체: GET /api/integrity (7�??�역 모두 검�?
-	// ?�일: GET /api/integrity?region=cortex
+	// GET /api/integrity?region=cortex — Merkle Hash Chain 무결성 검증
+	// 전체: GET /api/integrity (7개 영역 모두 검증)
+	// 단일: GET /api/integrity?region=cortex
 	mux.HandleFunc("/api/integrity", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" {
 			http.Error(w, "GET only", 405)
 			return
 		}
 
-		// HMAC ??로드 (?�으�??�동 ?�성)
+		// HMAC 키 로드 (없으면 자동 생성)
 		hmacKey := loadOrCreateHMACKey(brainRoot)
 
 		targetRegion := r.URL.Query().Get("region")
@@ -2644,7 +2640,7 @@ func startAPI(brainRoot string, port int) {
 				continue
 			}
 
-			// 검�? chain ?�구축하??비교
+			// 검증: chain 재구축하여 비교
 			valid, brokenAt, verr := VerifyChain(chain, regionPath)
 			if valid {
 				results = append(results, regionResult{
@@ -2683,7 +2679,7 @@ func startAPI(brainRoot string, port int) {
 		})
 	}))
 
-	// GET / ??Dashboard HTML (same as --dashboard mode)
+	// GET / — Dashboard HTML (same as --dashboard mode)
 	// Static files: 3D dashboard, brain.obj, brain_state.json
 	neuronfsRoot := filepath.Dir(brainRoot) // NeuronFS/ directory (parent of brain_v4)
 	mux.HandleFunc("/3d", withCORS(func(w http.ResponseWriter, r *http.Request) {
@@ -2717,7 +2713,7 @@ func startAPI(brainRoot string, port int) {
 		w.Write(data)
 	}))
 
-	// GET / ??Unified Dashboard (3D + management) (Fallback for SPA)
+	// GET / — Unified Dashboard (3D + management) (Fallback for SPA)
 	mux.HandleFunc("/", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/api/") {
 			http.NotFound(w, r)
@@ -2730,6 +2726,15 @@ func startAPI(brainRoot string, port int) {
 		htmlPath := filepath.Join(neuronfsRoot, "brain_dashboard.html")
 		data, err := os.ReadFile(htmlPath)
 		if err != nil {
+			// Try absolute path as fallback
+			absPath := filepath.Join(filepath.Dir(brainRoot), "brain_dashboard.html")
+			data, err = os.ReadFile(absPath)
+		}
+		if err != nil {
+			// Final fallback: hardcoded known location
+			data, err = os.ReadFile(`C:\Users\BASEMENT_ADMIN\NeuronFS\brain_dashboard.html`)
+		}
+		if err != nil {
 			// Fallback to embedded card dashboard
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			fmt.Fprint(w, dashboardHTML)
@@ -2739,13 +2744,13 @@ func startAPI(brainRoot string, port int) {
 		w.Write(data)
 	}))
 
-	// GET /cards ??Card-only dashboard (legacy)
+	// GET /cards — Card-only dashboard (legacy)
 	mux.HandleFunc("/cards", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprint(w, dashboardHTML)
 	}))
 
-	// POST /api/community ???��? 커�??�티 ?�렌?��? ?�런?�로 ?�집
+	// POST /api/community — 외부 커뮤니티 트렌드를 뉴런으로 수집
 	// Body: {"source":"github|reddit|hackernews","topic":"AI memory","insight":"..."}
 	mux.HandleFunc("/api/community", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
@@ -2761,7 +2766,7 @@ func startAPI(brainRoot string, port int) {
 			http.Error(w, `{"error":"topic required"}`, 400)
 			return
 		}
-		// ?�전??경로 ?�성
+		// 안전한 경로 생성
 		safeTopic := strings.ReplaceAll(req.Topic, " ", "_")
 		safeTopic = strings.ReplaceAll(safeTopic, "/", "_")
 		safeTopic = strings.ReplaceAll(safeTopic, "\\", "_")
@@ -2769,13 +2774,13 @@ func startAPI(brainRoot string, port int) {
 		neuronPath := filepath.Join(brainRoot, "cortex", "community", req.Source, safeTopic)
 		os.MkdirAll(neuronPath, 0755)
 
-		// 카운???�일 ?�성/증�?
+		// 카운터 파일 생성/증가
 		files, _ := filepath.Glob(filepath.Join(neuronPath, "*.neuron"))
 		counter := len(files) + 1
 		counterFile := filepath.Join(neuronPath, fmt.Sprintf("%d.neuron", counter))
 		os.WriteFile(counterFile, []byte(req.Insight), 0644)
 
-		fmt.Printf("[COMMUNITY] ?�� %s/%s ??counter %d\n", req.Source, safeTopic, counter)
+		fmt.Printf("[COMMUNITY] 📡 %s/%s → counter %d\n", req.Source, safeTopic, counter)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status":  "ok",
@@ -2784,14 +2789,14 @@ func startAPI(brainRoot string, port int) {
 		})
 	}))
 
-	// GET /api/health ??system process health check
+	// GET /api/health — system process health check
 	mux.HandleFunc("/api/health", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		health := buildHealthJSON(brainRoot)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(health)
 	}))
 
-	// GET /api/brain ??full brain state for dashboard (compatible with dashboard.go format)
+	// GET /api/brain — full brain state for dashboard (compatible with dashboard.go format)
 	mux.HandleFunc("/api/brain", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		data := buildBrainJSONResponse(brainRoot)
 		w.Header().Set("Content-Type", "application/json")
@@ -2807,8 +2812,8 @@ func startAPI(brainRoot string, port int) {
 	go runIdleLoop(brainRoot)
 
 
-	fmt.Printf("  ?�� IDLE ENGINE: auto evolve/snapshot/NAS every %dm idle\n", idleThresholdMinutes)
-	// POST /api/report ??stackable report queue
+	fmt.Printf("  🔄 IDLE ENGINE: auto evolve/snapshot/NAS every %dm idle\n", idleThresholdMinutes)
+	// POST /api/report — stackable report queue
 	mux.HandleFunc("/api/report", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -2842,11 +2847,11 @@ func startAPI(brainRoot string, port int) {
 		}
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "confirmed", "pending": pending, "priority": req.Priority,
-			"ack": "?�로??보고가 ?�인?�었?�니?? ?�용?�의 ?�청 처리 ???�로?�합?�다.",
+			"ack": "새로운 보고가 확인되었습니다. 사용자의 요청 처리 후 팔로업합니다.",
 		})
 	}))
 
-	// GET /api/reports ??list pending
+	// GET /api/reports — list pending
 	mux.HandleFunc("/api/reports", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		reportsDir := filepath.Join(brainRoot, "_inbox", "reports")
 		entries, _ := os.ReadDir(reportsDir)
@@ -2860,7 +2865,7 @@ func startAPI(brainRoot string, port int) {
 		json.NewEncoder(w).Encode(map[string]interface{}{"pending": len(reports), "reports": reports})
 	}))
 
-	// GET /api/evolution ??Git-based neural evolution timeline
+	// GET /api/evolution — Git-based neural evolution timeline
 	mux.HandleFunc("/api/evolution", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -2976,7 +2981,7 @@ func startAPI(brainRoot string, port int) {
 				events = append([]EvolutionEvent{{
 					Hash:      "unstaged",
 					Timestamp: time.Now().Format("2006-01-02 15:04:05 -0700"),
-					Message:   "?�� Active brainwave (uncommitted)",
+					Message:   "🧠 Active brainwave (uncommitted)",
 					Action:    action,
 					Path:      filePath,
 					Region:    region,
@@ -2990,10 +2995,10 @@ func startAPI(brainRoot string, port int) {
 		})
 	}))
 
-	fmt.Printf("  POST /api/report  {message,priority} ??Stackable report queue\n")
-	fmt.Printf("  GET  /api/reports                ??List pending reports\n")
-	fmt.Printf("  GET  /api/evolution              ??Git-based neural evolution timeline\n")
-	fmt.Printf("  GET  /api/retrieve               ??Hebbian Retrieval & LLM Router (Phase 8)\n")
+	fmt.Printf("  POST /api/report  {message,priority} — Stackable report queue\n")
+	fmt.Printf("  GET  /api/reports                — List pending reports\n")
+	fmt.Printf("  GET  /api/evolution              — Git-based neural evolution timeline\n")
+	fmt.Printf("  GET  /api/retrieve               — Hebbian Retrieval & LLM Router (Phase 8)\n")
 	mux.HandleFunc("/api/retrieve", handleRetrieve(brainRoot))
 	
 	// Expose pprof
@@ -3040,4 +3045,3 @@ func rollbackAll(brainRoot string) error {
 	
 	return nil
 }
-

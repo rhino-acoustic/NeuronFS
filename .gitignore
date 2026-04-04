@@ -176,3 +176,4 @@ runtime/extract_proto.ps1
 runtime/extract_proto.mjs
 runtime/decode_grpc.mjs
 runtime/inject-exthost.mjs
+deep_keys.txt

@@ -63,7 +63,7 @@ iwr https://raw.githubusercontent.com/rhino-acoustic/NeuronFS/main/install.ps1 -
 # ※ 대화형 프롬프트에서 [2]번 Master's Brain 옵션 선택 시 프리미엄 거버넌스 뼈대 복사 가능
 neuronfs --init ./my_brain        
 
-export GROQ_API_KEY="gsk_..."      # Llama3 70B 기반 자율 폴더 통합 옵션용 (로컬 Ollama 연결 지원!)
+export GROQ_API_KEY="<your-groq-api-key>"      # Llama3 70B 기반 자율 폴더 통합 옵션용 (로컬 Ollama 연결 지원!)
 
 # 컴파일 및 실행
 neuronfs ./my_brain --emit all    # 시스템 프롬프트 컴파일
@@ -179,6 +179,10 @@ bomb.neuron은 글자로 "하지 마"라고 비는(Begging) 것이 아니라, **
 
 ## 아키텍처
 
+> **⚠️ 전사 아키텍처는 NeuronFS의 규칙에 따라 '뇌(폴더) 구조'로 자체 흡수(Subsumption)되었습니다.**
+> 시스템 컴포넌트(Go, 다중 에이전트 브릿지, NAS 부팅 시퀀스 등)의 통합 상관관계는 루트 마크다운에 존재하지 않으며, **`brain_v4/cortex/neuronfs/아키텍처/`** 하위의 물리적 뉴런(폴더) 구조로 완전 통합(SSOT)되었습니다.
+> 이로 통해 시스템은 자신의 아키텍처 구조 자체를 스스로 인지하고 실시간 진화합니다.
+
 ### 자율 루프
 
 ```
@@ -236,10 +240,16 @@ neuronfs <brain> --fire <path>     # 가중치 카운터 +1 증가
 NeuronFS는 이 거대한 철학을 로컬 파일시스템으로 가져옵니다. AI에게 1,000줄짜리 텍스트를 던져주고 "잘 기억해"라고 구걸하는 대신, 당신의 비즈니스 로직을 물리적 폴더 경로(cortex/frontend/禁console_log)로 박제합니다. 
 AI의 환각(Hallucination) 자체를 OS가 물리적으로 막을 수는 없습니다. 하지만 OS 레벨 권한 분리를 통해 프롬프트 생성 규칙이 무너지거나 훼손되는 일만큼은 확실히 하드 락(Hard Lock)을 걸어 방어합니다.
 
-## 한계 (Limitations)
+## 하이브리드 거버넌스 한계 극복 (Hybrid Memory Architecture)
 
-- **AI 제어 100% 보장 불가:** `brainstem`의 무결성은 OS 폴더 레벨에서 차단되지만, 생성형 AI 자체가 할루시네이션(환각)을 일으켜 규칙을 이탈하는 것 자체를 완전히 막을 수는 없습니다.
-- **시맨틱 벡터 검색 미지원:** 폴더명(경로) 매칭에 극대화되어 있어, 애매모호한 자연어 문장 기반의 벡터 라우팅(RAG) 검색은 의도적으로 제외되었습니다.
+**"우리는 RAG를 거부하는 것이 아니라, RAG의 환각(Hallucination)을 통제하는 L1 거버넌스 캐시입니다."**
+
+NeuronFS는 대규모 분산 환경(MSA)이나 범용 벡터 검색 시스템과 대척점에 있지 않습니다. 오히려 완벽한 상호 보완재(Hybrid)로 작동하도록 아키텍처가 의도적으로 분리되었습니다.
+
+*   **Tier 1 & 2 (NeuronFS 결정론적 지배):** 절대 불변 규칙(`brainstem`), 워크플로 제약(`sensors`). "데이터베이스 강제 백업", "평문 토큰 금지"와 같은 핵심 거버넌스는 확률(유사도 80%)에 의존하면 안 됩니다. 100% 동일한 경로를 갖는 디렉토리의 하드 락(Hard Lock)이 필요합니다. 지연시간(Latency) 제로.
+*   **Tier 3 (Vector DB / RAG 위임):** 방대한 API 규격, 수년간 누적된 에러 로그(`hippocampus`). 이처럼 모호하고 거대한 컨텍스트는 수천 개의 폴더로 쪼개는 등 오버엔지니어링 하지 않고, LlamaIndex 등 기존 RAG 파이프라인과 프레임워크에 위임하여 유연성을 확보합니다.
+
+즉, AI 에이전트가 무턱대고 거대한 벡터 DB를 횡단하기 전에, **NeuronFS(Tier 1,2)가 우선 개입하여 '절대 피해야 할 명령(禁)'을 가드레일로 먼저 깔아주는 것**이 완성된 엔터프라이즈 하이브리드 확장 모델입니다. OS 폴더가 L1 명령어 캐시, RAG가 L2 메인 램 역할을 수행합니다.
 
 ---
 

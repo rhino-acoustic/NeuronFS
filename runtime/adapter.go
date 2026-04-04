@@ -112,4 +112,3 @@ func handleRetrieve(brainRoot string) http.HandlerFunc {
 		json.NewEncoder(w).Encode(resp)
 	}
 }
-

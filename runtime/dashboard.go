@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-// ?�?�?� Health check models ?�?�?�
+// ─── Health check models ───
 
 type ProcessHealth struct {
 	Name    string `json:"name"`
@@ -29,7 +29,7 @@ type HealthJSON struct {
 	NeuronFile int             `json:"neuronFiles"`
 }
 
-// ?�?�?� JSON models for API ?�?�?�
+// ─── JSON models for API ───
 
 type NeuronJSON struct {
 	Name      string `json:"name"`
@@ -73,7 +73,7 @@ type AddBombReq struct {
 	Name   string `json:"name"`
 }
 
-// ?�?�?� CORS middleware ?�?�?�
+// ─── CORS middleware ───
 func withCORSDashboard(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -87,33 +87,33 @@ func withCORSDashboard(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// ?�?�?� Check if a process with given image name is running ?�?�?�
+// ─── Check if a process with given image name is running ───
 func isProcessRunning(imageName string) bool {
 	if runtime.GOOS != "windows" {
-		out, err := SafeOutput(30*time.Second, "pgrep", "-f", imageName)
+		out, err := exec.Command("pgrep", "-f", imageName).Output()
 		return err == nil && len(out) > 0
 	}
-	out, err := SafeOutput(30*time.Second, "tasklist", "/FI", "IMAGENAME eq "+imageName, "/NH", "/FO", "CSV")
+	out, err := exec.Command("tasklist", "/FI", "IMAGENAME eq "+imageName, "/NH", "/FO", "CSV").Output()
 	if err != nil {
 		return false
 	}
 	return strings.Contains(string(out), imageName)
 }
 
-// ?�?�?� Check if a node.js script is running ?�?�?�
+// ─── Check if a node.js script is running ───
 func isNodeScriptRunning(scriptName string) bool {
 	if runtime.GOOS != "windows" {
-		out, err := SafeOutput(30*time.Second, "pgrep", "-f", scriptName)
+		out, err := exec.Command("pgrep", "-f", scriptName).Output()
 		return err == nil && len(out) > 0
 	}
-	out, err := SafeOutput(30*time.Second, "wmic", "process", "where", "name='node.exe'", "get", "commandline", "/format:list")
+	out, err := exec.Command("wmic", "process", "where", "name='node.exe'", "get", "commandline", "/format:list").Output()
 	if err != nil {
 		return false
 	}
 	return strings.Contains(string(out), scriptName)
 }
 
-// ?�?�?� Count neuron files ?�?�?�
+// ─── Count neuron files ───
 func countNeuronFiles(brainRoot string) int {
 	count := 0
 	filepath.Walk(brainRoot, func(path string, info os.FileInfo, err error) error {
@@ -128,18 +128,18 @@ func countNeuronFiles(brainRoot string) int {
 	return count
 }
 
-// ?�?�?� Build health JSON ?�?�?�
+// ─── Build health JSON ───
 func buildHealthJSON(brainRoot string) HealthJSON {
 	processes := []ProcessHealth{
-		// ?�프???�몬
-		{Name: "neuronfs", Role: "?��? ?�진 (API ?�버 + ?�?�보??", Running: isProcessRunning("neuronfs.exe")},
-		{Name: "agent-bridge", Role: "CDP ?�이?�트 ?�신 브릿지", Running: isNodeScriptRunning("agent-bridge")},
-		{Name: "auto-accept", Role: "CDP ?�동 ?�락 + 교정 감�?", Running: isNodeScriptRunning("auto-accept")},
-		{Name: "watchdog", Role: "?�체 ?�로?�스 ?�존 감시 + harness 주기 ?�행", Running: isNodeScriptRunning("watchdog") || isProcessRunning("powershell.exe")},
+		// 인프라 데몬
+		{Name: "neuronfs", Role: "인지 엔진 (API 서버 + 대시보드)", Running: isProcessRunning("neuronfs.exe")},
+		{Name: "agent-bridge", Role: "CDP 에이전트 통신 브릿지", Running: isNodeScriptRunning("agent-bridge")},
+		{Name: "auto-accept", Role: "CDP 자동 수락 + 교정 감지", Running: isNodeScriptRunning("auto-accept")},
+		{Name: "watchdog", Role: "전체 프로세스 생존 감시 + harness 주기 실행", Running: isNodeScriptRunning("watchdog") || isProcessRunning("powershell.exe")},
 	}
 
 	return HealthJSON{
-		API:        true, // ???�답?????�점??API???�아?�음
+		API:        true, // 이 응답이 올 시점에 API는 살아있음
 		Processes:  processes,
 		OS:         runtime.GOOS,
 		BrainRoot:  brainRoot,
@@ -147,7 +147,7 @@ func buildHealthJSON(brainRoot string) HealthJSON {
 	}
 }
 
-// ?�?�?� Build brain JSON from scan ?�?�?�
+// ─── Build brain JSON from scan ───
 func buildBrainJSONResponse(brainRoot string) BrainJSON {
 	brain := scanBrain(brainRoot)
 	result := runSubsumption(brain)
@@ -188,7 +188,7 @@ func buildBrainJSONResponse(brainRoot string) BrainJSON {
 	return data
 }
 
-// ?�?�?� Dashboard Server (--dashboard mode) ?�?�?�
+// ─── Dashboard Server (--dashboard mode) ───
 
 func startDashboard(brainRoot string, port int) {
 	fmt.Printf("[NeuronFS] Dashboard: http://localhost:%d\n", port)
@@ -197,7 +197,7 @@ func startDashboard(brainRoot string, port int) {
 
 	mux := http.NewServeMux()
 
-	// GET / ??Dashboard HTML (exact match "/" or fallback for non-API paths)
+	// GET / — Dashboard HTML (exact match "/" or fallback for non-API paths)
 	mux.HandleFunc("/", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		// Serve dashboard HTML for root and all non-API routes (SPA support)
 		if strings.HasPrefix(r.URL.Path, "/api/") {
@@ -213,21 +213,21 @@ func startDashboard(brainRoot string, port int) {
 		fmt.Fprint(w, dashboardHTML)
 	}))
 
-	// GET /api/health ??system process health check
+	// GET /api/health — system process health check
 	mux.HandleFunc("/api/health", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		health := buildHealthJSON(brainRoot)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(health)
 	}))
 
-	// GET /api/brain ??scan and return full state
+	// GET /api/brain — scan and return full state
 	mux.HandleFunc("/api/brain", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		data := buildBrainJSONResponse(brainRoot)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(data)
 	}))
 
-	// POST /api/inject ??inject rules to GEMINI.md
+	// POST /api/inject — inject rules to GEMINI.md
 	mux.HandleFunc("/api/inject", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -237,11 +237,11 @@ func startDashboard(brainRoot string, port int) {
 		result := runSubsumption(brain)
 		rules := emitRules(result)
 		injectToGemini(brainRoot, rules)
-		w.Write([]byte(fmt.Sprintf("OK ??%d neurons injected, activation: %d",
+		w.Write([]byte(fmt.Sprintf("OK — %d neurons injected, activation: %d",
 			result.FiredNeurons, result.TotalCounter)))
 	}))
 
-	// POST /api/neuron ??add a new neuron (create folder + 1.neuron)
+	// POST /api/neuron — add a new neuron (create folder + 1.neuron)
 	mux.HandleFunc("/api/neuron", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -269,10 +269,10 @@ func startDashboard(brainRoot string, port int) {
 		}
 
 		fmt.Printf("[GROWTH] New neuron: %s/%s\n", req.Region, path)
-		w.Write([]byte("OK ??" + req.Region + "/" + path))
+		w.Write([]byte("OK — " + req.Region + "/" + path))
 	}))
 
-	// POST /api/bomb ??create bomb.neuron in a region
+	// POST /api/bomb — create bomb.neuron in a region
 	mux.HandleFunc("/api/bomb", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -284,9 +284,9 @@ func startDashboard(brainRoot string, port int) {
 			return
 		}
 
-		// Brainstem is immutable ??no bomb allowed
+		// Brainstem is immutable — no bomb allowed
 		if req.Region == "brainstem" {
-			http.Error(w, "brainstem neurons are immutable ??bomb denied", 403)
+			http.Error(w, "brainstem neurons are immutable — bomb denied", 403)
 			return
 		}
 
@@ -295,11 +295,11 @@ func startDashboard(brainRoot string, port int) {
 		bombFile := filepath.Join(bombDir, "bomb.neuron")
 		os.WriteFile(bombFile, []byte(""), 0644)
 
-		fmt.Printf("[BOMB] ?? %s/%s\n", req.Region, req.Name)
+		fmt.Printf("[BOMB] 💀 %s/%s\n", req.Region, req.Name)
 		w.Write([]byte("BOMB placed: " + req.Region + "/" + req.Name))
 	}))
 
-	// POST /api/increment ??increment a neuron's counter
+	// POST /api/increment — increment a neuron's counter
 	mux.HandleFunc("/api/increment", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -339,11 +339,11 @@ func startDashboard(brainRoot string, port int) {
 		newFile := filepath.Join(neuronDir, fmt.Sprintf("%d.neuron", newCounter))
 		os.WriteFile(newFile, []byte(""), 0644)
 
-		fmt.Printf("[FIRE] %s/%s: %d ??%d\n", req.Region, req.Path, currentCounter, newCounter)
+		fmt.Printf("[FIRE] %s/%s: %d → %d\n", req.Region, req.Path, currentCounter, newCounter)
 		w.Write([]byte(fmt.Sprintf("%d", newCounter)))
 	}))
 
-	// POST /api/fire ??fire (increment) a neuron by path
+	// POST /api/fire — fire (increment) a neuron by path
 	mux.HandleFunc("/api/fire", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -359,20 +359,20 @@ func startDashboard(brainRoot string, port int) {
 		path := strings.ReplaceAll(req.Path, "\\", "/")
 		path = strings.Trim(path, "/")
 		fireNeuron(brainRoot, path)
-		w.Write([]byte("OK ??fired: " + path))
+		w.Write([]byte("OK — fired: " + path))
 	}))
 
-	// POST /api/dedup ??deduplicate similar neurons
+	// POST /api/dedup — deduplicate similar neurons
 	mux.HandleFunc("/api/dedup", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
 			return
 		}
 		deduplicateNeurons(brainRoot)
-		w.Write([]byte("OK ??dedup complete"))
+		w.Write([]byte("OK — dedup complete"))
 	}))
 
-	// POST /api/signal ??add signal (dopamine/bomb/memory) to a neuron
+	// POST /api/signal — add signal (dopamine/bomb/memory) to a neuron
 	mux.HandleFunc("/api/signal", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -396,10 +396,10 @@ func startDashboard(brainRoot string, port int) {
 			http.Error(w, err.Error(), 400)
 			return
 		}
-		w.Write([]byte("OK ??" + sigType + ": " + path))
+		w.Write([]byte("OK — " + sigType + ": " + path))
 	}))
 
-	// POST /api/rollback ??rollback (decrement) a neuron's counter
+	// POST /api/rollback — rollback (decrement) a neuron's counter
 	mux.HandleFunc("/api/rollback", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -418,14 +418,14 @@ func startDashboard(brainRoot string, port int) {
 			http.Error(w, err.Error(), 400)
 			return
 		}
-		w.Write([]byte("OK ??rolled back: " + path))
+		w.Write([]byte("OK — rolled back: " + path))
 	}))
 
-	// POST /api/contra ??add inhibitory signal to a neuron
+	// POST /api/contra — add inhibitory signal to a neuron
 	mux.HandleFunc("/api/contra", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "403 Forbidden: API write operations (.contra) are disabled for security. Use CLI.", 403)
 	}))
-	// POST /api/report ??stackable report queue
+	// POST /api/report — stackable report queue
 	mux.HandleFunc("/api/report", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
@@ -464,11 +464,11 @@ func startDashboard(brainRoot string, port int) {
 			"message":  req.Message,
 			"priority": req.Priority,
 			"pending":  pending,
-			"ack":      "?�로??보고가 ?�인?�었?�니?? ?�용?�의 ?�청 처리 ???�로?�합?�다.",
+			"ack":      "새로운 보고가 확인되었습니다. 사용자의 요청 처리 후 팔로업합니다.",
 		})
 	}))
 
-	// GET /api/reports ??list pending reports
+	// GET /api/reports — list pending reports
 	mux.HandleFunc("/api/reports", withCORSDashboard(func(w http.ResponseWriter, r *http.Request) {
 		reportsDir := filepath.Join(brainRoot, "_inbox", "reports")
 		entries, _ := os.ReadDir(reportsDir)
@@ -484,4 +484,3 @@ func startDashboard(brainRoot string, port int) {
 
 	http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", port), mux)
 }
-

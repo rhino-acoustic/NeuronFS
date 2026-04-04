@@ -1,0 +1,35 @@
+﻿usage: antigravity_database_manager [-h] [--version] [--headless] [--json]
+                                    {scan,recover,merge,backup,create,health,diagnose,repair,conversations,workspace,storage}
+                                    ...
+
+Agmercium Antigravity IDE Recovery Tool v8.6.0 ??Agmercium Database Management Hub
+
+positional arguments:
+  {scan,recover,merge,backup,create,health,diagnose,repair,conversations,workspace,storage}
+    scan                Scan current DB and all backups, print comparison
+                        table
+    recover             Run the full 6-phase recovery pipeline
+    merge               Merge conversations from a source DB into current
+    backup              Manage backups
+    create              Create a new empty state.vscdb
+    health              Run a health check on the current database
+    diagnose            Scan database for Protobuf structural corruptions
+    repair              Autonomously repair detected corruptions
+    conversations       Manage individual conversations
+    workspace           Workspace diagnostics
+    storage             Manage storage.json
+
+options:
+  -h, --help            show this help message and exit
+  --version, -v         show program's version number and exit
+  --headless            Force headless interactive mode (no TUI)
+  --json                Output results as JSON (where applicable)
+
+Examples:
+  antigravity_database_manager.py scan
+  antigravity_database_manager.py recover
+  antigravity_database_manager.py merge --source path/to/backup.vscdb
+  antigravity_database_manager.py backup list
+  antigravity_database_manager.py backup restore 1
+  antigravity_database_manager.py workspace list
+  antigravity_database_manager.py storage inspect
