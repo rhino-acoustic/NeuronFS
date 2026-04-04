@@ -2475,7 +2475,7 @@ func startAPI(brainRoot string, port int) {
 		principlesFile := filepath.Join(brainRoot, "brainstem", "_principles.txt")
 
 		if r.Method == "GET" {
-			result := map[string]interface{}{"principles": []string{}, "max": 2}
+			result := map[string]interface{}{"principles": []string{}}
 			data, err := os.ReadFile(principlesFile)
 			if err != nil {
 				// fallback: _preamble.txt (이전 형식)

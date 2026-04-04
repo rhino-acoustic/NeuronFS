@@ -195,10 +195,10 @@ body{font-family:'Inter','SUIT',sans-serif;background:var(--bg);color:var(--text
   <div class="casc" id="cascade"></div>
   <div class="soul2" style="border:1px solid #dc2626">
     <div class="st3" style="color:#dc2626">🎯 CORE PRINCIPLES</div>
-    <div style="font-size:11px;color:#64748b;margin-bottom:8px">AI에게 가장 먼저 주입되는 2대 원칙</div>
-    <input id="p1" type="text" placeholder="대원칙 1 — 예: 반드시 한국어로 대답해" style="width:100%;background:#fef2f2;border:1px solid #e2e8f0;padding:8px 10px;color:#1a1a2e;font-size:12px;font-family:Inter,sans-serif;margin-bottom:4px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor='#dc2626'" onblur="this.style.borderColor='#e2e8f0'">
-    <input id="p2" type="text" placeholder="대원칙 2 — 예: 커뮤니티 동향을 최우선 검색" style="width:100%;background:#fef2f2;border:1px solid #e2e8f0;padding:8px 10px;color:#1a1a2e;font-size:12px;font-family:Inter,sans-serif;margin-bottom:8px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor='#dc2626'" onblur="this.style.borderColor='#e2e8f0'">
-    <div style="display:flex;gap:6px;align-items:center">
+    <div style="font-size:11px;color:#64748b;margin-bottom:8px">AI에게 가장 먼저 주입되는 원칙. 모든 규칙 위에 군림한다.</div>
+    <div id="principles-list"></div>
+    <div style="display:flex;gap:6px;align-items:center;margin-top:8px">
+      <button onclick="addPrincipleRow()" style="background:#ffffff;color:#1a1a2e;border:1px solid #e2e8f0;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:all 0.15s" onmouseover="this.style.borderColor='#dc2626'" onmouseout="this.style.borderColor='#e2e8f0'">+ 추가</button>
       <button onclick="savePrinciples()" style="flex:1;background:#000000;color:#ffffff;border:none;padding:8px 0;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;transition:opacity 0.2s;letter-spacing:0.02em" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">저장 + 적용</button>
       <span id="p-status" style="font-size:10px;color:#64748b;flex-shrink:0"></span>
     </div>
@@ -383,20 +383,41 @@ async function syncSandbox(){
   }catch(e){}
 })();
 
-// ═══ Core Principles: 대원칙 설정 ═══
+// ═══ Core Principles: 동적 대원칙 ═══
+function addPrincipleRow(value=''){
+  const list=document.getElementById('principles-list');
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:4px;align-items:center;margin-bottom:4px';
+  const input=document.createElement('input');
+  input.type='text';input.className='principle-input';input.value=value;
+  input.placeholder='원칙을 입력하세요';
+  input.style.cssText='flex:1;background:#fef2f2;border:1px solid #e2e8f0;padding:8px 10px;color:#1a1a2e;font-size:12px;font-family:Inter,sans-serif;outline:none;transition:border-color 0.15s';
+  input.onfocus=()=>input.style.borderColor='#dc2626';
+  input.onblur=()=>input.style.borderColor='#e2e8f0';
+  const del=document.createElement('button');
+  del.textContent='✕';
+  del.style.cssText='background:none;border:1px solid #e2e8f0;color:#94a3b8;padding:6px 8px;font-size:12px;cursor:pointer;font-family:Inter;transition:all 0.15s';
+  del.onmouseover=()=>{del.style.borderColor='#dc2626';del.style.color='#dc2626'};
+  del.onmouseout=()=>{del.style.borderColor='#e2e8f0';del.style.color='#94a3b8'};
+  del.onclick=()=>row.remove();
+  row.appendChild(input);row.appendChild(del);
+  list.appendChild(input);list.appendChild(row);
+  // actually fix: put input inside row properly
+  row.innerHTML='';row.appendChild(input);row.appendChild(del);
+  list.appendChild(row);
+}
 async function savePrinciples(){
-  const p1=document.getElementById('p1').value.trim();
-  const p2=document.getElementById('p2').value.trim();
+  const inputs=document.querySelectorAll('.principle-input');
+  const principles=Array.from(inputs).map(i=>i.value.trim()).filter(p=>p);
   const st=document.getElementById('p-status');
-  const principles=[p1,p2].filter(p=>p);
-  st.textContent='⏳'; st.style.color='#fca5a5';
+  st.textContent='⏳';st.style.color='#d97706';
   try{
     const r=await fetch('/api/principles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({principles})});
     const d=await r.json();
-    if(d.status==='cleared'){st.textContent='초기화됨';st.style.color='#555';}
-    else{st.textContent='✓ 적용됨';st.style.color='#34d399';showNotify('대원칙 적용','GEMINI.md 최상단에 주입됨','success');}
+    if(d.status==='cleared'){st.textContent='초기화됨';st.style.color='#94a3b8';}
+    else{st.textContent='✓ 적용됨';st.style.color='#16a34a';showNotify('대원칙 적용','GEMINI.md 최상단에 주입됨','success');}
     loadBrainState();
-  }catch(e){st.textContent='❌';st.style.color='#fca5a5';}
+  }catch(e){st.textContent='❌';st.style.color='#dc2626';}
 }
 // 초기 로드: 기존 대원칙 복원
 (async function(){
@@ -404,12 +425,13 @@ async function savePrinciples(){
     const r=await fetch('/api/principles');
     const d=await r.json();
     if(d.principles&&d.principles.length>0){
-      if(d.principles[0])document.getElementById('p1').value=d.principles[0];
-      if(d.principles[1])document.getElementById('p2').value=d.principles[1];
-      document.getElementById('p-status').textContent='✓ 활성';
-      document.getElementById('p-status').style.color='#34d399';
+      d.principles.forEach(p=>addPrincipleRow(p));
+      document.getElementById('p-status').textContent='✓ '+d.principles.length+'개 활성';
+      document.getElementById('p-status').style.color='#16a34a';
+    }else{
+      addPrincipleRow();// 빈 행 1개
     }
-  }catch(e){}
+  }catch(e){addPrincipleRow();}
 })();
 
 // ═══ Emotion State Machine ═══
@@ -690,6 +712,11 @@ function buildNeurons(bs){
   const texCache={};
   Object.keys(RC).forEach(k=>texCache[k]=glowTex(RC[k]));
 
+  // Compute global min/max for relative sizing
+  let globalMin=Infinity,globalMax=0;
+  BD.regions.forEach(r=>(r.neurons||[]).forEach(n=>{if(n.counter<globalMin)globalMin=n.counter;if(n.counter>globalMax)globalMax=n.counter}));
+  const globalRange=Math.max(globalMax-globalMin,1);
+
   BD.regions.forEach(region=>{
     const rp=RP[region.name]||{cx:0,cy:0,cz:0,sp:12};
     const col=new THREE.Color(RC[region.name]);
@@ -699,19 +726,17 @@ function buildNeurons(bs){
     ns.forEach((n,i)=>{
       const fp=fibSphere(i,ns.length,rp.sp);
       const x=rp.cx+fp.x,y=rp.cy+fp.y,z=rp.cz+fp.z;
-      const raw=n.counter/99;
-      // Inverse log curve: grows fast at low values, slow at high values
-      const str=Math.log(1+raw*9)/Math.log(10); // 0→0, 0.5→0.74, 1.0→1.0
-      const isS=n.counter>=80,isM=n.counter>=40;
-      const sprSize=isS?3+str*2:isM?1.8+str*1:0.8+str*0.8;
-      const op=isS?0.35:isM?0.2:0.1+str*0.05;
+      // Relative strength: 0 = weakest neuron, 1 = strongest
+      const str=(n.counter-globalMin)/globalRange;
+      const sprSize=0.6+str*3.5;
+      const op=0.08+str*0.3;
 
       const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:op,blending:THREE.NormalBlending,depthWrite:false}));
       spr.position.set(x,y,z);spr.scale.set(sprSize,sprSize,1);
       spr.userData={neuron:n,region:region.name,baseOp:op,baseScale:sprSize};
       scene.add(spr);
 
-      const dotR=isS?0.7+str*0.6:isM?0.4+str*0.3:0.2+str*0.2;
+      const dotR=0.15+str*0.7;
       const dotMesh=new THREE.Mesh(new THREE.SphereGeometry(dotR,12,12),new THREE.MeshBasicMaterial({color:col}));
       dotMesh.position.set(x,y,z);scene.add(dotMesh);
 
