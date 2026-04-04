@@ -99,6 +99,26 @@ body{font-family:'Inter','SUIT',sans-serif;background:var(--bg);color:var(--text
 @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .header{animation:fadeUp 0.3s ease-out both}.panel{animation:fadeUp 0.3s 0.05s ease-out both}.right-col{animation:fadeUp 0.3s 0.1s ease-out both}
 
+/* Tab bar */
+.tab-bar{position:fixed;z-index:18;top:52px;left:280px;right:320px;height:36px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:stretch;padding:0 16px;gap:0}
+.tab-btn{background:none;border:none;border-bottom:2px solid transparent;padding:0 16px;font-size:11px;font-weight:600;font-family:Inter,sans-serif;color:var(--text-muted);cursor:pointer;letter-spacing:0.02em;transition:all 0.15s;text-transform:uppercase}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--text);border-bottom-color:var(--accent)}
+
+/* System flow overlay */
+#flow-view{position:fixed;z-index:5;top:88px;left:280px;right:320px;bottom:28px;background:var(--bg);display:none;overflow:auto;padding:32px}
+#flow-view.visible{display:block}
+#flow-view .flow-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:16px;letter-spacing:-0.01em}
+.flow-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.flow-card{background:var(--surface);border:1px solid var(--border);padding:14px;transition:border-color 0.15s}
+.flow-card:hover{border-color:var(--text-muted)}
+.flow-card h3{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em}
+.flow-card p{font-size:11px;color:var(--text-secondary);line-height:1.5}
+.flow-card .flow-arrow{font-size:10px;color:var(--accent);margin-top:8px;font-weight:600}
+.flow-diagram{margin-top:20px;background:var(--surface);border:1px solid var(--border);padding:24px;font-family:monospace;font-size:11px;color:var(--text-secondary);line-height:2;white-space:pre-wrap}
+.flow-diagram strong{color:var(--text);font-weight:700}
+.flow-diagram .red{color:var(--accent);font-weight:700}
+
 
 /* Action buttons in header */
 .hdr-actions{display:flex;gap:4px;align-items:center}
@@ -172,6 +192,63 @@ body{font-family:'Inter','SUIT',sans-serif;background:var(--bg);color:var(--text
 
   </div>
   <div class="sr" id="stats"></div>
+</div>
+<!-- Tab bar: Brain 3D vs System Flow -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('brain')">🧠 Brain</button>
+  <button class="tab-btn" onclick="switchTab('flow')">⚡ System Flow</button>
+</div>
+<!-- System Flow view (hidden by default) -->
+<div id="flow-view">
+  <div class="flow-title">NeuronFS Subsumption Architecture</div>
+  <div class="flow-grid">
+    <div class="flow-card" style="border-left:3px solid #dc2626">
+      <h3>P0 — Brainstem</h3>
+      <p>대원칙(Core Principles). 모든 규칙 위에 군림한다. _preamble.txt, _principles.txt에서 로드.</p>
+      <div class="flow-arrow">↓ Override ALL</div>
+    </div>
+    <div class="flow-card" style="border-left:3px solid #78716c">
+      <h3>P1 — Limbic</h3>
+      <p>감정 상태 (분노, 긴급, 집중, 불안, 만족). 감정에 따라 행동 패턴이 변한다.</p>
+      <div class="flow-arrow">↓ Emotional bias</div>
+    </div>
+    <div class="flow-card" style="border-left:3px solid #a8a29e">
+      <h3>P2 — Hippocampus</h3>
+      <p>기억 저장소. memory signal로 경험을 기록하고, 반복 실수를 방지한다.</p>
+      <div class="flow-arrow">↓ Experience recall</div>
+    </div>
+    <div class="flow-card" style="border-left:3px solid #64748b">
+      <h3>P3 — Sensors</h3>
+      <p>환경 인식. NAS, 브랜드, 외부 컨텍스트를 감지하여 뉴런에 반영한다.</p>
+      <div class="flow-arrow">↓ Context injection</div>
+    </div>
+    <div class="flow-card" style="border-left:3px solid #475569">
+      <h3>P4 — Cortex</h3>
+      <p>지식 뉴런. CSS, Go, JS, 프론트엔드 등 기술 규칙이 카운터로 강화된다.</p>
+      <div class="flow-arrow">↓ Skill application</div>
+    </div>
+    <div class="flow-card" style="border-left:3px solid #57534e">
+      <h3>P5 — Ego</h3>
+      <p>페르소나. AI의 성격, 화법, 톤을 결정하는 정체성 레이어.</p>
+      <div class="flow-arrow">↓ Personality filter</div>
+    </div>
+    <div class="flow-card" style="border-left:3px solid #334155">
+      <h3>P6 — Prefrontal</h3>
+      <p>목표(Goals). 현재 스프린트 목표를 추적하고 완료율을 감시한다.</p>
+      <div class="flow-arrow">→ Final output</div>
+    </div>
+  </div>
+  <div class="flow-diagram">
+<strong>Request</strong> → <span class="red">P0 Brainstem</span> → P1 Limbic → P2 Hippocampus → P3 Sensors → P4 Cortex → P5 Ego → P6 Prefrontal → <strong>Response</strong>
+
+Each layer can <span class="red">OVERRIDE</span> lower-priority layers.
+Brainstem (P0) has absolute authority — it cannot be overridden.
+
+<strong>Signal Types:</strong>
+  dopamine  →  뉴런 강화 (카운터 +1, 반복 시 규칙이 더 강해짐)
+  bomb      →  3회 반복 실수 시 자동 차단 (뉴런 비활성화)
+  memory    →  경험 기록 (hippocampus에 저장, 다음 세션에서 참조)
+  </div>
 </div>
 <div class="panel">
   <div class="panel-scroll" id="unified-panel"></div>
@@ -336,6 +413,19 @@ async function doBomb(){ return; // DISABLED
     loadBrainState();
   }catch(e){showNotify('Bomb Failed',e.message,'error');}
 }
+// ═══ Tab switching ═══
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  const cv=document.getElementById('cv');
+  const fv=document.getElementById('flow-view');
+  if(tab==='brain'){
+    cv.style.display='block';fv.classList.remove('visible');
+  }else{
+    cv.style.display='none';fv.classList.add('visible');
+  }
+}
+
 async function addNeuron(){
   const region=document.getElementById('add-region').value;
   const pathInput=document.getElementById('add-path');
@@ -781,25 +871,31 @@ function buildNeurons(bs){
     const rls=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(rlc),transparent:true,opacity:0.85,depthWrite:false}));
     rls.position.set(rp.cx,rp.cy+rp.sp+7,rp.cz);rls.scale.set(28,5,1);scene.add(rls);
   });
-  // ── INTRA-REGION: connect each neuron to 2 nearest neighbors ──
+  // ── INTRA-REGION: curved connections ──
   const regionPts={};
   allPts.forEach(p=>{if(!regionPts[p.region])regionPts[p.region]=[];regionPts[p.region].push(p)});
   Object.keys(regionPts).forEach(rn=>{
     const pts=regionPts[rn];
+    const rp=RP[rn]||{cx:0,cy:0,cz:0};
     pts.forEach((p,i)=>{
-      // Connect to next 2 neurons in fibonacci order (natural neighbors)
       for(let k=1;k<=1;k++){
         const j=(i+k)%pts.length;
         if(j===i)continue;
         const q=pts[j];
-        const geo=new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(p.x,p.y,p.z),
-          new THREE.Vector3(q.x,q.y,q.z)
-        ]);
+        // Curve toward region center for organic look
+        const mid=new THREE.Vector3(
+          (p.x+q.x)/2*0.7+rp.cx*0.3,
+          (p.y+q.y)/2*0.7+rp.cy*0.3+2,
+          (p.z+q.z)/2*0.7+rp.cz*0.3
+        );
+        const curve=new THREE.QuadraticBezierCurve3(
+          new THREE.Vector3(p.x,p.y,p.z),mid,new THREE.Vector3(q.x,q.y,q.z)
+        );
+        const geo=new THREE.BufferGeometry().setFromPoints(curve.getPoints(12));
         geo.computeBoundingSphere();
-        const mat=new THREE.LineBasicMaterial({color:new THREE.Color(RC[rn]),transparent:true,opacity:0.03,linewidth:1});
+        const mat=new THREE.LineBasicMaterial({color:new THREE.Color(RC[rn]),transparent:true,opacity:0.015,linewidth:1});
         const ln=new THREE.Line(geo,mat);
-        ln.userData={from:rn,to:rn,baseColor:RC[rn],baseOp:0.03};
+        ln.userData={from:rn,to:rn,baseColor:RC[rn],baseOp:0.015};
         scene.add(ln);allLines.push(ln);
       }
     });
