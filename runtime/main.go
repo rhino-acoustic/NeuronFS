@@ -2477,6 +2477,10 @@ func startAPI(brainRoot string, port int) {
 		if r.Method == "GET" {
 			result := map[string]interface{}{"principles": []string{}, "max": 2}
 			data, err := os.ReadFile(principlesFile)
+			if err != nil {
+				// fallback: _preamble.txt (이전 형식)
+				data, err = os.ReadFile(filepath.Join(brainRoot, "_preamble.txt"))
+			}
 			if err == nil {
 				text := strings.TrimSpace(string(data))
 				if text != "" {
