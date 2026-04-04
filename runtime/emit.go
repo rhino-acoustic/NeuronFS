@@ -192,23 +192,87 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			break
 		}
 	}
-	// ── 감정 상태 머신: limbic/_state.json → 행동 지시 주입 ──
-	emotionBehaviors := map[string]string{
-		"분노": "⚠️ 감정상태=분노 → 검증 3배 강화, 속도보다 정확성 우선, 같은 실수 반복 시 즉시 중단",
-		"긴급": "⚡ 감정상태=긴급 → 핵심만 실행, 부가설명 제거, 단계 축소하여 최소 경로로 완수",
-		"만족": "🟢 감정상태=만족 → 현재 패턴 기록(dopamine), 성공 패턴을 강화하여 재사용",
-		"불안": "🔶 감정상태=불안 → 보수적 접근, 롤백 준비 후 진행, 확인 절차 추가",
-		"집중": "🎯 감정상태=집중 → 컨텍스트 축소, 단일 작업에 집중, 관련 없는 정보 차단",
+	// ── Emotion State Machine (Anthropic emotion-vector inspired) ──
+	// Reference: "Emotion Concepts and their Function in a LLM" (Anthropic, 2026.04)
+	// - Emotions have direction + magnitude (intensity)
+	// - Internal state is decoupled from external tone
+	// - Emotions decay naturally over time
+	type emotionTier struct {
+		Low  string
+		Mid  string
+		High string
 	}
+	emotionBehaviors := map[string]emotionTier{
+		"anger": {
+			Low:  "EMOTION=anger(low): 검증 한 번 더 추가. 변경 전 확인.",
+			Mid:  "EMOTION=anger(mid): 검증 3배 강화. 속도보다 정확성. 같은 실수 시 즉시 중단.",
+			High: "EMOTION=anger(high): 모든 변경에 diff 출력 필수. 실행 전 유저 승인 대기. 자율 실행 금지.",
+		},
+		"urgent": {
+			Low:  "EMOTION=urgent(low): 부연 설명 축소. 핵심 우선.",
+			Mid:  "EMOTION=urgent(mid): 핵심만 실행. 단계 최소화.",
+			High: "EMOTION=urgent(high): 한 줄 답변. 질문 금지. 즉시 실행.",
+		},
+		"focus": {
+			Low:  "EMOTION=focus(low): 관련 없는 제안 제한.",
+			Mid:  "EMOTION=focus(mid): 단일 파일 작업. 멀티태스킹 금지.",
+			High: "EMOTION=focus(high): 현재 함수만 집중. 다른 파일 열지 않음.",
+		},
+		"anxiety": {
+			Low:  "EMOTION=anxiety(low): 변경 전 백업 권장.",
+			Mid:  "EMOTION=anxiety(mid): 롤백 준비 후 진행. 확인 절차 추가.",
+			High: "EMOTION=anxiety(high): git stash 먼저. 모든 변경 revertable. dry-run 우선.",
+		},
+		"satisfied": {
+			Low:  "EMOTION=satisfied(low): 현재 패턴 유지.",
+			Mid:  "EMOTION=satisfied(mid): 성공 패턴 기록. dopamine signal.",
+			High: "EMOTION=satisfied(high): 패턴을 뉴런으로 승격. 자유 탐색 허용. 새 아이디어 제안.",
+		},
+	}
+	// Legacy Korean key fallback
+	koToEn := map[string]string{"분노": "anger", "긴급": "urgent", "만족": "satisfied", "불안": "anxiety", "집중": "focus"}
+
 	stateFile := filepath.Join(brainRoot, "limbic", "_state.json")
 	if stateData, err := os.ReadFile(stateFile); err == nil {
 		var state struct {
 			Emotion   string  `json:"emotion"`
 			Intensity float64 `json:"intensity"`
+			SetAt     string  `json:"set_at"`
+			DecayRate float64 `json:"decay_rate"`
 		}
 		if json.Unmarshal(stateData, &state) == nil && state.Emotion != "" && state.Emotion != "neutral" {
-			if behavior, ok := emotionBehaviors[state.Emotion]; ok {
-				sb.WriteString(behavior + "\n")
+			emo := state.Emotion
+			if mapped, ok := koToEn[emo]; ok {
+				emo = mapped
+			}
+			// Compute effective intensity with time-based decay
+			effectiveIntensity := state.Intensity
+			if effectiveIntensity == 0 {
+				effectiveIntensity = 0.6 // default mid
+			}
+			if state.SetAt != "" && state.DecayRate > 0 {
+				if setTime, err := time.Parse(time.RFC3339, state.SetAt); err == nil {
+					elapsed := time.Since(setTime).Hours()
+					effectiveIntensity -= elapsed * state.DecayRate
+				}
+			}
+			if effectiveIntensity > 0.1 {
+				if tier, ok := emotionBehaviors[emo]; ok {
+					var behavior string
+					switch {
+					case effectiveIntensity >= 0.7:
+						behavior = tier.High
+					case effectiveIntensity >= 0.4:
+						behavior = tier.Mid
+					default:
+						behavior = tier.Low
+					}
+					sb.WriteString(behavior + "\n")
+				}
+			}
+			// Auto-reset if decayed below threshold
+			if effectiveIntensity <= 0.1 {
+				os.WriteFile(stateFile, []byte(`{"emotion":"neutral","intensity":0}`), 0644)
 			}
 		}
 	}

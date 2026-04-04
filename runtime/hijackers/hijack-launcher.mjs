@@ -28,6 +28,19 @@ const SESSION_NEURON_DIR = path.join(BRAIN_DIR, 'hippocampus', 'session_log');
 const SENSOR_DIR = path.join(BRAIN_DIR, 'sensors', 'tools');
 const GLOBAL_INBOX_DIR = path.join(BRAIN_DIR, '_agents', 'global_inbox');
 
+// ── 중복 방지: 이미 기록한 requestId 추적 ──
+const processedRequestIds = new Set();
+const MAX_PROCESSED_IDS = 500;
+function markProcessed(reqId) {
+    if (processedRequestIds.has(reqId)) return false; // 이미 처리됨
+    processedRequestIds.add(reqId);
+    if (processedRequestIds.size > MAX_PROCESSED_IDS) {
+        const first = processedRequestIds.values().next().value;
+        processedRequestIds.delete(first);
+    }
+    return true; // 새로 처리
+}
+
 function getKST() {
     return new Date(Date.now() + 32400000).toISOString().replace('T', ' ').substring(11, 19);
 }
@@ -49,12 +62,14 @@ function fireNeuron(regionPath, content) {
     fs.writeFileSync(path.join(dir, fname), content, 'utf8');
 }
 
-function appendTranscript(entry) {
+// ── 프로젝트별 분리 전사 ──
+function appendTranscript(entry, projectLabel) {
     if (!fs.existsSync(TRANSCRIPT_DIR)) fs.mkdirSync(TRANSCRIPT_DIR, { recursive: true });
-    // KST 기준 날짜+시간(시) 조합 -> 예: 2026-04-03_18h.txt
     const d = new Date(Date.now() + 32400000);
     const timeKey = d.toISOString().replace('T', '_').substring(0, 13) + 'h';
-    const file = path.join(TRANSCRIPT_DIR, `${timeKey}.txt`);
+    // 프로젝트별 파일 분리: NeuronFS_2026-04-04_18h.txt
+    const proj = (projectLabel || 'global').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+    const file = path.join(TRANSCRIPT_DIR, `${proj}_${timeKey}.txt`);
     fs.appendFileSync(file, entry + '\n', 'utf8');
 }
 
@@ -265,16 +280,20 @@ function createAxon(sourcePath, targetRegion, reason) {
 async function harnessCycle() {
     log(`🔧 [Harness Cycle] 시작 — 세션 #${sessionMessageCount}`);
     
-    // ── 1. 최근 전사 수집 ──
+    // ── 1. 최근 전사 수집 (프로젝트별 파일도 합산) ──
     const d = new Date(Date.now() + 32400000);
     const timeKey = d.toISOString().replace('T', '_').substring(0, 13) + 'h';
-    const transcriptFile = path.join(TRANSCRIPT_DIR, `${timeKey}.txt`);
     
     let recentLines = [];
     try {
-        const content = fs.readFileSync(transcriptFile, 'utf8');
-        const lines = content.split('\n').filter(l => l.trim());
-        recentLines = lines.slice(-150); // 최근 150줄 (50메시지 × 약 3줄)
+        // 프로젝트별 파일 + 레거시 파일 모두 읽기
+        const files = fs.readdirSync(TRANSCRIPT_DIR).filter(f => f.endsWith(`${timeKey}.txt`));
+        for (const f of files) {
+            const content = fs.readFileSync(path.join(TRANSCRIPT_DIR, f), 'utf8');
+            const lines = content.split('\n').filter(l => l.trim());
+            recentLines.push(...lines);
+        }
+        recentLines = recentLines.slice(-150);
     } catch { return; }
     
     if (recentLines.length < 10) return;
@@ -586,8 +605,10 @@ function attachCDPNetwork(wsUrl, label) {
                                 for (const item of json.items) {
                                     if (item.text) {
                                         sessionMessageCount++;
-                                        log(`  📝 [${label}] "${item.text}"`);
-                                        appendTranscript(`[${getKST()}] [${label}] USER@${cascadeId.substring(0,8)}: ${item.text}`);
+                                        const projMatch2 = label.match(/page:([^\s-]+)/);
+                                        const proj2 = projMatch2 ? projMatch2[1] : 'global';
+                                        log(`  [${label}] "${item.text}"`);
+                                        appendTranscript(`[${getKST()}] USER@${cascadeId.substring(0,8)}: ${item.text}`, proj2);
                                         updateSessionTranscript('user', item.text, cascadeId);
                                         // [REMOVED] fireNeuron session_log — 매 메시지마다 .md 생성하여 197K+ 폭발 유발
                                         
@@ -606,8 +627,10 @@ function attachCDPNetwork(wsUrl, label) {
                             }
                             if (json.interaction && json.interaction.runCommand) {
                                 const cmd = json.interaction.runCommand.proposedCommandLine?.substring(0, 120) || '';
-                                log(`  🖥️ [${label}] CMD confirm: "${cmd}"`);
-                                appendTranscript(`[${getKST()}] [${label}] CMD@${cascadeId.substring(0,8)}: ${cmd}`);
+                                const projMatch3 = label.match(/page:([^\s-]+)/);
+                                const proj3 = projMatch3 ? projMatch3[1] : 'global';
+                                log(`  [${label}] CMD confirm: "${cmd}"`);
+                                appendTranscript(`[${getKST()}] CMD@${cascadeId.substring(0,8)}: ${cmd}`, proj3);
                                 messageBuffer.push(`[CMD] ${cmd}`);
                                 processChunk().catch(() => {});
                             }
@@ -637,49 +660,79 @@ function attachCDPNetwork(wsUrl, label) {
                 }
             }
             
-            // ===== 응답 본문 수신 =====
+            // ===== 응답 본문 수신 (중복 방지 + thinking/첨부 강화) =====
             if (msg.id && pendingBodyFetches[msg.id]) {
                 const detail = pendingBodyFetches[msg.id];
                 delete pendingBodyFetches[msg.id];
+                
+                // 중복 방지: 이미 처리한 requestId는 스킵
+                if (!markProcessed(detail.requestId)) {
+                    return; // 이미 기록됨
+                }
                 
                 if (msg.result && msg.result.body) {
                     const body = msg.result.base64Encoded 
                         ? Buffer.from(msg.result.body, 'base64').toString('utf8')
                         : msg.result.body;
                     
-                    const ts = Date.now();
+                    // 프로젝트 라벨 추출 (label = "page:NeuronFS - ...")
+                    const projMatch = label.match(/page:([^\s-]+)/);
+                    const proj = projMatch ? projMatch[1] : 'global';
 
-                    log(`  📦 AI Response (${detail.rpc}): ${body.length}B`);
+                    log(`  [${label}] AI Response (${detail.rpc}): ${body.length}B`);
                     
                     // 트랜스크립트에 AI 응답 기록 (처음 2000자)
                     const preview = body.substring(0, 2000).replace(/\n/g, ' ');
-                    appendTranscript(`[${getKST()}] [${label}] AI_RESP@${detail.rpc}: ${preview}`);
+                    appendTranscript(`[${getKST()}] AI_RESP@${detail.rpc}: ${preview}`, proj);
                     updateSessionTranscript('assistant', preview, '');
                     
-                    // === Groq buffer에 AI 응답도 추가 (맥락 완성) ===
-                    // thinking, tool calls, 코드 변경 등을 파싱하여 추가
                     try {
-                        // thinking 추출
-                        const thinkMatch = body.match(/thinking["\s:]+([^"]{20,500})/i);
-                        if (thinkMatch) {
-                            const think = thinkMatch[1].substring(0, 300);
-                            appendTranscript(`[${getKST()}] [${label}] THINK: ${think}`);
-                            messageBuffer.push(`[THINK] ${think}`);
+                        // ── thinking 추출 (강화: 여러 패턴 매칭) ──
+                        const thinkPatterns = [
+                            /"thinking"\s*:\s*"((?:[^"\\]|\\.)*)"/, // JSON string
+                            /thinking>([\s\S]{20,2000}?)<\//, // XML tag
+                            /thinking["\s:]+([^"]{20,1000})/i, // legacy
+                        ];
+                        for (const tp of thinkPatterns) {
+                            const m = body.match(tp);
+                            if (m) {
+                                const think = m[1].substring(0, 1000).replace(/\\n/g, ' ').replace(/\n/g, ' ');
+                                appendTranscript(`[${getKST()}] THINK: ${think}`, proj);
+                                messageBuffer.push(`[THINK] ${think}`);
+                                break;
+                            }
                         }
                         
-                        // tool calls 추출 (ran command, edited file, view_file 등)
+                        // ── 첨부/이미지 추출 ──
+                        const attachPatterns = [
+                            /"fileName"\s*:\s*"([^"]+)"/g,
+                            /"imageUrl"\s*:\s*"([^"]+)"/g,
+                            /generate_image[^}]*ImageName["\s:]+([^"]{5,100})/gi,
+                            /"AbsolutePath"\s*:\s*"([^"]+\.(?:png|jpg|svg|webp|gif))"/gi,
+                        ];
+                        for (const ap of attachPatterns) {
+                            const matches = [...body.matchAll(ap)];
+                            for (const m of matches) {
+                                appendTranscript(`[${getKST()}] ATTACH: ${m[1].substring(0, 200)}`, proj);
+                            }
+                        }
+                        
+                        // ── tool calls 추출 ──
                         const toolPatterns = [
                             /run_command[^}]*CommandLine["\s:]+([^"]{10,200})/gi,
                             /replace_file_content[^}]*TargetFile["\s:]+([^"]{10,200})/gi,
                             /view_file[^}]*AbsolutePath["\s:]+([^"]{10,200})/gi,
                             /write_to_file[^}]*TargetFile["\s:]+([^"]{10,200})/gi,
+                            /multi_replace_file_content[^}]*TargetFile["\s:]+([^"]{10,200})/gi,
+                            /search_web[^}]*query["\s:]+([^"]{10,200})/gi,
+                            /grep_search[^}]*Query["\s:]+([^"]{10,200})/gi,
                         ];
                         for (const pat of toolPatterns) {
                             const matches = [...body.matchAll(pat)];
                             for (const m of matches) {
                                 const toolInfo = m[1].substring(0, 150);
                                 const toolName = pat.source.split('[')[0];
-                                appendTranscript(`[${getKST()}] [${label}] TOOL@${toolName}: ${toolInfo}`);
+                                appendTranscript(`[${getKST()}] TOOL@${toolName}: ${toolInfo}`, proj);
                                 messageBuffer.push(`[TOOL:${toolName}] ${toolInfo}`);
                             }
                         }

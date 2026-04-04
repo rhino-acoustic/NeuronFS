@@ -2862,7 +2862,21 @@ func startAPI(brainRoot string, port int) {
 		w.Write(data)
 	}))
 
-	// GET / — Dashboard V2 (Strangler Fig: new page)
+	// GET /v2 — Dashboard V2 (experimental)
+	mux.HandleFunc("/v2", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		v2Path := filepath.Join(neuronfsRoot, "dashboard_v2.html")
+		data, err := os.ReadFile(v2Path)
+		if err != nil {
+			data, err = os.ReadFile(`C:\Users\BASEMENT_ADMIN\NeuronFS\dashboard_v2.html`)
+		}
+		if err != nil {
+			http.Error(w, "dashboard_v2.html not found", 404)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(data)
+	}))
+	// GET / — Main Dashboard (brain_dashboard.html)
 	mux.HandleFunc("/", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/api/") {
 			http.NotFound(w, r)
@@ -2872,15 +2886,10 @@ func startAPI(brainRoot string, port int) {
 			w.WriteHeader(204)
 			return
 		}
-		// V2 dashboard
-		v2Path := filepath.Join(neuronfsRoot, "dashboard_v2.html")
-		data, err := os.ReadFile(v2Path)
+		htmlPath := filepath.Join(neuronfsRoot, "brain_dashboard.html")
+		data, err := os.ReadFile(htmlPath)
 		if err != nil {
-			data, err = os.ReadFile(`C:\Users\BASEMENT_ADMIN\NeuronFS\dashboard_v2.html`)
-		}
-		if err != nil {
-			// Fallback to V1
-			data, err = os.ReadFile(filepath.Join(neuronfsRoot, "brain_dashboard.html"))
+			data, err = os.ReadFile(`C:\Users\BASEMENT_ADMIN\NeuronFS\brain_dashboard.html`)
 		}
 		if err != nil {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")

@@ -613,7 +613,7 @@ function init3D(){
   camera.position.set(-30,40,180);
   renderer=new THREE.WebGLRenderer({canvas:document.getElementById('cv'),antialias:true});
   renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.setClearColor(0xf0f0f3);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=0.9;
+  renderer.setClearColor(0xd4d4d4);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=0.9;
 
   controls=new THREE.OrbitControls(camera,renderer.domElement);
   controls.enableDamping=true;controls.dampingFactor=0.04;controls.maxDistance=350;controls.minDistance=50;
@@ -818,7 +818,7 @@ function buildNeurons(bs){
       const x=rp.cx+fp.x,y=rp.cy+fp.y,z=rp.cz+fp.z;
       // Relative strength: 0 = weakest neuron, 1 = strongest
       const str=(n.counter-globalMin)/globalRange;
-      const sprSize=0.6+str*3.5;
+      const sprSize=2+str*10;
       const op=0.08+str*0.3;
 
       const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:op,blending:THREE.NormalBlending,depthWrite:false}));
@@ -826,7 +826,7 @@ function buildNeurons(bs){
       spr.userData={neuron:n,region:region.name,baseOp:op,baseScale:sprSize};
       scene.add(spr);
 
-      const dotR=0.15+str*0.7;
+      const dotR=0.5+str*2;
       const dotMesh=new THREE.Mesh(new THREE.SphereGeometry(dotR,12,12),new THREE.MeshBasicMaterial({color:col}));
       dotMesh.position.set(x,y,z);scene.add(dotMesh);
 
