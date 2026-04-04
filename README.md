@@ -1,7 +1,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Neurons-340+-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Neurons-433+-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Axons-6-purple?style=flat-square" />
   <img src="https://img.shields.io/badge/Zero_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
 </p>
@@ -101,6 +102,7 @@ neuronfs ./my_brain --api         # Serve Dashboard at localhost:9090
 | Block | Apoptosis | `bomb.neuron` | `touch` |
 | Sleep | Synaptic Pruning | `*.dormant` | `mv` |
 | Connection | Axon | `.axon` File | Symlink |
+| Cross-Ref | Attention Residual | Axon Query-Key Match | Selective Aggregation |
 
 ### Path = Sentence
 
@@ -129,6 +131,32 @@ brain/cortex/NAS_File_Transfer/robocopy_large/     → Micro-context
 1. **auto-consolidate**: Mitigates folder fragmentation. LLM (Groq or local) detects redundant error folders and merges them into a single Super Neuron.
 2. **auto-neuronize**: Analyzes correction logs to auto-generate inhibitory (Contra) rules.
 3. **auto-polarize**: Converts weak positive-form `use_X` rules into mathematically strong inhibitory (`禁X`) micro-opcode formats.
+
+### Attention Residuals (Cross-Region Intelligence)
+
+Inspired by [Kimi's Attention Residuals paper](https://arxiv.org/abs/2603.15031), NeuronFS implements **selective cross-referencing** via `.axon` connections. Instead of each brain region being an isolated silo:
+
+- Each region's top neurons generate **query keywords**
+- Target regions' neurons are scored against these keywords (**key matching**)
+- Top 3 most relevant cross-region neurons auto-surface in `_rules.md`
+- Governance neurons (禁/推) receive unconditional boost
+
+```
+reading ego/_rules.md now shows:
+## 🔗 Axon 참조 (Attention Residuals)
+- tools > 推: precise tool usage (c:65)    ← from cortex
+- tools > 절대 금지: ls usage (c:57)       ← from cortex  
+- ops > 절대 금지: general commands (c:48)  ← from cortex
+```
+
+### Autonomous Harness Cycle
+
+Every 25 AI interactions, the harness engine (Node.js sidecar) automatically:
+
+1. **Analyzes** correction logs for failure patterns
+2. **Generates** 禁 (prohibition) and 推 (recommendation) neurons via Groq LLM
+3. **Creates** `.axon` cross-links between related regions
+4. The error that triggered the cycle **can never structurally recur**
 
 ---
 
@@ -169,6 +197,8 @@ Unlocking it requires physics: `rm brain_v4/.../bomb.neuron`.
 Robust local verification scripts:
 - Pre-Git Lock Snapshot enforced before any destructive neuron consolidation.
 - System-wide `SafeExec` (30-sec timeout) deadlock encapsulation.
+- **Autonomous harness cycle**: Groq-powered 禁/推 neuron generation every 25 interactions.
+- **Axon integrity**: Cross-region `.axon` links validated during brain scan.
 
 ---
 
@@ -250,6 +280,7 @@ Instead of appending `!!CRITICAL!!` 50 times in a prompt, NeuronFS offers **Stru
 
 ## Changelog
 
+**v4.4 (2026-04-04)** — **Attention Residuals** cross-referencing via `.axon` connections. Autonomous harness cycle (Groq-powered 禁/推 auto-generation). UTF-8 BOM fix in axon parsing. 433 neurons, 6 active axons.
 **v4.3 (2026-04-02)** — Ported Zero-Cost Consolidation (Llama 3 locally supported) & SafeExec hard lock integration.
 **v4.2 (2026-03-31)** — Auto-Evolution pipeline complete. Groq correction parsing / Kanji opcode optimization.
 

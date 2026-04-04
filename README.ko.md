@@ -1,7 +1,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Neurons-340+-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Neurons-433+-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Axons-6-purple?style=flat-square" />
   <img src="https://img.shields.io/badge/Zero_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
 </p>
@@ -101,6 +102,7 @@ neuronfs ./my_brain --api         # 대시보드 시각화 (localhost:9090)
 | 차단 | 세포사멸 | `bomb.neuron` | `touch` |
 | 수면 | 시냅스 정리 | `*.dormant` | `mv` |
 | 연결 | 축삭 | `.axon` 파일 | 심링크 |
+| 교차 참조 | Attention Residual | Axon Query-Key 매칭 | 선택적 집계 |
 
 ### Path = Sentence
 
@@ -132,6 +134,32 @@ brain/cortex/NAS파일전송/robocopy_대용량/        → 세부 맥락
 1. **auto-consolidate**: 폴더 파편화 해결. LLM(Groq 또는 로컬 모델)이 유사한 에러 폴더들을 분류하여 단일 뉴런으로 병합하고 기존 카운터를 승계.
 2. **auto-neuronize**: 교정 로그(corrections)를 분석하여 반복을 방지하는 억제형(Contra) 규칙을 생성.
 3. **auto-polarize**: 긍정형 "use_X" 규칙을 감지해 마이크로옵코드 기반의 강력한 억제형("禁X")으로 자동 전환 제안.
+
+### Attention Residuals (교차 영역 지능)
+
+[Kimi의 Attention Residuals 논문](https://arxiv.org/abs/2603.15031)에서 영감을 받아, `.axon` 연결을 통한 **선택적 교차 참조**를 구현:
+
+- 각 영역의 TOP 뉴런에서 **쿼리 키워드** 생성
+- 연결된 영역의 뉴런 경로와 **키 매칭** 수행
+- 상위 3개 관련 뉴런이 `_rules.md`에 자동 노출
+- 거버넌스 뉴런(禁/推)은 무조건 부스트
+
+```
+ego/_rules.md를 읽으면 자동 표시:
+## 🔗 Axon 참조 (Attention Residuals)
+- tools > 推: precise tool usage (c:65)    ← cortex에서
+- tools > 절대 금지: ls usage (c:57)       ← cortex에서
+- ops > 절대 금지: general commands (c:48)  ← cortex에서
+```
+
+### 자율 하네스 사이클 (Autonomous Harness Cycle)
+
+AI 25회 상호작용마다, 하네스 엔진(Node.js 사이드카)이 자동으로:
+
+1. 교정 로그의 **실패 패턴 분석**
+2. Groq LLM을 통한 **禁(금지)/推(추천) 뉴런 자동 생성**
+3. 관련 영역 간 **`.axon` 교차 링크 생성**
+4. 해당 실수는 **구조적으로 재발 불가능** — 프롬프트가 아니라 시스템이 막는다
 
 ---
 
@@ -174,6 +202,8 @@ bomb.neuron은 글자로 "하지 마"라고 비는(Begging) 것이 아니라, **
 - axon 무결성 검사
 - 파괴적 명령(통합) 전 `Pre-Git Lock` 스냅샷 (데이터 복원 강제)
 - 전역 무한 락 방어 캡슐 모듈 탑재 (`SafeExec` 30초 데드락 타임아웃)
+- **자율 하네스 사이클**: 25회 상호작용마다 Groq 기반 禁/推 뉴런 자동 생성
+- **Attention Residuals**: `.axon` 교차 링크로 영역 간 선택적 참조
 
 ---
 
@@ -269,6 +299,7 @@ NeuronFS는 대규모 분산 환경(MSA)이나 범용 벡터 검색 시스템과
 
 ## Changelog
 
+**v4.4 (2026-04-04)** — **Attention Residuals** 교차 참조 구현 (`.axon` 기반). 자율 하네스 사이클 (Groq 禁/推 자동 생성). UTF-8 BOM 파싱 버그 수정. 433뉴런, 6 axon.
 **v4.3 (2026-04-02)** — 자율 엔진 Llama 3 전면 포팅 ($0 비용) 및 SafeExec 하드 락 이식.
 **v4.2 (2026-03-31)** — 자율 진화(Auto-Evolution) 파이프라인 완성. Groq 교정 로그 분석 / 한자 마이크로옵코드 최적화.
 
