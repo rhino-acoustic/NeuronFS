@@ -740,16 +740,17 @@ function buildNeurons(bs){
       const dotMesh=new THREE.Mesh(new THREE.SphereGeometry(dotR,12,12),new THREE.MeshBasicMaterial({color:col}));
       dotMesh.position.set(x,y,z);scene.add(dotMesh);
 
-      // Pulse rings for strong neurons (counter >= 50)
-      if(n.counter>=50){
-        const freq=n.counter>=80?1.2:0.6;
-        for(let ri=0;ri<(isS?3:1);ri++){
+      // Pulse rings for strong neurons (str >= 0.5)
+      if(str>=0.5){
+        const freq=str>=0.8?1.2:0.6;
+        const ringCount=str>=0.8?3:1;
+        for(let ri=0;ri<ringCount;ri++){
           const pr=new THREE.Mesh(
             new THREE.RingGeometry(0.3,0.5,24),
             new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false})
           );
           pr.position.set(x,y,z);
-          pr.userData={maxR:isS?4+str*4:2+str*2, freq, phase:ri*2.1, color:RC[region.name]};
+          pr.userData={maxR:2+str*3, freq, phase:ri*2.1, color:RC[region.name]};
           scene.add(pr); pulseRings.push(pr);
         }
       }
