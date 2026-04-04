@@ -6,151 +6,151 @@
 <title>NeuronFS — Brain Topology</title>
 <link href="https://fonts.googleapis.com/css2?family=SUIT:wght@100;400;700&family=Instrument+Serif:ital@1&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
+:root{--bg:#fafafa;--surface:#ffffff;--border:#e2e8f0;--text:#1a1a2e;--text-secondary:#64748b;--text-muted:#94a3b8;--accent:#dc2626;--accent-light:#fef2f2;--black:#000000;--shadow:0 1px 3px rgba(0,0,0,0.06)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'SUIT','Inter',sans-serif;background:#050510;color:#e8e8ed;min-height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+body{font-family:'Inter','SUIT',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
 #cv{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
 
 /* Loading */
-#loader{position:fixed;z-index:999;top:0;left:0;right:0;bottom:0;background:#050510;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.8s}
+#loader{position:fixed;z-index:999;top:0;left:0;right:0;bottom:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.8s}
 #loader.done{opacity:0;pointer-events:none}
-#loader h2{font-family:'Instrument Serif',serif;font-style:italic;font-size:24px;color:#8b9dc3;margin-bottom:12px}
-#loader p{font-size:10px;color:#444;letter-spacing:0.15em;text-transform:uppercase}
+#loader h2{font-family:'Inter',sans-serif;font-weight:700;font-size:20px;color:var(--text);margin-bottom:8px;letter-spacing:-0.02em}
+#loader p{font-size:11px;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase}
 
-.header{position:fixed;z-index:20;top:0;left:0;right:0;height:56px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(5,5,16,0.95) 60%,transparent);pointer-events:none}
+.header{position:fixed;z-index:20;top:0;left:0;right:0;height:52px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);pointer-events:none}
 .header>*{pointer-events:auto}
-.brand{display:flex;align-items:baseline;gap:10px}
-.brand h1{font-family:'Instrument Serif',serif;font-style:italic;font-size:22px;background:linear-gradient(135deg,#c8b8a8,#8b9dc3,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.brand .ver{font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#555;background:rgba(255,255,255,0.03);padding:2px 6px;border-radius:3px;border:1px solid rgba(255,255,255,0.05)}
-.sr{display:flex;gap:5px}
-.st2{background:rgba(12,12,24,0.7);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.05);border-radius:7px;padding:7px 12px;text-align:center;min-width:56px}
-.st2 .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
-.st2 .l{font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#555;margin-top:2px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-family:'Inter',sans-serif;font-weight:700;font-size:16px;color:var(--text);letter-spacing:-0.02em}
+.brand h1 span{color:var(--accent)}
+.brand .ver{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);background:var(--bg);padding:2px 8px;border:1px solid var(--border)}
+.sr{display:flex;gap:6px}
+.st2{background:var(--surface);border:1px solid var(--border);padding:6px 14px;text-align:center;min-width:60px}
+.st2 .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2;color:var(--text)}
+.st2 .l{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-top:2px}
 
-.panel{position:fixed;z-index:15;top:64px;left:0;bottom:0;width:280px;display:flex;flex-direction:column;background:linear-gradient(90deg,rgba(5,5,16,0.92) 75%,transparent);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.04) transparent}
-.panel::-webkit-scrollbar{width:2px}.panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.05)}
-.panel-scroll{flex:1;overflow-y:auto;padding:6px 10px 32px}
-.rc2{background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.03);border-radius:10px;padding:8px 10px;margin-bottom:3px;cursor:pointer;transition:all 0.3s cubic-bezier(0.16,1,0.3,1)}
-.rc2:hover{border-color:rgba(255,255,255,0.08);transform:translateX(2px)}
-.rc2.active{border-color:rgba(91,141,239,0.2);background:rgba(91,141,239,0.02)}
-.rh2{display:flex;align-items:center;gap:6px}
-.rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor}
-.rn2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em}
-.rk2{font-size:10px;color:#555}.rc3{margin-left:auto;font-size:10px;color:#555}
-.nl{overflow:hidden;transition:max-height 0.4s cubic-bezier(0.16,1,0.3,1)}
+.panel{position:fixed;z-index:15;top:52px;left:0;bottom:0;width:280px;display:flex;flex-direction:column;background:var(--surface);border-right:1px solid var(--border);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.panel::-webkit-scrollbar{width:3px}.panel::-webkit-scrollbar-thumb{background:var(--border)}
+.panel-scroll{flex:1;overflow-y:auto;padding:8px 12px 32px}
+.rc2{background:var(--surface);border:1px solid var(--border);padding:10px 12px;margin-bottom:4px;cursor:pointer;transition:all 0.15s ease}
+.rc2:hover{border-color:var(--text-muted);background:var(--bg)}
+.rc2.active{border-color:var(--accent);background:var(--accent-light)}
+.rh2{display:flex;align-items:center;gap:8px}
+.rdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.rn2{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;color:var(--text)}
+.rk2{font-size:10px;color:var(--text-muted)}.rc3{margin-left:auto;font-size:10px;color:var(--text-muted)}
+.nl{overflow:hidden;transition:max-height 0.3s ease}
 .rc2 .nl{max-height:2000px;margin-top:6px}
 .rc2.collapsed .nl{max-height:0;margin-top:0}
-.ni2{display:flex;align-items:center;gap:3px;padding:2px 0;font-size:10px;color:#555;border-bottom:1px solid rgba(255,255,255,0.01)}.ni2:last-child{border:none}
+.ni2{display:flex;align-items:center;gap:4px;padding:3px 0;font-size:11px;color:var(--text-secondary);border-bottom:1px solid var(--border)}.ni2:last-child{border:none}
 .np2{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nb2{display:flex;gap:1px}.nb2 i{display:block;width:2.5px;height:6px;border-radius:1px;background:rgba(255,255,255,0.03)}
-.nb2 i.on{background:#5b8def}.nb2 i.mx{background:#4ade80}
-.nc2{font-weight:700;min-width:16px;text-align:right;color:#ccc;font-size:10px}
+.nb2{display:flex;gap:1px}.nb2 i{display:block;width:3px;height:6px;background:var(--border)}
+.nb2 i.on{background:var(--text-secondary)}.nb2 i.mx{background:var(--accent)}
+.nc2{font-weight:700;min-width:16px;text-align:right;color:var(--text);font-size:11px}
 /* Windows Explorer-style folder tree */
-.ftree{font-size:11px;color:#bbb;line-height:1}
+.ftree{font-size:12px;color:var(--text-secondary);line-height:1}
 .ftree ul{list-style:none;margin:0;padding:0 0 0 16px;position:relative}
-.ftree ul::before{content:'';position:absolute;left:7px;top:0;bottom:8px;width:1px;background:rgba(255,255,255,0.08)}
+.ftree ul::before{content:'';position:absolute;left:7px;top:0;bottom:8px;width:1px;background:var(--border)}
 .ftree>ul{padding-left:0}
 .ftree>ul::before{display:none}
 .ftree li{position:relative;padding:1px 0}
-.ftree li::before{content:'';position:absolute;left:-9px;top:10px;width:9px;height:1px;background:rgba(255,255,255,0.08)}
+.ftree li::before{content:'';position:absolute;left:-9px;top:10px;width:9px;height:1px;background:var(--border)}
 .ftree>ul>li::before{display:none}
-.ftree li:last-child::after{content:'';position:absolute;left:-9px;top:10px;bottom:0;width:1px;background:#050510}
-.ft-row{display:flex;align-items:center;gap:4px;padding:2px 4px;border-radius:3px;cursor:pointer;white-space:nowrap;transition:background 0.1s}
-.ft-row:hover{background:rgba(255,255,255,0.04)}
-.ft-row.ft-selected{background:rgba(91,141,239,0.12);outline:1px solid rgba(91,141,239,0.25)}
-.ft-toggle{width:12px;height:12px;display:flex;align-items:center;justify-content:center;font-size:7px;color:#555;flex-shrink:0;transition:transform 0.15s}
+.ftree li:last-child::after{content:'';position:absolute;left:-9px;top:10px;bottom:0;width:1px;background:var(--bg)}
+.ft-row{display:flex;align-items:center;gap:4px;padding:3px 4px;cursor:pointer;white-space:nowrap;transition:background 0.1s}
+.ft-row:hover{background:var(--bg)}
+.ft-row.ft-selected{background:var(--accent-light);outline:1px solid var(--accent)}
+.ft-toggle{width:12px;height:12px;display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--text-muted);flex-shrink:0;transition:transform 0.15s}
 .ft-toggle.open{transform:rotate(90deg)}
 .ft-toggle.empty{visibility:hidden}
 .ft-icon{width:14px;height:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px}
-.ft-label{flex:1;overflow:hidden;text-overflow:ellipsis;font-size:10px}
-.ft-badge{font-size:10px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(255,255,255,0.04);color:#666;flex-shrink:0}
-.ft-bar{width:28px;height:3px;border-radius:2px;background:rgba(255,255,255,0.04);overflow:hidden;flex-shrink:0}
-.ft-bar-fill{height:100%;border-radius:2px}
+.ft-label{flex:1;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:var(--text)}
+.ft-badge{font-size:10px;font-weight:600;padding:1px 5px;background:var(--bg);border:1px solid var(--border);color:var(--text-muted);flex-shrink:0}
+.ft-bar{width:28px;height:3px;background:var(--border);overflow:hidden;flex-shrink:0}
+.ft-bar-fill{height:100%}
 .ft-kids{overflow:hidden;max-height:2000px;transition:max-height 0.25s ease}
 .ft-kids.collapsed{max-height:0}
 
-.right-col{position:fixed;z-index:15;top:64px;right:10px;bottom:10px;width:160px;display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.right-col>*{pointer-events:auto}
+.right-col{position:fixed;z-index:15;top:52px;right:0;bottom:0;width:220px;display:flex;flex-direction:column;gap:0;background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;padding:12px;pointer-events:auto}
 .casc{display:flex;flex-direction:column;gap:2px}
-.cn2{display:flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;background:rgba(12,12,24,0.5);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.03);cursor:pointer;transition:all 0.2s}
-.cn2:hover{transform:translateX(-3px);border-color:rgba(255,255,255,0.08)}
-.cn2 .cd2{width:5px;height:5px;border-radius:50%;box-shadow:0 0 5px currentColor;flex-shrink:0}
-.cn2 .p2{color:#444;font-size:10px;margin-left:auto}
+.cn2{display:flex;align-items:center;gap:6px;padding:6px 8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:all 0.15s}
+.cn2:hover{border-color:var(--text-muted);background:var(--bg)}
+.cn2 .cd2{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.cn2 .p2{color:var(--text-muted);font-size:10px;margin-left:auto}
 
-.soul2{margin-top:auto;background:rgba(12,12,24,0.5);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.03);border-radius:10px;padding:10px}
-.soul2 .st3{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:6px}
-.soul2 .sq2{font-size:11px;color:#555;padding:2px 0;line-height:1.4;border-bottom:1px solid rgba(255,255,255,0.015)}.soul2 .sq2:last-child{border:none}
-.soul2 .sq2 strong{color:#888;font-weight:600}
+.soul2{background:var(--surface);border:1px solid var(--border);padding:12px;margin-bottom:8px}
+.soul2 .st3{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text);margin-bottom:8px}
+.soul2 .sq2{font-size:11px;color:var(--text-secondary);padding:3px 0;line-height:1.4;border-bottom:1px solid var(--border)}.soul2 .sq2:last-child{border:none}
+.soul2 .sq2 strong{color:var(--text);font-weight:600}
 
-#tt{position:fixed;z-index:200;display:none;background:rgba(10,10,20,0.92);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;pointer-events:none;max-width:220px;box-shadow:0 10px 32px rgba(0,0,0,0.5)}
-.ttr{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px}
-.ttn{font-size:12px;font-weight:700;margin-bottom:2px;line-height:1.3}
-.ttd{font-size:10px;color:#555;line-height:1.4}
-.ttb{display:flex;gap:1px;margin-top:4px}.ttb i{display:block;width:12px;height:3px;border-radius:1px;background:rgba(255,255,255,0.03)}.ttb i.on{background:#5b8def}.ttb i.mx{background:#4ade80}
+#tt{position:fixed;z-index:200;display:none;background:var(--surface);border:1px solid var(--border);padding:12px 16px;pointer-events:none;max-width:240px;box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.ttr{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;color:var(--accent)}
+.ttn{font-size:13px;font-weight:700;margin-bottom:2px;line-height:1.3;color:var(--text)}
+.ttd{font-size:11px;color:var(--text-secondary);line-height:1.4}
+.ttb{display:flex;gap:1px;margin-top:4px}.ttb i{display:block;width:12px;height:3px;background:var(--border)}.ttb i.on{background:var(--text-secondary)}.ttb i.mx{background:var(--accent)}
 
-.legend{position:fixed;z-index:15;bottom:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:5px 14px;background:rgba(12,12,24,0.5);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.03);border-radius:6px;font-size:10px;color:#444;letter-spacing:0.08em;text-transform:uppercase}
-.legend .ld{border-radius:50%}.legend .ld.s1{width:3px;height:3px;background:#333}.legend .ld.s2{width:5px;height:5px;background:#5b8def}.legend .ld.s3{width:7px;height:7px;background:#4ade80;box-shadow:0 0 5px #4ade80}
-.legend .sep{width:1px;height:10px;background:rgba(255,255,255,0.06)}
-.legend .lnDemo{width:20px;height:2px;border-radius:1px}
-.legend .lnDemo.sub{background:rgba(255,255,255,0.5)}
-.legend .lnDemo.axn{background:linear-gradient(90deg,#5b8def,#a855f7)}
+.legend{position:fixed;z-index:15;bottom:0;left:280px;right:220px;display:flex;align-items:center;gap:12px;padding:8px 16px;background:var(--surface);border-top:1px solid var(--border);font-size:10px;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase}
+.legend .ld{border-radius:50%}.legend .ld.s1{width:4px;height:4px;background:var(--border)}.legend .ld.s2{width:6px;height:6px;background:var(--text-muted)}.legend .ld.s3{width:8px;height:8px;background:var(--accent)}
+.legend .sep{width:1px;height:12px;background:var(--border)}
+.legend .lnDemo{width:20px;height:2px}
+.legend .lnDemo.sub{background:var(--text-muted)}
+.legend .lnDemo.axn{background:var(--accent)}
 
-.hint{position:fixed;z-index:10;bottom:36px;left:50%;transform:translateX(-50%);font-size:10px;color:#333;letter-spacing:0.12em;text-transform:uppercase;transition:opacity 0.6s}.hint.gone{opacity:0}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.header{animation:fadeUp 0.5s ease-out both}.panel{animation:fadeUp 0.5s 0.03s ease-out both}.right-col{animation:fadeUp 0.5s 0.06s ease-out both}
+.hint{position:fixed;z-index:10;bottom:32px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;transition:opacity 0.6s}.hint.gone{opacity:0}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.header{animation:fadeUp 0.3s ease-out both}.panel{animation:fadeUp 0.3s 0.05s ease-out both}.right-col{animation:fadeUp 0.3s 0.1s ease-out both}
+
 
 /* Action buttons in header */
 .hdr-actions{display:flex;gap:4px;align-items:center}
 .btn-act{border:none;border-radius:5px;padding:5px 12px;font-size:8px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;backdrop-filter:blur(10px)}
 .btn-act:hover{transform:translateY(-1px)}
-.btn-inject{background:rgba(5,150,105,0.7);color:#34d399;border:1px solid rgba(52,211,153,0.2)}
-.btn-inject:hover{background:rgba(5,150,105,0.9)}
-.btn-bomb{background:rgba(220,38,38,0.5);color:#fca5a5;border:1px solid rgba(252,165,165,0.2)}
-.btn-bomb:hover{background:rgba(220,38,38,0.7)}
-.btn-evolve{background:rgba(139,92,246,0.5);color:#c4b5fd;border:1px solid rgba(196,181,253,0.2)}
-.btn-evolve:hover{background:rgba(139,92,246,0.7)}
-.hdr-msg{font-size:8px;color:#555;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-inject{background:var(--black);color:#fff;border:none}
+.btn-inject:hover{opacity:0.8}
+.btn-bomb{background:var(--accent);color:#fff;border:none}
+.btn-bomb:hover{opacity:0.8}
+.btn-evolve{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-evolve:hover{background:var(--bg);border-color:var(--text-muted)}
+.hdr-msg{font-size:10px;color:var(--text-muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* Panel bottom: add neuron form */
-.panel-actions{padding:8px 10px;border-top:1px solid rgba(255,255,255,0.03);background:rgba(5,5,16,0.95)}
+.panel-actions{padding:8px 12px;border-top:1px solid var(--border);background:var(--surface)}
 .add-row{display:flex;gap:4px}
-.add-row input{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:4px;padding:5px 8px;color:#ccc;font-size:9px;font-family:'SUIT',sans-serif}
-.add-row input::placeholder{color:#444}
-.add-row button{background:rgba(91,141,239,0.3);color:#93b5f7;border:1px solid rgba(91,141,239,0.2);border-radius:4px;padding:4px 10px;font-size:8px;font-weight:700;cursor:pointer}
-.add-row button:hover{background:rgba(91,141,239,0.5)}
-.add-row select{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:4px;padding:4px 6px;color:#ccc;font-size:8px}
+.add-row input{flex:1;background:var(--bg);border:1px solid var(--border);padding:6px 8px;color:var(--text);font-size:11px;font-family:Inter,sans-serif}
+.add-row input::placeholder{color:var(--text-muted)}
+.add-row button{background:var(--black);color:#fff;border:none;padding:6px 12px;font-size:10px;font-weight:700;cursor:pointer}
+.add-row button:hover{opacity:0.8}
+.add-row select{background:var(--bg);border:1px solid var(--border);padding:5px 6px;color:var(--text);font-size:10px}
 
 /* Goal badge */
-.ft-goal{font-size:7px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(236,72,153,0.15);color:#ec4899;border:1px solid rgba(236,72,153,0.2);flex-shrink:0}
+.ft-goal{font-size:10px;font-weight:600;padding:1px 5px;background:var(--accent-light);color:var(--accent);border:1px solid var(--accent);flex-shrink:0}
 
-/* Toast Notification — top-left small popup */
+/* Toast Notification */
 @keyframes slideInFromLeft{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
 .toast-container{position:fixed;top:16px;left:16px;z-index:300;display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.toast-item{pointer-events:auto;max-width:300px;background:rgba(12,12,24,0.9);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;display:flex;align-items:flex-start;gap:8px;animation:slideInFromLeft 0.3s ease-out;transition:opacity 0.3s,transform 0.3s;font-family:'SUIT',sans-serif}
-.toast-item.error{border-left:3px solid #ef4444}
-.toast-item.success{border-left:3px solid #34d399}
-.toast-item.warn{border-left:3px solid #f59e0b}
-.toast-item.info{border-left:3px solid #5b8def}
+.toast-item{pointer-events:auto;max-width:300px;background:var(--surface);border:1px solid var(--border);padding:10px 14px;display:flex;align-items:flex-start;gap:8px;animation:slideInFromLeft 0.3s ease-out;transition:opacity 0.3s,transform 0.3s;font-family:Inter,sans-serif;box-shadow:var(--shadow)}
+.toast-item.error{border-left:3px solid var(--accent)}
+.toast-item.success{border-left:3px solid #16a34a}
+.toast-item.warn{border-left:3px solid #d97706}
+.toast-item.info{border-left:3px solid var(--text-secondary)}
 .toast-item.hiding{opacity:0;transform:translateX(-20px)}
 .toast-icon{font-size:12px;flex-shrink:0;line-height:1}
 .toast-body{flex:1;min-width:0}
-.toast-title{font-size:9px;font-weight:700;color:#e8e8ed;margin-bottom:2px;line-height:1.3}
-.toast-desc{font-size:8px;color:#666;line-height:1.4}
-.toast-close{background:none;border:none;color:#444;font-size:10px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
-.toast-close:hover{color:#e8e8ed}
+.toast-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px;line-height:1.3}
+.toast-desc{font-size:10px;color:var(--text-secondary);line-height:1.4}
+.toast-close{background:none;border:none;color:var(--text-muted);font-size:10px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
+.toast-close:hover{color:var(--text)}
 
 /* Bomb dropdown in header */
-.bomb-select{background:rgba(220,38,38,0.2);color:#fca5a5;border:1px solid rgba(252,165,165,0.2);border-radius:4px;padding:4px 6px;font-size:7px;font-family:'SUIT',sans-serif;cursor:pointer;appearance:auto}
+.bomb-select{background:var(--surface);color:var(--accent);border:1px solid var(--border);padding:4px 6px;font-size:10px;font-family:Inter,sans-serif;cursor:pointer;appearance:auto}
 
 @media (max-width:768px){
-  .header{height:auto;flex-direction:column;padding:12px;gap:10px;text-align:center;background:linear-gradient(180deg,rgba(5,5,16,0.95) 80%,transparent)}
+  .header{height:auto;flex-direction:column;padding:12px;gap:10px;text-align:center;background:var(--surface);border-bottom:1px solid var(--border)}
   .hdr-actions{flex-wrap:wrap;justify-content:center;width:100%;gap:6px}
-  .panel{top:auto;bottom:0;left:0;width:100%;height:35vh;border-top:1px solid rgba(255,255,255,0.1);border-radius:16px 16px 0 0;background:rgba(5,5,16,0.95);z-index:30}
+  .panel{top:auto;bottom:0;left:0;width:100%;height:35vh;border-top:1px solid var(--border);background:var(--surface);z-index:30}
   .right-col{display:none}
-  .legend{bottom:auto;top:130px;font-size:6px;width:95%;transform:translateX(-50%);padding:6px;flex-wrap:wrap;justify-content:center}
-  .btn-gh-huge{bottom:37vh;padding:12px 24px;font-size:14px;border-radius:24px;gap:8px;width:auto;max-width:none;justify-content:center;box-shadow:0 0 20px rgba(255,255,255,0.4);white-space:nowrap}
-  .btn-gh-huge svg{width:18px;height:18px}
-  .brand h1{font-size:18px}
-  #tt{max-width:180px}
+  .legend{bottom:auto;top:130px;font-size:9px;width:95%;transform:translateX(-50%);padding:6px;flex-wrap:wrap;justify-content:center}
+  .brand h1{font-size:14px}
+  #tt{max-width:200px}
   .toast-container{top:auto;bottom:40vh;left:10px;right:10px;width:auto;align-items:center}
   .toast-item{max-width:100%;width:100%}
   .hint{bottom:45vh}
@@ -162,7 +162,7 @@ body{font-family:'SUIT','Inter',sans-serif;background:#050510;color:#e8e8ed;min-
 <canvas id="cv"></canvas>
 <div id="tt"><div class="ttr"></div><div class="ttn"></div><div class="ttd"></div><div class="ttb"></div></div>
 <div class="header">
-  <div class="brand"><h1>NeuronFS</h1><span class="ver">v4.0</span></div>
+  <div class="brand"><h1><span>Neuron</span>FS</h1><span class="ver">v4.0</span></div>
   <div class="hdr-actions">
     <button class="btn-act btn-inject" onclick="doInject()">⚡ INJECT</button>
     <button class="btn-act btn-evolve" onclick="doEvolve()">🧬 EVOLVE</button>
@@ -193,37 +193,37 @@ body{font-family:'SUIT','Inter',sans-serif;background:#050510;color:#e8e8ed;min-
 </div>
 <div class="right-col">
   <div class="casc" id="cascade"></div>
-  <div class="soul2" style="margin-top:0;border:1px solid rgba(239,68,68,0.15);background:rgba(12,8,8,0.6)">
-    <div class="st3" style="color:#ef4444">🎯 대원칙 — CORE PRINCIPLES</div>
-    <div style="font-size:10px;color:#555;margin-bottom:6px">AI에게 가장 먼저 주입되는 2대 원칙. 모든 규칙 위에 군림한다.</div>
-    <input id="p1" type="text" placeholder="대원칙 1 — 예: 반드시 한국어로 대답해" style="width:100%;background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.12);border-radius:5px;padding:6px 8px;color:#fca5a5;font-size:12px;font-family:SUIT,sans-serif;margin-bottom:4px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor='rgba(239,68,68,0.4)'" onblur="this.style.borderColor='rgba(239,68,68,0.12)'">
-    <input id="p2" type="text" placeholder="대원칙 2 — 예: 커뮤니티 동향을 최우선 검색" style="width:100%;background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.12);border-radius:5px;padding:6px 8px;color:#fca5a5;font-size:12px;font-family:SUIT,sans-serif;margin-bottom:6px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor='rgba(239,68,68,0.4)'" onblur="this.style.borderColor='rgba(239,68,68,0.12)'">
-    <div style="display:flex;gap:4px;align-items:center">
-      <button onclick="savePrinciples()" style="flex:1;background:rgba(239,68,68,0.25);color:#fca5a5;border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:5px 0;font-size:11px;font-weight:700;cursor:pointer;font-family:SUIT,sans-serif;transition:all 0.2s" onmouseover="this.style.background='rgba(239,68,68,0.4)'" onmouseout="this.style.background='rgba(239,68,68,0.25)'">💾 저장 + 적용</button>
-      <span id="p-status" style="font-size:10px;color:#555;flex-shrink:0"></span>
-    </div>
-  </div>
-  <div class="soul2" style="margin-top:6px">
-    <div class="st3">🧪 SANDBOX — 임시 규칙</div>
-    <div style="font-size:7px;color:#444;margin-bottom:4px">한 줄에 하나, 쓰면 적용 / 비우면 삭제</div>
-    <textarea id="sb-text" oninput="onSandboxInput()" rows="4" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(139,92,246,0.15);border-radius:6px;padding:6px 8px;color:#ccc;font-size:9px;font-family:SUIT,monospace;resize:vertical;line-height:1.5" placeholder="never use var in js&#10;always verify before commit"></textarea>
-    <div id="sb-status" style="font-size:7px;color:#555;margin-top:3px"></div>
-  </div>
-  <div class="soul2">
-  <div class="soul2" style="margin-top:6px;border:1px solid rgba(249,115,22,0.12);background:rgba(12,10,6,0.6)">
-    <div class="st3" style="color:#f97316">💓 LIMBIC — 감정 상태</div>
-    <div id="emo-current" style="font-size:9px;color:#888;margin-bottom:6px">neutral</div>
-    <div style="display:flex;flex-wrap:wrap;gap:3px">
-      <button onclick="setEmotion('분노')" class="emo-btn" data-emo="분노" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.15);border-radius:4px;padding:3px 6px;font-size:7px;font-weight:700;cursor:pointer;font-family:SUIT;transition:all 0.2s">🔥 분노</button>
-      <button onclick="setEmotion('긴급')" class="emo-btn" data-emo="긴급" style="background:rgba(234,179,8,0.15);color:#fde047;border:1px solid rgba(234,179,8,0.15);border-radius:4px;padding:3px 6px;font-size:7px;font-weight:700;cursor:pointer;font-family:SUIT;transition:all 0.2s">⚡ 긴급</button>
-      <button onclick="setEmotion('집중')" class="emo-btn" data-emo="집중" style="background:rgba(91,141,239,0.15);color:#93b5f7;border:1px solid rgba(91,141,239,0.15);border-radius:4px;padding:3px 6px;font-size:7px;font-weight:700;cursor:pointer;font-family:SUIT;transition:all 0.2s">🎯 집중</button>
-      <button onclick="setEmotion('불안')" class="emo-btn" data-emo="불안" style="background:rgba(168,85,247,0.15);color:#c4b5fd;border:1px solid rgba(168,85,247,0.15);border-radius:4px;padding:3px 6px;font-size:7px;font-weight:700;cursor:pointer;font-family:SUIT;transition:all 0.2s">🔶 불안</button>
-      <button onclick="setEmotion('만족')" class="emo-btn" data-emo="만족" style="background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.15);border-radius:4px;padding:3px 6px;font-size:7px;font-weight:700;cursor:pointer;font-family:SUIT;transition:all 0.2s">🟢 만족</button>
-      <button onclick="setEmotion('neutral')" class="emo-btn" data-emo="neutral" style="background:rgba(255,255,255,0.04);color:#666;border:1px solid rgba(255,255,255,0.06);border-radius:4px;padding:3px 6px;font-size:7px;font-weight:700;cursor:pointer;font-family:SUIT;transition:all 0.2s">⬚ 해제</button>
+  <div class="soul2" style="border:1px solid #dc2626">
+    <div class="st3" style="color:#dc2626">🎯 CORE PRINCIPLES</div>
+    <div style="font-size:11px;color:#64748b;margin-bottom:8px">AI에게 가장 먼저 주입되는 2대 원칙</div>
+    <input id="p1" type="text" placeholder="대원칙 1 — 예: 반드시 한국어로 대답해" style="width:100%;background:#fef2f2;border:1px solid #e2e8f0;padding:8px 10px;color:#1a1a2e;font-size:12px;font-family:Inter,sans-serif;margin-bottom:4px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor='#dc2626'" onblur="this.style.borderColor='#e2e8f0'">
+    <input id="p2" type="text" placeholder="대원칙 2 — 예: 커뮤니티 동향을 최우선 검색" style="width:100%;background:#fef2f2;border:1px solid #e2e8f0;padding:8px 10px;color:#1a1a2e;font-size:12px;font-family:Inter,sans-serif;margin-bottom:8px;outline:none;transition:border-color 0.2s" onfocus="this.style.borderColor='#dc2626'" onblur="this.style.borderColor='#e2e8f0'">
+    <div style="display:flex;gap:6px;align-items:center">
+      <button onclick="savePrinciples()" style="flex:1;background:#000000;color:#ffffff;border:none;padding:8px 0;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;transition:opacity 0.2s;letter-spacing:0.02em" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">저장 + 적용</button>
+      <span id="p-status" style="font-size:10px;color:#64748b;flex-shrink:0"></span>
     </div>
   </div>
   <div class="soul2">
-    <div class="st3">SOUL — META OBSERVER</div>
+    <div class="st3">🧪 SANDBOX</div>
+    <div style="font-size:10px;color:#94a3b8;margin-bottom:6px">한 줄에 하나, 쓰면 적용 / 비우면 삭제</div>
+    <textarea id="sb-text" oninput="onSandboxInput()" rows="3" style="width:100%;background:#f8fafc;border:1px solid #e2e8f0;padding:8px 10px;color:#1a1a2e;font-size:11px;font-family:Inter,monospace;resize:vertical;line-height:1.6" placeholder="never use var in js&#10;always verify before commit"></textarea>
+    <div id="sb-status" style="font-size:10px;color:#94a3b8;margin-top:4px"></div>
+  </div>
+  <div class="soul2">
+  <div class="soul2">
+    <div class="st3">💓 LIMBIC STATE</div>
+    <div id="emo-current" style="font-size:11px;color:#64748b;margin-bottom:8px">neutral</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">
+      <button onclick="setEmotion('분노')" class="emo-btn" data-emo="분노" style="background:#ffffff;color:#dc2626;border:1px solid #e2e8f0;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter;transition:all 0.15s" onmouseover="this.style.borderColor='#dc2626'" onmouseout="this.style.borderColor='#e2e8f0'">🔥 분노</button>
+      <button onclick="setEmotion('긴급')" class="emo-btn" data-emo="긴급" style="background:#ffffff;color:#d97706;border:1px solid #e2e8f0;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter;transition:all 0.15s" onmouseover="this.style.borderColor='#d97706'" onmouseout="this.style.borderColor='#e2e8f0'">⚡ 긴급</button>
+      <button onclick="setEmotion('집중')" class="emo-btn" data-emo="집중" style="background:#ffffff;color:#2563eb;border:1px solid #e2e8f0;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter;transition:all 0.15s" onmouseover="this.style.borderColor='#2563eb'" onmouseout="this.style.borderColor='#e2e8f0'">🎯 집중</button>
+      <button onclick="setEmotion('불안')" class="emo-btn" data-emo="불안" style="background:#ffffff;color:#7c3aed;border:1px solid #e2e8f0;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter;transition:all 0.15s" onmouseover="this.style.borderColor='#7c3aed'" onmouseout="this.style.borderColor='#e2e8f0'">🔶 불안</button>
+      <button onclick="setEmotion('만족')" class="emo-btn" data-emo="만족" style="background:#ffffff;color:#16a34a;border:1px solid #e2e8f0;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter;transition:all 0.15s" onmouseover="this.style.borderColor='#16a34a'" onmouseout="this.style.borderColor='#e2e8f0'">🟢 만족</button>
+      <button onclick="setEmotion('neutral')" class="emo-btn" data-emo="neutral" style="background:#000000;color:#ffffff;border:none;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter;transition:opacity 0.15s" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">⬚ 해제</button>
+    </div>
+  </div>
+  <div class="soul2">
+    <div class="st3">SOUL — META</div>
     <div class="sq2"><strong>"Real?"</strong> Not simulation</div>
     <div class="sq2"><strong>"Sigh?"</strong> Missing core</div>
     <div class="sq2"><strong>"Easy?"</strong> No fallback</div>
@@ -247,7 +247,7 @@ body{font-family:'SUIT','Inter',sans-serif;background:#050510;color:#e8e8ed;min-
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
 <script>
-const RC={brainstem:'#ef4444',limbic:'#f97316',hippocampus:'#eab308',sensors:'#22c55e',cortex:'#5b8def',ego:'#a855f7',prefrontal:'#ec4899'};
+const RC={brainstem:'#dc2626',limbic:'#78716c',hippocampus:'#a8a29e',sensors:'#64748b',cortex:'#475569',ego:'#57534e',prefrontal:'#334155'};
 const RK={brainstem:'Conscience',limbic:'Emotion',hippocampus:'Memory',sensors:'Environment',cortex:'Knowledge',ego:'Persona',prefrontal:'Goals'};
 
 // Subsumption cascade = serial P0→P1→...→P6
@@ -501,7 +501,7 @@ function init3D(){
   camera.position.set(-30,40,180);
   renderer=new THREE.WebGLRenderer({canvas:document.getElementById('cv'),antialias:true});
   renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.setClearColor(0x050510);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
+  renderer.setClearColor(0xf0f0f3);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=0.9;
 
   controls=new THREE.OrbitControls(camera,renderer.domElement);
   controls.enableDamping=true;controls.dampingFactor=0.04;controls.maxDistance=350;controls.minDistance=50;
@@ -706,7 +706,7 @@ function buildNeurons(bs){
       const sprSize=isS?3+str*2:isM?1.8+str*1:0.8+str*0.8;
       const op=isS?0.35:isM?0.2:0.1+str*0.05;
 
-      const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false}));
+      const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:op,blending:THREE.NormalBlending,depthWrite:false}));
       spr.position.set(x,y,z);spr.scale.set(sprSize,sprSize,1);
       spr.userData={neuron:n,region:region.name,baseOp:op,baseScale:sprSize};
       scene.add(spr);
@@ -744,7 +744,7 @@ function buildNeurons(bs){
     // Region center GLOWING ORB + label
     regionMeshes[region.name]={cx:rp.cx,cy:rp.cy,cz:rp.cz};
     // Big glowing orb at region center
-    const orbSpr=new THREE.Sprite(new THREE.SpriteMaterial({map:texCache[region.name],transparent:true,opacity:0.15,blending:THREE.AdditiveBlending,depthWrite:false}));
+    const orbSpr=new THREE.Sprite(new THREE.SpriteMaterial({map:texCache[region.name],transparent:true,opacity:0.15,blending:THREE.NormalBlending,depthWrite:false}));
     orbSpr.position.set(rp.cx,rp.cy,rp.cz);orbSpr.scale.set(rp.sp*0.5,rp.sp*0.5,1);scene.add(orbSpr);
     // Region name label
     const rlc=document.createElement('canvas');rlc.width=512;rlc.height=64;
@@ -834,7 +834,7 @@ function buildNeurons(bs){
     // Electric pulse: main glow + 2 trail particles
     const tex=glowTex(color);
     for(let t=0;t<3;t++){
-      const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));
+      const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0,blending:THREE.NormalBlending,depthWrite:false}));
       spr.scale.set(t===0?3:2-t*0.5,t===0?3:2-t*0.5,1);
       spr.userData={curve,speed:0.2+Math.random()*0.1,delay:delay+t*0.08,progress:0,trail:t,baseSize:t===0?3:2-t*0.5};
       scene.add(spr); signalParticles.push(spr);
