@@ -529,8 +529,8 @@ function init3D(){
       obj.traverse(child=>{
         if(child.isMesh){
           child.material=new THREE.MeshPhongMaterial({
-            color:0x442233,transparent:true,opacity:0.15,
-            shininess:20,specular:0x553344,
+            color:0x9ca3af,transparent:true,opacity:0.04,
+            shininess:10,specular:0xd1d5db,
             side:THREE.FrontSide,depthWrite:false
           });
           child.renderOrder=-1;
@@ -762,7 +762,7 @@ function buildNeurons(bs){
     const pts=regionPts[rn];
     pts.forEach((p,i)=>{
       // Connect to next 2 neurons in fibonacci order (natural neighbors)
-      for(let k=1;k<=2;k++){
+      for(let k=1;k<=1;k++){
         const j=(i+k)%pts.length;
         if(j===i)continue;
         const q=pts[j];
