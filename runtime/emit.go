@@ -19,6 +19,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -189,6 +190,26 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 				sb.WriteString("Limbic: " + strings.Join(parts, " | ") + "\n")
 			}
 			break
+		}
+	}
+	// ── 감정 상태 머신: limbic/_state.json → 행동 지시 주입 ──
+	emotionBehaviors := map[string]string{
+		"분노": "⚠️ 감정상태=분노 → 검증 3배 강화, 속도보다 정확성 우선, 같은 실수 반복 시 즉시 중단",
+		"긴급": "⚡ 감정상태=긴급 → 핵심만 실행, 부가설명 제거, 단계 축소하여 최소 경로로 완수",
+		"만족": "🟢 감정상태=만족 → 현재 패턴 기록(dopamine), 성공 패턴을 강화하여 재사용",
+		"불안": "🔶 감정상태=불안 → 보수적 접근, 롤백 준비 후 진행, 확인 절차 추가",
+		"집중": "🎯 감정상태=집중 → 컨텍스트 축소, 단일 작업에 집중, 관련 없는 정보 차단",
+	}
+	stateFile := filepath.Join(brainRoot, "limbic", "_state.json")
+	if stateData, err := os.ReadFile(stateFile); err == nil {
+		var state struct {
+			Emotion   string  `json:"emotion"`
+			Intensity float64 `json:"intensity"`
+		}
+		if json.Unmarshal(stateData, &state) == nil && state.Emotion != "" && state.Emotion != "neutral" {
+			if behavior, ok := emotionBehaviors[state.Emotion]; ok {
+				sb.WriteString(behavior + "\n")
+			}
 		}
 	}
 	sb.WriteString("영혼: 출력 전 자문(진짜야? 한숨? 편한길? 같은실수? 프리미엄?) → 걸리면 다시\n\n")

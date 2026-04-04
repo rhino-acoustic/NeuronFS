@@ -2546,6 +2546,71 @@ func startAPI(brainRoot string, port int) {
 			"principles": clean,
 		})
 	}))
+
+	// GET/POST /api/emotion — 감정 상태 머신 (limbic/_state.json)
+	// 감정: 분노/긴급/만족/불안/집중/neutral. emit 시 해당 감정의 하위 행동 뉴런을 강화
+	mux.HandleFunc("/api/emotion", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		stateFile := filepath.Join(brainRoot, "limbic", "_state.json")
+
+		if r.Method == "GET" {
+			result := map[string]interface{}{
+				"emotion":   "neutral",
+				"intensity": 0,
+				"trigger":   "",
+				"since":     "",
+			}
+			data, err := os.ReadFile(stateFile)
+			if err == nil {
+				json.Unmarshal(data, &result)
+			}
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			json.NewEncoder(w).Encode(result)
+			return
+		}
+		if r.Method != "POST" {
+			http.Error(w, "GET or POST only", 405)
+			return
+		}
+		var req struct {
+			Emotion   string  `json:"emotion"`
+			Intensity float64 `json:"intensity"`
+			Trigger   string  `json:"trigger"`
+		}
+		json.NewDecoder(r.Body).Decode(&req)
+
+		valid := map[string]bool{"분노": true, "긴급": true, "만족": true, "불안": true, "집중": true, "neutral": true}
+		if !valid[req.Emotion] {
+			http.Error(w, "invalid emotion: "+req.Emotion, 400)
+			return
+		}
+
+		if req.Intensity <= 0 {
+			req.Intensity = 0.5
+		}
+		if req.Intensity > 1 {
+			req.Intensity = 1
+		}
+
+		state := map[string]interface{}{
+			"emotion":   req.Emotion,
+			"intensity": req.Intensity,
+			"trigger":   req.Trigger,
+			"since":     time.Now().Format("2006-01-02T15:04:05"),
+		}
+
+		os.MkdirAll(filepath.Dir(stateFile), 0755)
+		stateBytes, _ := json.MarshalIndent(state, "", "  ")
+		os.WriteFile(stateFile, stateBytes, 0644)
+
+		// 감정 뉴런 발화 (해당 감정 카운터 증가)
+		emotionNeuronPath := "limbic/" + req.Emotion
+		fireNeuron(brainRoot, emotionNeuronPath)
+
+		autoReinject(brainRoot)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		json.NewEncoder(w).Encode(state)
+	}))
+
 	// Uses _sandbox.txt (raw text) instead of folder names to preserve emojis/special chars
 	mux.HandleFunc("/api/sandbox", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		sandboxFile := filepath.Join(brainRoot, "brainstem", "_sandbox.txt")

@@ -1,5 +1,63 @@
 # NeuronFS — Folder-as-Neuron Cognitive Engine
 
+# ══════════════════════════════════════════
+# Personal / Debug / Local-only files
+# ══════════════════════════════════════════
+
+# PowerShell debug scripts (local maintenance)
+*.ps1
+!install.ps1
+
+# One-off scripts
+cleanup.py
+inject.py
+rebuild.py
+migrate_kr.py
+debug_helper.js
+list_files.js
+list-files.js
+patch_readme.js
+patch_tldr.js
+remove_palantir.js
+
+# Personal data dumps
+*.txt
+!requirements.txt
+reco
+next
+SESSION_LOG.md
+chat_index*
+sidebar_workspaces.json
+trajectory_*
+
+# Test files
+test_*
+hello.*
+
+# Backup files
+*.bak
+*.bak2
+*.vbs
+
+# Express hello (unrelated)
+express-hello/
+
+# Evidence / internal deploy
+evidence/
+dashboard_deploy/
+tools/
+
+# Runtime test artifacts
+runtime/tests_logs/
+runtime/coverage_reports/
+runtime/proto_dumps/
+
+# IDE specific
+.vscode/
+
+# ══════════════════════════════════════════
+# Core ignores (original)
+# ══════════════════════════════════════════
 # Build artifacts
 *.exe
 *.exe~
