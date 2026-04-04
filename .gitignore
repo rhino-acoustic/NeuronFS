@@ -103,7 +103,7 @@ Thumbs.db
 
 # Brain runtime files (auto-generated)
 brain_state.json
-brain_dashboard.html
+# brain_dashboard.html — tracked: core UI file
 brain_mesh.obj
 brain.obj
 
