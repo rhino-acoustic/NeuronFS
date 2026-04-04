@@ -240,25 +240,26 @@ function getExistingRuleNeurons() {
     return rules;
 }
 
-// .axon 파일 생성 — 뉴런 간 연결 (Attention Residual)
+// .axon 파일 생성 — 영역 간 연결 (Attention Residual)
+// NeuronFS 설계: axon은 뉴런 개별이 아닌 "영역 레벨" 연결
+// scanBrain은 regionPath/*.axon만 읽으므로 영역 루트에 생성
 function createAxon(sourcePath, targetRegion, reason) {
-    const sourceDir = path.join(BRAIN_DIR, ...sourcePath.split('/'));
-    if (!fs.existsSync(sourceDir)) return;
+    // sourcePath = "cortex/security/禁hard_coded_text" → sourceRegion = "cortex"
+    const sourceRegion = sourcePath.split('/')[0];
+    if (sourceRegion === targetRegion) return; // 자기 자신 연결 방지
+    
+    const sourceRegionDir = path.join(BRAIN_DIR, sourceRegion);
+    if (!fs.existsSync(sourceRegionDir)) return;
     
     const axonName = `connect_${targetRegion}.axon`;
-    const axonPath = path.join(sourceDir, axonName);
+    const axonPath = path.join(sourceRegionDir, axonName);
     
     // 이미 있으면 스킵
     if (fs.existsSync(axonPath)) return;
     
-    fs.writeFileSync(axonPath, JSON.stringify({
-        target: targetRegion,
-        reason: reason,
-        created: new Date().toISOString(),
-        source: 'harness_cycle'
-    }), 'utf8');
+    fs.writeFileSync(axonPath, `TARGET: ${targetRegion}`, 'utf8');
     
-    log(`  🔗 [Axon] ${sourcePath} → ${targetRegion}: ${reason}`);
+    log(`  🔗 [Axon] ${sourceRegion} → ${targetRegion}: ${reason}`);
 }
 
 async function harnessCycle() {

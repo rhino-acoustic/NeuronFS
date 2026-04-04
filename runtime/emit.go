@@ -589,7 +589,8 @@ type treeNode struct {
 }
 
 // emitRegionRules converts a Region's neurons into a formatted markdown ruleset string.
-func emitRegionRules(region Region) string {
+// Accepts optional Brain for Attention Residuals cross-referencing via axons.
+func emitRegionRules(region Region, brainOpt ...Brain) string {
 	var sb strings.Builder
 
 	icon := regionIcons[region.Name]
@@ -618,6 +619,23 @@ func emitRegionRules(region Region) string {
 			sb.WriteString(fmt.Sprintf("- → %s\n", axon))
 		}
 		sb.WriteString("\n")
+	}
+
+	// ━━━ Attention Residuals: Cross-Region Selective Reference ━━━
+	// Instead of each region being an isolated silo, axon connections
+	// enable selective aggregation — pulling relevant neurons from
+	// connected regions based on keyword matching (the "query-key" paradigm).
+	if len(brainOpt) > 0 && len(region.Axons) > 0 {
+		boosted := axonBoostNeurons(brainOpt[0], region)
+		if len(boosted) > 0 {
+			sb.WriteString("## 🔗 Axon 참조 (Attention Residuals)\n")
+			sb.WriteString("axon 연결을 통해 관련 영역에서 선택적으로 참조된 뉴런:\n")
+			for _, b := range boosted {
+				sentence := pathToSentence(b.Path)
+				sb.WriteString(fmt.Sprintf("- **%s** (c:%d)\n", sentence, b.Counter))
+			}
+			sb.WriteString("\n")
+		}
 	}
 
 	// Build tree from neuron paths
@@ -828,9 +846,9 @@ func writeAllTiers(brainRoot string) {
 		fmt.Printf("[WARN] Cannot write %s: %v\n", indexPath, err)
 	}
 
-	// Tier 3: per-region _rules.md
+	// Tier 3: per-region _rules.md (with Attention Residuals cross-referencing)
 	for _, region := range brain.Regions {
-		content := emitRegionRules(region)
+		content := emitRegionRules(region, brain)
 		rulesPath := filepath.Join(region.Path, "_rules.md")
 		if err := os.WriteFile(rulesPath, []byte(content), 0644); err != nil {
 			fmt.Printf("[WARN] Cannot write %s: %v\n", rulesPath, err)
@@ -988,7 +1006,7 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 	}
 
 	for _, region := range brain.Regions {
-		content := emitRegionRules(region)
+		content := emitRegionRules(region, brain)
 		rulesPath := filepath.Join(region.Path, "_rules.md")
 		if err := os.WriteFile(rulesPath, []byte(content), 0644); err != nil {
 			fmt.Printf("[WARN] Cannot write %s: %v\n", rulesPath, err)
@@ -1060,7 +1078,7 @@ func handleReadRegion(brainRoot string) http.HandlerFunc {
 		var content []byte
 		for _, region := range brain.Regions {
 			if region.Name == regionName {
-				generated := emitRegionRules(region)
+				generated := emitRegionRules(region, brain)
 				content = []byte(generated)
 				// Also update the file for view_file access
 				rulesPath := filepath.Join(brainRoot, regionName, "_rules.md")
@@ -1179,4 +1197,78 @@ func sortedActiveNeurons(neurons []Neuron, limit int) []Neuron {
 		active = active[:limit]
 	}
 	return active
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Attention Residuals: Selective Aggregation via Axon
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// axonBoostNeurons applies Attention Residuals' selective aggregation:
+// When a region has axon connections to other regions, neurons in the
+// target region that share category/path keywords get a boost in scoring.
+// This prevents the "signal dilution" problem — relevant cross-region
+// knowledge surfaces instead of being buried by high-counter noise.
+//
+// Analogy from paper: Each "block" (region) can selectively look back
+// at previous blocks' outputs via attention, rather than just receiving
+// a cumulative signal.
+func axonBoostNeurons(brain Brain, currentRegion Region) []Neuron {
+	if len(currentRegion.Axons) == 0 {
+		return nil
+	}
+
+	// Collect keywords from current region's top neurons (our "query")
+	topLocal := sortedActiveNeurons(currentRegion.Neurons, 5)
+	queryKeywords := make(map[string]bool)
+	for _, n := range topLocal {
+		for _, part := range splitNeuronPath(n.Path) {
+			if len(part) > 1 {
+				queryKeywords[strings.ToLower(part)] = true
+			}
+		}
+	}
+
+	// For each axon target, find neurons whose paths match our query
+	var boosted []Neuron
+	for _, axonTarget := range currentRegion.Axons {
+		// Skip skill axons
+		if strings.HasPrefix(axonTarget, "SKILL:") {
+			continue
+		}
+		for _, region := range brain.Regions {
+			if region.Name != axonTarget {
+				continue
+			}
+			for _, n := range region.Neurons {
+				if n.IsDormant {
+					continue
+				}
+				// Score: how many path keywords match our query?
+				score := 0
+				for _, part := range splitNeuronPath(n.Path) {
+					if queryKeywords[strings.ToLower(part)] {
+						score++
+					}
+				}
+				// Also boost 禁/推 neurons unconditionally (they're governance)
+				if strings.ContainsAny(n.Name, hanjaChars) {
+					score += 2
+				}
+				if score > 0 {
+					boosted = append(boosted, n)
+				}
+			}
+		}
+	}
+
+	// Sort by relevance score (Counter as tiebreaker)
+	sort.Slice(boosted, func(i, j int) bool {
+		return boosted[i].Counter > boosted[j].Counter
+	})
+
+	// Limit to 3 cross-references (prevent token bloat)
+	if len(boosted) > 3 {
+		boosted = boosted[:3]
+	}
+	return boosted
 }

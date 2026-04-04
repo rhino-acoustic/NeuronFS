@@ -468,8 +468,12 @@ func scanBrain(root string) Brain {
 		for _, af := range axonFiles {
 			content, _ := os.ReadFile(af)
 			target := strings.TrimSpace(string(content))
+			// Remove UTF-8 BOM if present
+			target = strings.TrimPrefix(target, "\xEF\xBB\xBF")
 			target = strings.TrimPrefix(target, "TARGET: ")
-			region.Axons = append(region.Axons, target)
+			if target != "" {
+				region.Axons = append(region.Axons, target)
+			}
 		}
 
 		// Scan flat neurons at region root (e.g., brainstem: 禁fallback.1.neuron)
