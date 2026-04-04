@@ -35,14 +35,27 @@ import (
 func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	var sb strings.Builder
 
-	// ━━━ PREAMBLE: START 마커 앞에 순수 한글로 출력 (1,2행) ━━━
+	// ━━━ 대원칙: brainstem/_principles.txt → _preamble.txt → 기본값 ━━━
+	principlesPath := filepath.Join(brainRoot, "brainstem", "_principles.txt")
 	preamblePath := filepath.Join(brainRoot, "_preamble.txt")
-	if preambleBytes, err := os.ReadFile(preamblePath); err == nil {
-		preamble := strings.TrimSpace(string(preambleBytes))
-		if preamble != "" {
-			sb.WriteString(preamble + "\n")
+	principlesLoaded := false
+	if pData, err := os.ReadFile(principlesPath); err == nil {
+		text := strings.TrimSpace(string(pData))
+		if text != "" {
+			sb.WriteString(text + "\n")
+			principlesLoaded = true
 		}
-	} else {
+	}
+	if !principlesLoaded {
+		if pData, err := os.ReadFile(preamblePath); err == nil {
+			text := strings.TrimSpace(string(pData))
+			if text != "" {
+				sb.WriteString(text + "\n")
+				principlesLoaded = true
+			}
+		}
+	}
+	if !principlesLoaded {
 		sb.WriteString("반드시 한국어로 생각(thinking)하고 한국어로 대답해\n")
 		sb.WriteString("커뮤니티 동향(reddit, github 등)을 최우선 검색해서 베스트 프랙티스 검색\n")
 	}

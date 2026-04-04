@@ -2469,7 +2469,83 @@ func startAPI(brainRoot string, port int) {
 		fmt.Fprintf(w, "Injected %d neurons, activation: %d", result.TotalNeurons, result.TotalCounter)
 	}))
 
-	// POST /api/sandbox — Live test: write text → stored as file, empty → deleted
+	// GET/POST /api/principles — 대원칙 설정 (brainstem TOP 규칙)
+	// _principles.txt에 최대 2줄 저장. emit 시 GEMINI.md 최상단에 주입됨
+	mux.HandleFunc("/api/principles", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		principlesFile := filepath.Join(brainRoot, "brainstem", "_principles.txt")
+
+		if r.Method == "GET" {
+			result := map[string]interface{}{"principles": []string{}, "max": 2}
+			data, err := os.ReadFile(principlesFile)
+			if err == nil {
+				text := strings.TrimSpace(string(data))
+				if text != "" {
+					lines := []string{}
+					for _, line := range strings.Split(text, "\n") {
+						line = strings.TrimSpace(line)
+						if line != "" {
+							lines = append(lines, line)
+						}
+					}
+					result["principles"] = lines
+				}
+			}
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			json.NewEncoder(w).Encode(result)
+			return
+		}
+		if r.Method != "POST" {
+			http.Error(w, "GET or POST only", 405)
+			return
+		}
+		var req struct {
+			Principles []string `json:"principles"`
+		}
+		json.NewDecoder(r.Body).Decode(&req)
+
+		// 최대 2줄만 허용
+		var clean []string
+		for _, p := range req.Principles {
+			p = strings.TrimSpace(p)
+			if p != "" && len(clean) < 2 {
+				clean = append(clean, p)
+			}
+		}
+
+		if len(clean) == 0 {
+			os.Remove(principlesFile)
+			autoReinject(brainRoot)
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			json.NewEncoder(w).Encode(map[string]string{"status": "cleared"})
+			return
+		}
+
+		os.MkdirAll(filepath.Dir(principlesFile), 0755)
+		os.WriteFile(principlesFile, []byte(strings.Join(clean, "\n")), 0644)
+
+		// 대원칙을 brainstem 뉴런으로도 생성 (가중치 부여)
+		for _, p := range clean {
+			name := strings.ReplaceAll(p, " ", "_")
+			name = strings.Map(func(r rune) rune {
+				if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' || r == '-' || (r >= 0xAC00 && r <= 0xD7AF) || (r >= 0x3131 && r <= 0x318E) || r == 0x7981 || r == 0x5FC5 {
+					return r
+				}
+				return '_'
+			}, name)
+			neuronDir := filepath.Join(brainRoot, "brainstem", name)
+			if _, err := os.Stat(neuronDir); os.IsNotExist(err) {
+				os.MkdirAll(neuronDir, 0755)
+				os.WriteFile(filepath.Join(neuronDir, "50.neuron"), []byte{}, 0644) // 높은 초기 가중치
+			}
+		}
+
+		autoReinject(brainRoot)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":     "applied",
+			"principles": clean,
+		})
+	}))
 	// Uses _sandbox.txt (raw text) instead of folder names to preserve emojis/special chars
 	mux.HandleFunc("/api/sandbox", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		sandboxFile := filepath.Join(brainRoot, "brainstem", "_sandbox.txt")
