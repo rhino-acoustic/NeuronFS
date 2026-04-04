@@ -96,7 +96,7 @@ let sessionStartTime = new Date().toISOString();
 // ============================================================
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
-const CHUNK_SIZE = 25; // 25개 메시지마다 Groq 호출 (맥락 풍부 → 추출 품질↑)
+const CHUNK_SIZE = 10; // 10개 메시지마다 Groq 호출 (개인화 반응 속도 우선)
 let messageBuffer = [];
 
 async function groqExtractNeurons(messages) {

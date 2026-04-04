@@ -164,7 +164,20 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	inboxPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
 	sb.WriteString(fmt.Sprintf("교정→`corrections.jsonl` 기록 | 칭찬→dopamine | 3회실패→bomb\n"))
 	sb.WriteString(fmt.Sprintf("경로: `%s`\n", inboxPath))
-	sb.WriteString("Limbic: 분노→검증강화 | 긴급→핵심만 | 만족→도파민\n")
+	// Limbic: 실제 뉴런 기반 동적 렌더링 (하드코딩 금지)
+	for _, r := range result.ActiveRegions {
+		if r.Name == "limbic" && len(r.Neurons) > 0 {
+			var parts []string
+			top := sortedActiveNeurons(r.Neurons, 5)
+			for _, n := range top {
+				parts = append(parts, pathToSentence(n.Path))
+			}
+			if len(parts) > 0 {
+				sb.WriteString("Limbic: " + strings.Join(parts, " | ") + "\n")
+			}
+			break
+		}
+	}
 	sb.WriteString("영혼: 출력 전 자문(진짜야? 한숨? 편한길? 같은실수? 프리미엄?) → 걸리면 다시\n\n")
 
 	// ━━━ REGION SUMMARY: 영역별 카운터만 (상세는 _rules.md) ━━━
