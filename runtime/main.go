@@ -2862,7 +2862,7 @@ func startAPI(brainRoot string, port int) {
 		w.Write(data)
 	}))
 
-	// GET / — Unified Dashboard (3D + management) (Fallback for SPA)
+	// GET / — Dashboard V2 (Strangler Fig: new page)
 	mux.HandleFunc("/", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/api/") {
 			http.NotFound(w, r)
@@ -2872,19 +2872,17 @@ func startAPI(brainRoot string, port int) {
 			w.WriteHeader(204)
 			return
 		}
-		htmlPath := filepath.Join(neuronfsRoot, "brain_dashboard.html")
-		data, err := os.ReadFile(htmlPath)
+		// V2 dashboard
+		v2Path := filepath.Join(neuronfsRoot, "dashboard_v2.html")
+		data, err := os.ReadFile(v2Path)
 		if err != nil {
-			// Try absolute path as fallback
-			absPath := filepath.Join(filepath.Dir(brainRoot), "brain_dashboard.html")
-			data, err = os.ReadFile(absPath)
+			data, err = os.ReadFile(`C:\Users\BASEMENT_ADMIN\NeuronFS\dashboard_v2.html`)
 		}
 		if err != nil {
-			// Final fallback: hardcoded known location
-			data, err = os.ReadFile(`C:\Users\BASEMENT_ADMIN\NeuronFS\brain_dashboard.html`)
+			// Fallback to V1
+			data, err = os.ReadFile(filepath.Join(neuronfsRoot, "brain_dashboard.html"))
 		}
 		if err != nil {
-			// Fallback to embedded card dashboard
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			fmt.Fprint(w, dashboardHTML)
 			return
