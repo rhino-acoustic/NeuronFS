@@ -552,7 +552,7 @@ function startCDPMonitor() {
         
         for (const t of targets) {
             if (t.webSocketDebuggerUrl) {
-                const label = `${t.type}:${(t.title || 'worker').substring(0, 20)}`;
+                const label = `${t.type}:${(t.title || 'worker').substring(0, 40)}`;
                 attachCDPNetwork(t.webSocketDebuggerUrl, label);
             }
         }
@@ -605,7 +605,7 @@ function attachCDPNetwork(wsUrl, label) {
                                 for (const item of json.items) {
                                     if (item.text) {
                                         sessionMessageCount++;
-                                        const projMatch2 = label.match(/page:([^\s-]+)/);
+                                        const projMatch2 = label.match(/(?:page|worker):([^\s-]+)/);
                                         const proj2 = projMatch2 ? projMatch2[1] : 'global';
                                         log(`  [${label}] "${item.text}"`);
                                         appendTranscript(`[${getKST()}] USER@${cascadeId.substring(0,8)}: ${item.text}`, proj2);
@@ -627,7 +627,7 @@ function attachCDPNetwork(wsUrl, label) {
                             }
                             if (json.interaction && json.interaction.runCommand) {
                                 const cmd = json.interaction.runCommand.proposedCommandLine?.substring(0, 120) || '';
-                                const projMatch3 = label.match(/page:([^\s-]+)/);
+                                const projMatch3 = label.match(/(?:page|worker):([^\s-]+)/);
                                 const proj3 = projMatch3 ? projMatch3[1] : 'global';
                                 log(`  [${label}] CMD confirm: "${cmd}"`);
                                 appendTranscript(`[${getKST()}] CMD@${cascadeId.substring(0,8)}: ${cmd}`, proj3);
@@ -639,6 +639,26 @@ function attachCDPNetwork(wsUrl, label) {
                 }
             }
             
+            // ===== 스트리밍 청크 버퍼링 (Network.dataReceived) =====
+            if (msg.method === 'Network.dataReceived') {
+                const reqId = msg.params.requestId;
+                if (pendingRequests[reqId]) {
+                    // 이 이벤트에는 body가 없지만 크기 추적용
+                    if (!pendingRequests[reqId].totalBytes) pendingRequests[reqId].totalBytes = 0;
+                    pendingRequests[reqId].totalBytes += (msg.params.dataLength || 0);
+                }
+            }
+            
+            // ===== EventSource/SSE 스트리밍 텍스트 캡처 =====
+            if (msg.method === 'Network.eventSourceMessageReceived') {
+                const reqId = msg.params.requestId;
+                const detail = pendingRequests[reqId];
+                if (detail) {
+                    const data = msg.params.data || '';
+                    if (!detail.sseBuffer) detail.sseBuffer = '';
+                    detail.sseBuffer += data + '\n';
+                }
+            }
             // ===== 응답 완료 → 본문 요청 =====
             if (msg.method === 'Network.loadingFinished') {
                 const reqId = msg.params.requestId;
@@ -647,9 +667,9 @@ function attachCDPNetwork(wsUrl, label) {
                     const elapsed = Date.now() - detail.ts;
                     log(`📩 [${label}] ${detail.rpc} response complete (${elapsed}ms, ${msg.params.encodedDataLength || '?'}B)`);
                     
-                    // 응답 본문 가져오기
+                    // 응답 본문 가져오기 (SSE 버퍼도 전달)
                     const fetchId = ++id;
-                    pendingBodyFetches[fetchId] = { rpc: detail.rpc, requestId: reqId };
+                    pendingBodyFetches[fetchId] = { rpc: detail.rpc, requestId: reqId, sseBuffer: detail.sseBuffer || '' };
                     ws.send(JSON.stringify({
                         id: fetchId,
                         method: 'Network.getResponseBody',
@@ -670,13 +690,24 @@ function attachCDPNetwork(wsUrl, label) {
                     return; // 이미 기록됨
                 }
                 
+                let body = '';
                 if (msg.result && msg.result.body) {
-                    const body = msg.result.base64Encoded 
+                    body = msg.result.base64Encoded 
                         ? Buffer.from(msg.result.body, 'base64').toString('utf8')
                         : msg.result.body;
-                    
-                    // 프로젝트 라벨 추출 (label = "page:NeuronFS - ...")
-                    const projMatch = label.match(/page:([^\s-]+)/);
+                }
+                
+                // getResponseBody가 빈 값이면 SSE 버퍼 사용
+                if (!body || body.length < 5 || body === '{}') {
+                    if (detail.sseBuffer && detail.sseBuffer.length > 5) {
+                        body = detail.sseBuffer;
+                        log(`  [${label}] Using SSE buffer (${body.length}B)`);
+                    }
+                }
+                
+                if (body && body.length > 2) {
+                    // 프로젝트 라벨 추출
+                    const projMatch = label.match(/(?:page|worker):([^\s-]+)/);
                     const proj = projMatch ? projMatch[1] : 'global';
 
                     log(`  [${label}] AI Response (${detail.rpc}): ${body.length}B`);

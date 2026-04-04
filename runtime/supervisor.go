@@ -93,7 +93,8 @@ func runSupervisor(brainRoot string) {
 		{Name: "neuronfs-api", Cmd: nfsExe, Args: []string{brainRoot, "--api"}, Dir: nfsRoot, Enabled: true},
 		{Name: "neuronfs-watch", Cmd: nfsExe, Args: []string{brainRoot, "--watch"}, Dir: nfsRoot, Enabled: true},
 		{Name: "auto-accept", Cmd: "node", Args: []string{filepath.Join(aaDir, "auto-accept.mjs")}, Dir: aaDir, Enabled: svPathExists(filepath.Join(aaDir, "auto-accept.mjs"))},
-		{Name: "agent-bridge", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "agent-bridge.mjs")}, Dir: nfsRoot, Enabled: true},
+		{Name: "agent-bridge", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "core_agents", "agent-bridge.mjs")}, Dir: nfsRoot, Enabled: true},
+		{Name: "hijack-launcher", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "hijackers", "hijack-launcher.mjs")}, Dir: nfsRoot, Enabled: true},
 		{Name: "headless-executor", Cmd: "node", Args: []string{filepath.Join(hijackDir, "headless-executor.mjs")}, Dir: hijackDir, Enabled: svPathExists(filepath.Join(hijackDir, "headless-executor.mjs"))},
 	}
 
