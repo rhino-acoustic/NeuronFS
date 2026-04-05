@@ -5,7 +5,6 @@
 | Document | Description |
 |----------|-------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Runtime code structure — 30 Go files, ~10,920 lines |
-| [AUDIT_REPORT.md](AUDIT_REPORT.md) | Third-party architecture & market audit |
 | [WARGAME_SCENARIOS.md](WARGAME_SCENARIOS.md) | Context loss recovery — 4 tested scenarios |
 | [CHANGELOG.md](CHANGELOG.md) | Version history and breaking changes |
 

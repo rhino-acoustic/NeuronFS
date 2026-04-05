@@ -13,7 +13,7 @@
   <a href="https://dashboarddeploy-six.vercel.app/"><strong>3D 대시보드 라이브 데모</strong></a>
 </p>
 
-<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 매니페스토</a> · <a href="docs/ARCHITECTURE.md">🏗️ 아키텍처</a> · <a href="docs/AUDIT_REPORT.md">🔬 감사</a> · <a href="docs/CHANGELOG.md">📋 변경이력</a></p>
+<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 매니페스토</a> · <a href="docs/ARCHITECTURE.md">🏗️ 아키텍처</a> · <a href="docs/CHANGELOG.md">📋 변경이력</a></p>
 
 # NeuronFS
 ### *파일시스템 네이티브 계층형 규칙 메모리 — 무의존성 하네스 엔지니어링(Harness Engineering)*

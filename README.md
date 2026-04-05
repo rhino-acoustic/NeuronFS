@@ -14,7 +14,7 @@
   <a href="https://dashboarddeploy-six.vercel.app/"><strong>3D Dashboard Live Demo</strong></a>
 </p>
 
-<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 Manifesto</a> · <a href="docs/ARCHITECTURE.md">🏗️ Architecture</a> · <a href="docs/AUDIT_REPORT.md">🔬 Audit</a> · <a href="docs/CHANGELOG.md">📋 Changelog</a></p>
+<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 Manifesto</a> · <a href="docs/ARCHITECTURE.md">🏗️ Architecture</a> · <a href="docs/CHANGELOG.md">📋 Changelog</a></p>
 
 # NeuronFS
 ### *Filesystem-Native Hierarchical Ruleset Memory — A Zero-Dependency Harness Engineering Platform*
