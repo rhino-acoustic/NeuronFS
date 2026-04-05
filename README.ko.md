@@ -224,7 +224,7 @@ WordPress는 무료다. 테마와 플러그인은 유료다. 마찬가지로:
 
 ## 뇌 영역
 
-7개 뇌 영역이 Brooks의 Subsumption Architecture로 계층화된다. **낮은 P(우선순위)가 높은 P의 명령을 항상 물리적으로 억제한다.**
+7개 뇌 영역이 Brooks의 Subsumption Architecture로 계층화된다. **낮은 P(우선순위)가 높은 P의 명령을 항상 구조적으로 억제한다.**
 
 ```
 brainstem(P0) > limbic(P1) > hippocampus(P2) > sensors(P3) > cortex(P4) > ego(P5) > prefrontal(P6)
@@ -296,6 +296,43 @@ neuronfs <brain> --fire <path>     # 가중치 카운터 +1 증가
 ### 왜 Go인가?
 
 단일 실행 파일 바이너리(Single Binary). 어떤 외부 의존성(Node_modules, Python venv)도 없다. 다운로드 받아서 아무 폴더에나 놓으면 즉시 시스템 파일 트리를 감시(fsnotify)하고 터미널에서 동작한다. 극강의 이식성과 영속성.
+### 자기참조적 코드 구조 (Self-Referential Architecture)
+
+NeuronFS의 핵심 원리 — **"Path = Sentence"** — 가 코드베이스 자체에도 적용되어 있다. 파일명만 나열하면 시스템 전체가 읽힌다:
+
+```
+brain.go → 뇌 스캔          inject.go → 인젝션         emit.go → 규칙 생성
+lifecycle.go → 생명주기      evolve.go → 진화           similarity.go → 유사도
+neuron_crud.go → CRUD       watch.go → 감시            supervisor.go → 관리
+```
+
+이것은 단순한 "좋은 네이밍"이 아니다. **자기 철학을 자기 코드로 증명하는 재귀적 자기참조 아키텍처**다. 30개 파일, ~10,920줄 — 그러나 어떤 AI든 파일명만 읽으면 30초 안에 전체 문맥을 복원할 수 있다.
+
+### 고통의 증명 (Proof of Pain)
+
+**NeuronFS 없이:**
+```
+Day 1: AI가 "console.log 쓰지 마" 위반 → 수동 교정
+Day 2: 쿠터 소진으로 다른 AI로 전환 → 같은 위반 반복
+Day 3: 반복. Day 4: 반복. Day 10: 정신이 나간다.
+```
+
+**NeuronFS와 함께:**
+```
+Day 1: mkdir brain/cortex/禁console_log → 위반 영구 차단
+Day 2: AI 전환 → --emit all → 같은 뇌, 같은 규칙
+Day 10: 위반 제로. 구조가 모든 AI가 잊는 것을 기억한다.
+```
+
+### 하네스 엔지니어링: 다음 패러다임
+
+```
+2023: Prompt Engineering   — "더 좋은 프롬프트를 작성하라"
+2024: Context Engineering  — "더 좋은 컨텍스트를 제공하라"
+2025: Harness Engineering  — "AI가 실패할 수 없는 뼈대를 설계하라"
+```
+
+NeuronFS는 **하네스 엔지니어링의 작동하는 구현체**다 — AI에게 규칙을 따르라고 부탁하는 것이 아니라, 구조적으로 깨뜨리는 것 자체를 불가능하게 만든다. `bomb.neuron`은 구걸하지 않는다; 멈춘다. `禁`은 제안하지 않는다; 구조적으로 렌더링을 차단한다.
 
 ---
 

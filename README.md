@@ -261,6 +261,44 @@ neuronfs <brain> --fire <path>     # Increase weight
 
 A Single Binary. Zero `node_modules` or Python `venv` hell. Drop it anywhere, watch folders natively (`fsnotify`), and run it. The ultimate portability.
 
+### Self-Referential Architecture
+
+NeuronFS's core principle — **"Path = Sentence"** — is applied to its own codebase. File names alone tell you the entire system:
+
+```
+brain.go → Brain scan       inject.go → Injection       emit.go → Rule generation
+lifecycle.go → Lifecycle     evolve.go → Evolution       similarity.go → Similarity
+neuron_crud.go → CRUD        watch.go → Monitoring       supervisor.go → Management
+```
+
+This isn't just "good naming." It's a recursive, self-referential architecture that **proves its own philosophy through its code structure**. 30 files, ~10,920 lines — yet any AI can rebuild full context in under 30 seconds by reading file names.
+
+### Proof of Pain: Why You Need This
+
+**Without NeuronFS:**
+```
+Day 1: AI violates "no console.log" → you correct it manually
+Day 2: Switch to different AI (quota) → same violation again
+Day 3: Repeat. Day 4: Repeat. Day 10: You lose your mind.
+```
+
+**With NeuronFS:**
+```
+Day 1: mkdir brain/cortex/禁console_log → violation permanently blocked
+Day 2: Switch AI → --emit all → same brain, same rules
+Day 10: Zero violations. The structure remembers what every AI forgets.
+```
+
+### Harness Engineering: The Next Paradigm
+
+```
+2023: Prompt Engineering   — "Write better prompts"
+2024: Context Engineering  — "Feed better context"
+2025: Harness Engineering  — "Design the skeleton so AI can't fail"
+```
+
+NeuronFS is a working implementation of **Harness Engineering** — not asking the AI to follow rules, but making it structurally impossible to break them. `bomb.neuron` doesn't beg; it halts. `禁` doesn't suggest; it structurally prevents.
+
 ---
 
 ## Benchmarks
