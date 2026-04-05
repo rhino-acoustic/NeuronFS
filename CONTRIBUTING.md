@@ -4,7 +4,7 @@ Thank you for your interest in contributing to NeuronFS.
 
 ## Quick Links
 
-- [Issues](https://github.com/vegavery/NeuronFS/issues) — Bug reports and feature requests
+- [Issues](https://github.com/rhino-acoustic/NeuronFS/issues) — Bug reports and feature requests
 - [README](README.md) — Project overview
 - [Limitations](README.md#limitations) — What NeuronFS can't do (read this first)
 
@@ -12,7 +12,7 @@ Thank you for your interest in contributing to NeuronFS.
 
 ### 🐛 Bug Reports
 
-Found a bug? [Open an issue](https://github.com/vegavery/NeuronFS/issues/new) with:
+Found a bug? [Open an issue](https://github.com/rhino-acoustic/NeuronFS/issues/new) with:
 1. What you did (steps to reproduce)
 2. What you expected
 3. What actually happened
@@ -20,13 +20,13 @@ Found a bug? [Open an issue](https://github.com/vegavery/NeuronFS/issues/new) wi
 
 ### 💡 Feature Requests
 
-Have an idea? [Open an issue](https://github.com/vegavery/NeuronFS/issues/new) with the `enhancement` label.
+Have an idea? [Open an issue](https://github.com/rhino-acoustic/NeuronFS/issues/new) with the `enhancement` label.
 
 Some areas where we know we need help:
 - **Semantic search layer** — NeuronFS has no "find similar rules" capability. This is where vector DBs beat us.
 - **Cross-platform testing** — We develop on Windows. Linux/macOS testing is minimal.
 - **Multi-editor emit** — Support for `.cursorrules`, `CLAUDE.md`, `.github/copilot-instructions.md` output formats.
-- **Stress testing at scale** — We've tested up to 1,000 neurons. What happens at 5,000? 10,000?
+- **Stress testing at scale** — We've tested up to 3,400+ neurons. What happens at 5,000? 10,000?
 - **A/B validation** — Comparing violation rates with vs. without GEMINI.md. We haven't done this yet.
 
 ### 🔧 Pull Requests
@@ -47,7 +47,7 @@ Some areas where we know we need help:
 ## Development Setup
 
 ```bash
-git clone https://github.com/vegavery/NeuronFS.git
+git clone https://github.com/rhino-acoustic/NeuronFS.git
 cd NeuronFS/runtime
 go build -ldflags="-s -w" -trimpath -buildvcs=false -o ../neuronfs .
 
@@ -65,18 +65,19 @@ go build -ldflags="-s -w" -trimpath -buildvcs=false -o ../neuronfs .
 
 ```
 NeuronFS/
-├── runtime/          # Go source code (single binary)
-│   ├── main.go       # Entry point + CLI
-│   ├── scan.go       # Brain scanner
-│   ├── emit.go       # GEMINI.md generator (3-tier)
-│   ├── api.go        # REST API + dashboard
-│   ├── mcp.go        # MCP server (stdio)
-│   ├── watch.go      # fsnotify file watcher
-│   └── evolve.go     # Groq autonomous evolution
-├── brain_v4/         # The brain (267 neurons)
-├── evidence/         # Multi-agent verification logs
-├── harness.ps1       # Integrity test suite
-└── docs/             # Screenshots and assets
+├── runtime/              # Go source (30 files, ~10,920 lines)
+│   ├── main.go           # CLI dispatcher (396L)
+│   ├── brain.go          # Brain scanner/structs
+│   ├── emit.go           # _rules.md generator (3-tier)
+│   ├── api_server.go     # REST API + /api/codemap
+│   ├── mcp_server.go     # MCP stdio server
+│   ├── watch.go          # fsnotify watcher
+│   ├── evolve.go         # Groq autonomous evolution
+│   ├── dashboard.html    # 3D brain dashboard (go:embed)
+│   └── ...               # 22 more domain modules
+├── brain_v4/             # The brain (3,400+ neurons)
+├── docs/                 # Architecture, audit, changelog
+└── evidence/             # Multi-agent verification logs
 ```
 
 ## Code Style
@@ -94,4 +95,4 @@ NeuronFS/
 
 ---
 
-**⭐ Star if you find this useful. [Issue if you don't.](https://github.com/vegavery/NeuronFS/issues)**
+**⭐ Star if you find this useful. [Issue if you don't.](https://github.com/rhino-acoustic/NeuronFS/issues)**

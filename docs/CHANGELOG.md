@@ -13,7 +13,7 @@ All notable changes to NeuronFS are documented here.
 - **Extreme modularization**: `main.go` reduced from 3,538 → 396 lines (-88.8%)
 - **emit.go split**: emit.go (825L) + emit_helpers.go (581L) from original 1,432L
 - **New modules**: `watch.go` (135L), `diag.go` (261L), `neuron_crud.go` (277L), `inject.go` (287L), `transcript.go` (405L)
-- **Total**: 30 Go source files, ~10,920 lines
+- **Total**: 30 Go source files, ~10,920 lines. 3,400+ neurons
 
 ### Fixed
 - 18 broken `.axon` files recovered (UTF-8 encoding fix)
