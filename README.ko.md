@@ -1,8 +1,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Neurons-433+-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/Axons-6-purple?style=flat-square" />
+  <img src="https://img.shields.io/badge/Neurons-3400+-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Axons-10-purple?style=flat-square" />
   <img src="https://img.shields.io/badge/Zero_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
 </p>
@@ -13,7 +13,7 @@
   <a href="https://dashboarddeploy-six.vercel.app/"><strong>3D 대시보드 라이브 데모</strong></a>
 </p>
 
-<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 매니페스토</a></p>
+<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 매니페스토</a> · <a href="docs/ARCHITECTURE.md">🏗️ 아키텍처</a> · <a href="docs/AUDIT_REPORT.md">🔬 감사</a> · <a href="docs/CHANGELOG.md">📋 변경이력</a></p>
 
 # NeuronFS
 ### *파일시스템 네이티브 계층형 규칙 메모리 — 무의존성 하네스 엔지니어링(Harness Engineering)*
@@ -30,11 +30,12 @@
 
 **`mkdir`이 시스템 프롬프트를 대체한다.** 폴더가 뉴런이고, 경로가 문장이며, 파일이 시냅스 가중치다.
 
-### 기존 방식 대비 3대 우위
+### 기존 방식 대비 4대 우위
 
 1. **비용 제로 (Zero Cost):** 에이전트의 기억을 관리하기 위해 Mem0나 Letta 같은 Vector DB를 사용하면 서버 배포 유지 비용이 발생하지만, NeuronFS는 당신의 로컬 OS 파일시스템을 직접 쓰므로 인프라 비용이 **₩0**이다.
 2. **토큰 효율성과 관리의 용이성:** 수천 줄의 텍스트 뭉치에서 특정 규칙을 찾아내고 수정하는 것은 사람을 미치게 하지만, 트리 형태의 폴더 구조(`ls -R`)에서는 규칙의 탐색과 계층화, 물리적 삭제가 매우 직관적이다.
 3. **극강의 이식성 (Portability):** 어떠한 외부 종속성(Dependencies)도 없는 단일 Go 언어 바이너리로 빌드되어, 어떤 OS 환경에서든 복사만 하면 즉시 실행할 수 있으며 곧바로 MCP(Model Context Protocol) 서버로도 동작한다.
+4. **모델 불문 거버넌스 (Model-Agnostic):** 쿠터 제한 때문에 모든 개발자가 여러 AI를 섞어 쓴다. `.cursorrules`는 Cursor 전용. `CLAUDE.md`는 Claude 전용. **NeuronFS는 하나의 뇌에서 모든 AI 포맷을 동시 생성**한다 — AI를 바꿀 때 규칙이 증발하지 않는다.
 
 ```bash
 # 규칙 생성 = 폴더 생성
@@ -160,6 +161,64 @@ AI 25회 상호작용마다, 하네스 엔진(Node.js 사이드카)이 자동으
 2. Groq LLM을 통한 **禁(금지)/推(추천) 뉴런 자동 생성**
 3. 관련 영역 간 **`.axon` 교차 링크 생성**
 4. 해당 실수는 **구조적으로 재발 불가능** — 프롬프트가 아니라 시스템이 막는다
+
+---
+
+## 시장 포지션
+
+> **NeuronFS는 AI 에이전트 메모리가 아니다. L1 거버넌스 인프라다.**
+
+```
+L3: AI Agent Memory  (Mem0, Letta, Zep)         — 대화 기억, 사용자 프로파일링
+L2: IDE Rules        (.cursorrules, CLAUDE.md)   — 정적 규칙 파일, IDE 종속
+L1: AI Governance    (NeuronFS) ◀── 여기         — 모델 불문 · 자가 진화 · 일관성 보장
+```
+
+### 멀티 AI 일관성 문제
+
+2026년 현실: **쿠터 제한 때문에 모든 개발자가 여러 AI를 섞어 쓴다.**
+
+```
+오전: Claude (Opus 쿠터 소진) → 오후: Gemini로 전환 → 저녁: GPT로 전환
+Claude가 학습한 "禁console.log" 규칙 → Gemini는 모름 → 다시 위반 → 고통
+```
+
+`.cursorrules`는 Cursor 전용. `CLAUDE.md`는 Claude 전용. **AI를 바꾸면 규칙이 증발한다.**
+
+NeuronFS의 해법: **하나의 뇌 → 모든 포맷 동시 생성.**
+
+| | .cursor/rules/ | NeuronFS |
+|---|---|---|
+| 멀티 AI 지원 | ❌ IDE 종속 | ✅ `--emit all` |
+| 자가 진화 | ❌ 수동 편집 | ✅ auto-neuronize |
+| 서킷 브레이커 | ❌ 없음 | ✅ bomb.neuron |
+| 판매 가능성 | ❌ 파일 복사 | ✅ **고도화된 뇌를 패키지로 판매** |
+
+### 시장 내 위치 (Market Position Quadrant)
+
+```
+                    높은 기술 복잡성
+                         │
+        Letta/MemGPT ────┼──── NeuronFS ◀── 여기
+                         │
+        ─────────────────┼────────────────────
+        높은 시장 견인력    │    낮은 시장 견인력
+                         │
+        Mem0 ────────────┼──── Cursor .mdc
+        Zep              │
+                         │
+                    낮은 기술 복잡성
+```
+
+**NeuronFS는 우상단** — 기술적으로 복잡하지만 시장 견인력은 아직 초기 단계. 목표: **좌상단으로 이동** (고기술 + 높은 견인력).
+
+### WordPress 비유
+
+WordPress는 무료다. 테마와 플러그인은 유료다. 마찬가지로:
+- **NeuronFS 엔진**: 무료 ($0) — MIT 라이선스
+- **큐레이팅된 Master Brain**: 프리미엄 — React, Next.js, Supabase 등 실전 검증된 거버넌스 패키지
+
+`.cursorrules` 파일은 팔 수 없다. **10,000번의 교정을 거친 뇌는 팔 수 있다.**
 
 ---
 
@@ -299,11 +358,11 @@ NeuronFS는 대규모 분산 환경(MSA)이나 범용 벡터 검색 시스템과
 
 ## Changelog
 
-**v4.4 (2026-04-04)** — **Attention Residuals** 교차 참조 구현 (`.axon` 기반). 자율 하네스 사이클 (Groq 禁/推 자동 생성). UTF-8 BOM 파싱 버그 수정. 433뉴런, 6 axon.
+**v4.4 (2026-04-04)** — **Attention Residuals** 교차 참조 구현 (`.axon` 기반). 자율 하네스 사이클 (Groq 禁/推 자동 생성). UTF-8 BOM 파싱 버그 수정. 3400+ 뉴런, 10 axon.
 **v4.3 (2026-04-02)** — 자율 엔진 Llama 3 전면 포팅 ($0 비용) 및 SafeExec 하드 락 이식.
 **v4.2 (2026-03-31)** — 자율 진화(Auto-Evolution) 파이프라인 완성. Groq 교정 로그 분석 / 한자 마이크로옵코드 최적화.
 
-전체 변경 이력 확인: [LIFECYCLE.md](LIFECYCLE.md)
+전체 변경 이력 확인: [LIFECYCLE.md](docs/CHANGELOG.md)
 
 ---
 
