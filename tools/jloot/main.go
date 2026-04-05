@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -691,8 +692,9 @@ func mountAndServe(jlootPath, port string) {
 			return
 		}
 
-		// ━━━ 2단계: Ollama LLM에 컨텍스트 + 질문 전달 ━━━
-		prompt := fmt.Sprintf("다음 참고자료를 바탕으로 질문에 답하세요. 참고자료에 없는 내용은 추측하지 마세요.\n\n참고자료:\n%s\n질문: %s", context.String(), q)
+		// ━━━ 2단계: 하네스 프롬프트 + Ollama LLM ━━━
+		harness := "[NeuronFS 하네스]\n규칙:\n1. 아래 참고자료 구절만으로 답하라\n2. 출처를 반드시 [경로] 형식으로 명시하라\n3. 참고자료에 없는 내용은 절대 추측하지 마라\n4. 모르면 '해당 구절 없음'이라 하라\n5. 번호 매기지 말고 자연스러운 글로 답하라\n6. 한국어로 답하라\n"
+		prompt := fmt.Sprintf("%s\n[검색결과]\n%s\n\n%s", harness, context.String(), q)
 		llmResp, llmTime, err := callOllama(model, prompt, "")
 		if err != nil {
 			json.NewEncoder(w).Encode(map[string]interface{}{
@@ -703,15 +705,54 @@ func mountAndServe(jlootPath, port string) {
 			return
 		}
 
+		// ━━━ 3단계: 출력 검증 (Post-Generation Validation) ━━━
+		// LLM 응답에서 [경로] 출처를 추출하고 검색결과와 대조
+		validPaths := make(map[string]bool)
+		for _, route := range routes {
+			validPaths[route.Path] = true
+		}
+
+		// 정규식으로 [경로] 패턴 추출
+		citationRe := regexp.MustCompile(`\[([^\]]+\.md)\]`)
+		citations := citationRe.FindAllStringSubmatch(llmResp, -1)
+
+		verified := 0
+		hallucinated := 0
+		var hallucinatedPaths []string
+		for _, match := range citations {
+			if len(match) > 1 {
+				citedPath := match[1]
+				if validPaths[citedPath] {
+					verified++
+				} else {
+					hallucinated++
+					hallucinatedPaths = append(hallucinatedPaths, citedPath)
+				}
+			}
+		}
+
+		// 환각 출처가 있으면 해당 문장을 경고로 대체
+		filteredResp := llmResp
+		for _, hp := range hallucinatedPaths {
+			filteredResp = strings.ReplaceAll(filteredResp, "["+hp+"]", "[⚠️검증실패:"+hp+"]")
+		}
+
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"mode":       "harness (Jloot + LLM)",
+			"mode":       "harness (Jloot + LLM + Validation)",
 			"query":      q,
 			"model":      model,
 			"blocked":    false,
 			"routes":     len(routes),
 			"route_time": routeTime.String(),
 			"llm_time":   llmTime.String(),
-			"answer":     llmResp,
+			"answer":     filteredResp,
+			"validation": map[string]interface{}{
+				"total_citations":        len(citations),
+				"verified_citations":     verified,
+				"hallucinated_citations": hallucinated,
+				"hallucinated_paths":     hallucinatedPaths,
+				"trust_score":            fmt.Sprintf("%.0f%%", func() float64 { if len(citations)==0 { return 100 }; return float64(verified)/float64(len(citations))*100 }()),
+			},
 			"total":      time.Since(start).String(),
 		})
 	})
