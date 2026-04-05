@@ -1,8 +1,9 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Neurons-433+-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/Axons-6-purple?style=flat-square" />
+  <img src="https://img.shields.io/badge/Neurons-3400+-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Axons-10-purple?style=flat-square" />
+  <img src="https://img.shields.io/badge/Go_Files-30-informational?style=flat-square" />
   <img src="https://img.shields.io/badge/Zero_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
 </p>
@@ -30,11 +31,12 @@
 
 **`mkdir` replaces the system prompt.** Folders are Neurons, paths are sentences, and files are synaptic weights.
 
-### 3 Core Advantages over Legacy Systems
+### 4 Core Advantages over Legacy Systems
 
 1. **Zero Cost:** While vector DBs like Mem0 or Letta incur server hosting fees to manage an agent's memory, NeuronFS uses your local OS filesystem natively, reducing your infrastructure cost to **$0**.
 2. **Token Efficiency & Ultimate Manageability:** Finding and editing a specific rule inside a thousand-line text blob drives humans insane. In a hierarchical folder tree (`ls -R`), discovering, layering, and physically deleting rules is visually intuitive and instantly effective.
 3. **Extreme Portability:** Built as a single Go binary with absolutely zero external dependencies. Drop it into any OS environment, and it runs immediately. It also seamlessly operates as an MCP (Model Context Protocol) server.
+4. **Model-Agnostic Governance:** Quota limits force everyone to switch between AI models daily. `.cursorrules` only works in Cursor. `CLAUDE.md` only works in Claude Code. **NeuronFS compiles one brain into ALL formats simultaneously** — switch AI models freely without losing a single rule.
 
 ```bash
 # Create a rule = Create a folder
@@ -44,7 +46,7 @@ touch brain/brainstem/禁fallback/1.neuron
 # Compile = Auto-generate System Prompts (Cursor, Windsurf, Claude Desktop, etc.)
 neuronfs ./brain --emit cursor   # → .cursorrules
 neuronfs ./brain --emit claude   # → CLAUDE.md
-neuronfs ./brain --emit all      # → Emit all AI formats simultaneously
+neuronfs ./brain --emit all      # → ALL formats simultaneously — switch AI freely
 ```
 
 ---
@@ -79,11 +81,11 @@ neuronfs ./my_brain --api         # Serve Dashboard at localhost:9090
 | Section | Detail |
 |---|---|
 | [Core Architecture](#core-architecture) | Folders = Neurons, Paths = Rules, Counters = Weights |
+| [Market Position](#market-position) | L1 Governance vs L2 IDE Rules vs L3 Agent Memory |
 | [Brain Regions](#brain-regions) | 7 Regions, Subsumption Hierarchy, Hormone System |
 | [Governance](#governance) | 3-Tier Injection, Bomb Circuit Breakers, Harness |
-| [CLI & Architecture](#cli--architecture) | Auto-Loop, CLI, MCP |
+| [CLI & Architecture](#cli--architecture) | Auto-Loop, CLI, MCP, 30-file modular runtime |
 | [Benchmarks](#benchmarks) | Performance vs RAG |
-| [Limitations](#limitations) | Honest talk on what it can't do |
 | [FAQ](#faq) | Expected objections |
 | [Changelog](#changelog) | Recent updates |
 
@@ -160,6 +162,46 @@ Every 25 AI interactions, the harness engine (Node.js sidecar) automatically:
 
 ---
 
+## Market Position
+
+> **NeuronFS is not AI Agent Memory. It is L1 Governance Infrastructure.**
+
+```
+L3: AI Agent Memory  (Mem0, Letta, Zep)         — Conversation memory, user profiling
+L2: IDE Rules        (.cursorrules, CLAUDE.md)   — Static rule files, IDE-locked
+L1: AI Governance    (NeuronFS) ◀── HERE         — Model-agnostic · Self-evolving · Consistent
+```
+
+### The Multi-AI Consistency Problem
+
+In 2026, **every developer juggles multiple AI models** due to quota limits:
+
+```
+Morning: Claude (Opus quota burned) → Afternoon: Gemini → Evening: GPT
+Claude learned "禁console.log" → Gemini doesn't know → Violation again → Pain
+```
+
+`.cursorrules` is Cursor-only. `CLAUDE.md` is Claude-only. **Switch models, lose your rules.**
+
+NeuronFS solves this: **One brain → All formats simultaneously.**
+
+| | .cursor/rules/ | NeuronFS |
+|---|---|---|
+| Multi-AI Support | ❌ IDE-locked | ✅ `--emit all` |
+| Self-Evolution | ❌ Manual edit | ✅ auto-neuronize |
+| Circuit Breaker | ❌ None | ✅ bomb.neuron |
+| Sellable | ❌ Copy/paste files | ✅ **Curated brains as packages** |
+
+### The WordPress Analogy
+
+WordPress is free. Themes and plugins are paid. Similarly:
+- **NeuronFS engine**: Free ($0) — MIT licensed
+- **Curated Master Brains**: Premium — battle-tested governance packages for React, Next.js, Supabase, etc.
+
+You can't sell a `.cursorrules` file. **You can sell a brain that evolved through 10,000 corrections.**
+
+---
+
 ## Brain Regions
 
 7 brain regions are layered via Brooks' Subsumption Architecture. **Lower P (Priority) layers always physically inhibit higher P layers.**
@@ -225,8 +267,12 @@ A Single Binary. Zero `node_modules` or Python `venv` hell. Drop it anywhere, wa
 
 | Metric | Result |
 |------|------|
-| Scan speed (1,000 folders) | 271ms (< 1 second) |
+| Live neurons | **3,400+** (7 regions, 10 axons) |
+| Total activation | **25,800+** synaptic weight |
+| Scan speed (3,400 folders) | < 1 second |
 | Rule addition latency | OS Native (`mkdir`), 0ms |
+| Go source | **30 files, ~10,920 lines** (modular) |
+| Build time | **8.3s** (single binary) |
 | Local Disk Footprint | 4.3MB (Pure text/folders) |
 | Maintenance / API Cost | **$0** (No vector DB server required) |
 | brainstem compliance rate | **94.9%** (18 violations per 353 injections) |
@@ -236,10 +282,11 @@ A Single Binary. Zero `node_modules` or Python `venv` hell. Drop it anywhere, wa
 | | Hardcoded `.cursorrules` | Vector DB (RAG) | **NeuronFS (CLI)** |
 |---|---|---|---|
 | > 1000 rules | Token explosion / Maintenance Hell | ✅ Fast chunk retrieval | **✅ OS Folder Tree scattering** |
+| Multi-AI | ❌ IDE-locked | ✅ API-based | **✅ `--emit all` (All formats)** |
 | Infra Cost | Free | Server Cost ($70/mo) | **Free ($0)** |
-| Tool Migration | Incompatible (Rewrite needed) | DB Migration required | **Copy/paste folders** |
 | Auto-Growth | Impossible | Blackbox | **Visible folders (`mkdir`)** |
 | Absolute Override | Must beg the AI | Limited | **✅ Circuit Breaker (bomb.neuron)** |
+| Sellable | ❌ File copy | ❌ DB dump | **✅ Curated Brain packages** |
 
 ---
 
