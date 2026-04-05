@@ -13,7 +13,7 @@
   <a href="https://dashboarddeploy-six.vercel.app/"><strong>3D Dashboard Live Demo</strong></a>
 </p>
 
-<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 Manifesto</a></p>
+<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 Manifesto</a> · <a href="docs/ARCHITECTURE.md">🏗️ Architecture</a> · <a href="docs/AUDIT_REPORT.md">🔬 Audit</a> · <a href="docs/CHANGELOG.md">📋 Changelog</a></p>
 
 # NeuronFS
 ### *Filesystem-Native Hierarchical Ruleset Memory — A Zero-Dependency Harness Engineering Platform*
@@ -280,11 +280,11 @@ Instead of appending `!!CRITICAL!!` 50 times in a prompt, NeuronFS offers **Stru
 
 ## Changelog
 
-**v4.4 (2026-04-04)** — **Attention Residuals** cross-referencing via `.axon` connections. Autonomous harness cycle (Groq-powered 禁/推 auto-generation). UTF-8 BOM fix in axon parsing. 433 neurons, 6 active axons.
+**v4.4 (2026-04-05)** — **Extreme Modularization**: main.go 3,538→396 lines (-89%). 30 Go files, ~10,920 lines total. `go:embed` dashboard externalization. `/api/codemap` dashboard CODE panel. **Attention Residuals** cross-referencing via `.axon` connections. Autonomous harness cycle (Groq-powered 禁/推 auto-generation). 3,400+ neurons, 23 axons.
 **v4.3 (2026-04-02)** — Ported Zero-Cost Consolidation (Llama 3 locally supported) & SafeExec hard lock integration.
 **v4.2 (2026-03-31)** — Auto-Evolution pipeline complete. Groq correction parsing / Kanji opcode optimization.
 
-Full history: [LIFECYCLE_EN.md](LIFECYCLE_EN.md)
+Full history: [docs/CHANGELOG.md](docs/CHANGELOG.md)
 
 ---
 
