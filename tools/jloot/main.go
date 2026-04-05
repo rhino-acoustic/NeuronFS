@@ -692,68 +692,77 @@ func mountAndServe(jlootPath, port string) {
 			return
 		}
 
-		// ━━━ 2단계: 하네스 프롬프트 + Ollama LLM ━━━
-		harness := "[NeuronFS 하네스]\n규칙:\n1. 아래 참고자료 구절만으로 답하라\n2. 출처를 반드시 [경로] 형식으로 명시하라\n3. 참고자료에 없는 내용은 절대 추측하지 마라\n4. 모르면 '해당 구절 없음'이라 하라\n5. 번호 매기지 말고 자연스러운 글로 답하라\n6. 한국어로 답하라\n"
-		prompt := fmt.Sprintf("%s\n[검색결과]\n%s\n\n%s", harness, context.String(), q)
-		llmResp, llmTime, err := callOllama(model, prompt, "")
+		// ━━━ 2단계: 하네스 + JSON Constrained Decoding ━━━
+		harness := `[NeuronFS 하네스]
+반드시 아래 JSON 형식으로만 답하라. 다른 형식 절대 금지.
+{"answer":"참고자료 구절만으로 자연스럽게 답한 내용","sources":["경로1.md","경로2.md"],"unanswerable":["답할수없는주제"]}
+규칙: 참고자료에 없으면 answer를 비우고 unanswerable에 넣어라. 한국어.`
+		prompt := fmt.Sprintf("%s\n\n[검색결과]\n%s\n\n질문: %s", harness, context.String(), q)
+		llmResp, llmTime, err := callOllama(model, prompt, "", true)
 		if err != nil {
 			json.NewEncoder(w).Encode(map[string]interface{}{
-				"error":      err.Error(),
-				"routes":     len(routes),
-				"route_time": routeTime.String(),
+				"error": err.Error(), "routes": len(routes), "route_time": routeTime.String(),
 			})
 			return
 		}
 
-		// ━━━ 3단계: 출력 검증 (Post-Generation Validation) ━━━
-		// LLM 응답에서 [경로] 출처를 추출하고 검색결과와 대조
+		// ━━━ 3단계: 구조적 검증 (JSON 파싱 + 출처 대조) ━━━
 		validPaths := make(map[string]bool)
 		for _, route := range routes {
 			validPaths[route.Path] = true
 		}
 
-		// 정규식으로 [경로] 패턴 추출
-		citationRe := regexp.MustCompile(`\[([^\]]+\.md)\]`)
-		citations := citationRe.FindAllStringSubmatch(llmResp, -1)
-
-		verified := 0
-		hallucinated := 0
-		var hallucinatedPaths []string
-		for _, match := range citations {
-			if len(match) > 1 {
-				citedPath := match[1]
-				if validPaths[citedPath] {
-					verified++
-				} else {
-					hallucinated++
-					hallucinatedPaths = append(hallucinatedPaths, citedPath)
-				}
+		var structured struct {
+			Answer       string   `json:"answer"`
+			Sources      []string `json:"sources"`
+			Unanswerable []string `json:"unanswerable"`
+		}
+		jsonParsed := true
+		if err := json.Unmarshal([]byte(llmResp), &structured); err != nil {
+			// JSON 파싱 실패 → 폴백: 정규식으로 출처 추출
+			jsonParsed = false
+			structured.Answer = llmResp
+			citationRe := regexp.MustCompile(`\[([^\]]+\.md)\]`)
+			for _, m := range citationRe.FindAllStringSubmatch(llmResp, -1) {
+				if len(m) > 1 { structured.Sources = append(structured.Sources, m[1]) }
 			}
 		}
 
-		// 환각 출처가 있으면 해당 문장을 경고로 대체
-		filteredResp := llmResp
-		for _, hp := range hallucinatedPaths {
-			filteredResp = strings.ReplaceAll(filteredResp, "["+hp+"]", "[⚠️검증실패:"+hp+"]")
+		verified, hallucinated := 0, 0
+		var hallucinatedPaths []string
+		for _, src := range structured.Sources {
+			if validPaths[src] { verified++ } else { hallucinated++; hallucinatedPaths = append(hallucinatedPaths, src) }
 		}
 
+		// 환각 출처 마킹
+		filteredAnswer := structured.Answer
+		for _, hp := range hallucinatedPaths {
+			filteredAnswer = strings.ReplaceAll(filteredAnswer, hp, "⚠️"+hp)
+		}
+
+		totalCitations := len(structured.Sources)
+		trustScore := 100.0
+		if totalCitations > 0 { trustScore = float64(verified) / float64(totalCitations) * 100 }
+
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"mode":       "harness (Jloot + LLM + Validation)",
+			"mode":       "harness (Jloot + JSON Constrained + Validation)",
 			"query":      q,
 			"model":      model,
 			"blocked":    false,
 			"routes":     len(routes),
 			"route_time": routeTime.String(),
 			"llm_time":   llmTime.String(),
-			"answer":     filteredResp,
+			"answer":     filteredAnswer,
 			"validation": map[string]interface{}{
-				"total_citations":        len(citations),
+				"json_parsed":            jsonParsed,
+				"total_citations":        totalCitations,
 				"verified_citations":     verified,
 				"hallucinated_citations": hallucinated,
 				"hallucinated_paths":     hallucinatedPaths,
-				"trust_score":            fmt.Sprintf("%.0f%%", func() float64 { if len(citations)==0 { return 100 }; return float64(verified)/float64(len(citations))*100 }()),
+				"unanswerable":           structured.Unanswerable,
+				"trust_score":            fmt.Sprintf("%.0f%%", trustScore),
 			},
-			"total":      time.Since(start).String(),
+			"total": time.Since(start).String(),
 		})
 	})
 
@@ -763,7 +772,7 @@ func mountAndServe(jlootPath, port string) {
 }
 
 // ─── Ollama API 호출 ───────────────────────────────
-func callOllama(model, prompt, system string) (string, time.Duration, error) {
+func callOllama(model, prompt, system string, jsonMode ...bool) (string, time.Duration, error) {
 	start := time.Now()
 
 	body := map[string]interface{}{
@@ -773,6 +782,9 @@ func callOllama(model, prompt, system string) (string, time.Duration, error) {
 	}
 	if system != "" {
 		body["system"] = system
+	}
+	if len(jsonMode) > 0 && jsonMode[0] {
+		body["format"] = "json"
 	}
 
 	jsonBody, _ := json.Marshal(body)
