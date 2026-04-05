@@ -869,7 +869,57 @@ func startAPI(brainRoot string, port int) {
 	fmt.Printf("  GET  /api/evolution              — Git-based neural evolution timeline\n")
 	fmt.Printf("  GET  /api/retrieve               — Hebbian Retrieval & LLM Router (Phase 8)\n")
 	mux.HandleFunc("/api/retrieve", handleRetrieve(brainRoot))
-	
+
+	// Code Map API — runtime file tree snapshot for dashboard
+	fmt.Printf("  GET  /api/codemap                — Runtime file tree snapshot\n")
+	mux.HandleFunc("/api/codemap", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		touchActivity()
+		runtimeDir := filepath.Join(filepath.Dir(brainRoot), "runtime")
+		entries, err := os.ReadDir(runtimeDir)
+		if err != nil {
+			http.Error(w, `{"error":"cannot read runtime dir"}`, 500)
+			return
+		}
+
+		type FileEntry struct {
+			Name  string `json:"name"`
+			Lines int    `json:"lines"`
+			Role  string `json:"role"`
+		}
+		var files []FileEntry
+		totalLines := 0
+		for _, e := range entries {
+			if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") || strings.HasSuffix(e.Name(), "_test.go") {
+				continue
+			}
+			data, err := os.ReadFile(filepath.Join(runtimeDir, e.Name()))
+			if err != nil {
+				continue
+			}
+			lines := strings.Count(string(data), "\n") + 1
+			totalLines += lines
+			role := ""
+			for _, line := range strings.SplitN(string(data), "\n", 20) {
+				if strings.Contains(line, "PROVIDES:") {
+					role = strings.TrimSpace(strings.SplitN(line, "PROVIDES:", 2)[1])
+					if len(role) > 80 {
+						role = role[:80]
+					}
+					break
+				}
+			}
+			files = append(files, FileEntry{Name: e.Name(), Lines: lines, Role: role})
+		}
+
+		result := map[string]interface{}{
+			"generated":  time.Now().Format(time.RFC3339),
+			"totalFiles": len(files),
+			"totalLines": totalLines,
+			"files":      files,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
+	}))
 	// Expose pprof
 	mux.HandleFunc("/debug/pprof/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.DefaultServeMux.ServeHTTP(w, r)
