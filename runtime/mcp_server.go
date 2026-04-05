@@ -721,10 +721,10 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 			var dupPairs []string
 			for i := 0; i < len(allNeurons); i++ {
 				for j := i + 1; j < len(allNeurons); j++ {
-					tokensI := strings.FieldsFunc(allNeurons[i].path, func(r rune) bool { return r == '/' || r == '_' || r == '\\' })
-					tokensJ := strings.FieldsFunc(allNeurons[j].path, func(r rune) bool { return r == '/' || r == '_' || r == '\\' })
-					sim := jaccardSimilarity(tokensI, tokensJ)
-					if sim >= 0.7 {
+					tokensI := tokenize(allNeurons[i].path)
+					tokensJ := tokenize(allNeurons[j].path)
+					sim := hybridSimilarity(tokensI, tokensJ)
+					if sim >= 0.5 {
 						duplicates++
 						dupPairs = append(dupPairs, fmt.Sprintf("  ⚠️ %.0f%% 유사: %s ↔ %s",
 							sim*100, allNeurons[i].full, allNeurons[j].full))

@@ -62,14 +62,24 @@ function fireNeuron(regionPath, content) {
     fs.writeFileSync(path.join(dir, fname), content, 'utf8');
 }
 
-// ── 프로젝트별 분리 전사 ──
+// ── 프로젝트별 분리 전사 (dedup guard 포함) ──
+const _transcriptDedup = new Map(); // file → Set of recent hashes
 function appendTranscript(entry, projectLabel) {
     if (!fs.existsSync(TRANSCRIPT_DIR)) fs.mkdirSync(TRANSCRIPT_DIR, { recursive: true });
     const d = new Date(Date.now() + 32400000);
     const timeKey = d.toISOString().replace('T', '_').substring(0, 13) + 'h';
-    // 프로젝트별 파일 분리: NeuronFS_2026-04-04_18h.txt
     const proj = (projectLabel || 'global').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
     const file = path.join(TRANSCRIPT_DIR, `${proj}_${timeKey}.txt`);
+    
+    // Dedup: 동일 내용 반복 기록 방지 (해시 기반)
+    const hash = entry.length + '|' + entry.substring(0, 200);
+    if (!_transcriptDedup.has(file)) _transcriptDedup.set(file, new Set());
+    const seen = _transcriptDedup.get(file);
+    if (seen.has(hash)) return; // 이미 기록됨 → 스킵
+    seen.add(hash);
+    // 메모리 관리: 100개 초과 시 초기화
+    if (seen.size > 100) seen.clear();
+    
     fs.appendFileSync(file, entry + '\n', 'utf8');
 }
 
@@ -542,18 +552,122 @@ function fetchJson(url) {
 }
 
 // ============================================================
-// Phase 3: CDP 렌더러 Network 모니터 (채팅 캡처)
+// Phase 3: CDP 렌더러 Network 모니터 (채팅 캡처) + DOM 스크래핑 하이브리드
 // ============================================================
+
+// ── DOM 스크래핑 스크립트 (상태 추적 기반) ──
+const SCRAPE_AI_SCRIPT = `(() => {
+    const msgs = [];
+    document.querySelectorAll('div').forEach(el => {
+        const cls = (el.className||'').toString();
+        // AI 응답 코어 추적
+        if (cls.includes('leading-relaxed') && cls.includes('select-text')) {
+            const op = parseFloat(getComputedStyle(el).opacity);
+            const text = (el.innerText||'').trim();
+            if (text && text.length > 5) {
+                if (!el.dataset.nid) el.dataset.nid = Math.random().toString(36).substring(2, 9);
+                const role = op < 0.9 ? 'THINK' : 'AI';
+                msgs.push({role, text: text.slice(0, 10000), id: el.dataset.nid});
+            }
+        }
+    });
+    return msgs.slice(-10);
+})()`;
+
+// ── DOM 스크래핑 안정화 보장 상태 (중복/누락 방지) ──
+const trackedDOM = new Map(); // id -> { role, text, lastChange, loggedText }
+
+function attachDOMScraper(wsUrl, label) {
+    const ws = new WebSocket(wsUrl);
+    let id = 0;
+    
+    // 프로젝트명 추출
+    const projMatch = label.match(/(?:page|worker):([^\s-]+)/);
+    const proj = projMatch ? projMatch[1] : 'global';
+    
+    ws.on('open', () => {
+        log(`  [DOM-${label}] connected → scraping every 8s`);
+        ws.send(JSON.stringify({ id: ++id, method: 'Runtime.enable', params: {} }));
+        
+        const interval = setInterval(() => {
+            if (ws.readyState !== 1) { clearInterval(interval); return; }
+            ws.send(JSON.stringify({
+                id: ++id,
+                method: 'Runtime.evaluate',
+                params: { expression: SCRAPE_AI_SCRIPT, returnByValue: true }
+            }));
+        }, 8000);
+    });
+    
+    ws.on('message', (d) => {
+        try {
+            const msg = JSON.parse(d.toString());
+            if (msg.result?.result?.value) {
+                const msgs = msg.result.result.value;
+                if (!Array.isArray(msgs)) return;
+                
+                const now = Date.now();
+                
+                // 최신 데이터로 상태 업데이트
+                for (const m of msgs) {
+                    if (!m?.text) continue;
+                    let active = trackedDOM.get(m.id);
+                    if (!active) {
+                        active = { role: m.role, text: m.text, lastChange: now, loggedText: '' };
+                        trackedDOM.set(m.id, active);
+                    } else {
+                        // 텍스트가 변했으면 lastChange 갱신
+                        if (active.text !== m.text) {
+                            active.text = m.text;
+                            active.lastChange = now;
+                        }
+                    }
+                }
+                
+                // 로그 기록 여부 판단 (9초 동안 텍스트 변화가 없으면 "안정화" 판단)
+                for (const [nid, active] of trackedDOM.entries()) {
+                    if (active.text !== active.loggedText && (now - active.lastChange > 9000)) {
+                        // 새로 추가된 본문이 있을 경우에만
+                        if (active.text.length > active.loggedText.length) {
+                            appendTranscript(`[${getKST()}] ${active.role}: ${active.text}`, proj);
+                            
+                            if (active.role === 'AI') messageBuffer.push(`[AI] ${active.text.slice(0, 500)}`);
+                            else if (active.role === 'THINK') messageBuffer.push(`[THINK] ${active.text.slice(0, 500)}`);
+                            
+                            processChunk().catch(() => {});
+                        }
+                        active.loggedText = active.text;
+                    }
+                    
+                    // 메모리 누수 방지 (3분 경과 시 폐기)
+                    if (now - active.lastChange > 180000) {
+                        trackedDOM.delete(nid);
+                    }
+                }
+            }
+        } catch {}
+    });
+    
+    ws.on('error', () => {});
+    ws.on('close', () => { log(`  [DOM-${label}] disconnected`); });
+}
+
 function startCDPMonitor() {
-    log('Phase 3: CDP Network Monitor on port ' + CDP_PORT);
+    log('Phase 3: CDP Hybrid Monitor (Network + DOM Scraping)');
     
     return fetchJson(`http://127.0.0.1:${CDP_PORT}/json`).then(targets => {
         log(`  ${targets.length} targets found`);
         
         for (const t of targets) {
-            if (t.webSocketDebuggerUrl) {
-                const label = `${t.type}:${(t.title || 'worker').substring(0, 40)}`;
-                attachCDPNetwork(t.webSocketDebuggerUrl, label);
+            if (!t.webSocketDebuggerUrl) continue;
+            const label = `${t.type}:${(t.title || 'worker').substring(0, 40)}`;
+            
+            // 모든 target에 대해 Network 스니핑 (USER 메시지 + CMD)
+            attachCDPNetwork(t.webSocketDebuggerUrl, label);
+            
+            // workbench.html → DOM 스크래핑 (AI/THINK/PD) 하이브리드 병행
+            if (t.url?.includes('workbench.html')) {
+                attachDOMScraper(t.webSocketDebuggerUrl, label);
             }
         }
     });

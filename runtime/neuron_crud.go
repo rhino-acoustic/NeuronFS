@@ -1,0 +1,279 @@
+package main
+
+// ━━━ neuron_crud.go ━━━
+// PROVIDES: growNeuron, fireNeuron, rollbackNeuron, signalNeuron
+// DEPENDS ON: brain.go, similarity.go, lifecycle.go
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+)
+// growNeuron creates a new neuron folder with 1.neuron
+// If a similar neuron already exists (hybrid similarity >= 0.4), fire that instead (consolidation)
+// Uses Cosine Bigram (60%) + Levenshtein (40%) instead of legacy Jaccard
+// Prefix-aware: 禁X and 推X are treated as DIFFERENT neurons (polarity matters)
+// Returns error instead of os.Exit so REST API won't crash
+func growNeuron(brainRoot string, neuronPath string) error {
+	// Normalize path separators
+	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
+	fullPath := filepath.Join(brainRoot, neuronPath)
+
+	// Validate region
+	parts := strings.SplitN(neuronPath, string(filepath.Separator), 2)
+	region := parts[0]
+	if _, ok := regionPriority[region]; !ok {
+		err := fmt.Errorf("invalid region: %s (valid: brainstem,limbic,hippocampus,sensors,cortex,ego,prefrontal)", region)
+		fmt.Printf("[FATAL] %v\n", err)
+		return err
+	}
+
+	// Check if neuron already exists (exact match)
+	if info, err := os.Stat(fullPath); err == nil && info.IsDir() {
+		fmt.Printf("[SKIP] Neuron already exists: %s\n", neuronPath)
+		return nil
+	}
+
+	// ── Synaptic Consolidation: merge similar neurons (GLOBAL scan) ──
+	// Tokenize the new neuron's leaf name
+	leafName := filepath.Base(neuronPath)
+	newTokens := tokenize(leafName)
+	if len(newTokens) > 0 {
+		// Walk ALL regions to find similar neurons (cross-region dedup)
+		bestMatch := ""
+		bestSimilarity := 0.0
+
+		for _, scanRegion := range []string{"brainstem", "cortex", "ego", "prefrontal", "hippocampus", "sensors", "limbic"} {
+			scanPath := filepath.Join(brainRoot, scanRegion)
+			if _, err := os.Stat(scanPath); os.IsNotExist(err) {
+				continue
+			}
+			filepath.Walk(scanPath, func(path string, info os.FileInfo, err error) error {
+				if err != nil || !info.IsDir() || path == scanPath {
+					return nil
+				}
+				neuronFiles, _ := filepath.Glob(filepath.Join(path, "*.neuron"))
+				if len(neuronFiles) == 0 {
+					return nil
+				}
+				existingLeaf := filepath.Base(path)
+				// Prefix-aware: 접두어가 다르면 별개로 취급
+				newPrefix := extractPrefix(leafName)
+				existPrefix := extractPrefix(existingLeaf)
+				if newPrefix != "" && existPrefix != "" && newPrefix != existPrefix {
+					return nil // 禁X vs 推X → 별개
+				}
+				existingTokens := tokenize(existingLeaf)
+				sim := hybridSimilarity(newTokens, existingTokens)
+				if sim > bestSimilarity {
+					bestSimilarity = sim
+					rel, _ := filepath.Rel(brainRoot, path)
+					bestMatch = rel
+				}
+				return nil
+			})
+		}
+
+		if bestSimilarity >= 0.4 && bestMatch != "" {
+			fmt.Printf("[MERGE] 🔗 '%s' ≈ '%s' (%.0f%% similar) → firing existing\n",
+				neuronPath, bestMatch, bestSimilarity*100)
+			fireNeuron(brainRoot, bestMatch)
+			logEpisode(brainRoot, "MERGE", fmt.Sprintf("%s → %s (%.0f%%)", neuronPath, bestMatch, bestSimilarity*100))
+			return nil
+		}
+	}
+
+	// Create folder
+	if err := os.MkdirAll(fullPath, 0755); err != nil {
+		fmt.Printf("[ERROR] mkdir: %v\n", err)
+		return err
+	}
+
+	// Create 1.neuron
+	neuronFile := filepath.Join(fullPath, "1.neuron")
+	if err := os.WriteFile(neuronFile, []byte{}, 0644); err != nil {
+		fmt.Printf("[ERROR] create trace: %v\n", err)
+		return err
+	}
+
+	fmt.Printf("[GROW] ✅ %s → 1.neuron\n", neuronPath)
+
+	// Log to hippocampus
+	logEpisode(brainRoot, "GROW", neuronPath)
+
+	// Mark dirty — periodic loop will handle injection
+	markBrainDirty()
+	return nil
+}
+
+// fireNeuron increments the counter of an existing neuron
+// Usage: neuronfs brain_v4 --fire cortex/frontend/coding/no_console_log
+func fireNeuron(brainRoot string, neuronPath string) {
+	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
+	fullPath := filepath.Join(brainRoot, neuronPath)
+
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		fmt.Printf("[WARN] Neuron not found: %s — auto-growing...\n", neuronPath)
+		growNeuron(brainRoot, neuronPath)
+		return
+	}
+
+	// Find current counter
+	currentCounter := 0
+	currentFile := ""
+	entries, _ := os.ReadDir(fullPath)
+	for _, e := range entries {
+		if m := counterRegex.FindStringSubmatch(e.Name()); m != nil {
+			n, _ := strconv.Atoi(m[1])
+			if n > currentCounter {
+				currentCounter = n
+				currentFile = filepath.Join(fullPath, e.Name())
+			}
+		}
+	}
+
+	newCounter := currentCounter + 1
+
+	// Delete old counter file
+	if currentFile != "" {
+		if err := os.Remove(currentFile); err != nil {
+			fmt.Fprintf(os.Stderr, "[WARN] fire: old counter cleanup: %v\n", err)
+		}
+	}
+
+	// Create new counter file
+	newFile := filepath.Join(fullPath, fmt.Sprintf("%d.neuron", newCounter))
+	if err := os.WriteFile(newFile, []byte{}, 0644); err != nil {
+		fmt.Printf("[ERROR] fire: %v\n", err)
+		return
+	}
+
+	fmt.Printf("[FIRE] 🔥 %s → %d → %d\n", neuronPath, currentCounter, newCounter)
+
+	logEpisode(brainRoot, "FIRE", fmt.Sprintf("%s (%d→%d)", neuronPath, currentCounter, newCounter))
+	markBrainDirty()
+}
+
+// rollbackNeuron decrements the counter of an existing neuron
+// Minimum counter is 1 (won't go below). Returns error for API usage.
+// Usage: neuronfs brain_v4 --rollback cortex/frontend/coding/no_console_log
+func rollbackNeuron(brainRoot string, neuronPath string) error {
+	neuronPath = strings.Trim(strings.ReplaceAll(neuronPath, "\\", "/"), "/")
+	fullPath := filepath.Join(brainRoot, neuronPath)
+
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		err := fmt.Errorf("neuron not found: %s", neuronPath)
+		fmt.Printf("[ROLLBACK] ❌ %v\n", err)
+		return err
+	}
+
+	// Find current counter
+	currentCounter := 0
+	currentFile := ""
+	entries, _ := os.ReadDir(fullPath)
+	for _, e := range entries {
+		if m := counterRegex.FindStringSubmatch(e.Name()); m != nil {
+			n, _ := strconv.Atoi(m[1])
+			if n > currentCounter {
+				currentCounter = n
+				currentFile = filepath.Join(fullPath, e.Name())
+			}
+		}
+	}
+
+	if currentCounter <= 1 {
+		fmt.Printf("[ROLLBACK] ⚠️ %s counter already at minimum (%d)\n", neuronPath, currentCounter)
+		return fmt.Errorf("counter at minimum: %d", currentCounter)
+	}
+
+	newCounter := currentCounter - 1
+
+	// Delete old counter file
+	if currentFile != "" {
+		if err := os.Remove(currentFile); err != nil {
+			fmt.Fprintf(os.Stderr, "[WARN] rollback: old counter cleanup: %v\n", err)
+		}
+	}
+
+	// Create new counter file
+	newFile := filepath.Join(fullPath, fmt.Sprintf("%d.neuron", newCounter))
+	if err := os.WriteFile(newFile, []byte{}, 0644); err != nil {
+		fmt.Printf("[ERROR] rollback: %v\n", err)
+		return err
+	}
+
+	fmt.Printf("[ROLLBACK] ⏪ %s → %d → %d\n", neuronPath, currentCounter, newCounter)
+
+	logEpisode(brainRoot, "ROLLBACK", fmt.Sprintf("%s (%d→%d)", neuronPath, currentCounter, newCounter))
+	markBrainDirty()
+	return nil
+}
+
+// signalNeuron adds dopamine/bomb/memory signal to a neuron
+// Returns error instead of os.Exit so REST API won't crash
+func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
+	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
+	fullPath := filepath.Join(brainRoot, neuronPath)
+
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		err := fmt.Errorf("neuron not found: %s", neuronPath)
+		fmt.Printf("[FATAL] %v\n", err)
+		return err
+	}
+
+	switch sigType {
+	case "dopamine":
+		nextDopa := 1
+		entries, _ := os.ReadDir(fullPath)
+		for _, e := range entries {
+			if m := dopamineRegex.FindStringSubmatch(e.Name()); m != nil {
+				n, _ := strconv.Atoi(m[1])
+				if n >= nextDopa {
+					nextDopa = n + 1
+				}
+			}
+		}
+		df := filepath.Join(fullPath, fmt.Sprintf("dopamine%d.neuron", nextDopa))
+		os.WriteFile(df, []byte{}, 0644)
+		fmt.Printf("[SIGNAL] 🟢 dopamine%d → %s\n", nextDopa, neuronPath)
+
+	case "bomb":
+		bf := filepath.Join(fullPath, "bomb.neuron")
+		os.WriteFile(bf, []byte{}, 0644)
+		fmt.Printf("[SIGNAL] 💣 BOMB → %s\n", neuronPath)
+
+	case "memory":
+		nextMem := 1
+		memRegex := regexp.MustCompile(`^memory(\d+)\.neuron$`)
+		entries, _ := os.ReadDir(fullPath)
+		for _, e := range entries {
+			if m := memRegex.FindStringSubmatch(e.Name()); m != nil {
+				n, _ := strconv.Atoi(m[1])
+				if n >= nextMem {
+					nextMem = n + 1
+				}
+			}
+		}
+		mf := filepath.Join(fullPath, fmt.Sprintf("memory%d.neuron", nextMem))
+		os.WriteFile(mf, []byte{}, 0644)
+		fmt.Printf("[SIGNAL] 📝 memory%d → %s\n", nextMem, neuronPath)
+
+	default:
+		err := fmt.Errorf("unknown signal type: %s (use dopamine|bomb|memory)", sigType)
+		fmt.Printf("[FATAL] %v\n", err)
+		return err
+	}
+
+	logEpisode(brainRoot, "SIGNAL:"+sigType, neuronPath)
+	markBrainDirty()
+	return nil
+}
+
+// ━━━ Lifecycle (prune/decay/episode) → lifecycle.go ━━━
+// MOVED: pruneWeakNeurons, runDecay, logEpisode, maxEpisodes
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

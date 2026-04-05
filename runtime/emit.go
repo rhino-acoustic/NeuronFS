@@ -37,6 +37,7 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	var sb strings.Builder
 
 	// ━━━ 대원칙: brainstem/_principles.txt → _preamble.txt → 기본값 ━━━
+	// preamble은 마커 밖 최상단에 위치 (Gemini가 첫 줄부터 읽도록)
 	principlesPath := filepath.Join(brainRoot, "brainstem", "_principles.txt")
 	preamblePath := filepath.Join(brainRoot, "_preamble.txt")
 	principlesLoaded := false
@@ -60,6 +61,7 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		sb.WriteString("반드시 한국어로 생각(thinking)하고 한국어로 대답해\n")
 		sb.WriteString("커뮤니티 동향(reddit, github 등)을 최우선 검색해서 베스트 프랙티스 검색\n")
 	}
+	// ━━━ 마커: preamble 뒤, 나머지 규칙 앞 ━━━
 	sb.WriteString("<!-- NEURONFS:START -->\n")
 
 	// 메타데이터
@@ -336,7 +338,14 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 
 	// ━━━ MODE SWITCH (강제) ━━━
 	sb.WriteString(fmt.Sprintf("**작업 전 `%s\\{영역}\\_rules.md`를 반드시 읽는다** (cortex=코딩/NeuronFS, sensors=NAS/브랜드, prefrontal=방향)\n", brainRoot))
-	sb.WriteString("⚠️ 읽지 않으면 금지 규칙 위반이 발생한다. view_file로 먼저 읽어라. MCP read_region 호출 금지(느림).\n\n")
+	sb.WriteString("⚠️ 읽지 않으면 금지 규칙 위반이 발생한다. view_file로 먼저 읽어라. MCP read_region 호출 금지(느림).\n")
+
+	// ━━━ CODE MAP (코드 구조 복원) ━━━
+	codeMapPath := filepath.Join(filepath.Dir(brainRoot), "runtime", "CODE_MAP.md")
+	if _, err := os.Stat(codeMapPath); err == nil {
+		sb.WriteString(fmt.Sprintf("**코드 수정 전 `%s`를 반드시 읽는다** (파일 구조/의존성/import 관계)\n\n", codeMapPath))
+	}
+
 
 	// ━━━ AGENT INBOX ━━━
 	agentInbox := emitAgentInbox(brainRoot)
@@ -344,10 +353,10 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		sb.WriteString(agentInbox)
 	}
 
-	// ━━━ SESSION MEMORY ━━━
-	sessionMemory := emitSessionMemory(brainRoot)
-	if sessionMemory != "" {
-		sb.WriteString(sessionMemory)
+	// ━━━ SESSION TRANSCRIPT LOCATION ━━━
+	transcriptDir := filepath.Join(brainRoot, "_transcripts")
+	if _, err := os.Stat(transcriptDir); err == nil {
+		sb.WriteString(fmt.Sprintf("### 📜 전사 기록\n전사물 경로: `%s`\n\n", transcriptDir))
 	}
 
 	sb.WriteString("<!-- NEURONFS:END -->\n")
@@ -977,11 +986,12 @@ func applyOOMProtection(brainRoot string, result *SubsumptionResult) int {
 	type nInfo struct {
 		rIdx   int
 		nIdx   int
-		weight int
+		weight float64 // effective weight (prefix × recency × counter)
 		size   int
 	}
 	var flat []*nInfo
 	
+	now := time.Now()
 	totalBytes := 0
 	for i := range result.ActiveRegions {
 		region := &result.ActiveRegions[i]
@@ -1001,8 +1011,41 @@ func applyOOMProtection(brainRoot string, result *SubsumptionResult) int {
 				size = 50 
 			}
 			totalBytes += size
-			weight := n.Counter + n.Dopamine - n.Contra
-			flat = append(flat, &nInfo{rIdx: i, nIdx: j, weight: weight, size: size})
+
+			// === Effective Weight ===
+			baseWeight := float64(n.Counter + n.Dopamine - n.Contra)
+			if baseWeight < 1 {
+				baseWeight = 1
+			}
+
+			// 1) 접두어 가중치
+			leafName := filepath.Base(n.FullPath)
+			runes := []rune(leafName)
+			prefixWeight := 1.0
+			if len(runes) > 0 {
+				switch runes[0] {
+				case '必', '禁':
+					prefixWeight = 2.0 // 필수/금지 = 최고 우선
+				case '核':
+					prefixWeight = 1.5 // 핵심 = 높음
+				case '推':
+					prefixWeight = 0.5 // 추천 = 낮음
+				case '絶':
+					prefixWeight = 2.0 // 절대 = 최고
+				}
+			}
+
+			// 2) Recency boost (새 뉴런 보호기간 — 폴더 생성 시간 기준)
+			age := now.Sub(n.BirthTime)
+			recencyBoost := 1.0
+			if age < 48*time.Hour {
+				recencyBoost = 3.0 // 48시간 내 생성 = 3배 보호
+			} else if age < 7*24*time.Hour {
+				recencyBoost = 1.5 // 7일 내 생성 = 1.5배
+			}
+
+			effectiveWeight := baseWeight * prefixWeight * recencyBoost
+			flat = append(flat, &nInfo{rIdx: i, nIdx: j, weight: effectiveWeight, size: size})
 		}
 	}
 	
@@ -1011,7 +1054,7 @@ func applyOOMProtection(brainRoot string, result *SubsumptionResult) int {
 	}
 	
 	sort.Slice(flat, func(i, j int) bool {
-		return flat[i].weight < flat[j].weight
+		return flat[i].weight < flat[j].weight // 낮은 weight 먼저 탈락
 	})
 	
 	dropped := 0
@@ -1085,12 +1128,16 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 
 		var targetPath string
 		if t == "gemini" {
-			// Gemini는 글로벌 ~/.gemini/GEMINI.md에 직접 inject (워크스페이스별 중복 방지)
+			// Gemini는 글로벌 ~/.gemini/GEMINI.md에 직접 출력 (워크스페이스별 중복 방지)
 			homeDir, _ := os.UserHomeDir()
 			geminiDir := filepath.Join(homeDir, ".gemini")
 			os.MkdirAll(geminiDir, 0755)
 			targetPath = filepath.Join(geminiDir, "GEMINI.md")
-			doInjectToFile(targetPath, bootstrap)
+			// 전체 덮어쓰기 (doInjectToFile 금지 — 중복 누적 원인)
+			if err := os.WriteFile(targetPath, []byte(bootstrap), 0644); err != nil {
+				fmt.Printf("[ERROR] Cannot write %s: %v\n", targetPath, err)
+				continue
+			}
 		} else {
 			// 다른 에디터: 프로젝트 로컬에 직접 쓰기
 			if et.SubDir != "" {

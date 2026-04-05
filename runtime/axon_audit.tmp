@@ -1,0 +1,23 @@
+﻿brainstem\connect_cortex.axon|True|TARGET: cortex
+cortex\connect_brainstem.axon|True|TARGET: brainstem
+cortex\connect_ego.axon|True|TARGET: ego
+cortex\connect_hippocampus.axon|True|TARGET: hippocampus
+cortex\dev\connect_brainstem.axon|False|target:  禁무한_중복 merged_from: dev\ 禁emitBootstrap중복 similarit
+cortex\dev\connect_hippocampus.axon|False|target: 에러_패턴\emitBootstrap중복호출 merged_from: dev\禁emitBootst
+cortex\methodology\connect_brainstem.axon|False|target: 推도구선택원칙 merged_from: methodology\도구선택원칙 similarity: 
+cortex\methodology\connect_hippocampus.axon|False|target: 에러_패턴\양자화오류 merged_from: methodology\ 禁양자화오류 similar
+cortex\neuronfs\runtime\connect_brainstem.axon|False|target:  禁injectToGemini merged_from: neuronfs\runtime\禁inje
+cortex\neuronfs\runtime\connect_hippocampus.axon|False|target: 에러_패턴\emitBootstrap중복호출 merged_from: neuronfs\runtim
+cortex\neuronfs\아키텍처\connect_brainstem.axon|False|target: 코어_엔진_구조 merged_from: neuronfs\아키텍처\코어엔진 similarity:
+cortex\neuronfs\운영\connect_hippocampus.axon|False|target: 에러_패턴\에러원인분석 merged_from: neuronfs\운영\에러_원인_분석 simil
+ego\connect_cortex.axon|True|TARGET: cortex
+ego\language\connect_cortex.axon|False|target: 사고\한국어_사고_의무 merged_from: language\한국어_사고_응답_일관 simi
+ego\thought_process\connect_cortex.axon|False|target: 사고\한국어_사고_의무 merged_from: thought_process\한국어_사고_과정 
+ego\검색및검증\connect_cortex.axon|False|target: neuronfs\runtime\推HN비판시각 merged_from: 검색및검증\必HN비판시각_
+hippocampus\connect_brainstem.axon|False|target: 에러_패턴 merged_from: 에러_패턴 similarity: 1.00
+hippocampus\connect_cortex.axon|True|TARGET: cortex
+limbic\connect_brainstem.axon|True|TARGET: brainstem
+prefrontal\connect_cortex.axon|True|TARGET: cortex
+prefrontal\project\connect_cortex.axon|False|target: neuronfs\runtime\推대시보드 merged_from: project\NeuronFS
+prefrontal\todo\connect_cortex.axon|False|target: neuronfs\runtime\推대시보드 merged_from: todo\대시보드_404_수정
+sensors\shortcut_to_brainstem.axon|True|TARGET: brainstem
