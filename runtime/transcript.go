@@ -155,13 +155,12 @@ func runIdleLoop(brainRoot string) {
 			}
 		}
 
-		// 1. Evolve (if GROQ_API_KEY available)
-		if apiKey != "" {
-			fmt.Println("[IDLE] 🧬 Running Groq evolve...")
-			runEvolve(brainRoot, false)
-		} else {
-			fmt.Println("[IDLE] ⚠️  GROQ_API_KEY not set — skipping evolve")
-		}
+		// 1. Evolve — DISABLED: 계층 구조(옵코드>룬워드>상세) 미준수로 쓰레기 뉴런 생성
+		// 향후 evolve가 3계층 taxonomy를 강제하도록 리팩토링 후 재활성화
+		// if apiKey != "" {
+		// 	runEvolve(brainRoot, false)
+		// }
+		fmt.Println("[IDLE] ⏸️  Evolve disabled (taxonomy enforcement pending)")
 
 		// 2. Auto-decay (mark neurons untouched for 7+ days as dormant)
 		fmt.Println("[IDLE] 💤 Running auto-decay (7 days)...")

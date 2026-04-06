@@ -118,6 +118,15 @@ body{font-family:'Inter','SUIT',sans-serif;background:var(--bg);color:var(--text
 .flow-diagram{margin-top:20px;background:var(--surface);border:1px solid var(--border);padding:24px;font-family:monospace;font-size:11px;color:var(--text-secondary);line-height:2;white-space:pre-wrap}
 .flow-diagram strong{color:var(--text);font-weight:700}
 .flow-diagram .red{color:var(--accent);font-weight:700}
+/* Flow pipeline nodes */
+.flow-node{display:inline-flex;align-items:center;padding:6px 14px;background:var(--surface);border:1px solid var(--border);font-size:11px;font-weight:600;font-family:'Inter',sans-serif;color:var(--text);transition:all 0.15s;white-space:nowrap}
+.flow-node:hover{border-color:var(--text-muted);background:var(--bg)}
+.flow-arrow-inline{font-size:12px;color:var(--text-muted);font-weight:700;padding:0 2px}
+/* Process list inside flow cards */
+.flow-proc{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px;color:var(--text-secondary);border-bottom:1px solid var(--border)}
+.flow-proc:last-child{border:none}
+.fp-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.fp-port{margin-left:auto;font-size:10px;color:var(--text-muted);font-weight:600}
 
 
 /* Action buttons in header */
@@ -200,56 +209,176 @@ body{font-family:'Inter','SUIT',sans-serif;background:var(--bg);color:var(--text
 </div>
 <!-- System Flow view (hidden by default) -->
 <div id="flow-view">
-  <div class="flow-title">NeuronFS Subsumption Architecture</div>
-  <div class="flow-grid">
-    <div class="flow-card" style="border-left:3px solid #dc2626">
-      <h3>P0 — Brainstem</h3>
-      <p>대원칙(Core Principles). 모든 규칙 위에 군림한다. _preamble.txt, _principles.txt에서 로드.</p>
-      <div class="flow-arrow">↓ Override ALL</div>
-    </div>
-    <div class="flow-card" style="border-left:3px solid #78716c">
-      <h3>P1 — Limbic</h3>
-      <p>감정 상태 (분노, 긴급, 집중, 불안, 만족). 감정에 따라 행동 패턴이 변한다.</p>
-      <div class="flow-arrow">↓ Emotional bias</div>
-    </div>
-    <div class="flow-card" style="border-left:3px solid #a8a29e">
-      <h3>P2 — Hippocampus</h3>
-      <p>기억 저장소. memory signal로 경험을 기록하고, 반복 실수를 방지한다.</p>
-      <div class="flow-arrow">↓ Experience recall</div>
-    </div>
-    <div class="flow-card" style="border-left:3px solid #64748b">
-      <h3>P3 — Sensors</h3>
-      <p>환경 인식. NAS, 브랜드, 외부 컨텍스트를 감지하여 뉴런에 반영한다.</p>
-      <div class="flow-arrow">↓ Context injection</div>
-    </div>
-    <div class="flow-card" style="border-left:3px solid #475569">
-      <h3>P4 — Cortex</h3>
-      <p>지식 뉴런. CSS, Go, JS, 프론트엔드 등 기술 규칙이 카운터로 강화된다.</p>
-      <div class="flow-arrow">↓ Skill application</div>
-    </div>
-    <div class="flow-card" style="border-left:3px solid #57534e">
-      <h3>P5 — Ego</h3>
-      <p>페르소나. AI의 성격, 화법, 톤을 결정하는 정체성 레이어.</p>
-      <div class="flow-arrow">↓ Personality filter</div>
-    </div>
-    <div class="flow-card" style="border-left:3px solid #334155">
-      <h3>P6 — Prefrontal</h3>
-      <p>목표(Goals). 현재 스프린트 목표를 추적하고 완료율을 감시한다.</p>
-      <div class="flow-arrow">→ Final output</div>
+
+  <!-- ── Section 1: System Boot Pipeline ── -->
+  <div class="flow-title" style="display:flex;align-items:center;gap:12px">
+    NeuronFS System Pipeline
+    <span id="flow-status" style="font-size:10px;padding:2px 8px;border:1px solid var(--border);color:var(--text-muted);font-weight:400">checking...</span>
+  </div>
+
+  <!-- Boot Sequence -->
+  <div style="margin-bottom:24px">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text);margin-bottom:10px">Phase 0 → Boot Sequence</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+      <div class="flow-node fn-bat">start_v4_swarm.bat</div>
+      <span class="flow-arrow-inline">→</span>
+      <div class="flow-node fn-kill">좀비 정리</div>
+      <span class="flow-arrow-inline">→</span>
+      <div class="flow-node fn-build">go build</div>
+      <span class="flow-arrow-inline">→</span>
+      <div class="flow-node fn-ag">Antigravity.exe</div>
+      <span class="flow-arrow-inline">→</span>
+      <div class="flow-node fn-sv" style="background:var(--black);color:#fff;border-color:var(--black)">neuronfs --supervisor</div>
     </div>
   </div>
+
+  <!-- Supervisor Tree -->
+  <div style="margin-bottom:24px">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text);margin-bottom:10px">Phase 1 → Supervisor (프로세스 트리)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="flow-card" style="border-left:3px solid var(--black)">
+        <h3>Go Processes</h3>
+        <div class="flow-proc"><span class="fp-dot" style="background:#16a34a"></span>neuronfs --api <span class="fp-port">:9090</span></div>
+        <div class="flow-proc"><span class="fp-dot" style="background:#16a34a"></span>neuronfs --watch <span class="fp-port">fsnotify</span></div>
+        <div class="flow-proc"><span class="fp-dot" style="background:#2563eb"></span>svHarness <span class="fp-port">10분</span></div>
+        <div class="flow-proc"><span class="fp-dot" style="background:#2563eb"></span>svTTLDecay <span class="fp-port">1시간</span></div>
+        <div class="flow-proc"><span class="fp-dot" style="background:#2563eb"></span>svNasSync <span class="fp-port">5초</span></div>
+      </div>
+      <div class="flow-card" style="border-left:3px solid #d97706">
+        <h3>Node.js (CDP 전용)</h3>
+        <div class="flow-proc"><span class="fp-dot" style="background:#d97706"></span>agent-bridge.mjs <span class="fp-port">WebSocket</span></div>
+        <div class="flow-proc"><span class="fp-dot" style="background:#d97706"></span>hijack-launcher.mjs <span class="fp-port">CDP</span></div>
+        <div class="flow-proc"><span class="fp-dot" style="background:#d97706"></span>headless-executor.mjs <span class="fp-port">CDP</span></div>
+        <div class="flow-proc"><span class="fp-dot" style="background:#78716c"></span>auto-accept.mjs <span class="fp-port">조건부</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inject Pipeline -->
+  <div style="margin-bottom:24px">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text);margin-bottom:10px">Phase 2 → Injection Pipeline (30초 주기)</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+      <div class="flow-node fn-loop">injectionLoop</div>
+      <span class="flow-arrow-inline">→</span>
+      <div class="flow-node">processInbox</div>
+      <span class="flow-arrow-inline">→</span>
+      <div class="flow-node">hashChange?</div>
+      <span class="flow-arrow-inline">→</span>
+      <div class="flow-node fn-emit" style="background:var(--accent);color:#fff;border-color:var(--accent)">writeAllTiers</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div class="flow-card" style="border-left:3px solid #dc2626">
+        <h3>Tier 1 — GEMINI.md</h3>
+        <p>emitBootstrap → 페르소나, TOP 5, cortex 금지, 감정, 영역 카운터, 에이전트 수신함</p>
+        <div class="flow-arrow">→ ~/.gemini/GEMINI.md</div>
+      </div>
+      <div class="flow-card" style="border-left:3px solid #475569">
+        <h3>Tier 2 — _index.md</h3>
+        <p>emitIndex → 전체 뇌 인덱스, 영역별 뉴런 목록, 활성도</p>
+        <div class="flow-arrow">→ brain_v4/_index.md</div>
+      </div>
+      <div class="flow-card" style="border-left:3px solid #64748b">
+        <h3>Tier 3 — _rules.md ×7</h3>
+        <p>emitRegionRules → 한자 렌더링, 트리 구조, pathToSentence</p>
+        <div class="flow-arrow">→ brain_v4/{region}/_rules.md</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MCP + CRUD -->
+  <div style="margin-bottom:24px">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text);margin-bottom:10px">Phase 3 → AI ↔ Neuron Interaction</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="flow-card" style="border-left:3px solid #7c3aed">
+        <h3>MCP Server (stdio)</h3>
+        <p style="font-family:monospace;font-size:10px;line-height:1.8">
+          read_region · read_brain · grow · fire<br>
+          signal · correct · evolve · report<br>
+          pending_reports · rollback · status<br>
+          health_check
+        </p>
+        <div class="flow-arrow">13 tools → JSON-RPC 2.0</div>
+      </div>
+      <div class="flow-card" style="border-left:3px solid #16a34a">
+        <h3>Neuron CRUD</h3>
+        <div class="flow-proc"><span class="fp-dot" style="background:#16a34a"></span>growNeuron → mkdir + 1.neuron</div>
+        <div class="flow-proc"><span class="fp-dot" style="background:#16a34a"></span>fireNeuron → N→N+1 rename</div>
+        <div class="flow-proc"><span class="fp-dot" style="background:#d97706"></span>signalNeuron → dopamine/bomb/memory</div>
+        <div class="flow-proc"><span class="fp-dot" style="background:#dc2626"></span>markDirty → 30s → re-inject</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subsumption Cascade (original) -->
+  <div style="margin-bottom:24px">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text);margin-bottom:10px">Subsumption Cascade (P0 → P6)</div>
+    <div class="flow-grid">
+      <div class="flow-card" style="border-left:3px solid #dc2626">
+        <h3>P0 — Brainstem</h3>
+        <p>대원칙. 모든 규칙 위에 군림한다.</p>
+        <div class="flow-arrow">↓ Override ALL</div>
+      </div>
+      <div class="flow-card" style="border-left:3px solid #78716c">
+        <h3>P1 — Limbic</h3>
+        <p>감정 상태. 행동 패턴 변조.</p>
+        <div class="flow-arrow">↓ Emotional bias</div>
+      </div>
+      <div class="flow-card" style="border-left:3px solid #a8a29e">
+        <h3>P2 — Hippocampus</h3>
+        <p>기억 저장소. 반복 실수 방지.</p>
+        <div class="flow-arrow">↓ Experience recall</div>
+      </div>
+      <div class="flow-card" style="border-left:3px solid #64748b">
+        <h3>P3 — Sensors</h3>
+        <p>환경 인식. NAS, 브랜드.</p>
+        <div class="flow-arrow">↓ Context injection</div>
+      </div>
+      <div class="flow-card" style="border-left:3px solid #475569">
+        <h3>P4 — Cortex</h3>
+        <p>지식 뉴런. 기술 규칙 강화.</p>
+        <div class="flow-arrow">↓ Skill application</div>
+      </div>
+      <div class="flow-card" style="border-left:3px solid #57534e">
+        <h3>P5 — Ego</h3>
+        <p>페르소나. 성격/화법 결정.</p>
+        <div class="flow-arrow">↓ Personality filter</div>
+      </div>
+      <div class="flow-card" style="border-left:3px solid #334155">
+        <h3>P6 — Prefrontal</h3>
+        <p>목표. 스프린트 추적.</p>
+        <div class="flow-arrow">→ Final output</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mermaid live node graph -->
+  <div style="margin-bottom:24px">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text);margin-bottom:10px">System Pipeline <span style="font-weight:400;color:var(--text-muted)">(Mermaid)</span></div>
+    <div id="mermaid-flow" style="background:var(--surface);border:1px solid var(--border);padding:24px;min-height:200px;display:flex;align-items:center;justify-content:center"></div>
+  </div>
+
+  <!-- Cytoscape interactive neuron graph -->
+  <div style="margin-bottom:24px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text)">Neuron Graph <span style="font-weight:400;color:var(--text-muted)">(Cytoscape — drag · zoom · click)</span></div>
+      <span id="cy-count" style="font-size:10px;color:var(--text-muted)"></span>
+    </div>
+    <div id="cy-graph" style="background:var(--surface);border:1px solid var(--border);height:420px;position:relative"></div>
+  </div>
+
   <div class="flow-diagram">
-<strong>Request</strong> → <span class="red">P0 Brainstem</span> → P1 Limbic → P2 Hippocampus → P3 Sensors → P4 Cortex → P5 Ego → P6 Prefrontal → <strong>Response</strong>
+<strong>Full Pipeline:</strong>
+bat → supervisor → api + watch + mcp → injectionLoop(30s) → writeAllTiers
+  Tier 1: emitBootstrap → <span class="red">GEMINI.md</span> (AI 글로벌 룰)
+  Tier 2: emitIndex → _index.md (뇌 인덱스)
+  Tier 3: emitRegionRules ×7 → _rules.md (영역별 룰)
 
-Each layer can <span class="red">OVERRIDE</span> lower-priority layers.
-Brainstem (P0) has absolute authority — it cannot be overridden.
+<strong>AI → Neuron:</strong> grow/fire/signal → markDirty → 30s → re-inject → GEMINI.md 갱신
 
-<strong>Signal Types:</strong>
-  dopamine  →  뉴런 강화 (카운터 +1, 반복 시 규칙이 더 강해짐)
-  bomb      →  3회 반복 실수 시 자동 차단 (뉴런 비활성화)
-  memory    →  경험 기록 (hippocampus에 저장, 다음 세션에서 참조)
+<strong>Harness (10분):</strong> 영역 존재 · 必/禁 구조 · _rules.md 신선도 · GEMINI.md 마커 · bomb 상태
   </div>
 </div>
+
 <div class="panel">
   <div class="panel-scroll" id="unified-panel"></div>
   <div class="panel-actions">
@@ -318,6 +447,168 @@ Brainstem (P0) has absolute authority — it cannot be overridden.
 <div class="toast-container" id="toast-container"></div>
 
 
+
+<!-- Mermaid.js for flow diagrams -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({startOnLoad:false,theme:'base',themeVariables:{
+  primaryColor:'#ffffff',primaryTextColor:'#1a1a2e',primaryBorderColor:'#e2e8f0',
+  lineColor:'#94a3b8',secondaryColor:'#fafafa',tertiaryColor:'#f8fafc',
+  fontFamily:'Inter,sans-serif',fontSize:'11px',
+  nodeBorder:'#e2e8f0',mainBkg:'#ffffff',clusterBkg:'#fafafa',clusterBorder:'#e2e8f0'
+}});
+
+async function renderMermaidFlow(){
+  const el=document.getElementById('mermaid-flow');
+  if(!el)return;
+  // Build from live data
+  let regionData={};
+  if(BD&&BD.regions){
+    BD.regions.forEach(r=>{regionData[r.name]=(r.neurons||[]).length;});
+  }
+  const n=s=>regionData[s]||0;
+  const def=`graph LR
+    BAT["🖥️ start_v4_swarm.bat"]:::bat --> BUILD["⚙️ go build"]:::build
+    BUILD --> SV["🧠 supervisor"]:::sv
+    SV --> API["🌐 API :9090"]:::go
+    SV --> WATCH["👁️ Watch"]:::go
+    SV --> MCP["🔌 MCP stdio"]:::go
+    SV --> BRIDGE["🔗 agent-bridge"]:::node
+    SV --> HIJ["📡 hijack-launcher"]:::node
+    API --> INJ["🔄 injectionLoop\\n30초"]:::loop
+    INJ --> T1["📄 Tier 1\\nGEMINI.md"]:::t1
+    INJ --> T2["📑 Tier 2\\n_index.md"]:::t2
+    INJ --> T3["📋 Tier 3\\n_rules.md ×7"]:::t3
+    MCP --> TOOLS["🛠️ 13 MCP Tools"]:::tools
+    TOOLS --> CRUD["grow · fire · signal"]:::crud
+    CRUD --> DIRTY["markDirty"]:::dirty
+    DIRTY --> INJ
+    subgraph brain["🧠 Brain (${Object.values(regionData).reduce((a,b)=>a+b,0)} neurons)"]
+      BS["brainstem\\nP0 ${n('brainstem')}n"]:::r0
+      LM["limbic\\nP1 ${n('limbic')}n"]:::r1
+      HP["hippocampus\\nP2 ${n('hippocampus')}n"]:::r2
+      SN["sensors\\nP3 ${n('sensors')}n"]:::r3
+      CX["cortex\\nP4 ${n('cortex')}n"]:::r4
+      EG["ego\\nP5 ${n('ego')}n"]:::r5
+      PF["prefrontal\\nP6 ${n('prefrontal')}n"]:::r6
+      BS --> LM --> HP --> SN --> CX --> EG --> PF
+    end
+    T1 --> brain
+    classDef bat fill:#f8fafc,stroke:#94a3b8,color:#1a1a2e
+    classDef build fill:#f8fafc,stroke:#475569,color:#1a1a2e
+    classDef sv fill:#1a1a2e,stroke:#1a1a2e,color:#ffffff
+    classDef go fill:#ffffff,stroke:#16a34a,color:#1a1a2e
+    classDef node fill:#ffffff,stroke:#d97706,color:#1a1a2e
+    classDef loop fill:#ffffff,stroke:#2563eb,color:#1a1a2e
+    classDef t1 fill:#fef2f2,stroke:#dc2626,color:#1a1a2e
+    classDef t2 fill:#f8fafc,stroke:#475569,color:#1a1a2e
+    classDef t3 fill:#f8fafc,stroke:#64748b,color:#1a1a2e
+    classDef tools fill:#f5f3ff,stroke:#7c3aed,color:#1a1a2e
+    classDef crud fill:#f0fdf4,stroke:#16a34a,color:#1a1a2e
+    classDef dirty fill:#fef2f2,stroke:#dc2626,color:#dc2626
+    classDef r0 fill:#fef2f2,stroke:#dc2626,color:#1a1a2e
+    classDef r1 fill:#f5f5f4,stroke:#78716c,color:#1a1a2e
+    classDef r2 fill:#f5f5f4,stroke:#a8a29e,color:#1a1a2e
+    classDef r3 fill:#f8fafc,stroke:#64748b,color:#1a1a2e
+    classDef r4 fill:#f8fafc,stroke:#475569,color:#1a1a2e
+    classDef r5 fill:#f5f5f4,stroke:#57534e,color:#1a1a2e
+    classDef r6 fill:#f1f5f9,stroke:#334155,color:#1a1a2e`;
+  try{
+    el.innerHTML='';
+    const{svg}=await mermaid.render('flow-svg-'+Date.now(),def);
+    el.innerHTML=svg;
+    // Make SVG responsive
+    const svgEl=el.querySelector('svg');
+    if(svgEl){svgEl.style.maxWidth='100%';svgEl.style.height='auto';}
+  }catch(e){el.innerHTML='<span style="color:#dc2626;font-size:11px">Graph render error: '+e.message+'</span>';}
+}
+</script>
+
+<!-- Cytoscape.js for interactive neuron graph -->
+<script src="https://cdn.jsdelivr.net/npm/cytoscape@3/dist/cytoscape.min.js"></script>
+<script>
+let cyInstance=null;
+function renderCytoscapeGraph(){
+  const el=document.getElementById('cy-graph');
+  const countEl=document.getElementById('cy-count');
+  if(!el||!BD||!BD.regions)return;
+
+  const elements=[];
+  let totalNeurons=0;
+  const regionColors={brainstem:'#dc2626',limbic:'#78716c',hippocampus:'#a8a29e',sensors:'#64748b',cortex:'#475569',ego:'#57534e',prefrontal:'#334155'};
+
+  // Region parent nodes
+  BD.regions.forEach(r=>{
+    elements.push({data:{id:r.name,label:r.name.toUpperCase()+' ('+((r.neurons||[]).length)+')',type:'region'},classes:'region'});
+    (r.neurons||[]).forEach(n=>{
+      totalNeurons++;
+      const nid=r.name+'/'+n.path;
+      const sz=Math.max(12,Math.min(40,8+n.counter*2));
+      elements.push({data:{id:nid,label:n.path.split('/').pop()||n.path,parent:r.name,counter:n.counter,size:sz,color:regionColors[r.name]||'#475569',fullPath:nid},classes:'neuron'});
+      // Axon connections
+      if(n.axons){
+        n.axons.forEach(ax=>{
+          const target=ax.replace(/\\/g,'/');
+          elements.push({data:{source:nid,target:target},classes:'axon'});
+        });
+      }
+    });
+  });
+
+  if(countEl)countEl.textContent=totalNeurons+' neurons · '+BD.regions.length+' regions';
+
+  if(cyInstance){cyInstance.destroy();}
+  cyInstance=cytoscape({
+    container:el,
+    elements:elements,
+    style:[
+      {selector:'node.region',style:{
+        'background-color':'#f8fafc','border-width':2,'border-color':'#e2e8f0',
+        'label':'data(label)','font-size':'10px','font-family':'Inter, sans-serif','font-weight':'700',
+        'text-valign':'top','text-halign':'center','text-margin-y':-6,
+        'color':'#1a1a2e','padding':'16px','shape':'round-rectangle'
+      }},
+      {selector:'node.neuron',style:{
+        'background-color':'data(color)','width':'data(size)','height':'data(size)',
+        'label':'data(label)','font-size':'8px','font-family':'Inter, sans-serif',
+        'text-valign':'bottom','text-halign':'center','text-margin-y':4,
+        'color':'#64748b','border-width':1,'border-color':'#e2e8f0',
+        'opacity':0.85
+      }},
+      {selector:'edge.axon',style:{
+        'width':1,'line-color':'#dc2626','target-arrow-color':'#dc2626',
+        'target-arrow-shape':'triangle','curve-style':'bezier','opacity':0.4,
+        'arrow-scale':0.6
+      }},
+      {selector:':parent',style:{
+        'background-opacity':0.04,'border-opacity':0.5
+      }},
+      {selector:'node.neuron:hover',style:{
+        'opacity':1,'border-width':2,'border-color':'#dc2626','z-index':999
+      }}
+    ],
+    layout:{
+      name:'cose',
+      animate:false,
+      nodeRepulsion:function(){return 8000;},
+      idealEdgeLength:function(){return 80;},
+      edgeElasticity:function(){return 100;},
+      nestingFactor:1.2,
+      gravity:0.25,
+      numIter:200,
+      padding:24
+    },
+    minZoom:0.3,maxZoom:3,
+    wheelSensitivity:0.3
+  });
+
+  // Tooltip on tap
+  cyInstance.on('tap','node.neuron',function(evt){
+    const d=evt.target.data();
+    showNotify(d.fullPath,'카운터: '+d.counter,'info');
+  });
+}
+</script>
 
 <!-- Three.js r128 + OBJLoader -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -423,7 +714,21 @@ function switchTab(tab){
     cv.style.display='block';fv.classList.remove('visible');
   }else{
     cv.style.display='none';fv.classList.add('visible');
+    updateFlowStatus();
+    renderMermaidFlow();
+    renderCytoscapeGraph();
   }
+}
+async function updateFlowStatus(){
+  const el=document.getElementById('flow-status');
+  if(!el)return;
+  try{
+    const r=await fetch('/api/health',{signal:AbortSignal.timeout(2000)});
+    if(r.ok){
+      const d=await r.json();
+      el.textContent='● ONLINE';el.style.color='#16a34a';el.style.borderColor='#16a34a';
+    }else{el.textContent='● DEGRADED';el.style.color='#d97706';el.style.borderColor='#d97706';}
+  }catch(e){el.textContent='● OFFLINE';el.style.color='#dc2626';el.style.borderColor='#dc2626';}
 }
 
 async function addNeuron(){

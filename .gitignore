@@ -235,3 +235,9 @@ runtime/extract_proto.mjs
 runtime/decode_grpc.mjs
 runtime/inject-exthost.mjs
 deep_keys.txt
+
+telegram-bridge/.chat_id
+telegram-bridge/.env
+
+# Quarantine (dead experiments)
+_quarantine/

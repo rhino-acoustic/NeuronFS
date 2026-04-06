@@ -264,20 +264,20 @@ function renderBrain(){
   const gRange=Math.max(gMax-gMin,1);
 
   // Region center nodes — large
-  SUB.forEach(name=>{nodes.push({id:'__r__'+name,name:name.toUpperCase(),group:name,isRegion:true,val:60})});
+  SUB.forEach(name=>{nodes.push({id:'__r__'+name,name:name.toUpperCase(),group:name,isRegion:true,val:200})});
   // Neuron nodes — scaled 3x
   BD.regions.forEach(region=>{
     (region.neurons||[]).forEach(n=>{
       const str=(n.counter-gMin)/gRange;
       const parts=n.path.split('/');
       const label=parts.length>=2?parts.slice(-2).join('/'):parts[parts.length-1];
-      nodes.push({id:n.path,name:label,group:region.name,counter:n.counter,val:3+str*24,str});
+      nodes.push({id:n.path,name:label,group:region.name,counter:n.counter,val:10+str*80,str});
       links.push({source:n.path,target:'__r__'+region.name,color:RC[region.name],opacity:0.02});
     });
   });
   // Subsumption cascade
   for(let i=0;i<SUB.length-1;i++){
-    links.push({source:'__r__'+SUB[i],target:'__r__'+SUB[i+1],color:'#a8a29e',opacity:0.12,width:1.5});
+    links.push({source:'__r__'+SUB[i],target:'__r__'+SUB[i+1],color:'#a8a29e',opacity:0.12,width:0.5});
   }
   // Axon cross-links: neuron-to-neuron (not region center)
   if(BD.edges){
@@ -293,7 +293,7 @@ function renderBrain(){
       for(let c=0;c<Math.min(2,fromIds.length,toIds.length);c++){
         const fId=fromIds[Math.floor(Math.random()*fromIds.length)];
         const tId=toIds[Math.floor(Math.random()*toIds.length)];
-        links.push({source:fId,target:tId,color:RC[e.from],opacity:0.06,width:0.4});
+        links.push({source:fId,target:tId,color:RC[e.from],opacity:0.06,width:0});
       }
     });
   }
@@ -308,7 +308,7 @@ function renderBrain(){
     .nodeResolution(12)
     .linkColor(l=>l.color||'#e7e5e4')
     .linkOpacity(l=>l.opacity||0.02)
-    .linkWidth(l=>l.width||0.2)
+    .linkWidth(l=>l.width||0)
     .linkCurvature(0.2)
     .linkCurveRotation(Math.PI/4)
     .enableNodeDrag(false)

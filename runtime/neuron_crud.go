@@ -20,6 +20,22 @@ import (
 func growNeuron(brainRoot string, neuronPath string) error {
 	// Normalize path separators
 	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
+
+	// ── Hanja prefix normalization: 禁하드코딩 → 禁/하드코딩 ──
+	neuronPath = normalizeHanjaPath(neuronPath)
+
+	// ── Guard: block unlimited session_log growth ──
+	if strings.Contains(neuronPath, "session_log") {
+		slDir := filepath.Join(brainRoot, filepath.Dir(neuronPath), "session_log")
+		if info, err := os.Stat(slDir); err == nil && info.IsDir() {
+			existing, _ := filepath.Glob(filepath.Join(slDir, "*.neuron"))
+			if len(existing) >= 3 {
+				fmt.Printf("[SKIP] session_log capped at 3 (has %d)\n", len(existing))
+				return nil
+			}
+		}
+	}
+
 	fullPath := filepath.Join(brainRoot, neuronPath)
 
 	// Validate region
@@ -77,7 +93,7 @@ func growNeuron(brainRoot string, neuronPath string) error {
 			})
 		}
 
-		if bestSimilarity >= 0.4 && bestMatch != "" {
+		if bestSimilarity >= 0.6 && bestMatch != "" {
 			fmt.Printf("[MERGE] 🔗 '%s' ≈ '%s' (%.0f%% similar) → firing existing\n",
 				neuronPath, bestMatch, bestSimilarity*100)
 			fireNeuron(brainRoot, bestMatch)
@@ -275,5 +291,30 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 // ━━━ Lifecycle (prune/decay/episode) → lifecycle.go ━━━
 // MOVED: pruneWeakNeurons, runDecay, logEpisode, maxEpisodes
 
+// normalizeHanjaPath splits hanja-prefixed names into parent/child structure.
+// e.g. "cortex/dev/禁하드코딩" → "cortex/dev/禁/하드코딩"
+// Hanja opcodes must be single-character structural containers (Path=Sentence).
+var hanjaOpcodes = []string{"必", "禁", "推", "核心", "絶対", "軽量", "單一", "過多", "自動"}
+
+func normalizeHanjaPath(p string) string {
+	sep := string(filepath.Separator)
+	parts := strings.Split(p, sep)
+	var result []string
+	for _, part := range parts {
+		normalized := false
+		for _, h := range hanjaOpcodes {
+			if strings.HasPrefix(part, h) && len(part) > len(h) {
+				// Split: 禁하드코딩 → 禁, 하드코딩
+				result = append(result, h, part[len(h):])
+				normalized = true
+				break
+			}
+		}
+		if !normalized {
+			result = append(result, part)
+		}
+	}
+	return strings.Join(result, sep)
+}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

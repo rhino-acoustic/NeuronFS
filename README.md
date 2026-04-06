@@ -347,6 +347,51 @@ NeuronFS is not designed to compete with large-scale MSA (Microservices Architec
 
 In enterprise integration, before an AI agent recklessly scours a massive Vector DB, **NeuronFS (Tier 1 & 2) intervenes first to lay out the 'absolute constraints' as a guardrail.** OS folders serve as the L1 Instruction Cache; RAG serves as the L2 Main Memory.
 
+### .jloot Cartridge System (Replace RAG Entirely)
+
+For teams that don't need enterprise RAG at all, NeuronFS offers **.jloot cartridges** — hot-swappable knowledge packs loaded directly into memory.
+
+```
+Bible (66 books, ~31,000 verses) = 1.4MB .jloot → TF-IDF search: 0ms
+Swap in law.jloot, medical.jloot, or your own domain — instant hot-reload.
+```
+
+| | Traditional RAG | .jloot Cartridge |
+|---|---|---|
+| Infrastructure | Vector DB + embeddings server | **Single file, memory-resident** |
+| Search | Cosine similarity (~200ms) | **TF-IDF (0ms)** |
+| Cost | $70+/mo hosting | **$0** |
+| Swap domain | Re-index entire DB | **Mount different .jloot** |
+| Hallucination defense | None built-in | **3-layer harness** (prompt + JSON constraint + source verification) |
+
+No embeddings. No vector database. No server. A `.jloot` file is a compressed, indexed knowledge pack that your local Go binary loads into RAM.
+
+### Telegram Bridge (Remote AI Monitoring)
+
+Monitor and control your AI agents from anywhere via Telegram:
+
+- **Outbound**: Transcript file watcher → Telegram (💬AI / 👤USER / 🧠THINK / ⚡CMD)
+- **Inbound**: Telegram message → agent inbox → CDP injection into IDE
+- `/rooms` — Live CDP window list, `/mount` — switch target IDE window
+- Progressive message editing, echo-loop prevention, HTML formatting
+- Managed by Go Supervisor (auto-restart on crash)
+
+### vs Karpathy's Obsidian Knowledge Base (2026-04)
+
+Karpathy recently shared an Obsidian-based knowledge system — also folder-based, also no vector DB. The difference is purpose:
+
+| | Karpathy Obsidian | NeuronFS |
+|---|---|---|
+| Purpose | Knowledge retrieval (RAG replacement) | **AI behavior control (Governance)** |
+| Weight | Obsidian app + Claude Code | **OS folders only (ultra-lightweight)** |
+| Learning | None | Firing counters + dopamine/bomb |
+| Priority | All documents equal | **P0 always overrides P6** |
+| Search | Claude navigates index.md | **TF-IDF 0ms (.jloot)** |
+| AI support | Claude Code only | **Multi-IDE simultaneous emit** |
+| Evolution | Human curates wikis | **Groq autonomous growth** |
+
+Karpathy's system is "how to make AI read your documents." NeuronFS is **"how to make AI obey your laws."**
+
 ---
 
 ## FAQ
@@ -365,6 +410,7 @@ Instead of appending `!!CRITICAL!!` 50 times in a prompt, NeuronFS offers **Stru
 
 ## Changelog
 
+**v4.5 (2026-04-06)** — **Telegram Bridge**: Bidirectional AI monitoring via Telegram. .jloot cartridge hot-swap (Bible 66 books = 1.4MB, TF-IDF 0ms). Supervisor integration (7 processes, auto-restart). API/Emit module split. 10-model LLM hallucination benchmark. Karpathy Obsidian comparison.
 **v4.4 (2026-04-05)** — **Extreme Modularization**: main.go 3,538→396 lines (-89%). 30 Go files, ~10,920 lines total. `go:embed` dashboard externalization. `/api/codemap` dashboard CODE panel. **Attention Residuals** cross-referencing via `.axon` connections. Autonomous harness cycle (Groq-powered 禁/推 auto-generation). 3,400+ neurons, 23 axons.
 **v4.3 (2026-04-02)** — Ported Zero-Cost Consolidation (Llama 3 locally supported) & SafeExec hard lock integration.
 **v4.2 (2026-03-31)** — Auto-Evolution pipeline complete. Groq correction parsing / Kanji opcode optimization.
