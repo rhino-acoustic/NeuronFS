@@ -237,3 +237,7 @@ runtime/inject-exthost.mjs
 deep_keys.txt
 
 telegram-bridge/.chat_id
+telegram-bridge/.env
+
+# Quarantine (dead experiments)
+_quarantine/
