@@ -1,9 +1,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Neurons-3400+-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/Axons-10-purple?style=flat-square" />
-  <img src="https://img.shields.io/badge/Go_Files-30-informational?style=flat-square" />
+  <img src="https://img.shields.io/badge/7_Regions-Self_Evolving-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Go_Source-~10K_lines-informational?style=flat-square" />
   <img src="https://img.shields.io/badge/Zero_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
 </p>
@@ -14,7 +13,7 @@
   <a href="https://dashboarddeploy-six.vercel.app/"><strong>3D Dashboard Live Demo</strong></a>
 </p>
 
-<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 Manifesto</a> · <a href="docs/ARCHITECTURE.md">🏗️ Architecture</a> · <a href="docs/CHANGELOG.md">📋 Changelog</a></p>
+<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="docs/ARCHITECTURE.md">🏗️ Architecture</a> · <a href="docs/CHANGELOG.md">📋 Changelog</a></p>
 
 # NeuronFS
 ### *Filesystem-Native Hierarchical Ruleset Memory — A Zero-Dependency Harness Engineering Platform*
@@ -271,7 +270,7 @@ lifecycle.go → Lifecycle     evolve.go → Evolution       similarity.go → S
 neuron_crud.go → CRUD        watch.go → Monitoring       supervisor.go → Management
 ```
 
-This isn't just "good naming." It's a recursive, self-referential architecture that **proves its own philosophy through its code structure**. 30 files, ~10,920 lines — yet any AI can rebuild full context in under 30 seconds by reading file names.
+This isn't just "good naming." It's a recursive, self-referential architecture that **proves its own philosophy through its code structure**. ~50 Go files, ~10K lines — yet any AI can rebuild full context in under 30 seconds by reading file names.
 
 ### Proof of Pain: Why You Need This
 
@@ -305,14 +304,14 @@ NeuronFS is a working implementation of **Harness Engineering** — not asking t
 
 | Metric | Result |
 |------|------|
-| Live neurons | **3,400+** (7 regions, 10 axons) |
-| Total activation | **25,800+** synaptic weight |
-| Scan speed (3,400 folders) | < 1 second |
+| Live neurons | **Varies** (7 regions, self-evolving · e.g. 500~3,000+) |
+| Scan speed (1,000+ folders) | < 1 second |
 | Rule addition latency | OS Native (`mkdir`), 0ms |
-| Go source | **30 files, ~10,920 lines** (modular) |
-| Build time | **8.3s** (single binary) |
-| Local Disk Footprint | 4.3MB (Pure text/folders) |
+| Go source | **~50 files, ~10K lines** (modular) |
+| Build time | **~8s** (single binary) |
+| Local Disk Footprint | < 5MB (Pure text/folders) |
 | Maintenance / API Cost | **$0** (No vector DB server required) |
+| .jloot cartridge | Bible 66 books = 1.4MB, TF-IDF search 0ms |
 | brainstem compliance rate | **94.9%** (18 violations per 353 injections) |
 
 ### Competitor Comparison
