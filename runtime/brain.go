@@ -59,23 +59,25 @@ var regionKo = map[string]string{
 
 // ─── Neuron = a folder ───
 type Neuron struct {
-	Name      string    // folder name
-	Path      string    // relative path from region root (e.g. "frontend/css/glass_blur20")
-	FullPath  string    // absolute path
-	Counter   int       // from N.neuron filename (correction count)
-	Contra    int       // from N.contra filename (inhibition count)
-	Dopamine  int       // from dopamineN.neuron filename (reward count)
-	Intensity int       // Counter - Contra + Dopamine (net activation)
-	Polarity  float64   // net / total (-1.0=pure inhibition, +1.0=pure excitation)
-	HasBomb   bool      // bomb.neuron exists
-	HasMemory bool      // memoryN.neuron exists
-	HasGoal   bool      // .goal file exists (todo/objective)
-	GoalText  string    // content of .goal file if present
-	Geofence  string    // content of .geofence file if present
-	IsDormant bool      // .dormant file exists
-	Depth     int       // depth within region
-	ModTime   time.Time // most recent .neuron file modification
-	BirthTime time.Time // folder creation time (grow 시점)
+	Name        string    // folder name
+	Path        string    // relative path from region root (e.g. "frontend/css/glass_blur20")
+	FullPath    string    // absolute path
+	Counter     int       // from N.neuron filename (correction count)
+	Contra      int       // from N.contra filename (inhibition count)
+	Dopamine    int       // from dopamineN.neuron filename (reward count)
+	Intensity   int       // Counter - Contra + Dopamine (net activation)
+	Polarity    float64   // net / total (-1.0=pure inhibition, +1.0=pure excitation)
+	HasBomb     bool      // bomb.neuron exists
+	HasMemory   bool      // memoryN.neuron exists
+	HasGoal     bool      // .goal file exists (todo/objective)
+	GoalText    string    // content of .goal file if present
+	Geofence    string    // content of .geofence file if present
+	Description string    // natural language rule from rule.md (first line or description: field)
+	Globs       string    // file pattern scope from rule.md (e.g. "*.go")
+	IsDormant   bool      // .dormant file exists
+	Depth       int       // depth within region
+	ModTime     time.Time // most recent .neuron file modification
+	BirthTime   time.Time // folder creation time (grow 시점)
 }
 
 // Emission thresholds
@@ -279,6 +281,12 @@ func scanBrain(root string) Brain {
 				return filepath.SkipDir
 			}
 
+			// 한자 옵코드 폴더(禁/必/推 등)는 구조 폴더 — 뉴런이 아님
+			// neuronMap에 등록하지 않고 Walk만 계속 (하위 폴더는 등록)
+			if isHanjaFolder(baseName) {
+				return nil // skip registration, continue walking children
+			}
+
 			relPath, _ := filepath.Rel(regionPath, path)
 			depth := strings.Count(relPath, string(filepath.Separator))
 
@@ -380,6 +388,44 @@ func scanBrain(root string) Brain {
 			} else {
 				n.Polarity = 0.5
 			}
+
+			// ━━━ Natural Language Rule: rule.md → Description (post-Walk) ━━━
+			if n.Description == "" && n.FullPath != "" {
+				ruleFile := filepath.Join(n.FullPath, "rule.md")
+				if ruleContent, err := os.ReadFile(ruleFile); err == nil {
+					ruleText := strings.TrimSpace(string(ruleContent))
+					inFM := false
+					for _, line := range strings.Split(ruleText, "\n") {
+						line = strings.TrimSpace(line)
+						if line == "---" {
+							inFM = !inFM
+							continue
+						}
+						if inFM {
+							if strings.HasPrefix(line, "description:") {
+								n.Description = strings.TrimSpace(strings.TrimPrefix(line, "description:"))
+							}
+							if strings.HasPrefix(line, "globs:") {
+								n.Globs = strings.TrimSpace(strings.TrimPrefix(line, "globs:"))
+							}
+						}
+					}
+					// Fallback: first content line
+					if n.Description == "" {
+						for _, line := range strings.Split(ruleText, "\n") {
+							line = strings.TrimSpace(line)
+							if line != "" && line != "---" && !strings.HasPrefix(line, "#") {
+								if len(line) > 120 {
+									line = line[:120]
+								}
+								n.Description = line
+								break
+							}
+						}
+					}
+				}
+			}
+
 			region.Neurons = append(region.Neurons, *n)
 		}
 

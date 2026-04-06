@@ -170,7 +170,7 @@ func runDecay(brainRoot string, days int) {
 
 // logEpisode records an event in hippocampus/session_log
 // Circular buffer: keeps only the most recent 100 episodes
-const maxEpisodes = 100
+const maxEpisodes = 10
 
 // logEpisode writes an event log to the hippocampus memory store.
 func logEpisode(brainRoot string, event string, detail string) {
@@ -274,7 +274,7 @@ func deduplicateNeurons(brainRoot string) {
 			}
 
 			sim := hybridSimilarity(allRefs[i].tokens, allRefs[j].tokens)
-			if sim < 0.4 {
+			if sim < 0.6 {
 				continue
 			}
 

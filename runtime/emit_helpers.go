@@ -136,12 +136,14 @@ func emitIndex(brain Brain, result SubsumptionResult) string {
 
 // treeNode represents a compressed tree of neurons
 type treeNode struct {
-	name     string
-	counter  int       // if this is a leaf neuron
-	dopamine int
-	hasBomb  bool
-	children map[string]*treeNode
-	isLeaf   bool
+	name        string
+	counter     int       // if this is a leaf neuron
+	dopamine    int
+	hasBomb     bool
+	description string    // natural language rule from rule.md
+	globs       string    // file scope pattern
+	children    map[string]*treeNode
+	isLeaf      bool
 }
 
 // emitRegionRules converts a Region's neurons into a formatted markdown ruleset string.
@@ -223,6 +225,8 @@ func emitRegionRules(region Region, brainOpt ...Brain) string {
 				current.counter = n.Counter
 				current.dopamine = n.Dopamine
 				current.hasBomb = n.HasBomb
+				current.description = n.Description
+				current.globs = n.Globs
 			}
 		}
 	}
@@ -264,6 +268,8 @@ func renderTree(sb *strings.Builder, node *treeNode, depth int, prefix string) {
 		n := child.node
 		name := strings.ReplaceAll(child.key, "_", " ")
 
+
+
 		// 한자 1글자 폴더 감지 — branch가 아니라 opcode modifier로 처리
 		// 禁/hard_coded_text → "절대 금지: hard coded text" (한자 폴더를 투명하게 통과)
 		if isHanjaFolder(child.key) {
@@ -292,7 +298,16 @@ func renderTree(sb *strings.Builder, node *treeNode, depth int, prefix string) {
 			} else if n.counter >= 5 {
 				strength = "반드시 "
 			}
-			sb.WriteString(fmt.Sprintf("%s- %s**%s** (%d)%s\n", indent, strength, name, n.counter, signals))
+			if n.description != "" {
+				// Natural language mode: show description
+				globTag := ""
+				if n.globs != "" {
+					globTag = fmt.Sprintf(" [%s]", n.globs)
+				}
+				sb.WriteString(fmt.Sprintf("%s- %s**%s**: %s (%d)%s%s\n", indent, strength, name, n.description, n.counter, globTag, signals))
+			} else {
+				sb.WriteString(fmt.Sprintf("%s- %s**%s** (%d)%s\n", indent, strength, name, n.counter, signals))
+			}
 		} else if n.isLeaf && len(n.children) > 0 {
 			// Leaf but also a branch — show counter then children
 			signals := ""
@@ -305,7 +320,15 @@ func renderTree(sb *strings.Builder, node *treeNode, depth int, prefix string) {
 			} else if n.counter >= 5 {
 				strength = "반드시 "
 			}
-			sb.WriteString(fmt.Sprintf("%s- %s**%s** (%d)%s\n", indent, strength, name, n.counter, signals))
+			if n.description != "" {
+				globTag := ""
+				if n.globs != "" {
+					globTag = fmt.Sprintf(" [%s]", n.globs)
+				}
+				sb.WriteString(fmt.Sprintf("%s- %s**%s**: %s (%d)%s%s\n", indent, strength, name, n.description, n.counter, globTag, signals))
+			} else {
+				sb.WriteString(fmt.Sprintf("%s- %s**%s** (%d)%s\n", indent, strength, name, n.counter, signals))
+			}
 			renderTree(sb, n, depth+1, prefix+child.key+"/")
 		} else {
 			// Pure branch — show as group header
@@ -370,10 +393,13 @@ func renderTreeWithPrefix(sb *strings.Builder, node *treeNode, depth int, prefix
 				signals += " 🟢"
 			}
 			sb.WriteString(fmt.Sprintf("%s- **%s%s** (%d)%s\n", indent, koreanPrefix, name, n.counter, signals))
-			renderTree(sb, n, depth+1, prefix+child.key+"/")
+			// 한자 하위는 계속 renderTreeWithPrefix로 전파 (strength 비활성화)
+			renderTreeWithPrefix(sb, n, depth+1, prefix+child.key+"/", koreanPrefix)
 		} else {
-			sb.WriteString(fmt.Sprintf("%s- %s/\n", indent, name))
-			renderTree(sb, n, depth+1, prefix+child.key+"/")
+			// 카테고리 폴더 (룬워드) — 옵코드 접두어 포함
+			sb.WriteString(fmt.Sprintf("%s- %s%s/\n", indent, koreanPrefix, name))
+			// leaf children에 옵코드 의미 전파 (counter-strength 대신)
+			renderTreeWithPrefix(sb, n, depth+1, prefix+child.key+"/", koreanPrefix)
 		}
 	}
 }
@@ -481,7 +507,11 @@ func pathToSentence(p string) string {
 	for hanja, korean := range hanjaToKorean {
 		s = strings.ReplaceAll(s, hanja, korean)
 	}
-	return s
+	// 연속 공백 정규화 (한자 변환 후 "반드시 " + " > " → "반드시  > " 방지)
+	for strings.Contains(s, "  ") {
+		s = strings.ReplaceAll(s, "  ", " ")
+	}
+	return strings.TrimSpace(s)
 }
 
 type neuronWithRegion struct {

@@ -31,6 +31,7 @@ const AGENT_TARGETS = {
     bot1: 'bot1',
     entp: 'entp',
     enfp: 'enfp',
+    NeuronFS: 'NeuronFS',
     // PM 창은 직접 주입하지 않지만 outbox는 모니터링
 };
 

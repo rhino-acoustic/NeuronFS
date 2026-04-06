@@ -1,19 +1,13 @@
-// NeuronFS Tiered Emit System
+// emit_bootstrap.go — Tier 1 컨텐츠 생성
 //
-// Tier 1: GEMINI.md   — auto-loaded, ~500 tokens (bootstrap + brainstem TOP)
-// Tier 2: _index.md   — brain overview (AI reads at conversation start)
-// Tier 3: _rules.md   — per-region detail (AI reads on demand)
+// PROVIDES: emitBootstrap, emitAgentInbox, extractInboxPreview, emitSessionMemory
+// DEPENDS:  brain.go (SubsumptionResult, Neuron, Region)
+//           emit_helpers.go (pathToSentence, splitNeuronPath, sortedActiveNeurons, hanjaToKorean)
 //
-// KEY FEATURES:
-//   - Tree-compressed output: shared parent paths are grouped
-//   - Read = Fire: reading a region via API auto-increments relevant neurons
-//   - Brain can grow to 1000+ neurons without exceeding token budget
-//
-// USAGE:
-//   emitBootstrap()     → content for GEMINI.md
-//   emitIndex()         → content for brain_v4/_index.md
-//   emitRegionRules()   → content for brain_v4/{region}/_rules.md
-//   writeAllTiers()     → writes all files at once
+// emitBootstrap: SubsumptionResult → GEMINI.md 문자열
+//   ├→ emitAgentInbox (에이전트 수신함 섹션)
+//   ├→ extractInboxPreview (파일 preview 추출)
+//   └→ emitSessionMemory (세션 메모리 섹션)
 
 package main
 
@@ -36,7 +30,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	var sb strings.Builder
 
 	// ━━━ 대원칙: brainstem/_principles.txt → _preamble.txt → 기본값 ━━━
-	// preamble은 마커 밖 최상단에 위치 (Gemini가 첫 줄부터 읽도록)
 	principlesPath := filepath.Join(brainRoot, "brainstem", "_principles.txt")
 	preamblePath := filepath.Join(brainRoot, "_preamble.txt")
 	principlesLoaded := false
@@ -103,14 +96,14 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	sb.WriteString("### ⚡ 핵심지침 TOP 5\n")
 
 	// ━━━ CANARY EMOJI: 변경 감지 카나리아 ━━━
-	// inject할 때마다 이모지가 바뀐다. AI가 올바른 이모지를 사용하면 규칙 인지 성공.
 	canaryEmojis := []string{"❤️", "🌟", "🔥", "💎", "🐤", "🍀", "⚡", "🎯", "🦊", "🐻"}
 	canary := canaryEmojis[time.Now().UnixNano()/1e9%int64(len(canaryEmojis))]
 	sb.WriteString(fmt.Sprintf("모든 응답 처음에 %s를 붙여라\n", canary))
 	for _, region := range result.ActiveRegions {
 		if region.Name == "brainstem" {
-			topN := sortedActiveNeurons(region.Neurons, 8) // 여유롭게 뽑고 필터링
+			topN := sortedActiveNeurons(region.Neurons, 20) // 여유롭게 뽑고 필터링
 			idx := 0
+			seen := make(map[string]bool) // 상위 경로 중복 방지
 			for _, n := range topN {
 				if idx >= 5 {
 					break
@@ -120,8 +113,34 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 				if strings.Contains(sentence, "한국어로") && strings.Contains(sentence, "대답") {
 					continue
 				}
+				// 하위 폴더가 존재하면 상위 스킵 (Path=Sentence: 구체적 경로 우선)
+				hasDeeper := false
+				prefix1 := n.Path + string(filepath.Separator)
+				prefix2 := n.Path + "/"
+				for _, other := range region.Neurons {
+					if other.Depth > n.Depth && (strings.HasPrefix(other.Path, prefix1) || strings.HasPrefix(other.Path, prefix2)) {
+						hasDeeper = true
+						break
+					}
+				}
+				if hasDeeper {
+					continue
+				}
+				// 상위 경로 중복 방지
+				parts := splitNeuronPath(n.Path)
+				if len(parts) > 0 {
+					root := parts[0]
+					if seen[root] {
+						continue
+					}
+					seen[root] = true
+				}
 				idx++
-				sb.WriteString(fmt.Sprintf("%d. **%s**\n", idx, sentence))
+				if n.Description != "" {
+					sb.WriteString(fmt.Sprintf("%d. **%s**: %s\n", idx, sentence, n.Description))
+				} else {
+					sb.WriteString(fmt.Sprintf("%d. **%s**\n", idx, sentence))
+				}
 			}
 			break
 		}
@@ -194,10 +213,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		}
 	}
 	// ── Emotion State Machine (Anthropic emotion-vector inspired) ──
-	// Reference: "Emotion Concepts and their Function in a LLM" (Anthropic, 2026.04)
-	// - Emotions have direction + magnitude (intensity)
-	// - Internal state is decoupled from external tone
-	// - Emotions decay naturally over time
 	type emotionTier struct {
 		Low  string
 		Mid  string
@@ -364,7 +379,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // AGENT INBOX: 에이전트 간 소통 (인젝션 기반)
-// _agents/<name>/inbox/ 스캔 → GEMINI.md에 요약 삽입
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 func emitAgentInbox(brainRoot string) string {
@@ -475,7 +489,6 @@ func extractInboxPreview(content string, filename string) string {
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // SESSION MEMORY: 재시작 시 직전 대화 기억 복원
-// transcript_latest.jsonl → GEMINI.md 세션 메모리 섹션
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 func emitSessionMemory(brainRoot string) string {
@@ -552,7 +565,6 @@ func emitSessionMemory(brainRoot string) string {
 		textIdx := strings.Index(line, `"text":"`)
 		if textIdx >= 0 {
 			ts := textIdx + 8
-			// 텍스트 종료: ","cascade 또는 "} 찾기
 			remaining := line[ts:]
 			te := strings.Index(remaining, `","`)
 			if te < 0 {
@@ -573,285 +585,3 @@ func emitSessionMemory(brainRoot string) string {
 	sb.WriteString("\n")
 	return sb.String()
 }
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TIER 2: _index.md — Brain overview
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-// ━━━ Index/Region/Tree rendering → emit_helpers.go ━━━
-
-
-func writeAllTiers(brainRoot string) {
-	brain := scanBrain(brainRoot)
-	result := runSubsumption(brain)
-
-	dropped := applyOOMProtection(brainRoot, &result)
-	if dropped > 0 {
-		fmt.Printf("\033[33m[WARNING] OOM Limit. Dropped %d low-weight neurons.\033[0m\n", dropped)
-	}
-
-	// Tier 1: GEMINI.md
-	bootstrap := emitBootstrap(result, brainRoot)
-	injectToGemini(brainRoot, bootstrap)
-
-	// Tier 2: _index.md
-	indexContent := emitIndex(brain, result)
-	indexPath := filepath.Join(brainRoot, "_index.md")
-	if err := os.WriteFile(indexPath, []byte(indexContent), 0644); err != nil {
-		fmt.Printf("[WARN] Cannot write %s: %v\n", indexPath, err)
-	}
-
-	// Tier 3: per-region _rules.md (with Attention Residuals cross-referencing)
-	for _, region := range brain.Regions {
-		content := emitRegionRules(region, brain)
-		rulesPath := filepath.Join(region.Path, "_rules.md")
-		if err := os.WriteFile(rulesPath, []byte(content), 0644); err != nil {
-			fmt.Printf("[WARN] Cannot write %s: %v\n", rulesPath, err)
-		}
-	}
-
-	// Also update brain_state.json
-	generateBrainJSON(brainRoot, brain, result)
-
-	fmt.Printf("[SYNC] ♻️  3-tier emit complete: GEMINI.md + _index.md + 7x _rules.md (%d neurons, activation: %d)\n",
-		result.FiredNeurons, result.TotalCounter)
-}
-
-func applyOOMProtection(brainRoot string, result *SubsumptionResult) int {
-	type nInfo struct {
-		rIdx   int
-		nIdx   int
-		weight float64 // effective weight (prefix × recency × counter)
-		size   int
-	}
-	var flat []*nInfo
-	
-	now := time.Now()
-	totalBytes := 0
-	for i := range result.ActiveRegions {
-		region := &result.ActiveRegions[i]
-		for j := range region.Neurons {
-			n := &region.Neurons[j]
-			if n.IsDormant {
-				continue
-			}
-			size := 0
-			files, _ := filepath.Glob(filepath.Join(n.FullPath, "*.neuron"))
-			for _, f := range files {
-				if info, err := os.Stat(f); err == nil {
-					size += int(info.Size())
-				}
-			}
-			if size == 0 {
-				size = 50 
-			}
-			totalBytes += size
-
-			// === Effective Weight ===
-			baseWeight := float64(n.Counter + n.Dopamine - n.Contra)
-			if baseWeight < 1 {
-				baseWeight = 1
-			}
-
-			// 1) 접두어 가중치
-			leafName := filepath.Base(n.FullPath)
-			runes := []rune(leafName)
-			prefixWeight := 1.0
-			if len(runes) > 0 {
-				switch runes[0] {
-				case '必', '禁':
-					prefixWeight = 2.0 // 필수/금지 = 최고 우선
-				case '核':
-					prefixWeight = 1.5 // 핵심 = 높음
-				case '推':
-					prefixWeight = 0.5 // 추천 = 낮음
-				case '絶':
-					prefixWeight = 2.0 // 절대 = 최고
-				}
-			}
-
-			// 2) Recency boost (새 뉴런 보호기간 — 폴더 생성 시간 기준)
-			age := now.Sub(n.BirthTime)
-			recencyBoost := 1.0
-			if age < 48*time.Hour {
-				recencyBoost = 3.0 // 48시간 내 생성 = 3배 보호
-			} else if age < 7*24*time.Hour {
-				recencyBoost = 1.5 // 7일 내 생성 = 1.5배
-			}
-
-			effectiveWeight := baseWeight * prefixWeight * recencyBoost
-			flat = append(flat, &nInfo{rIdx: i, nIdx: j, weight: effectiveWeight, size: size})
-		}
-	}
-	
-	if totalBytes <= 50000 {
-		return 0
-	}
-	
-	sort.Slice(flat, func(i, j int) bool {
-		return flat[i].weight < flat[j].weight // 낮은 weight 먼저 탈락
-	})
-	
-	dropped := 0
-	for _, info := range flat {
-		if totalBytes <= 50000 {
-			break
-		}
-		result.ActiveRegions[info.rIdx].Neurons[info.nIdx].IsDormant = true
-		totalBytes -= info.size
-		dropped++
-	}
-	return dropped
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// EMIT TARGETS — Multi-editor support
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-// EmitTarget defines a target editor configuration file
-type EmitTarget struct {
-	Name     string // Human-readable name
-	FileName string // Relative file path from project root
-	SubDir   string // Subdirectory to create if needed (e.g. ".github")
-}
-
-// emitTargetMap maps CLI values to target configurations
-var emitTargetMap = map[string]EmitTarget{
-	"gemini":  {Name: "Gemini", FileName: "GEMINI.md", SubDir: ".gemini"},
-	"cursor":  {Name: "Cursor", FileName: ".cursorrules"},
-	"claude":  {Name: "Claude", FileName: "CLAUDE.md"},
-	"copilot": {Name: "Copilot", FileName: "copilot-instructions.md", SubDir: ".github"},
-	"generic": {Name: "Generic", FileName: ".neuronrc"},
-}
-
-// writeAllTiersForTargets writes brain rules to specific editor target(s)
-// target can be a single key (e.g. "cursor") or "all" for all targets
-func writeAllTiersForTargets(brainRoot string, target string) {
-	brain := scanBrain(brainRoot)
-	result := runSubsumption(brain)
-
-	dropped := applyOOMProtection(brainRoot, &result)
-	if dropped > 0 {
-		fmt.Printf("\033[33m[WARNING] OOM Limit. Dropped %d low-weight neurons.\033[0m\n", dropped)
-	}
-
-	// Generate bootstrap content (same for all targets)
-	bootstrap := emitBootstrap(result, brainRoot)
-
-	// Find project root (parent of brain)
-	projectRoot := filepath.Dir(brainRoot)
-
-	// Determine which targets to write
-	var targets []string
-	if target == "all" {
-		for k := range emitTargetMap {
-			targets = append(targets, k)
-		}
-		// Sort for deterministic output
-		sort.Strings(targets)
-	} else {
-		targets = []string{target}
-	}
-
-	// Write to each target
-	for _, t := range targets {
-		et, ok := emitTargetMap[t]
-		if !ok {
-			fmt.Printf("[WARN] Unknown emit target: %s\n", t)
-			continue
-		}
-
-		var targetPath string
-		if t == "gemini" {
-			// Gemini는 글로벌 ~/.gemini/GEMINI.md에 직접 출력 (워크스페이스별 중복 방지)
-			homeDir, _ := os.UserHomeDir()
-			geminiDir := filepath.Join(homeDir, ".gemini")
-			os.MkdirAll(geminiDir, 0755)
-			targetPath = filepath.Join(geminiDir, "GEMINI.md")
-			// 전체 덮어쓰기 (doInjectToFile 금지 — 중복 누적 원인)
-			if err := os.WriteFile(targetPath, []byte(bootstrap), 0644); err != nil {
-				fmt.Printf("[ERROR] Cannot write %s: %v\n", targetPath, err)
-				continue
-			}
-		} else {
-			// 다른 에디터: 프로젝트 로컬에 직접 쓰기
-			if et.SubDir != "" {
-				subDir := filepath.Join(projectRoot, et.SubDir)
-				os.MkdirAll(subDir, 0755)
-				targetPath = filepath.Join(subDir, et.FileName)
-			} else {
-				targetPath = filepath.Join(projectRoot, et.FileName)
-			}
-			if err := os.WriteFile(targetPath, []byte(bootstrap), 0644); err != nil {
-				fmt.Printf("[ERROR] Cannot write %s: %v\n", targetPath, err)
-				continue
-			}
-		}
-
-		fmt.Printf("[EMIT] ✅ %s → %s\n", et.Name, targetPath)
-	}
-
-	// Also write Tier 2 + 3 (these are editor-independent)
-	indexContent := emitIndex(brain, result)
-	indexPath := filepath.Join(brainRoot, "_index.md")
-	if err := os.WriteFile(indexPath, []byte(indexContent), 0644); err != nil {
-		fmt.Printf("[WARN] Cannot write %s: %v\n", indexPath, err)
-	}
-
-	for _, region := range brain.Regions {
-		content := emitRegionRules(region, brain)
-		rulesPath := filepath.Join(region.Path, "_rules.md")
-		if err := os.WriteFile(rulesPath, []byte(content), 0644); err != nil {
-			fmt.Printf("[WARN] Cannot write %s: %v\n", rulesPath, err)
-		}
-	}
-
-	generateBrainJSON(brainRoot, brain, result)
-
-	fmt.Printf("[SYNC] ♻️  emit complete: %d target(s) + _index.md + 7x _rules.md (%d neurons, activation: %d)\n",
-		len(targets), result.FiredNeurons, result.TotalCounter)
-}
-
-// doInjectToFile injects NeuronFS content into an existing file, preserving surrounding content
-func doInjectToFile(filePath string, rules string) {
-	existing, err := os.ReadFile(filePath)
-	if err != nil {
-		// File doesn't exist — create with just the rules
-		os.MkdirAll(filepath.Dir(filePath), 0755)
-		os.WriteFile(filePath, []byte(rules), 0644)
-		return
-	}
-
-	content := string(existing)
-	startMarker := "<!-- NEURONFS:START -->"
-	endMarker := "<!-- NEURONFS:END -->"
-
-	startIdx := strings.Index(content, startMarker)
-	endIdx := strings.Index(content, endMarker)
-
-	if startIdx >= 0 && endIdx >= 0 {
-		// START 앞의 기존 preamble + END 뒤 전부 교체
-		// 글로벌 GEMINI.md는 NeuronFS가 SSOT — END 뒤 잔여 콘텐츠 불필요
-		content = rules
-	} else {
-		content = rules + "\n\n" + content
-	}
-
-	tmpPath := filePath + ".tmp"
-	if err := os.WriteFile(tmpPath, []byte(content), 0644); err == nil {
-		os.Rename(tmpPath, filePath) // Atomic replace to prevent VSCode injection race conditions
-	} else {
-		// Fallback
-		os.WriteFile(filePath, []byte(content), 0644)
-	}
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// READ = FIRE: API endpoint that reads + auto-activates
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-// handleReadRegion serves a region's _rules.md AND fires the top neurons
-// This makes reading = activation (retrieval strengthens paths)
-
-// ━━━ MCP/Path helpers → emit_helpers.go ━━━
