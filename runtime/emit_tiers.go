@@ -184,6 +184,40 @@ var emitTargetMap = map[string]EmitTarget{
 	"generic": {Name: "Generic", FileName: ".neuronrc"},
 }
 
+// backupExistingRule backs up an existing rule file before overwriting.
+// Returns the backup path if backed up, empty string if file didn't exist.
+func backupExistingRule(targetPath string, brainRoot string) string {
+	if _, err := os.Stat(targetPath); os.IsNotExist(err) {
+		return "" // No existing file to back up
+	}
+
+	// Create backup directory: <brainRoot>/.neuronfs_backup/
+	backupDir := filepath.Join(brainRoot, ".neuronfs_backup")
+	os.MkdirAll(backupDir, 0755)
+
+	// Generate backup filename with timestamp
+	baseName := filepath.Base(targetPath)
+	ts := time.Now().Format("20060102_150405")
+	backupName := fmt.Sprintf("%s.%s.bak", baseName, ts)
+	backupPath := filepath.Join(backupDir, backupName)
+
+	// Copy existing file to backup
+	data, err := os.ReadFile(targetPath)
+	if err != nil {
+		return ""
+	}
+	if err := os.WriteFile(backupPath, data, 0644); err != nil {
+		return ""
+	}
+	return backupPath
+}
+
+// homeDir returns the user's home directory, or empty string on error.
+func homeDir() string {
+	h, _ := os.UserHomeDir()
+	return h
+}
+
 // writeAllTiersForTargets writes brain rules to specific editor target(s)
 // target can be a single key (e.g. "cursor") or "all" for all targets
 func writeAllTiersForTargets(brainRoot string, target string) {
@@ -207,11 +241,41 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 		for k := range emitTargetMap {
 			targets = append(targets, k)
 		}
-		// Sort for deterministic output
 		sort.Strings(targets)
+	} else if target == "auto" {
+		// Auto-detect: only emit to editors whose config files already exist
+		autoDetectMap := map[string][]string{
+			"cursor":  {filepath.Join(projectRoot, ".cursorrules"), filepath.Join(projectRoot, ".cursor")},
+			"claude":  {filepath.Join(projectRoot, "CLAUDE.md")},
+			"gemini":  {filepath.Join(homeDir(), ".gemini")},
+			"copilot": {filepath.Join(projectRoot, ".github", "copilot-instructions.md"), filepath.Join(projectRoot, ".github")},
+			"generic": {filepath.Join(projectRoot, ".neuronrc")},
+		}
+		for key, paths := range autoDetectMap {
+			for _, p := range paths {
+				if _, err := os.Stat(p); err == nil {
+					targets = append(targets, key)
+					break
+				}
+			}
+		}
+		sort.Strings(targets)
+		if len(targets) == 0 {
+			// Nothing detected — fall back to all
+			fmt.Printf("[AUTO] No existing editor configs detected. Emitting all targets.\n")
+			for k := range emitTargetMap {
+				targets = append(targets, k)
+			}
+			sort.Strings(targets)
+		} else {
+			fmt.Printf("[AUTO] 🔍 Detected %d editor(s): %s\n", len(targets), strings.Join(targets, ", "))
+		}
 	} else {
 		targets = []string{target}
 	}
+
+	// Track backups for summary
+	var backedUp []string
 
 	// Write to each target
 	for _, t := range targets {
@@ -228,11 +292,6 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 			geminiDir := filepath.Join(homeDir, ".gemini")
 			os.MkdirAll(geminiDir, 0755)
 			targetPath = filepath.Join(geminiDir, "GEMINI.md")
-			// 전체 덮어쓰기 (doInjectToFile 금지 — 중복 누적 원인)
-			if err := os.WriteFile(targetPath, []byte(bootstrap), 0644); err != nil {
-				fmt.Printf("[ERROR] Cannot write %s: %v\n", targetPath, err)
-				continue
-			}
 		} else {
 			// 다른 에디터: 프로젝트 로컬에 직접 쓰기
 			if et.SubDir != "" {
@@ -242,10 +301,18 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 			} else {
 				targetPath = filepath.Join(projectRoot, et.FileName)
 			}
-			if err := os.WriteFile(targetPath, []byte(bootstrap), 0644); err != nil {
-				fmt.Printf("[ERROR] Cannot write %s: %v\n", targetPath, err)
-				continue
-			}
+		}
+
+		// ── Auto-backup existing file before overwrite ──
+		if bkPath := backupExistingRule(targetPath, brainRoot); bkPath != "" {
+			backedUp = append(backedUp, bkPath)
+			fmt.Printf("\033[33m[BACKUP] 💾 %s → %s\033[0m\n", filepath.Base(targetPath), bkPath)
+		}
+
+		// 전체 덮어쓰기
+		if err := os.WriteFile(targetPath, []byte(bootstrap), 0644); err != nil {
+			fmt.Printf("[ERROR] Cannot write %s: %v\n", targetPath, err)
+			continue
 		}
 
 		fmt.Printf("[EMIT] ✅ %s → %s\n", et.Name, targetPath)
@@ -268,6 +335,11 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 
 	generateBrainJSON(brainRoot, brain, result)
 
+	if len(backedUp) > 0 {
+		fmt.Printf("\033[33m[WARNING] ⚠️  %d existing rule file(s) were backed up to: %s\033[0m\n",
+			len(backedUp), filepath.Join(brainRoot, ".neuronfs_backup"))
+		fmt.Printf("\033[33m[WARNING] To restore: copy .bak files back to their original locations.\033[0m\n")
+	}
 	fmt.Printf("[SYNC] ♻️  emit complete: %d target(s) + _index.md + 7x _rules.md (%d neurons, activation: %d)\n",
 		len(targets), result.FiredNeurons, result.TotalCounter)
 }

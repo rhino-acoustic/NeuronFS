@@ -36,7 +36,7 @@ func main() {
 			// Check if next arg is an emit target (not a flag)
 			if i+1 < len(os.Args) && !strings.HasPrefix(os.Args[i+1], "--") {
 				candidate := strings.ToLower(os.Args[i+1])
-				if candidate == "gemini" || candidate == "cursor" || candidate == "claude" || candidate == "copilot" || candidate == "generic" || candidate == "all" {
+				if candidate == "gemini" || candidate == "cursor" || candidate == "claude" || candidate == "copilot" || candidate == "generic" || candidate == "all" || candidate == "auto" {
 					emitTarget = candidate
 					mode = "emit-target" // file output mode
 				}
