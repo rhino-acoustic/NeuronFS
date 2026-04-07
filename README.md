@@ -1,4 +1,6 @@
-# NeuronFS: mkdir beats vector DB — B-tree AI Governance
+# NeuronFS: Zero-Trust Virtual Filesystem for AGI
+
+> **mkdir beats vector DB** — B-tree AI Governance Engine
 
 **[한국어 README](README_KR.md)**
 
@@ -14,9 +16,10 @@
 
 모든 아키텍처 명세서, 철학, 그리고 개발 연대기(Chronicles)는 글로벌 지재권 보호를 위해 **GitHub Wiki**에 방어적 공개(Defensive Publication) 원칙하에 영구 보존됩니다.
 
-> **[Access the NeuronFS Official Wiki](https://github.com/rhino-acoustic/NeuronFS/wiki)** (한/영 이중 언어 지원)
+> **[Access the NeuronFS Official Wiki](https://github.com/rhino-acoustic/NeuronFS/wiki)** — Korean original, English titles
 
 ### Wiki Structure (위키 구조)
+* **[🚀 Getting Started](https://github.com/rhino-acoustic/NeuronFS/wiki/Getting-Started)** — 5분 퀵스타트
 * **[Act 1: Suspicion & Discovery](https://github.com/rhino-acoustic/NeuronFS/wiki/Act-1)** — 의심과 발견 (Ep.01-07)
 * **[Act 2: Trial & Wargames](https://github.com/rhino-acoustic/NeuronFS/wiki/Act-2)** — 시련과 워게임 (Ep.08-11)
 * **[Act 3: Proof & Benchmark](https://github.com/rhino-acoustic/NeuronFS/wiki/Act-3)** — 증명과 벤치마크 (Ep.12-16)
@@ -34,7 +37,12 @@
 ## Quickstart
 
 ```bash
-# Install
+# One-liner: clone + build + run
+git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime && go build -o neuronfs . && ./neuronfs --emit all
+```
+
+```bash
+# Step by step
 git clone https://github.com/rhino-acoustic/NeuronFS.git
 cd NeuronFS/runtime && go build -o neuronfs .
 
@@ -49,16 +57,6 @@ mkdir 禁/fallback                              # "禁" folder = absolute prohib
 ```
 
 > **Opcodes are Runewords.** `禁` = Zod (indestructible wall). `必` = Ber (mandatory gate). `推` = Ist (soft nudge). The folder is the socket. The opcode is the rune.
-
-## Wiki — 22 Episodes of Architecture
-
-> **[NeuronFS Wiki](https://github.com/rhino-acoustic/NeuronFS/wiki)** — Korean original, English titles
-
-- **[Getting Started](https://github.com/rhino-acoustic/NeuronFS/wiki/Getting-Started)** — 5-min Quickstart
-- **[Act 1: Doubt and Discovery](https://github.com/rhino-acoustic/NeuronFS/wiki/Act-1)** (Ep.01-07)
-- **[Act 2: Trials and Wargames](https://github.com/rhino-acoustic/NeuronFS/wiki/Act-2)** (Ep.08-11)
-- **[Act 3: Proof and Benchmarks](https://github.com/rhino-acoustic/NeuronFS/wiki/Act-3)** (Ep.12-16)
-- **[Act 4: Declaration and Ultraplan](https://github.com/rhino-acoustic/NeuronFS/wiki/Act-4)** (Ep.17-22)
 
 ---
 
