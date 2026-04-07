@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"bytes"
 	"fmt"
 	"os"
 )
@@ -17,28 +18,40 @@ import (
 // rootDir: The path to the physical directory (Upper Layer, e.g. brain_v4)
 func MountCartridge(jlootPath string, rootDir string) error {
 	initVFS(rootDir)
-
 	GlobalVFS.Upper = os.DirFS(rootDir)
 
-	if jlootPath == "" {
-		fmt.Println("[VFS] Booting without lower cartridge. Upper-only mode.")
+	// Ignition Loop Intercept
+	masterKey := StartIgnition(jlootPath)
+
+	if masterKey == nil {
+		fmt.Println("[VFS] Booting without encrypted lower cartridge. Upper-only mode.")
 		return nil
 	}
 
-	// In the real ignition sequence, we would ask for the Brainwallet passphrase,
-	// run Argon2 KDF (via dek_manager.go), decrypt the XChaCha20 stream (crypto_neuron.go),
-	// and pass the decrypted bytes to a virtual zip.Reader.
-	// For compilation and Phase 2 proof-of-concept, we attempt a standard ZIP read.
-	
-	zrc, err := zip.OpenReader(jlootPath)
+	fmt.Println("[VFS] Neural decryption sequence initiated...")
+
+	// 100% RAM-based decryption (Zero Disks Drops)
+	decryptedBytes, err := DecryptCartridgeToRAM(jlootPath, masterKey)
 	if err != nil {
-		fmt.Printf("[VFS] Warning: Failed to mount cartridge '%s': %v\n", jlootPath, err)
-		fmt.Println("[VFS] Falling back to Upper-only mode.")
-		return nil // Non-fatal, just means no lower knowledge base
+		fmt.Printf("[VFS] ❌ FATAL: Brainwallet verification failed or cartridge is corrupted.\nError: %v\n", err)
+		fmt.Println("[VFS] Falling back to Upper-only mode for safety.")
+		return nil
+	}
+
+	// Mount decrypted payload as a Virtual ZIP File System
+	zrc, err := zip.NewReader(bytes.NewReader(decryptedBytes), int64(len(decryptedBytes)))
+	if err != nil {
+		fmt.Printf("[VFS] ❌ FATAL: Decrypted payload is not a valid Jloot Archive.\nError: %v\n", err)
+		return nil
 	}
 
 	GlobalVFS.Lower = zrc
-	fmt.Printf("[VFS] Mounted Cartridge: %s as LowerDir (O(1) Route active)\n", jlootPath)
+	fmt.Printf("[VFS] 🌌 Cartridge successfully unfolded in memory: %s (O(1) Route active)\n", jlootPath)
+
+	// Wipe master key from RAM after successful mount
+	for i := range masterKey {
+		masterKey[i] = 0
+	}
 
 	return nil
 }

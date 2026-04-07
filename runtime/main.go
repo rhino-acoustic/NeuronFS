@@ -97,6 +97,17 @@ func main() {
 		}
 	}
 
+	// ── VFS Cartridge Ignition (Phase 2) ──
+	jlootCartridge := filepath.Join(brainRoot, "base.jloot")
+	if _, err := os.Stat(jlootCartridge); os.IsNotExist(err) {
+		jlootCartridge = "" // Run purely UpperDir if no cartridge
+	}
+	
+	if err := MountCartridge(jlootCartridge, brainRoot); err != nil {
+		fmt.Printf("\033[31m[FATAL] VFS Hardware Error: %v\033[0m\n", err)
+		os.Exit(1)
+	}
+
 	// ── Awakening Sequence (first-run boot animation) ──
 	// Propagate quiet mode to flatline handler too
 	FlatlineQuiet = quietMode
