@@ -1,5 +1,7 @@
 # NeuronFS: Zero-Trust Virtual Filesystem for AGI
 
+**[한국어 README](README_KR.md)**
+
 **[KOR]** NeuronFS는 AGI 환경을 위해 설계된 제로 트러스트(Zero-Trust) 가상 파일 시스템 기법입니다. 암호화된 계층형 카트리지(Jloot OverlayFS) 상에 인공지능의 시냅스를 물리적인 폴더와 파일 구조로 발현시키고 분리합니다.
 
 **[ENG]** NeuronFS is an isolated, zero-trust virtual filesystem designed entirely for Advanced General Intelligence (AGI). It physically manifests AI synapses onto encrypted layer cartridges (Jloot OverlayFS) and establishes deterministic "File-as-Neuron" structures.
