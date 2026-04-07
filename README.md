@@ -29,6 +29,27 @@
 - **Boot Ignition (`vfs_ignition.go`)**: Argon2id KDF Brainwallet Integration.
 - **Crypto Cartridge (`crypto_cartridge.go`)**: XChaCha20-Poly1305 RAM-based decryption of `.jloot` payloads.
 
+## Quickstart
+
+```bash
+# Install
+git clone https://github.com/rhino-acoustic/NeuronFS.git
+cd NeuronFS/runtime && go build -o neuronfs .
+
+# Rule = Folder. Create a rule by creating a folder.
+mkdir 禁_fallback                              # "禁" prefix = absolute prohibition
+# That's it. A zero-byte folder IS the rule.
+
+# Compile = Auto-generate system prompts for any AI tool
+./neuronfs --emit cursor   # → .cursorrules
+./neuronfs --emit claude   # → CLAUDE.md
+./neuronfs --emit all      # → All AI formats at once (Cursor, Windsurf, Claude Desktop...)
+```
+
+> **Opcodes are Runewords.** `禁` = Zod (indestructible wall). `必` = Ber (mandatory gate). `推` = Ist (soft nudge). The folder is the socket. The prefix is the rune.
+
+---
+
 ## License
 This project is licensed under **AGPL-3.0** with additional commercial terms. See [LICENSE](LICENSE) for details.
 
