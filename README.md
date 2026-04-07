@@ -1,4 +1,4 @@
-# NeuronFS: Zero-Trust Virtual Filesystem for AGI
+# NeuronFS: mkdir beats vector DB — B-tree AI Governance
 
 **[한국어 README](README_KR.md)**
 
