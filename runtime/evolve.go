@@ -175,12 +175,19 @@ func runEvolve(brainRoot string, dryRun bool) {
 	for _, action := range evoResp.Actions {
 		switch action.Type {
 		case "grow":
+			// 하드가드: brainstem/limbic에 grow 차단
+			if strings.HasPrefix(action.Path, "brainstem") || strings.HasPrefix(action.Path, "limbic") {
+				fmt.Printf("    🛡️ Blocked: %s (P0/P1 보호 — grow 금지)\n", action.Path)
+				skipped++
+				continue
+			}
 			err := growNeuron(brainRoot, action.Path)
 			if err != nil {
 				fmt.Printf("    ❌ grow %s: %v\n", action.Path, err)
 				skipped++
 			} else {
 				executed++
+				go sendTelegramEvolve(brainRoot, action)
 			}
 
 		case "fire":
@@ -221,6 +228,23 @@ func runEvolve(brainRoot string, dryRun bool) {
 
 	fmt.Printf("\n  📊 Result: %d executed, %d skipped\n", executed, skipped)
 
+	// Clean up processed signals
+	if executed > 0 || len(evoResp.Actions) == 0 {
+		signalDir := filepath.Join(brainRoot, "hippocampus", "_signals")
+		if entries, err := os.ReadDir(signalDir); err == nil {
+			cleared := 0
+			for _, e := range entries {
+				if strings.HasSuffix(e.Name(), ".json") {
+					os.Remove(filepath.Join(signalDir, e.Name()))
+					cleared++
+				}
+			}
+			if cleared > 0 {
+				fmt.Printf("  🧹 Cleared %d processed signals\n", cleared)
+			}
+		}
+	}
+
 	// Log evolution event
 	logEpisode(brainRoot, "EVOLVE", fmt.Sprintf("%d actions executed, %d skipped. Summary: %s",
 		executed, skipped, truncate(evoResp.Summary, 200)))
@@ -234,37 +258,46 @@ func runEvolve(brainRoot string, dryRun bool) {
 // ─── Collect hippocampus episode logs ───
 
 func collectEpisodes(brainRoot string) []string {
+	var result []string
+
+	// 1. 기존 메모리 로그 수집
 	logDir := filepath.Join(brainRoot, "hippocampus", "session_log")
-	entries, err := os.ReadDir(logDir)
-	if err != nil {
-		return nil
+	if entries, err := os.ReadDir(logDir); err == nil {
+		memRegex := regexp.MustCompile(`^memory(\d+)\.neuron$`)
+		type memFile struct {
+			num     int
+			content string
+		}
+		var mems []memFile
+
+		for _, e := range entries {
+			if m := memRegex.FindStringSubmatch(e.Name()); m != nil {
+				n, _ := strconv.Atoi(m[1])
+				content, err := os.ReadFile(filepath.Join(logDir, e.Name()))
+				if err == nil && len(content) > 0 {
+					mems = append(mems, memFile{num: n, content: strings.TrimSpace(string(content))})
+				}
+			}
+		}
+		sort.Slice(mems, func(i, j int) bool { return mems[i].num < mems[j].num })
+		for _, m := range mems {
+			result = append(result, "[MEMORY] "+m.content)
+		}
 	}
 
-	memRegex := regexp.MustCompile(`^memory(\d+)\.neuron$`)
-
-	type memFile struct {
-		num     int
-		content string
-	}
-	var mems []memFile
-
-	for _, e := range entries {
-		if m := memRegex.FindStringSubmatch(e.Name()); m != nil {
-			n, _ := strconv.Atoi(m[1])
-			content, err := os.ReadFile(filepath.Join(logDir, e.Name()))
-			if err == nil && len(content) > 0 {
-				mems = append(mems, memFile{num: n, content: strings.TrimSpace(string(content))})
+	// 2. 신규 JSON Signal 수집 (Neuro-Lifecycle)
+	signalDir := filepath.Join(brainRoot, "hippocampus", "_signals")
+	if sigEntries, err := os.ReadDir(signalDir); err == nil {
+		for _, e := range sigEntries {
+			if strings.HasSuffix(e.Name(), ".json") {
+				content, err := os.ReadFile(filepath.Join(signalDir, e.Name()))
+				if err == nil && len(content) > 0 {
+					result = append(result, "[SIGNAL] "+strings.TrimSpace(string(content)))
+				}
 			}
 		}
 	}
 
-	// Sort by number (chronological)
-	sort.Slice(mems, func(i, j int) bool { return mems[i].num < mems[j].num })
-
-	var result []string
-	for _, m := range mems {
-		result = append(result, m.content)
-	}
 	return result
 }
 
@@ -312,7 +345,7 @@ func buildBrainSummary(brain Brain, result SubsumptionResult) string {
 func buildEvolvePrompt(episodes []string, brainSummary string, _ SubsumptionResult) string {
 	var sb strings.Builder
 
-	sb.WriteString("You are the NeuronFS Evolution Engine. You analyze a cognitive AI system's episode logs and brain state to recommend structural improvements.\n\n")
+	sb.WriteString("You are the NeuronFS Evolution Engine (The REM Phase Consolidator). You analyze a cognitive AI system's short-term signals and episode logs to determine which memories should become permanent long-term rules (Neurons).\n\n")
 	sb.WriteString("## NeuronFS Axioms\n")
 	sb.WriteString("- Folder = Neuron (name is meaning, depth is specificity)\n")
 	sb.WriteString("- File = Firing Trace (N.neuron = counter/activation strength)\n")
@@ -325,7 +358,6 @@ func buildEvolvePrompt(episodes []string, brainSummary string, _ SubsumptionResu
 	sb.WriteString("## Brain Regions (7, prioritized — Subsumption Architecture)\n")
 	sb.WriteString("P0:brainstem (conscience/survival) > P1:limbic (emotion) > P2:hippocampus (memory) > P3:sensors (environment) > P4:cortex (knowledge) > P5:ego (tone/style) > P6:prefrontal (goals)\n\n")
 
-	// ── IDENTITY: loaded dynamically from ego + sensors regions ──
 	sb.WriteString("## 🧠 Owner Context (from brain state — DO NOT MODIFY)\n")
 	sb.WriteString("The owner's identity, brand, and projects are encoded as neurons in ego/sensors/prefrontal regions.\n")
 	sb.WriteString("Read the Brain State below to understand the owner's context.\n")
@@ -334,8 +366,24 @@ func buildEvolvePrompt(episodes []string, brainSummary string, _ SubsumptionResu
 	sb.WriteString("### Brainstem Rules (P0 — ABSOLUTE, NEVER TOUCH)\n")
 	sb.WriteString("These are read from the brainstem region neurons above. They are inviolable.\n\n")
 
-	sb.WriteString("## Valid Regions for grow paths\n")
-	sb.WriteString("brainstem, limbic, hippocampus, sensors, cortex, ego, prefrontal\n\n")
+	sb.WriteString("## Valid Regions for grow paths (분류 판단 기준)\n")
+	sb.WriteString("NEVER grow into brainstem or limbic — these are READ-ONLY.\n")
+	sb.WriteString("- cortex/dev/禁*: 코딩 금지 규칙 (하드코딩, 중복생성 등 범용 개발 규칙)\n")
+	sb.WriteString("- cortex/dev/推*: 코딩 추천 규칙 (로컬깃활용, 프로젝트관리 등)\n")
+	sb.WriteString("- cortex/methodology/*: 방법론 (코드리뷰, 테스트 전략 등)\n")
+	sb.WriteString("- hippocampus/에러_패턴/*: 반복 에러 패턴 기록\n")
+	sb.WriteString("- hippocampus/에피소드/*: 일회성 사건 기록 (counter=1)\n")
+	sb.WriteString("- sensors/brand/*: NEVER TOUCH — 브랜드 정체성\n")
+	sb.WriteString("- prefrontal/project/*: 프로젝트 목표/계획\n\n")
+
+	sb.WriteString("## 🧠 Region 분류 사고법 (AI 판단 모델)\n")
+	sb.WriteString("질문 순서대로 분류하라:\n")
+	sb.WriteString("1. '이 규칙이 모든 프로젝트에 적용되는가?' → YES면 cortex (개발규칙), NO면 다음\n")
+	sb.WriteString("2. '이 규칙이 특정 프로젝트/브랜드에 한정되는가?' → YES면 sensors 또는 prefrontal\n")
+	sb.WriteString("3. '이것은 반복 에러 패턴인가?' → YES면 hippocampus/에러_패턴\n")
+	sb.WriteString("4. '이것은 일회성 사건인가?' → YES면 hippocampus/에피소드 (또는 무시)\n")
+	sb.WriteString("5. '300명 수용 가능한 장소' 같은 검색 결과 → NEVER promote (Signal로 남겨라)\n")
+	sb.WriteString("6. brainstem에 넣을 만한 범용 절대규칙은 극히 드물다 — 99%는 cortex에 간다\n\n")
 
 	sb.WriteString("## Current Brain State\n")
 	sb.WriteString("```\n")
@@ -343,9 +391,8 @@ func buildEvolvePrompt(episodes []string, brainSummary string, _ SubsumptionResu
 	sb.WriteString("```\n\n")
 
 	if len(episodes) > 0 {
-		sb.WriteString("## Recent Episode Log (chronological)\n")
+		sb.WriteString("## Recent Signals & Episode Log (Short-Term Memory)\n")
 		sb.WriteString("```\n")
-		// Show last 50 episodes max to fit in context
 		start := 0
 		if len(episodes) > 50 {
 			start = len(episodes) - 50
@@ -356,29 +403,24 @@ func buildEvolvePrompt(episodes []string, brainSummary string, _ SubsumptionResu
 		sb.WriteString("```\n\n")
 	}
 
-	sb.WriteString("## Your Task\n")
-	sb.WriteString("Analyze the brain state and episode logs. Respond with a JSON object containing:\n\n")
-	sb.WriteString("1. **summary**: One-sentence summary of the brain's current health\n")
-	sb.WriteString("2. **insights**: Array of 2-5 observations about patterns, problems, or opportunities\n")
-	sb.WriteString("3. **actions**: Array of concrete actions to improve the brain. Each action has:\n")
+	sb.WriteString("## Your Task (Memory Consolidation)\n")
+	sb.WriteString("Analyze the short-term signals and episodes. Find patterns. Respond with JSON:\n\n")
+	sb.WriteString("1. **summary**: One-sentence brain health summary\n")
+	sb.WriteString("2. **insights**: 2-5 pattern observations\n")
+	sb.WriteString("3. **actions**: Concrete promotion actions (type/path/signal/reason)\n")
 	sb.WriteString("   - type: 'grow' | 'fire' | 'signal' | 'prune'\n")
-	sb.WriteString("   - path: full neuron path starting with region (e.g., 'cortex/frontend/css/new_rule')\n")
-	sb.WriteString("   - signal: only for type='signal', value is 'dopamine' or 'bomb'\n")
-	sb.WriteString("   - reason: why this action improves the brain\n\n")
+	sb.WriteString("   - path: full path starting with region (e.g., 'cortex/dev/禁하드코딩')\n\n")
 
 	sb.WriteString("## STRICT RULES (violation = system failure)\n")
-	sb.WriteString("1. Maximum 10 actions per evolution cycle\n")
-	sb.WriteString("2. Prefer 'fire' (reinforce existing) over 'grow' (create new) — consolidation over expansion\n")
-	sb.WriteString("3. NEVER touch brainstem neurons (P0 is read-only conscience) — not grow, not prune, not signal\n")
-	sb.WriteString("4. NEVER touch limbic neurons (P1 emotion system is automatic)\n")
-	sb.WriteString("5. NEVER touch sensors/brand/* (owner's brand identity is sacred)\n")
+	sb.WriteString("1. Maximum 10 actions per cycle\n")
+	sb.WriteString("2. Prefer 'fire' over 'grow' — ONLY grow if pattern repeats MULTIPLE TIMES\n")
+	sb.WriteString("3. Reject noisy/abstract signals. ONLY promote actionable rules\n")
+	sb.WriteString("4. NEVER grow into brainstem (P0) or limbic (P1) — READ-ONLY\n")
+	sb.WriteString("5. NEVER touch sensors/brand/*\n")
 	sb.WriteString("6. NEVER create duplicate neurons — check existing paths first\n")
-	sb.WriteString("7. NEVER delete — prune means mark dormant (isolation), NOT deletion\n")
-	sb.WriteString("8. 'prune' ONLY neurons with counter=1 AND no dopamine AND overlap with higher-counter neurons\n")
-	sb.WriteString("9. 'signal dopamine' neurons that have been consistently useful (frequent FIRE in logs)\n")
-	sb.WriteString("10. Paths must use / separator and start with a valid region name\n")
-	sb.WriteString("11. When unsure, do NOTHING — empty actions array is perfectly valid\n")
-	sb.WriteString("12. Korean neuron names are fine and expected. Do not translate them.\n\n")
+	sb.WriteString("7. NEVER delete — prune = mark dormant only\n")
+	sb.WriteString("8. When unsure, do NOTHING — empty actions is valid\n")
+	sb.WriteString("9. Korean neuron names are expected\n\n")
 
 	sb.WriteString("Respond ONLY with valid JSON. No markdown, no explanation outside JSON.\n")
 
@@ -562,6 +604,7 @@ func handleEvolveAPI(brainRoot string) http.HandlerFunc {
 						skipped++
 					} else {
 						executed++
+						go sendTelegramEvolve(brainRoot, action)
 					}
 				case "fire":
 					fireNeuron(brainRoot, action.Path)
@@ -625,6 +668,37 @@ func actionIcon(actionType string) string {
 	default:
 		return "❓"
 	}
+}
+
+// sendTelegramEvolve sends a push notification about brain evolution
+func sendTelegramEvolve(brainRoot string, action evoAction) {
+	tgToken := os.Getenv("TELEGRAM_BOT_TOKEN")
+	if tgToken == "" {
+		// try reading from bridge
+		b, err := os.ReadFile(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".token"))
+		if err == nil {
+			tgToken = strings.TrimSpace(string(b))
+		}
+	}
+	if tgToken == "" { return }
+
+	chatIdBytes, err := os.ReadFile(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".chat_id"))
+	if err != nil || len(chatIdBytes) == 0 { return }
+	chatId := strings.TrimSpace(string(chatIdBytes))
+
+	icon := actionIcon(action.Type)
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("🧬 [NEURON EVOLVED] %s\n\n", action.Path))
+	sb.WriteString(fmt.Sprintf("액션: %s %s\n", icon, strings.ToUpper(action.Type)))
+	sb.WriteString(fmt.Sprintf("사유: %s", action.Reason))
+
+	payload := map[string]string{
+		"chat_id": chatId,
+		"text": sb.String(),
+	}
+	data, _ := json.Marshal(payload)
+
+	http.Post("https://api.telegram.org/bot"+tgToken+"/sendMessage", "application/json", bytes.NewReader(data))
 }
 
 // boolStr returns trueVal if cond is true, otherwise falseVal.

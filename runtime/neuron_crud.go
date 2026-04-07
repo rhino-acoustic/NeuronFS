@@ -132,8 +132,7 @@ func fireNeuron(brainRoot string, neuronPath string) {
 	fullPath := filepath.Join(brainRoot, neuronPath)
 
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		fmt.Printf("[WARN] Neuron not found: %s — auto-growing...\n", neuronPath)
-		growNeuron(brainRoot, neuronPath)
+		fmt.Printf("[WARN] Neuron not found: %s — (Auto-grow disabled by Neuro-Lifecycle architecture)\n", neuronPath)
 		return
 	}
 

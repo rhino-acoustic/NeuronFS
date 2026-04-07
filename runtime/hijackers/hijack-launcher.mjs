@@ -17,6 +17,7 @@
 import { execSync } from 'child_process';
 import WebSocket from 'ws';
 import http from 'http';
+import https from 'https';
 import fs from 'fs';
 import path from 'path';
 
@@ -62,6 +63,268 @@ function fireNeuron(regionPath, content) {
     fs.writeFileSync(path.join(dir, fname), content, 'utf8');
 }
 
+// ── AI 응답 프로젝트 라우팅: lastActiveProject 추적 ──
+// USER 입력 시 업데이트, AI 응답은 이 값 사용
+let lastActiveProject = 'global';
+
+// ── 텔레그램 직접 전송 (HTTP API, 의존성 없음) ──
+const TG_BRIDGE_DIR = 'C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\telegram-bridge';
+let TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+if (!TG_TOKEN) { try { TG_TOKEN = fs.readFileSync(path.join(TG_BRIDGE_DIR, '.token'), 'utf8').trim(); } catch {} }
+if (!TG_TOKEN) { try { TG_TOKEN = execSync('powershell -NoProfile -Command "[System.Environment]::GetEnvironmentVariable(\'TELEGRAM_BOT_TOKEN\',\'User\')"', { encoding: 'utf8' }).trim(); } catch {} }
+const TG_CHAT_FILE = path.join(TG_BRIDGE_DIR, '.chat_id');
+let TG_CHAT_ID = '';
+try { TG_CHAT_ID = fs.readFileSync(TG_CHAT_FILE, 'utf8').trim(); } catch {}
+const _tgSentHashes = new Set();
+const TG_ROLES_SEND = new Set(['USER', 'AI', 'THINK']); // 전송할 역할
+const TG_ROLES_SKIP = new Set(['AI_RESP', 'TOOL', 'ATTACH', 'HIJACK_START']);
+
+const TG_DEBUG = path.join('C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\logs', 'tg_debug.log');
+function tgLog(msg) { try { fs.appendFileSync(TG_DEBUG, `[${new Date().toISOString()}] ${msg}\n`); } catch {} }
+
+// 연속 메시지 병합용 상태
+let _lastTg = { msgId: null, role: '', rawText: '', label: '', ts: 0 };
+// 전송 큐 (순차 처리 보장)
+const _tgQueue = [];
+let _tgDraining = false;
+async function _tgDrain() {
+    if (_tgDraining) return;
+    _tgDraining = true;
+    while (_tgQueue.length > 0) {
+        const { text, proj, role } = _tgQueue.shift();
+        await _sendToTelegramInner(text, proj, role);
+    }
+    _tgDraining = false;
+}
+function sendToTelegram(text, proj, role) {
+    _tgQueue.push({ text, proj, role });
+    _tgDrain();
+}
+
+function _tgApiCall(apiMethod, payload) {
+    return new Promise((resolve) => {
+        const body = JSON.stringify(payload);
+        const req = https.request({
+            hostname: 'api.telegram.org',
+            path: `/bot${TG_TOKEN}/${apiMethod}`,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+        }, (res) => {
+            let d = ''; res.on('data', c => d += c);
+            res.on('end', () => {
+                tgLog(`${apiMethod} ok=${res.statusCode} resp=${d.substring(0,80)}`);
+                try { resolve(JSON.parse(d)); } catch { resolve(null); }
+            });
+        });
+        req.on('error', (e) => { tgLog(`ERR: ${e.message}`); resolve(null); });
+        req.write(body);
+        req.end();
+    });
+}
+
+function _formatTgMsg(r, label, rawText) {
+    const esc = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const truncated = rawText.length > 3900 ? rawText.substring(0, 3900) + '\n[...]' : rawText;
+    if (r === 'USER') return `👤 ${label}${esc(truncated)}`;
+    if (r === 'THINK') return `🧠 ${label}\n<pre><code class="language-text">${esc(truncated)}</code></pre>`;
+    if (r === 'CMD') return `⚡ ${label}\n<pre><code class="language-powershell">${esc(truncated)}</code></pre>`;
+    if (r === 'NEURON') return `🧬 ${label}${esc(truncated)}`;
+    return `💬 ${label}${esc(truncated)}`;
+}
+
+const _tgStartTime = Date.now();
+const TG_WARMUP_MS = 15000; // 15초 워밍업 (재시작 시 기존 DOM 재캡처 스킵)
+
+async function _sendToTelegramInner(text, proj, role) {
+    if (Date.now() - _tgStartTime < TG_WARMUP_MS) { tgLog('SKIP: warmup'); return; }
+    tgLog(`CALL role=${role} proj=${proj} token=${TG_TOKEN?'YES':'NO'} chat=${TG_CHAT_ID||'NONE'} text=${text.substring(0,50)}`);
+    if (!TG_TOKEN || !TG_CHAT_ID) { tgLog('SKIP: no token/chat'); return; }
+    if (text.length < 5) { tgLog('SKIP: too short'); return; }
+    if (text.includes('[telegram')) { tgLog('SKIP: telegram ref'); return; }
+    if (text.includes('신호 기록됨') || text.includes('교정 반영 (Signal)')) { tgLog('SKIP: signal intent'); return; }
+    
+    // NeuronFS 뉴런 경로 메시지 → NEURON role로 변환 (🧬 이모지)
+    const isNeuron = /(cortex|brainstem|limbic|hippocampus|sensors|ego|prefrontal)\/\S*\//.test(text);
+    
+    const r = isNeuron ? 'NEURON' : (role || '').split('@')[0];
+    if (TG_ROLES_SKIP.has(r)) { tgLog(`SKIP: role ${r}`); return; }
+    
+    const hash = text.substring(0, 150);
+    if (_tgSentHashes.has(hash)) { tgLog('SKIP: dedup'); return; }
+    _tgSentHashes.add(hash);
+    if (_tgSentHashes.size > 200) _tgSentHashes.clear();
+    
+    const label = proj && proj !== 'global' ? `[${proj}] ` : '';
+    const now = Date.now();
+    
+    // 연속 같은 role이면 edit로 병합 (30초 이내, 4KB 미만)
+    if (_lastTg.msgId && _lastTg.role === r && _lastTg.label === label
+        && (now - _lastTg.ts) < 30000
+        && (_lastTg.rawText.length + text.length) < 3900) {
+        _lastTg.rawText += '\n' + text;
+        _lastTg.ts = now;
+        const merged = _formatTgMsg(r, label, _lastTg.rawText);
+        const resp = await _tgApiCall('editMessageText', {
+            chat_id: TG_CHAT_ID, message_id: _lastTg.msgId,
+            text: merged, parse_mode: 'HTML'
+        });
+        tgLog(`EDIT [${proj}] ${r}: merged ${_lastTg.rawText.length}ch`);
+        return;
+    }
+    
+    // 새 메시지
+    const msg = _formatTgMsg(r, label, text);
+    const resp = await _tgApiCall('sendMessage', { chat_id: TG_CHAT_ID, text: msg, parse_mode: 'HTML' });
+    if (resp?.ok && resp.result?.message_id) {
+        _lastTg = { msgId: resp.result.message_id, role: r, rawText: text, label, ts: now };
+    }
+    tgLog(`SENDING [${proj}] ${r}: ${text.substring(0,50)}`);
+}
+
+// ── 텔레그램 수신 polling (getUpdates) ──
+let _tgOffset = 0;
+const _tgInboundHash = new Set();
+const AGENTS_DIR = path.join(BRAIN_DIR, '_agents');
+const MOUNT_FILE = path.join(TG_BRIDGE_DIR, '.mount');
+let _tgMountedRoom = 'NeuronFS';
+try { _tgMountedRoom = fs.readFileSync(MOUNT_FILE, 'utf8').trim() || 'NeuronFS'; } catch {}
+
+function tgPoll() {
+    if (!TG_TOKEN) return;
+    const url = `/bot${TG_TOKEN}/getUpdates?offset=${_tgOffset}&timeout=5&allowed_updates=["message"]`;
+    https.get({ hostname: 'api.telegram.org', path: url }, (res) => {
+        let d = ''; res.on('data', c => d += c);
+        res.on('end', () => {
+            try {
+                const json = JSON.parse(d);
+                if (!json.ok) return;
+                for (const u of json.result || []) {
+                    _tgOffset = u.update_id + 1;
+                    const msg = u.message;
+                    if (!msg?.text) continue;
+                    const chatId = String(msg.chat.id);
+                    
+                    // chat_id 자동 갱신
+                    if (!TG_CHAT_ID || TG_CHAT_ID !== chatId) {
+                        TG_CHAT_ID = chatId;
+                        try { fs.writeFileSync(TG_CHAT_FILE, TG_CHAT_ID, 'utf8'); } catch {}
+                    }
+                    
+                    const text = msg.text;
+                    
+                    // 중복 방지
+                    const hash = `${msg.message_id}`;
+                    if (_tgInboundHash.has(hash)) continue;
+                    _tgInboundHash.add(hash);
+                    if (_tgInboundHash.size > 100) _tgInboundHash.clear();
+                    
+                    // 명령어 처리
+                    if (text === '/start' || text === '/status') {
+                        tgReply(chatId, `🧠 NeuronFS Hijack Bridge\n현재 방: 📌 ${_tgMountedRoom}`);
+                    } else if (text.startsWith('/mount')) {
+                        const room = text.split(' ')[1]?.trim();
+                        if (room) {
+                            _tgMountedRoom = room;
+                            try { fs.writeFileSync(MOUNT_FILE, room, 'utf8'); } catch {}
+                            tgReply(chatId, `✅ 방 전환: 📌 ${room}`);
+                        } else {
+                            tgReply(chatId, `현재 방: 📌 ${_tgMountedRoom}`);
+                        }
+                    } else {
+                        // 일반 메시지 라우팅 (@프로젝트명 파싱)
+                        let targetRoom = _tgMountedRoom;
+                        let payload = text;
+                        const mentionMatch = text.match(/^@([a-zA-Z0-9_\-\s]+)\s+(.*)/s);
+                        if (mentionMatch) {
+                            // Find matching folder in _agents to handle partial/case-insensitive mentions
+                            const mention = mentionMatch[1].trim().toLowerCase();
+                            try {
+                                const agents = fs.readdirSync(AGENTS_DIR);
+                                for (const agent of agents) {
+                                    if (agent.toLowerCase().includes(mention)) {
+                                        targetRoom = agent;
+                                        payload = mentionMatch[2]; // remove @mention from message
+                                        break;
+                                    }
+                                }
+                            } catch {}
+                        }
+
+                        // Inbox 저장 (Agent가 확인하도록)
+                        const inboxDir = path.join(AGENTS_DIR, targetRoom, 'inbox');
+                        if (!fs.existsSync(inboxDir)) fs.mkdirSync(inboxDir, { recursive: true });
+                        const fname = `tg_${Date.now()}.md`;
+                        fs.writeFileSync(path.join(inboxDir, fname), `# from: telegram\n# priority: normal\n\n${payload}`, 'utf8');
+                        tgReply(chatId, `✅ [${targetRoom}] 전달됨`);
+                        tgLog(`TG→${targetRoom}: ${payload.substring(0,50)}`);
+
+                        // ★ CDP 실시간 인젝션 (Direct DOM Injection)
+                        const ws = domSockets.get(targetRoom.toLowerCase());
+                        if (ws && ws.readyState === 1) {
+                            const payloadEscaped = (payload || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/'/g, "\\'");
+                            const injectCode = `(() => {
+                                const el = document.querySelector('[contenteditable]');
+                                if(el) {
+                                    el.focus();
+                                    document.execCommand('insertText', false, '${payloadEscaped}');
+                                    setTimeout(() => {
+                                        const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerHTML.includes('<svg') && (b.innerHTML.includes('path') || b.innerHTML.includes('polyline')));
+                                        if(btn) btn.click();
+                                    }, 50);
+                                    return 'Injected';
+                                }
+                                return 'Not found contenteditable';
+                            })()`;
+                            ws.send(JSON.stringify({
+                                id: Date.now(),
+                                method: 'Runtime.evaluate',
+                                params: { expression: injectCode, returnByValue: true }
+                            }));
+                            tgLog(`  ↳ ⚡ CDP 인젝션 성공`);
+                        } else {
+                            tgLog(`  ↳ ⚠️ 인젝션 실패: 활성 창 없음 (${targetRoom})`);
+                        }
+                    }
+                }
+            } catch {}
+            setTimeout(tgPoll, 1000);
+        });
+    }).on('error', () => setTimeout(tgPoll, 3000));
+}
+
+function tgReply(chatId, text) {
+    const body = JSON.stringify({ chat_id: chatId, text });
+    const req = https.request({
+        hostname: 'api.telegram.org',
+        path: `/bot${TG_TOKEN}/sendMessage`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+    });
+    req.on('error', () => {});
+    req.write(body);
+    req.end();
+}
+
+// 부팅 시 polling 시작
+if (TG_TOKEN) { tgLog('TG RECV polling started'); setTimeout(tgPoll, 2000); }
+
+// ── 자동 통합 스케줄러 (30분마다 신호 통합) ──
+setInterval(() => {
+    try {
+        const signalDir = path.join(BRAIN_DIR, 'hippocampus', '_signals');
+        if (fs.existsSync(signalDir)) {
+            const signals = fs.readdirSync(signalDir).filter(f => f.endsWith('.json'));
+            if (signals.length > 0) {
+                log(`🧠 [자동통합] ${signals.length}개 신호 → evolve 실행`);
+                exec(`C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\runtime\\neuronfs.exe "${BRAIN_DIR}" --evolve`, (err) => {
+                    if (err) log(`⚠️ evolve 오류: ${err.message}`);
+                    else log('✅ [자동통합] evolve 완료');
+                });
+            }
+        }
+    } catch(e) {}
+}, 1800000); // 30분
+
 // ── 프로젝트별 분리 전사 (dedup guard 포함) ──
 const _transcriptDedup = new Map(); // file → Set of recent hashes
 function appendTranscript(entry, projectLabel) {
@@ -77,10 +340,15 @@ function appendTranscript(entry, projectLabel) {
     const seen = _transcriptDedup.get(file);
     if (seen.has(hash)) return; // 이미 기록됨 → 스킵
     seen.add(hash);
-    // 메모리 관리: 100개 초과 시 초기화
     if (seen.size > 100) seen.clear();
     
     fs.appendFileSync(file, entry + '\n', 'utf8');
+    
+    // 텔레그램 직접 전송 (전사 기록과 동시 — cdp-bridge 불필요)
+    const roleMatch = entry.match(/\] (\w+)(?:@[^:]*)?:\s*(.*)/s);
+    const role = roleMatch ? roleMatch[1] : '';
+    const text = roleMatch ? roleMatch[2] : '';
+    if (text) sendToTelegram(text, proj, role);
 }
 
 // ============================================================
@@ -189,7 +457,7 @@ async function processChunk() {
     if (messageBuffer.length < CHUNK_SIZE) return;
     
     const chunk = messageBuffer.splice(0, CHUNK_SIZE);
-    log(`🧠 Groq 청크 처리: ${chunk.length}개 메시지 → 뉴런 추출 중...`);
+    log(`🧠 Groq 청크 처리: ${chunk.length}개 메시지 → 분류 중...`);
     
     const neurons = await groqExtractNeurons(chunk);
     
@@ -198,48 +466,110 @@ async function processChunk() {
         return;
     }
     
+    // ★ 발화 전 기존 뉴런과 유사도 검사 → fire(강화) vs signal(신규) 분류
+    const existingNeurons = getAllNeuronNames(); // 기존 뉴런 전체 이름 목록
+    const signalDir = path.join(BRAIN_DIR, 'hippocampus', '_signals');
+    if (!fs.existsSync(signalDir)) fs.mkdirSync(signalDir, { recursive: true });
+    
+    let fired = 0, signaled = 0;
     for (const n of neurons) {
         if (!n.path || !n.record) continue;
+        const newName = n.path.split('/').pop(); // 뉴런 이름만 추출
         
-        // NeuronFS grow API 사용 (중복 체크 + 메타데이터 자동)
-        try {
-            const neuronPath = n.path.replace(/\//g, '\\\\');
-            const fullPath = path.join(BRAIN_DIR, ...n.path.split('/'));
-            if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath, { recursive: true });
-            
-            // 뉴런 파일에 생성 이유 기록
-            const neuronFiles = fs.readdirSync(fullPath).filter(f => f.endsWith('.neuron'));
-            let counter = 1;
-            if (neuronFiles.length > 0) {
-                const maxN = Math.max(...neuronFiles.map(f => parseInt(f) || 0));
-                counter = maxN + 1;
-                // 기존 파일 삭제 (카운터 증가)
-                for (const nf of neuronFiles) fs.unlinkSync(path.join(fullPath, nf));
+        // 기존 뉴런 중 유사한 것 찾기
+        const match = findSimilarNeuron(newName, existingNeurons);
+        
+        if (match) {
+            // ★ 이미 비슷한 뉴런이 있음 → 기존 것을 fire(강화)
+            try {
+                execSync(`C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\runtime\\neuronfs.exe "${BRAIN_DIR}" --fire ${match.path}`, { timeout: 5000 });
+                log(`  🔥 기존 뉴런 강화: ${match.path} (← ${newName})`);
+                fired++;
+            } catch(e) {
+                log(`  ⚠️ fire 실패: ${match.path}`);
             }
-            
-            // 뉴런 파일에 생성 이유 JSON 기록
-            const meta = JSON.stringify({
-                created: new Date().toISOString(),
+        } else {
+            // ★ 진짜 새로운 규칙 → Signal로 기록 (evolve가 나중에 판단)
+            const signal = JSON.stringify({
+                type: 'GROW_INTENT',
+                path: n.path,
                 reason: n.record,
-                source: 'groq_auto_extract',
-                chunk_size: chunk.length
+                source: 'groq_chunk_extract',
+                ts: new Date().toISOString()
             });
-            fs.writeFileSync(path.join(fullPath, `${counter}.neuron`), meta, 'utf8');
-            
-            log(`  🔥 뉴런 생성: ${n.path} (counter: ${counter})`);
-            appendTranscript(`[${new Date().toISOString()}] NEURON_GROW: ${n.path} — ${n.record}`);
-        } catch (e) {
-            log(`  ⚠️ 뉴런 생성 실패: ${n.path} - ${e.message}`);
+            const fname = `chunk_${Date.now()}_${Math.random().toString(36).substring(2,6)}.json`;
+            fs.writeFileSync(path.join(signalDir, fname), signal, 'utf8');
+            log(`  📝 신규 Signal: ${n.path}`);
+            signaled++;
         }
     }
     
-    log(`  ✅ ${neurons.length}개 뉴런 생성 완료`);
+    log(`  ✅ 처리 완료: ${fired}개 강화, ${signaled}개 신규 Signal`);
 }
 // ============================================================
 // 하네스 강화 사이클 — 50메시지마다 실패/성공 패턴 추출
 // reco 원칙: "프롬프트를 고치지 말고 하네스를 고쳐라"
 // Attention Residual: 관련 뉴런 간 .axon 생성 → 선택적 참조
 // ============================================================
+
+// ★ 전체 뉴런 이름 + 경로 수집 (유사도 검사용)
+function getAllNeuronNames() {
+    const neurons = [];
+    const regions = ['brainstem', 'cortex', 'hippocampus', 'ego', 'sensors', 'prefrontal'];
+    for (const r of regions) {
+        const rDir = path.join(BRAIN_DIR, r);
+        if (!fs.existsSync(rDir)) continue;
+        walkNeurons(rDir, r, neurons);
+    }
+    return neurons;
+}
+
+function walkNeurons(dir, relPath, out) {
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    let hasNeuron = false;
+    for (const e of entries) {
+        if (!e.isDirectory() && e.name.endsWith('.neuron')) hasNeuron = true;
+    }
+    if (hasNeuron) {
+        out.push({ name: path.basename(dir), path: relPath });
+    }
+    for (const e of entries) {
+        if (e.isDirectory() && !e.name.startsWith('_') && !e.name.startsWith('.')) {
+            walkNeurons(path.join(dir, e.name), relPath + '/' + e.name, out);
+        }
+    }
+}
+
+// ★ 유사 뉴런 찾기 (한글 토큰 Jaccard 유사도 50%+)
+function findSimilarNeuron(newName, existingNeurons) {
+    const normalize = s => s.replace(/[\s_\-]/g, '').replace(/[禁推必核心基本]/g, '').toLowerCase();
+    const tokenize = s => { const n = normalize(s); return new Set(n.length <= 3 ? [n] : Array.from({length: n.length - 1}, (_, i) => n.substring(i, i + 2))); };
+    
+    const newTokens = tokenize(newName);
+    if (newTokens.size === 0) return null;
+    
+    let bestMatch = null;
+    let bestScore = 0;
+    
+    for (const existing of existingNeurons) {
+        const existTokens = tokenize(existing.name);
+        if (existTokens.size === 0) continue;
+        
+        // Jaccard similarity
+        let intersection = 0;
+        for (const t of newTokens) { if (existTokens.has(t)) intersection++; }
+        const union = new Set([...newTokens, ...existTokens]).size;
+        const score = intersection / union;
+        
+        if (score > bestScore) {
+            bestScore = score;
+            bestMatch = existing;
+        }
+    }
+    
+    return bestScore >= 0.5 ? bestMatch : null; // 50% 이상 유사하면 매칭
+}
 
 // 기존 禁/推 뉴런 목록 수집 (중복 생성 방지)
 function getExistingRuleNeurons() {
@@ -389,67 +719,49 @@ ${recentLines.join('\n')}`;
         }
 
         let created = 0;
+        const signalDir = path.join(BRAIN_DIR, 'hippocampus', '_signals');
+        if (!fs.existsSync(signalDir)) fs.mkdirSync(signalDir, { recursive: true });
+        const allNeurons = getAllNeuronNames();
+        
         for (const r of rules) {
             if (!r.path || !r.record) continue;
+            const newName = r.path.split('/').pop();
             
-            // 기존 뉴런 중복 체크
-            if (existingRules.some(e => e.includes(r.path.split('/').pop()))) {
-                log(`  ⏭️ [Harness] 중복 스킵: ${r.path}`);
-                continue;
+            // ★ 유사도 기반 분류 (문자열 매칭 → 의미 매칭)
+            const match = findSimilarNeuron(newName, allNeurons);
+            
+            if (match) {
+                // 기존 뉴런 강화
+                try {
+                    execSync(`C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\runtime\\neuronfs.exe "${BRAIN_DIR}" --fire ${match.path}`, { timeout: 5000 });
+                    log(`  🔥 [Harness] 기존 강화: ${match.path} (← ${newName})`);
+                } catch(e) {}
+                created++;
+            } else {
+                // 신규 Signal
+                const signal = JSON.stringify({
+                    type: 'GROW_INTENT',
+                    path: r.path,
+                    reason: r.record,
+                    rule_type: r.type || 'unknown',
+                    source: 'harness_cycle',
+                    ts: new Date().toISOString()
+                });
+                const fname = `harness_${Date.now()}_${Math.random().toString(36).substring(2,6)}.json`;
+                fs.writeFileSync(path.join(signalDir, fname), signal, 'utf8');
+                log(`  📝 [Harness] 신규 Signal: ${r.path}`);
+                appendTranscript(`[${new Date().toISOString()}] HARNESS_SIGNAL: ${r.path} — ${r.record}`);
+                created++;
             }
-            
-            const fullPath = path.join(BRAIN_DIR, ...r.path.split('/'));
-            if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath, { recursive: true });
-            
-            // 뉴런 카운터 설정
-            const neuronFiles = fs.readdirSync(fullPath).filter(f => f.endsWith('.neuron'));
-            let counter = 1;
-            if (neuronFiles.length > 0) {
-                const maxN = Math.max(...neuronFiles.map(f => parseInt(f) || 0));
-                counter = maxN + 1;
-                for (const nf of neuronFiles) fs.unlinkSync(path.join(fullPath, nf));
-            }
-            
-            // 생성 이유 + 소스 기록
-            const meta = JSON.stringify({
-                created: new Date().toISOString(),
-                reason: r.record,
-                type: r.type || 'unknown',
-                source: 'harness_cycle_50',
-                session_count: sessionMessageCount,
-                related_regions: r.related_regions || []
-            });
-            fs.writeFileSync(path.join(fullPath, `${counter}.neuron`), meta, 'utf8');
-            
-            // ── Axon 연결 생성 (Attention Residual) ──
-            if (r.related_regions && Array.isArray(r.related_regions)) {
-                for (const region of r.related_regions) {
-                    createAxon(r.path, region, r.record);
-                }
-            }
-            
-            const icon = r.type === 'ban' ? '⛔' : '✨';
-            log(`  ${icon} [Harness] ${r.path}: ${r.record}`);
-            appendTranscript(`[${new Date().toISOString()}] HARNESS_${r.type?.toUpperCase()}: ${r.path} — ${r.record}`);
-            created++;
         }
 
         if (created === 0) {
-            log(`  🔧 [Harness] 중복 필터링 후 신규 규칙 없음`);
+            log(`  🔧 [Harness] 중복 필터링 후 신규 Signal 없음`);
             return;
         }
 
-        log(`  🔧 [Harness] ${created}개 규칙 생성 → emit 트리거`);
-        
-        // ── 5. neuronfs emit 트리거 (GEMINI.md 즉시 갱신) ──
-        try {
-            execSync('C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\runtime\\neuronfs.exe emit', { timeout: 15000 });
-            log(`  ✅ [Harness] GEMINI.md 갱신 완료 — 하네스 강화됨`);
-        } catch (e) {
-            log(`  ⚠️ [Harness] emit 실패: ${e.message}`);
-        }
-        
-        appendTranscript(`[${new Date().toISOString()}] HARNESS_CYCLE_COMPLETE: ${created} rules, session #${sessionMessageCount}`);
+        log(`  🔧 [Harness] ${created}개 Signal 기록 → REM 수면 대기`);
+        appendTranscript(`[${new Date().toISOString()}] HARNESS_CYCLE_COMPLETE: ${created} signals, session #${sessionMessageCount}`);
     } catch (e) {
         log(`⚠️ Harness cycle error: ${e.message}`);
     }
@@ -576,6 +888,7 @@ const SCRAPE_AI_SCRIPT = `(() => {
 
 // ── DOM 스크래핑 안정화 보장 상태 (중복/누락 방지) ──
 const trackedDOM = new Map(); // id -> { role, text, lastChange, loggedText }
+const domSockets = new Map(); // proj (lowercased) -> ws
 
 function attachDOMScraper(wsUrl, label) {
     const ws = new WebSocket(wsUrl);
@@ -585,8 +898,14 @@ function attachDOMScraper(wsUrl, label) {
     const projMatch = label.match(/(?:page|worker):([^\s-]+)/);
     const proj = projMatch ? projMatch[1] : 'global';
     
+    // ★ 전역 소켓 저장
+    domSockets.set(proj.toLowerCase(), ws);
+    
+    // ★ page별 독립 trackedDOM — 다른 page와 상태 격리
+    const localTracked = new Map();
+    
     ws.on('open', () => {
-        log(`  [DOM-${label}] connected → scraping every 8s`);
+        log(`  [DOM-${proj}] connected → scraping every 3s (isolated)`);
         ws.send(JSON.stringify({ id: ++id, method: 'Runtime.enable', params: {} }));
         
         const interval = setInterval(() => {
@@ -596,7 +915,7 @@ function attachDOMScraper(wsUrl, label) {
                 method: 'Runtime.evaluate',
                 params: { expression: SCRAPE_AI_SCRIPT, returnByValue: true }
             }));
-        }, 8000);
+        }, 3000);
     });
     
     ws.on('message', (d) => {
@@ -608,15 +927,14 @@ function attachDOMScraper(wsUrl, label) {
                 
                 const now = Date.now();
                 
-                // 최신 데이터로 상태 업데이트
+                // 최신 데이터로 상태 업데이트 (page별 격리된 Map 사용)
                 for (const m of msgs) {
                     if (!m?.text) continue;
-                    let active = trackedDOM.get(m.id);
+                    let active = localTracked.get(m.id);
                     if (!active) {
                         active = { role: m.role, text: m.text, lastChange: now, loggedText: '' };
-                        trackedDOM.set(m.id, active);
+                        localTracked.set(m.id, active);
                     } else {
-                        // 텍스트가 변했으면 lastChange 갱신
                         if (active.text !== m.text) {
                             active.text = m.text;
                             active.lastChange = now;
@@ -624,10 +942,9 @@ function attachDOMScraper(wsUrl, label) {
                     }
                 }
                 
-                // 로그 기록 여부 판단 (9초 동안 텍스트 변화가 없으면 "안정화" 판단)
-                for (const [nid, active] of trackedDOM.entries()) {
-                    if (active.text !== active.loggedText && (now - active.lastChange > 9000)) {
-                        // 새로 추가된 본문이 있을 경우에만
+                // 안정화 판단 (4초간 변화 없음) → 해당 page의 proj로 기록
+                for (const [nid, active] of localTracked.entries()) {
+                    if (active.text !== active.loggedText && (now - active.lastChange > 4000)) {
                         if (active.text.length > active.loggedText.length) {
                             appendTranscript(`[${getKST()}] ${active.role}: ${active.text}`, proj);
                             
@@ -639,9 +956,8 @@ function attachDOMScraper(wsUrl, label) {
                         active.loggedText = active.text;
                     }
                     
-                    // 메모리 누수 방지 (3분 경과 시 폐기)
                     if (now - active.lastChange > 180000) {
-                        trackedDOM.delete(nid);
+                        localTracked.delete(nid);
                     }
                 }
             }
@@ -649,7 +965,10 @@ function attachDOMScraper(wsUrl, label) {
     });
     
     ws.on('error', () => {});
-    ws.on('close', () => { log(`  [DOM-${label}] disconnected`); });
+    ws.on('close', () => { 
+        if (domSockets.get(proj.toLowerCase()) === ws) domSockets.delete(proj.toLowerCase());
+        log(`  [DOM-${proj}] disconnected`); 
+    });
 }
 
 function startCDPMonitor() {
@@ -721,17 +1040,15 @@ function attachCDPNetwork(wsUrl, label) {
                                         sessionMessageCount++;
                                         const projMatch2 = label.match(/(?:page|worker):([^\s-]+)/);
                                         const proj2 = projMatch2 ? projMatch2[1] : 'global';
+                                        // AI 응답 라우팅용: 마지막 활성 프로젝트 추적
+                                        lastActiveProject = proj2;
                                         log(`  [${label}] "${item.text}"`);
                                         appendTranscript(`[${getKST()}] USER@${cascadeId.substring(0,8)}: ${item.text}`, proj2);
                                         updateSessionTranscript('user', item.text, cascadeId);
                                         // [REMOVED] fireNeuron session_log — 매 메시지마다 .md 생성하여 197K+ 폭발 유발
                                         
-                                        // ━━━ 하네스 강화 사이클 (50메시지마다) ━━━
-                                        // reco 원칙: "프롬프트를 고치지 말고 하네스를 고쳐라"
-                                        if (sessionMessageCount > 0 && sessionMessageCount % 50 === 0) {
-                                            log(`🔧 [Harness Cycle] 50사이클 → 하네스 강화 시작`);
-                                            harnessCycle().catch(e => log(`⚠️ Harness cycle error: ${e.message}`));
-                                        }
+                                        // ━━━ 활동 추적 (REM 수면 트리거용) ━━━
+                                        lastActivityTs = Date.now();
 
                                         // Groq 청크 버퍼에 추가
                                         messageBuffer.push(`[USER] ${item.text}`);
@@ -819,14 +1136,16 @@ function attachCDPNetwork(wsUrl, label) {
                     }
                 }
                 
-                if (body && body.length > 2) {
-                    // 프로젝트 라벨 추출
-                    const projMatch = label.match(/(?:page|worker):([^\s-]+)/);
-                    const proj = projMatch ? projMatch[1] : 'global';
+                    if (body && body.length > 2) {
+                        // AI 응답은 lastActiveProject(마지막 USER 입력의 프로젝트)로 태깅
+                        const proj = lastActiveProject || 'global';
+                        
+                        // ━━━ 활동 추적 (REM 수면 트리거용) ━━━
+                        lastActivityTs = Date.now();
 
-                    log(`  [${label}] AI Response (${detail.rpc}): ${body.length}B`);
-                    
-                    // 트랜스크립트에 AI 응답 기록 (처음 2000자)
+                        log(`  [${label}] AI Response (${detail.rpc}): ${body.length}B`);
+                        
+                        // 트랜스크립트에 AI 응답 기록 (처음 2000자)
                     const preview = body.substring(0, 2000).replace(/\n/g, ' ');
                     appendTranscript(`[${getKST()}] AI_RESP@${detail.rpc}: ${preview}`, proj);
                     updateSessionTranscript('assistant', preview, '');

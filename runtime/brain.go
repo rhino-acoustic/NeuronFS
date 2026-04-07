@@ -16,7 +16,7 @@ package main
 // DEPENDS ON:
 //   (stdlib only — foundational module)
 
-import (
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -156,15 +156,16 @@ func findBrainRoot() string {
 // This is used for recency boost — new neurons get protection based on when they were born,
 // not when they were last fired.
 func getFolderBirthTime(folderPath string) time.Time {
-	fi, err := os.Stat(folderPath)
+	fi, err := vfsStat(folderPath)
 	if err != nil {
 		return time.Now()
 	}
-	d, ok := fi.Sys().(*syscall.Win32FileAttributeData)
-	if !ok {
-		return fi.ModTime() // fallback: non-Windows
+	if sys := fi.Sys(); sys != nil {
+		if d, ok := sys.(*syscall.Win32FileAttributeData); ok {
+			return time.Unix(0, d.CreationTime.Nanoseconds())
+		}
 	}
-	return time.Unix(0, d.CreationTime.Nanoseconds())
+	return fi.ModTime() // fallback: non-Windows or VFS
 }
 
 // SCAN: Folder tree → Brain structure
@@ -173,7 +174,7 @@ func scanBrain(root string) Brain {
 	brain := Brain{Root: root}
 
 	regionsToScan := make(map[string]string)
-	entries, err := os.ReadDir(root)
+	entries, err := vfsReadDir(root)
 	if err == nil {
 		for _, entry := range entries {
 			if entry.IsDir() {
@@ -186,7 +187,7 @@ func scanBrain(root string) Brain {
 	}
 
 	sharedPath := filepath.Join(root, ".neuronfs", "shared")
-	if _, err := os.Stat(sharedPath); err == nil {
+	if _, err := vfsStat(sharedPath); err == nil {
 		regionsToScan["shared"] = sharedPath
 		regionPriority["shared"] = 7
 		regionIcons["shared"] = "🔗"
@@ -203,9 +204,9 @@ func scanBrain(root string) Brain {
 		}
 
 		// Scan for .axon files at region root
-		axonFiles, _ := filepath.Glob(filepath.Join(regionPath, "*.axon"))
+		axonFiles, _ := vfsGlob(filepath.Join(regionPath, "*.axon"))
 		for _, af := range axonFiles {
-			content, _ := os.ReadFile(af)
+			content, _ := vfsReadFile(af)
 			target := strings.TrimSpace(string(content))
 			// Remove UTF-8 BOM if present
 			target = strings.TrimPrefix(target, "\xEF\xBB\xBF")
@@ -219,7 +220,7 @@ func scanBrain(root string) Brain {
 		// Pattern: NeuronName.Counter.neuron or NeuronName.neuron
 		flatNeuronRegex := regexp.MustCompile(`^(.+)\.(\d+)\.neuron$`)
 		flatNeuronSimple := regexp.MustCompile(`^(.+)\.neuron$`)
-		rootNeuronFiles, _ := filepath.Glob(filepath.Join(regionPath, "*.neuron"))
+		rootNeuronFiles, _ := vfsGlob(filepath.Join(regionPath, "*.neuron"))
 		neuronMap := make(map[string]*Neuron) // group by neuron name (Path)
 		for _, nf := range rootNeuronFiles {
 			fname := filepath.Base(nf)
@@ -250,7 +251,7 @@ func scanBrain(root string) Brain {
 					Depth:    0,
 					Counter:  counter,
 				}
-				if fileInfo, err := os.Stat(nf); err == nil {
+				if fileInfo, err := vfsStat(nf); err == nil {
 					n.ModTime = fileInfo.ModTime()
 				} else {
 					n.ModTime = time.Now()
@@ -268,8 +269,8 @@ func scanBrain(root string) Brain {
 		}
 
 		// Walk for neuron folders — Axiom: Folder=Neuron, File=Trace
-		filepath.Walk(regionPath, func(path string, info os.FileInfo, err error) error {
-			if err != nil || !info.IsDir() || path == regionPath {
+		vfsWalkDir(regionPath, func(path string, d fs.DirEntry, err error) error {
+			if err != nil || !d.IsDir() || path == regionPath {
 				return nil
 			}
 
@@ -291,32 +292,39 @@ func scanBrain(root string) Brain {
 			depth := strings.Count(relPath, string(filepath.Separator))
 
 			n, exists := neuronMap[relPath]
+			var dModTime time.Time
+			if dInfo, err := d.Info(); err == nil {
+				dModTime = dInfo.ModTime()
+			} else {
+				dModTime = time.Now()
+			}
+
 			if !exists {
 				n = &Neuron{
 					Name:      baseName,
 					Path:      relPath,
 					FullPath:  path,
 					Depth:     depth,
-					ModTime:   info.ModTime(),
+					ModTime:   dModTime,
 					BirthTime: getFolderBirthTime(path),
 				}
 				neuronMap[relPath] = n
 			} else {
 				n.FullPath = path
 				n.Depth = depth
-				if info.ModTime().After(n.ModTime) {
-					n.ModTime = info.ModTime()
+				if dModTime.After(n.ModTime) {
+					n.ModTime = dModTime
 				}
 			}
 
-			neuronFiles, _ := filepath.Glob(filepath.Join(path, "*.neuron"))
-			contraFiles, _ := filepath.Glob(filepath.Join(path, "*.contra"))
+			neuronFiles, _ := vfsGlob(filepath.Join(path, "*.neuron"))
+			contraFiles, _ := vfsGlob(filepath.Join(path, "*.contra"))
 			neuronFiles = append(neuronFiles, contraFiles...)
-			goalFiles, _ := filepath.Glob(filepath.Join(path, "*.goal"))
+			goalFiles, _ := vfsGlob(filepath.Join(path, "*.goal"))
 
 			for _, nf := range neuronFiles {
 				fname := filepath.Base(nf)
-				if nfInfo, err := os.Stat(nf); err == nil {
+				if nfInfo, err := vfsStat(nf); err == nil {
 					if nfInfo.ModTime().After(n.ModTime) {
 						n.ModTime = nfInfo.ModTime()
 					}
@@ -352,19 +360,19 @@ func scanBrain(root string) Brain {
 
 			if len(goalFiles) > 0 {
 				n.HasGoal = true
-				if content, err := os.ReadFile(goalFiles[0]); err == nil && len(content) > 0 {
+				if content, err := vfsReadFile(goalFiles[0]); err == nil && len(content) > 0 {
 					n.GoalText = strings.TrimSpace(string(content))
 				}
 			}
 
-			geofenceFiles, _ := filepath.Glob(filepath.Join(path, "*.geofence"))
+			geofenceFiles, _ := vfsGlob(filepath.Join(path, "*.geofence"))
 			if len(geofenceFiles) > 0 {
-				if content, err := os.ReadFile(geofenceFiles[0]); err == nil && len(content) > 0 {
+				if content, err := vfsReadFile(geofenceFiles[0]); err == nil && len(content) > 0 {
 					n.Geofence = strings.TrimSpace(string(content))
 				}
 			}
 
-			dormantFiles, _ := filepath.Glob(filepath.Join(path, "*.dormant"))
+			dormantFiles, _ := vfsGlob(filepath.Join(path, "*.dormant"))
 			if len(dormantFiles) > 0 {
 				n.IsDormant = true
 			}
@@ -392,7 +400,7 @@ func scanBrain(root string) Brain {
 			// ━━━ Natural Language Rule: rule.md → Description (post-Walk) ━━━
 			if n.Description == "" && n.FullPath != "" {
 				ruleFile := filepath.Join(n.FullPath, "rule.md")
-				if ruleContent, err := os.ReadFile(ruleFile); err == nil {
+				if ruleContent, err := vfsReadFile(ruleFile); err == nil {
 					ruleText := strings.TrimSpace(string(ruleContent))
 					inFM := false
 					for _, line := range strings.Split(ruleText, "\n") {

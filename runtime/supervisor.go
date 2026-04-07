@@ -96,7 +96,6 @@ func runSupervisor(brainRoot string) {
 		{Name: "agent-bridge", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "core_agents", "agent-bridge.mjs")}, Dir: nfsRoot, Enabled: true},
 		{Name: "hijack-launcher", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "hijackers", "hijack-launcher.mjs")}, Dir: nfsRoot, Enabled: true},
 		{Name: "headless-executor", Cmd: "node", Args: []string{filepath.Join(hijackDir, "headless-executor.mjs")}, Dir: hijackDir, Enabled: svPathExists(filepath.Join(hijackDir, "headless-executor.mjs"))},
-		{Name: "telegram-bridge", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "telegram-bridge", "cdp-bridge.mjs")}, Dir: nfsRoot, Enabled: svPathExists(filepath.Join(nfsRoot, "telegram-bridge", "cdp-bridge.mjs"))},
 	}
 
 	svLog("\033[35m[AURA] Awakening cognitive architecture... Supervisor online.\033[0m")
@@ -546,8 +545,8 @@ func svStatus(children []*ChildSpec) {
 					memStr = strings.TrimSpace(memStr)
 					var memKB int64
 					fmt.Sscanf(memStr, "%d", &memKB)
-					if memKB > 1024*50 { // 50MB Limit
-						svLog("\033[31m[TRAUMA] Synaptic overload detected (Amyloid Plaque > 50MB). Triggering in-memory profile...\033[0m")
+					if memKB > 1024*200 { // 200MB Limit
+						svLog("\033[31m[TRAUMA] Synaptic overload detected (Amyloid Plaque > 200MB). Triggering in-memory profile...\033[0m")
 						
 						// In-Memory Parsing (Zero External Dependency)
 						var records []runtime.MemProfileRecord

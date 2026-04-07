@@ -155,12 +155,11 @@ func runIdleLoop(brainRoot string) {
 			}
 		}
 
-		// 1. Evolve — DISABLED: 계층 구조(옵코드>룬워드>상세) 미준수로 쓰레기 뉴런 생성
-		// 향후 evolve가 3계층 taxonomy를 강제하도록 리팩토링 후 재활성화
-		// if apiKey != "" {
-		// 	runEvolve(brainRoot, false)
-		// }
-		fmt.Println("[IDLE] ⏸️  Evolve disabled (taxonomy enforcement pending)")
+		// 1. Evolve — 재활성화 (brainstem/limbic 하드가드 + region 분류 AI 모델 탑재 완료)
+		if apiKey != "" {
+			fmt.Println("[IDLE] 🧬 Evolve 실행 (region 분류 AI 판단 모델 탑재)...")
+			runEvolve(brainRoot, false)
+		}
 
 		// 2. Auto-decay (mark neurons untouched for 7+ days as dormant)
 		fmt.Println("[IDLE] 💤 Running auto-decay (7 days)...")
@@ -294,10 +293,36 @@ func digestTranscripts(brainRoot string) int {
 		"금지", "하지마", "반드시", "항상", "절대",
 	}
 
+	// 감정 감지 키워드 → limbic 자동 fire
+	frustrationKeywords := []string{"?", "!!", "아니", "왜", "답답", "안돼", "뭐야", "다시", "허울"}
+	satisfactionKeywords := []string{"ㅋㅋ", "좋아", "완벽", "굿", "오", "진행", "맞아"}
+	frustrationCount := 0
+	satisfactionCount := 0
+
 	lines := strings.Split(newContent, "\n")
 	var corrections []string
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
+		if len(line) < 3 {
+			continue
+		}
+
+		// 감정 감지 (사용자 발화 라인만)
+		if strings.Contains(line, " PD]") {
+			for _, kw := range frustrationKeywords {
+				if strings.Contains(line, kw) {
+					frustrationCount++
+					break
+				}
+			}
+			for _, kw := range satisfactionKeywords {
+				if strings.Contains(line, kw) {
+					satisfactionCount++
+					break
+				}
+			}
+		}
+
 		if len(line) < 10 {
 			continue
 		}
@@ -314,6 +339,16 @@ func digestTranscripts(brainRoot string) int {
 				break
 			}
 		}
+	}
+
+	// 감정 결과 → limbic 뉴런 자동 fire
+	if frustrationCount >= 3 {
+		fireNeuron(brainRoot, "limbic/긴급_사용자답답함감지")
+		fmt.Printf("[LIMBIC] 😤 답답함 %d회 감지 → limbic fire\n", frustrationCount)
+	}
+	if satisfactionCount >= 3 {
+		fireNeuron(brainRoot, "limbic/칭찬_사용자만족감지")
+		fmt.Printf("[LIMBIC] 😊 만족 %d회 감지 → limbic fire\n", satisfactionCount)
 	}
 
 	// cursor 갱신
