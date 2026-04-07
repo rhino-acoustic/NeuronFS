@@ -52,7 +52,7 @@ mkdir 禁/fallback                              # "禁" folder = absolute prohib
 
 ## Wiki — 22 Episodes of Architecture
 
-> **[NeuronFS Wiki](https://github.com/rhino-acoustic/NeuronFS/wiki)** (KOR/ENG bilingual)
+> **[NeuronFS Wiki](https://github.com/rhino-acoustic/NeuronFS/wiki)** — Korean original, English titles
 
 - **[Getting Started](https://github.com/rhino-acoustic/NeuronFS/wiki/Getting-Started)** — 5-min Quickstart
 - **[Act 1: Doubt and Discovery](https://github.com/rhino-acoustic/NeuronFS/wiki/Act-1)** (Ep.01-07)
