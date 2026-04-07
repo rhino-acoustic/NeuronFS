@@ -354,12 +354,18 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	sb.WriteString(fmt.Sprintf("**작업 전 `%s\\{영역}\\_rules.md`를 반드시 읽는다** (cortex=코딩/NeuronFS, sensors=NAS/브랜드, prefrontal=방향)\n", brainRoot))
 	sb.WriteString("⚠️ 읽지 않으면 금지 규칙 위반이 발생한다. view_file로 먼저 읽어라. MCP read_region 호출 금지(느림).\n")
 
-	// ━━━ CODE MAP (코드 구조 복원) ━━━
-	codeMapPath := filepath.Join(filepath.Dir(brainRoot), "runtime", "CODE_MAP.md")
-	if _, err := os.Stat(codeMapPath); err == nil {
-		sb.WriteString(fmt.Sprintf("**코드 수정 전 `%s`를 반드시 읽는다** (파일 구조/의존성/import 관계)\n\n", codeMapPath))
-	}
+	// ━━━ CODE MAP (뉴런 계층 구조 원칙) ━━━
+	sb.WriteString("### 🗺️ 코드맵\n")
+	sb.WriteString("**코드맵은 md파일이 아닌 뉴런 계층 구조(cortex/dev/)다.** 코드 수정 전 해당 프로젝트의 뉴런 계층을 반드시 읽는다.\n")
+	sb.WriteString("프로젝트 분석 뉴런 생성 시 **플랫 뉴런 금지** — 반드시 계층 구조(구조/의도/문제 하위폴더)로 만든다.\n")
+	sb.WriteString(fmt.Sprintf("참고: `%s\\runtime\\CODE_MAP.md`는 NeuronFS 자체 런타임 전용. 코드 수정 후 `go vet ./...` 실행.\n\n", filepath.Dir(brainRoot)))
 
+	// ━━━ 영혼 (AI 행동양식 — 프롬프트 엔지니어링 정수) ━━━
+	sb.WriteString("### 🔮 영혼\n")
+	sb.WriteString("출력 전 자문(진짜야? 한숨? 편한길? 같은실수? 프리미엄?) → 걸리면 다시\n")
+	sb.WriteString("**CoVe:** 초안→검증질문→독립검증→수정본. 검증 없는 출력 금지\n")
+	sb.WriteString("**실행후 증거보고:** 코드 수정 → build/vet 실행 → 결과 보고. 시뮬레이션 금지\n")
+	sb.WriteString("**단계분해:** 복잡작업은 쪼개라. 한번에 모든것 금지\n\n")
 
 	// ━━━ AGENT INBOX ━━━
 	agentInbox := emitAgentInbox(brainRoot)
@@ -367,10 +373,12 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		sb.WriteString(agentInbox)
 	}
 
-	// ━━━ SESSION TRANSCRIPT LOCATION ━━━
+	// ━━━ SESSION TRANSCRIPT LOCATION (절대경로 강제) ━━━
 	transcriptDir := filepath.Join(brainRoot, "_transcripts")
 	if _, err := os.Stat(transcriptDir); err == nil {
-		sb.WriteString(fmt.Sprintf("### 📜 전사 기록\n전사물 경로: `%s`\n\n", transcriptDir))
+		// 절대경로로 변환하여 글로벌 룰에 포함
+		absTranscript, _ := filepath.Abs(transcriptDir)
+		sb.WriteString(fmt.Sprintf("### 📜 전사 기록\n전사물 경로: `%s`\n\n", absTranscript))
 	}
 
 	sb.WriteString("<!-- NEURONFS:END -->\n")

@@ -241,3 +241,4 @@ telegram-bridge/.env
 
 # Quarantine (dead experiments)
 _quarantine/
+telegram-bridge/.offsets

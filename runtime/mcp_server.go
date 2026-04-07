@@ -193,11 +193,21 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 				return mcpError("path required"), nil
 			}
 
-			if err := growNeuron(brainRoot, args.Path); err != nil {
-				return mcpError(err.Error()), nil
+			signalPath := filepath.Join(brainRoot, "hippocampus", "_signals")
+			os.MkdirAll(signalPath, 0755)
+			ts := fmt.Sprintf("%d", time.Now().UnixMilli())
+			sigFile := filepath.Join(signalPath, fmt.Sprintf("signal_%s.json", ts))
+
+			payload := map[string]string{
+				"type": "GROW_INTENT",
+				"path": args.Path,
+				"ts":   time.Now().Format("2006-01-02T15:04:05"),
 			}
+			data, _ := json.Marshal(payload)
+			os.WriteFile(sigFile, data, 0644)
+
 			return &mcp.CallToolResult{
-				Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("🌱 grown: %s", args.Path)}},
+				Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("🌱 신호 기록됨 (수면(REM) 통합 대기): %s", args.Path)}},
 			}, nil
 		},
 	)
@@ -340,23 +350,34 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 				h.Close()
 			}
 
-			// ── 2. 뉴런 생성/발화 ──
+			// ── 2. 뉴런 신호 기록 (직접 생성 안함) ──
+			// (단, 기존에 존재하는 뉴런이라면 fire는 허용)
 			neuronPath := strings.ReplaceAll(args.Path, "/", string(filepath.Separator))
 			fullPath := filepath.Join(brainRoot, neuronPath)
 
-			action := "grown"
+			action := "signal recorded"
 			if info, err := os.Stat(fullPath); err == nil && info.IsDir() {
 				fireNeuron(brainRoot, args.Path)
 				action = "fired (카운터 +1)"
 			} else {
-				if err := growNeuron(brainRoot, args.Path); err != nil {
-					return mcpError("grow failed: " + err.Error()), nil
+				signalPath := filepath.Join(brainRoot, "hippocampus", "_signals")
+				os.MkdirAll(signalPath, 0755)
+				ts := fmt.Sprintf("%d", time.Now().UnixMilli())
+				sigFile := filepath.Join(signalPath, fmt.Sprintf("signal_%s.json", ts))
+
+				payload := map[string]string{
+					"type": "CORRECT_INTENT",
+					"path": args.Path,
+					"text": args.Text,
+					"ts":   time.Now().Format("2006-01-02T15:04:05"),
 				}
+				data, _ := json.Marshal(payload)
+				os.WriteFile(sigFile, data, 0644)
 			}
 
 			return &mcp.CallToolResult{
 				Content: []mcp.Content{&mcp.TextContent{
-					Text: fmt.Sprintf("📝 교정 반영: %s\n사유: %s\n결과: %s\n⚡ 하네스 로그 기록됨 → 개인화 뉴런 자동 생성 대기", args.Path, args.Text, action),
+					Text: fmt.Sprintf("📝 교정 반영 (Signal): %s\n사유: %s\n결과: %s\n⚡ 하네스 로그 및 REM 수면 큐에 기록됨", args.Path, args.Text, action),
 				}},
 			}, nil
 		},

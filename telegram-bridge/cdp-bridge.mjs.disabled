@@ -33,8 +33,19 @@ try { if (!AUTHORIZED_CHAT_ID && fs.existsSync(CHAT_ID_FILE)) AUTHORIZED_CHAT_ID
 
 // ═══ State ═══
 const CDP_PORT = 9000;
+const MOUNT_FILE = path.join(import.meta.dirname, '.mount');
+const OFFSETS_FILE = path.join(import.meta.dirname, '.offsets');
 let currentRoom = 'NeuronFS';
-const fileOffsets = new Map();          // file → last read byte offset
+try { if (fs.existsSync(MOUNT_FILE)) currentRoom = fs.readFileSync(MOUNT_FILE, 'utf8').trim(); } catch {}
+const fileOffsets = new Map();
+// 오프셋 디스크 복원
+try {
+  if (fs.existsSync(OFFSETS_FILE)) {
+    const saved = JSON.parse(fs.readFileSync(OFFSETS_FILE, 'utf8'));
+    for (const [k, v] of Object.entries(saved)) fileOffsets.set(k, v);
+    console.log(`[BOOT] 💾 Restored ${fileOffsets.size} offsets from disk`);
+  }
+} catch {}
 const sentHashes = new Set();           // MD5 ring buffer (50)
 const MAX_SENT = 50;
 let lastSentLine = '';
@@ -50,6 +61,12 @@ bot.on('polling_error', (e) => console.error('[TG] Polling error:', e.message));
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   
+  // 매 수신마다 chat_id 갱신
+  if (AUTHORIZED_CHAT_ID !== String(chatId)) {
+    AUTHORIZED_CHAT_ID = String(chatId);
+    try { fs.writeFileSync(CHAT_ID_FILE, AUTHORIZED_CHAT_ID, 'utf8'); } catch {}
+    console.log(`[TG] 🔐 chat_id updated: ${chatId}`);
+  }
   if (!AUTHORIZED_CHAT_ID) {
     AUTHORIZED_CHAT_ID = String(chatId);
     try { fs.writeFileSync(CHAT_ID_FILE, AUTHORIZED_CHAT_ID, 'utf8'); } catch {}
@@ -102,6 +119,10 @@ bot.on('message', async (msg) => {
         await bot.sendMessage(chatId, `현재 방: 📌 ${currentRoom}`);
       } else {
         currentRoom = room;
+        fs.writeFileSync(MOUNT_FILE, currentRoom, 'utf8');
+        // 새 방의 전사 오프셋 초기화 (현재 위치부터)
+        const newFile = getCurrentTranscriptFile();
+        if (fs.existsSync(newFile)) fileOffsets.set(newFile, fs.statSync(newFile).size);
         await bot.sendMessage(chatId, `✅ 방 전환: 📌 ${currentRoom}`);
         console.log(`[MOUNT] 📌 ${currentRoom}`);
       }
@@ -132,16 +153,9 @@ function getCurrentTranscriptFile() {
   const now = new Date();
   const date = now.toISOString().split('T')[0];
   const hour = now.getHours().toString().padStart(2, '0');
-  // Try NeuronFS_ pattern first, then global_
-  const candidates = [
-    `NeuronFS_${date}_${hour}h.txt`,
-    `global_${date}_${hour}h.txt`
-  ];
-  for (const name of candidates) {
-    const fp = path.join(TRANSCRIPTS_DIR, name);
-    if (fs.existsSync(fp)) return fp;
-  }
-  return path.join(TRANSCRIPTS_DIR, candidates[0]); // default
+  // 마운트된 방의 전사 파일만 감시 (global fallback 없음)
+  const name = `${currentRoom}_${date}_${hour}h.txt`;
+  return path.join(TRANSCRIPTS_DIR, name);
 }
 
 function md5(s) {
@@ -172,6 +186,7 @@ function extractNewContent(filePath) {
     fs.closeSync(fd);
     
     fileOffsets.set(filePath, stat.size);
+    saveOffsets();
     return buf.toString('utf8');
   } catch {
     return null;
@@ -209,21 +224,69 @@ function parseTranscriptLines(raw) {
 async function pollTranscripts() {
   if (!AUTHORIZED_CHAT_ID) return;
   
-  const filePath = getCurrentTranscriptFile();
-  const newContent = extractNewContent(filePath);
-  if (!newContent) return;
+  // KST 기준 (전사 파일명이 로컬 시간 기준)
+  const now = new Date(Date.now() + 32400000); // UTC+9
+  const date = now.toISOString().split('T')[0];
+  const hour = now.toISOString().substring(11, 13);
+  const suffix = `${date}_${hour}h.txt`;
   
-  console.log(`[POLL] ${path.basename(filePath)}: +${newContent.length} bytes`);
-  const messages = parseTranscriptLines(newContent);
-  if (messages.length) console.log(`[POLL] ${messages.length} messages parsed`);
+  let files;
+  try {
+    files = fs.readdirSync(TRANSCRIPTS_DIR)
+      .filter(f => f.endsWith(suffix) && !f.startsWith('global_'));
+  } catch { return; }
   
-  for (const msg of messages) {
-    if (msg.text.length < 5) continue;
+  for (const fname of files) {
+    const proj = fname.replace(`_${suffix}`, '');
     
-    // 텔레그램 에코, AI_RESP 시스템, JSON 응답 차단
-    if (msg.text.includes('[telegram')) continue;
-    if (msg.role === 'AI_RESP') continue;
-    if (msg.text.startsWith('{"') && msg.text.endsWith('}')) continue;
+    // 마운트 필터: 'all'이면 전부, 아니면 마운트된 방만
+    if (currentRoom !== 'all' && proj !== currentRoom) continue;
+    
+    const filePath = path.join(TRANSCRIPTS_DIR, fname);
+    const newContent = extractNewContent(filePath);
+    if (!newContent) continue;
+    
+    console.log(`[POLL] ${fname}: +${newContent.length} bytes`);
+    const messages = parseTranscriptLines(newContent);
+    if (messages.length) console.log(`[POLL] ${messages.length} messages parsed`);
+    
+    // 프로젝트 라벨 추가
+    for (const msg of messages) {
+      msg.label = proj;
+    }
+    
+    await sendMessages(messages);
+  }
+}
+  
+async function sendMessages(messages) {
+  console.log(`[SEND] processing ${messages.length} messages`);
+  for (const msg of messages) {
+    if (msg.text.length < 5) { console.log(`[SKIP] short: ${msg.role} ${msg.text.length}ch`); continue; }
+    if (msg.text.includes('[telegram')) { console.log(`[SKIP] telegram ref: ${msg.role}`); continue; }
+    if (msg.role === 'AI_RESP') { console.log(`[SKIP] AI_RESP`); continue; }
+    if (msg.role === 'CMD') { msg.icon = '⚡'; } // CMD도 전송 (코드 블록)
+    if (msg.role === 'TOOL') { console.log(`[SKIP] TOOL`); continue; }
+    if (msg.text.startsWith('{"') && msg.text.endsWith('}')) { console.log(`[SKIP] JSON`); continue; }
+    
+    // ATTACH: 파일 전송
+    if (msg.role === 'ATTACH') {
+      const filePath = msg.text.trim();
+      if (fs.existsSync(filePath)) {
+        const label = msg.label ? `[${msg.label}] ` : '';
+        try {
+          if (/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(filePath)) {
+            await bot.sendPhoto(AUTHORIZED_CHAT_ID, filePath, { caption: `📎 ${label}${path.basename(filePath)}` });
+          } else {
+            await bot.sendDocument(AUTHORIZED_CHAT_ID, filePath, { caption: `📎 ${label}${path.basename(filePath)}` });
+          }
+          console.log(`[→TG] 📎 ${path.basename(filePath)}`);
+        } catch (e) {
+          console.log(`[TG] file send fail: ${e.message}`);
+        }
+      }
+      continue;
+    }
     
     let text = msg.text.length > 3900 
       ? msg.text.substring(0, 3900) + '\n\n[...truncated]' 
@@ -232,46 +295,47 @@ async function pollTranscripts() {
     if (text === lastSentLine) continue;
     if (isDuplicate(text)) continue;
     
-    // HTML 이스케이프
     const esc = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const label = msg.label ? `[${msg.label}] ` : '';
     
-    // 역할별 포맷 분기
     let fullMsg;
-    if (msg.role === 'CMD') {
-      fullMsg = `⚡ <pre>${esc(text)}</pre>`;
+    if (msg.role === 'USER') {
+      fullMsg = `👤 ${label}${esc(text)}`;
     } else if (msg.role === 'THINK') {
-      fullMsg = `🧠 <i>${esc(text)}</i>`;
-    } else if (msg.role === 'USER') {
-      fullMsg = `👤 ${esc(text)}`;
+      fullMsg = `🧠 ${label}\n<pre><code class="language-text">${esc(text)}</code></pre>`;
+    } else if (msg.role === 'CMD') {
+      fullMsg = `⚡ ${label}\n<pre><code class="language-powershell">${esc(text)}</code></pre>`;
     } else {
-      // AI: 먼저 이스케이프 후 코드 블록 변환
-      const escaped = esc(text);
-      fullMsg = `💬 ${escaped.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => 
-        `<pre>${code.trim()}</pre>`
-      ).replace(/`([^`]+)`/g, '<code>$1</code>')}`;
+      fullMsg = `💬 ${label}${esc(text)}`;
     }
     
     const opts = { parse_mode: 'HTML' };
     
-    // Progressive edit
     if (lastSentMsgId && lastSentLine && text.startsWith(lastSentLine.substring(0, 50))) {
       try {
         await bot.editMessageText(fullMsg, { chat_id: AUTHORIZED_CHAT_ID, message_id: lastSentMsgId, ...opts });
         lastSentLine = text;
         continue;
-      } catch {}
+      } catch (editErr) {
+        console.log(`[TG] edit fail: ${editErr.message}`);
+      }
     }
     
     lastSentLine = text;
-    
     try {
       const sent = await bot.sendMessage(AUTHORIZED_CHAT_ID, fullMsg, opts);
       lastSentMsgId = sent.message_id;
-      console.log(`[→TG] ${msg.icon} ${text.substring(0, 60)}...`);
-      await new Promise(r => setTimeout(r, 50));
-    } catch (e) {
-      console.error('[TG] Send error:', e.message);
+    } catch (htmlErr) {
+      console.log(`[TG] HTML fail, fallback plain: ${htmlErr.message}`);
+      try {
+        const sent = await bot.sendMessage(AUTHORIZED_CHAT_ID, `${msg.icon} ${label}${text}`);
+        lastSentMsgId = sent.message_id;
+      } catch (plainErr) {
+        console.error(`[TG] plain also fail: ${plainErr.message}`);
+      }
     }
+    console.log(`[→TG] ${label}${msg.icon} ${text.substring(0, 60)}...`);
+    await new Promise(r => setTimeout(r, 50));
   }
 }
 
@@ -331,23 +395,35 @@ async function getBrain() {
 
 // ═══ Boot ═══
 
-// Initialize file offsets to current position (don't replay history)
+// 디스크에서 복원 못 한 파일만 현재 위치로 초기화
 try {
   const files = fs.readdirSync(TRANSCRIPTS_DIR).filter(f => f.endsWith('.txt'));
+  let newCount = 0;
   for (const f of files) {
     const fp = path.join(TRANSCRIPTS_DIR, f);
-    const stat = fs.statSync(fp);
-    fileOffsets.set(fp, stat.size); // start from end
+    if (!fileOffsets.has(fp)) {
+      const stat = fs.statSync(fp);
+      fileOffsets.set(fp, stat.size);
+      newCount++;
+    }
   }
-  console.log(`[BOOT] 📂 Initialized ${files.length} transcript files (skip history)`);
+  saveOffsets();
+  console.log(`[BOOT] 📂 ${files.length} transcripts (${newCount} new, ${fileOffsets.size - newCount} restored)`);
 } catch {}
+
+function saveOffsets() {
+  try {
+    const obj = Object.fromEntries(fileOffsets);
+    fs.writeFileSync(OFFSETS_FILE, JSON.stringify(obj), 'utf8');
+  } catch {}
+}
 
 console.log('[BOOT] 🚀 NeuronFS Telegram Bridge (File Watcher)');
 console.log(`[BOOT]   Bot: @jlootfs_bot`);
 console.log(`[BOOT]   Transcripts: ${TRANSCRIPTS_DIR}`);
 
-// Poll every 3 seconds
-setInterval(pollTranscripts, 3000);
+// hijack-launcher가 직접 텔레그램 전송하므로 전사 폴링 비활성화 (중복 방지)
+// setInterval(pollTranscripts, 3000);
 
 // Crash protection
 process.on('uncaughtException', (e) => console.error('[CRASH]', e.message));

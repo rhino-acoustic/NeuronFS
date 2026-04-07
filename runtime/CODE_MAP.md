@@ -1,10 +1,18 @@
 # NeuronFS Runtime — CODE_MAP
 <!-- AUTO-GENERATED: Regenerated after each modularization step -->
-<!-- Last updated: 2026-04-06T11:10 -->
+<!-- Last updated: 2026-04-07T13:57 -->
 
 ## Architecture Overview
-NeuronFS is a Folder-as-Neuron governance engine. All files are `package main`.
+NeuronFS is a Folder-as-Neuron governance engine. All Go files are `package main`.
 **Every function is documented.** Missing = bug.
+
+### Neuro-Lifecycle Flow (2026-04-07 확정)
+```
+[대화 중] processChunk / harnessCycle → _signals/*.json (Signal 기록만)
+[30분마다] 자동통합 스케줄러 → neuronfs --evolve (Groq 분석 → 승격/폐기)
+[승격 시] 🧬 NEURON EVOLVED → 텔레그램 알림
+```
+⚠️ processChunk/harnessCycle은 더 이상 .neuron 파일을 직접 생성하지 않음 (2026-04-07 차단됨)
 
 ## Emit Flow (CRITICAL — 3 separate paths!)
 ```
@@ -15,6 +23,15 @@ neuronfs --inject     → case "inject"      → writeAllTiers() → GEMINI.md +
 ⚠️ `--emit` (no target) does NOT write _rules.md. Use `--inject` or `--emit all`.
 
 ## File Map (26 files, ~10,400 lines)
+
+### 🏗 Core: VFS Engine (가상 파일 시스템)
+| File | Lines | Funcs | Purpose |
+|------|-------|-------|---------|
+| **vfs_core.go** | 80 | 2 | RouterFS 구조체, UnionFS 병합(O(1) 섀도잉) 설계 |
+| **vfs_ops.go** | 60 | 5 | os.* 및 filepath.* 를 대체하는 전역 래퍼 (Glob, WalkDir 등) |
+| **vfs_mount.go** | 40 | 1 | .jloot 카트리지 마운т(임시 zip.Reader) 및 부팅 로직 |
+
+---
 
 ### 🏗 Core: Data Structures + Scan
 | File | Lines | Funcs | Purpose |
@@ -205,6 +222,40 @@ main.go --api → startAPI (api_server.go)
 | **cli_commands.go** | 66 | 2 | stats/vacuum CLI |
 | **exec_safe.go** | 31 | 3 | 안전 실행 래퍼 |
 | **physical_hooks.go** | 157 | 4 | USB/Telegram 알람 |
+
+---
+
+### 🌉 Hijack Launcher (Node.js — 텔레그램 브릿지 + CDP)
+| File | Lines | Purpose |
+|------|-------|---------|
+| **hijackers/hijack-launcher.mjs** | 1295 | 텔레그램 브릿지, CDP 네트워크 캡처, 전사 기록, 자동통합 |
+
+| Function/Section | Lines | Does |
+|-----------|-------|------|
+| `tgPoll` / `tgLog` | 60~280 | 텔레그램 수신/발신 (polling + sendMessage) |
+| `_sendToTelegramInner` | 130~170 | 텔레그램 발송 (신호 로그 SKIP 필터 포함) |
+| **자동통합 스케줄러** | 310~325 | 30분마다 `_signals/` 확인 → `--evolve` 실행 |
+| `groqExtractNeurons` | 380~460 | Groq API로 대화에서 규칙 추출 |
+| `processChunk` | 462~508 | 10메시지마다 → **유사도 분류**: 기존 뉴런 50%+ 유사 → fire(강화) / 아니면 Signal |
+| `harnessCycle` | 600~765 | 50메시지마다 → **유사도 분류**: 동일 로직 |
+| `discoverProcesses` | 730~780 | Antigravity 프로세스 CDP 포트 탐지 |
+| `attachCDPNetwork` | 950~1100 | CDP WebSocket으로 네트워크 이벤트 캡처 |
+| `attachDOMScraper` | 1100~1200 | CDP DOM 스크래핑 (프로젝트 이름 추출) |
+| `domSockets` / CDP Injection | 140~165 | @멘션 라우팅 → 프로젝트별 CDP DOM 직접 입력 |
+
+#### Call Graph (Hijack Launcher)
+```
+entry → discoverProcesses() → attachCDPNetwork() per tab
+          ├→ USER 메시지 감지 → processChunk() → _signals/*.json
+          ├→ AI 응답 감지 → 전사 기록
+          └→ 50메시지마다 → harnessCycle() → _signals/*.json
+
+tgPoll() → 텔레그램 메시지 수신
+         ├→ @멘션 → domSockets[project] → CDP DOM injection
+         └→ inbox/* 파일 기록
+
+setInterval(30분) → _signals/ 확인 → exec('neuronfs --evolve')
+```
 
 ---
 
