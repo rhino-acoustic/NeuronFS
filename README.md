@@ -39,7 +39,7 @@ git clone https://github.com/rhino-acoustic/NeuronFS.git
 cd NeuronFS/runtime && go build -o neuronfs .
 
 # Rule = Folder. Create a rule by creating a folder.
-mkdir 禁_fallback                              # "禁" prefix = absolute prohibition
+mkdir 禁/fallback                              # "禁" folder = absolute prohibition opcode
 # That's it. A zero-byte folder IS the rule.
 
 # Compile = Auto-generate system prompts for any AI tool
