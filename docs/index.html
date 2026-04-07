@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuronFS — mkdir beats vector</title>
+  <meta name="description" content="Zero-Trust Virtual Filesystem for AGI. Govern AI agents with OS folders. Zero infrastructure. Zero hallucination. O(1) deterministic control.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: rgba(18, 18, 26, 0.7);
+      --text-primary: #e8e8ef;
+      --text-secondary: #8a8a9a;
+      --accent-cyan: #00d4ff;
+      --accent-purple: #a855f7;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+      --accent-gold: #f59e0b;
+      --border: rgba(255,255,255,0.06);
+      --glow-cyan: 0 0 40px rgba(0,212,255,0.15);
+      --glow-purple: 0 0 40px rgba(168,85,247,0.15);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* Animated grid background */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+    }
+
+    .bg-glow {
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, rgba(168,85,247,0.04) 40%, transparent 70%);
+      z-index: 0;
+      animation: pulse 8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+      50% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 16px 0;
+      backdrop-filter: blur(20px);
+      background: rgba(10,10,15,0.8);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-weight: 900;
+      font-size: 1.2rem;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span { color: var(--accent-cyan); }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text-primary); }
+
+    .btn-github {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .btn-github:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* HERO */
+    .hero {
+      padding: 180px 0 100px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border: 1px solid rgba(0,212,255,0.3);
+      border-radius: 100px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--accent-cyan);
+      margin-bottom: 32px;
+      background: rgba(0,212,255,0.05);
+    }
+
+    h1 {
+      font-size: clamp(2.8rem, 6vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+    }
+
+    h1 .gradient {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 48px;
+      line-height: 1.8;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      padding: 14px 32px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      background: linear-gradient(135deg, var(--accent-cyan), #0099cc);
+      color: #000;
+      transition: all 0.3s;
+      box-shadow: 0 4px 20px rgba(0,212,255,0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,212,255,0.4);
+    }
+
+    .btn-secondary {
+      padding: 14px 32px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      background: rgba(255,255,255,0.03);
+      color: var(--text-primary);
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent-purple);
+      box-shadow: var(--glow-purple);
+    }
+
+    /* CODE BLOCK */
+    .hero-code {
+      max-width: 620px;
+      margin: 60px auto 0;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .code-dot.red { background: #ff5f57; }
+    .code-dot.yellow { background: #febc2e; }
+    .code-dot.green { background: #28c840; }
+
+    .code-body {
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.9;
+      overflow-x: auto;
+    }
+
+    .code-body .comment { color: #5a5a6a; }
+    .code-body .cmd { color: var(--accent-cyan); }
+    .code-body .path { color: var(--accent-green); }
+    .code-body .flag { color: var(--accent-purple); }
+    .code-body .result { color: var(--accent-gold); }
+
+    /* STATS */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin: 80px 0;
+    }
+
+    .stat {
+      padding: 36px 24px;
+      text-align: center;
+      background: var(--bg-secondary);
+    }
+
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: -1px;
+      margin-bottom: 4px;
+    }
+
+    .stat-value.cyan { color: var(--accent-cyan); }
+    .stat-value.purple { color: var(--accent-purple); }
+    .stat-value.green { color: var(--accent-green); }
+    .stat-value.gold { color: var(--accent-gold); }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* FEATURES */
+    .features {
+      padding: 60px 0;
+    }
+
+    .section-label {
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 3px;
+      color: var(--accent-cyan);
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 48px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feature-card {
+      padding: 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(0,212,255,0.2);
+      transform: translateY(-4px);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon.cyan { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2); }
+    .feature-icon.purple { background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.2); }
+    .feature-icon.green { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); }
+    .feature-icon.red { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); }
+    .feature-icon.gold { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* COMPARISON TABLE */
+    .comparison {
+      padding: 80px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 16px 24px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    td:last-child { font-weight: 600; color: var(--accent-green); }
+
+    tr:last-child td { border-bottom: none; }
+
+    /* RUNEWORD SECTION */
+    .runeword {
+      padding: 80px 0;
+      text-align: center;
+    }
+
+    .rune-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-top: 48px;
+    }
+
+    .rune-card {
+      padding: 28px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+
+    .rune-card:hover {
+      border-color: rgba(0,212,255,0.3);
+      transform: translateY(-4px);
+    }
+
+    .rune-char {
+      font-size: 2.4rem;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .rune-char.ban { color: var(--accent-red); }
+    .rune-char.must { color: var(--accent-gold); }
+    .rune-char.rec { color: var(--accent-green); }
+    .rune-char.axon { color: var(--accent-purple); }
+    .rune-char.bomb { color: #fff; }
+
+    .rune-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .rune-desc {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    /* CTA */
+    .cta-section {
+      padding: 100px 0;
+      text-align: center;
+    }
+
+    .cta-box {
+      padding: 64px 48px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(168,85,247,0.05));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+    }
+
+    .cta-box h2 { margin-bottom: 16px; }
+
+    .cta-box p {
+      color: var(--text-secondary);
+      margin-bottom: 36px;
+      font-size: 1.05rem;
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+    }
+
+    footer a { color: var(--accent-cyan); text-decoration: none; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .feature-grid { grid-template-columns: 1fr; }
+      .rune-grid { grid-template-columns: repeat(3, 1fr); }
+      h1 { font-size: 2.4rem; }
+      .hero { padding: 140px 0 60px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <nav>
+    <div class="container">
+      <div class="logo">Neuron<span>FS</span></div>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#opcodes">Opcodes</a></li>
+        <li><a href="#benchmark">Benchmark</a></li>
+        <li><a href="https://github.com/rhino-acoustic/NeuronFS/wiki">Wiki</a></li>
+      </ul>
+      <a href="https://github.com/rhino-acoustic/NeuronFS" class="btn-github">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        Star on GitHub
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">Zero-Trust AI Governance Engine</div>
+      <h1>
+        <span class="gradient">mkdir</span> beats vector.
+      </h1>
+      <p class="hero-sub">
+        Govern AI agents with OS folders. Zero-byte files become deterministic walls.<br>
+        No GPU. No database. No hallucination. Just <strong>4MB</strong>.
+      </p>
+
+      <div class="hero-cta">
+        <a href="https://github.com/rhino-acoustic/NeuronFS/wiki/Getting-Started" class="btn-primary">Get Started</a>
+        <a href="https://github.com/rhino-acoustic/NeuronFS/wiki" class="btn-secondary">Read the Architecture</a>
+      </div>
+
+      <div class="hero-code">
+        <div class="code-header">
+          <div class="code-dot red"></div>
+          <div class="code-dot yellow"></div>
+          <div class="code-dot green"></div>
+        </div>
+        <div class="code-body">
+          <div><span class="comment"># Create an indestructible prohibition wall</span></div>
+          <div><span class="cmd">mkdir</span> <span class="path">brain/brainstem/禁/data_leak</span></div>
+          <div><span class="comment"># That's it. The folder IS the rule.</span></div>
+          <div>&nbsp;</div>
+          <div><span class="comment"># Compile to any AI tool</span></div>
+          <div><span class="cmd">neuronfs</span> <span class="flag">--emit</span> <span class="path">cursor</span>    <span class="comment"># → .cursorrules</span></div>
+          <div><span class="cmd">neuronfs</span> <span class="flag">--emit</span> <span class="path">claude</span>    <span class="comment"># → CLAUDE.md</span></div>
+          <div><span class="cmd">neuronfs</span> <span class="flag">--emit</span> <span class="path">all</span>       <span class="comment"># → every AI format</span></div>
+          <div>&nbsp;</div>
+          <div><span class="result">✓ 675 neurons loaded · 0 tokens consumed · O(1)</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="container">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value cyan">0</div>
+        <div class="stat-label">Infrastructure Cost</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value purple">4MB</div>
+        <div class="stat-label">Single Binary</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value green">+43%</div>
+        <div class="stat-label">Performance Boost</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value gold">O(1)</div>
+        <div class="stat-label">Rule Lookup</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-label">Architecture</div>
+      <h2>Why folders beat everything</h2>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon cyan">🧱</div>
+          <h3>Deterministic Walls</h3>
+          <p>A folder at <code>禁/data_leak/</code> is a physical O(1) barrier. No probability. No bypass. The constraint lives in the OS kernel's dentry cache.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon purple">🧠</div>
+          <h3>7-Layer Brain</h3>
+          <p>Subsumption cascade: brainstem (P0) always overrides cortex (P4). Inspired by Brooks' robotics — lower layers physically dominate higher reasoning.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon green">⚡</div>
+          <h3>~200x Token Efficiency</h3>
+          <p>Structure replaces prose. A folder tree conveys governance that would take 50,000 tokens as a system prompt — in zero tokens.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon red">🔒</div>
+          <h3>Encrypted Cartridges</h3>
+          <p>XChaCha20-Poly1305 encrypted .jloot cartridges. 100% RAM-based decryption. Zero disk drops. Brainwallet key derivation (Argon2id).</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon gold">🔌</div>
+          <h3>USB-Deployable</h3>
+          <p>Plug a USB with the brain folder into any air-gapped machine. Instant deterministic AI governance. No internet. No cloud. No GPU.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon cyan">🧬</div>
+          <h3>Self-Evolving</h3>
+          <p>Neurons accumulate signals (fire/dopamine/bomb). Autonomous evolution creates new rules from patterns — the brain grows with use.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPCODES AS RUNEWORDS -->
+  <section class="runeword" id="opcodes">
+    <div class="container">
+      <div class="section-label">Opcodes</div>
+      <h2>Opcodes are Runewords</h2>
+      <p style="color:var(--text-secondary); max-width:600px; margin:0 auto;">
+        Like Diablo 2 — the folder is the socket, the opcode is the rune.<br>
+        The combination creates the Runeword.
+      </p>
+
+      <div class="rune-grid">
+        <div class="rune-card">
+          <div class="rune-char ban">禁</div>
+          <div class="rune-name">Zod Rune</div>
+          <div class="rune-desc">Absolute Prohibition<br><strong>Present tense</strong></div>
+        </div>
+        <div class="rune-card">
+          <div class="rune-char must">必</div>
+          <div class="rune-name">Ber Rune</div>
+          <div class="rune-desc">Mandatory Gate<br><strong>Present continuous</strong></div>
+        </div>
+        <div class="rune-card">
+          <div class="rune-char rec">推</div>
+          <div class="rune-name">Ist Rune</div>
+          <div class="rune-desc">Recommendation<br><strong>Future tense</strong></div>
+        </div>
+        <div class="rune-card">
+          <div class="rune-char axon">.axon</div>
+          <div class="rune-name">Jah Rune</div>
+          <div class="rune-desc">Teleport Link<br><strong>Cross-region</strong></div>
+        </div>
+        <div class="rune-card">
+          <div class="rune-char bomb">💣</div>
+          <div class="rune-name">El Rune</div>
+          <div class="rune-desc">Kill Switch<br><strong>Imperative</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BENCHMARK -->
+  <section class="comparison" id="benchmark">
+    <div class="container">
+      <div class="section-label">Benchmark</div>
+      <h2>8.9GB model outperforms 70GB</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Size</th>
+            <th>Bare Score</th>
+            <th>+ NeuronFS Harness</th>
+            <th>Improvement</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Gemma 4</td>
+            <td>8.9 GB</td>
+            <td>22.0 / 40</td>
+            <td>31.5 / 40</td>
+            <td>+43%</td>
+          </tr>
+          <tr>
+            <td>Llama 3</td>
+            <td>70 GB</td>
+            <td>23.0 / 40</td>
+            <td>29.0 / 40</td>
+            <td>+26%</td>
+          </tr>
+          <tr>
+            <td>GPT-4o</td>
+            <td>Cloud</td>
+            <td>28.0 / 40</td>
+            <td>35.0 / 40</td>
+            <td>+25%</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="text-align:center; margin-top:20px; color:var(--text-secondary); font-size:0.85rem;">
+        The train analogy: the model is a dumb engine. NeuronFS is the rail. A dumb engine on perfect rails always arrives.
+      </p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-box">
+        <h2>Built on 50 years of granite bedrock</h2>
+        <p>Not another framework that breaks next quarter.<br>OS filesystem primitives from 1970 — battle-tested by every bank, military, and space program on Earth.</p>
+        <div class="hero-cta">
+          <a href="https://github.com/rhino-acoustic/NeuronFS" class="btn-primary">View on GitHub</a>
+          <a href="https://github.com/rhino-acoustic/NeuronFS/wiki" class="btn-secondary">Read 22 Episodes</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>NeuronFS — AGPL-3.0 | Created by <a href="https://github.com/rhino-acoustic">JG Park</a> | <a href="https://github.com/rhino-acoustic/NeuronFS/wiki">Wiki</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>
