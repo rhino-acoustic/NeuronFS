@@ -16,14 +16,34 @@ import (
 // It is perfectly safe because reads are inherently concurrent-safe.
 var GlobalVFS *RouterFS
 
+// GlobalVFSRoot stores the absolute brain root path for absolute→relative conversion.
+var GlobalVFSRoot string
+
 // initVFS initializes the primary router with fallback empty lower if needed.
 func initVFS(upperPath string) {
 	if GlobalVFS == nil {
 		GlobalVFS = &RouterFS{
-			Upper: nil, // If we haven't mounted jloot, just pass through.
-			// Lower will be mounted via BootBrainwallet/MountCartridge.
+			Upper: nil,
 		}
 	}
+	GlobalVFSRoot = upperPath
+}
+
+// vfsRelativize converts absolute paths to VFS-relative paths.
+// os.DirFS only accepts relative paths from its root.
+func vfsRelativize(path string) string {
+	if GlobalVFSRoot != "" {
+		rel, err := filepath.Rel(GlobalVFSRoot, path)
+		if err == nil && !strings.HasPrefix(rel, "..") {
+			path = rel
+		}
+	}
+	path = filepath.ToSlash(path)
+	path = strings.TrimPrefix(path, "/")
+	if path == "" {
+		path = "."
+	}
+	return path
 }
 
 // vfsReadDir replaces os.ReadDir
@@ -31,7 +51,7 @@ func vfsReadDir(dir string) ([]fs.DirEntry, error) {
 	if GlobalVFS == nil {
 		panic("GlobalVFS is nil. Call MountCartridge() early.")
 	}
-	return GlobalVFS.ReadDir(dir)
+	return GlobalVFS.ReadDir(vfsRelativize(dir))
 }
 
 // vfsReadFile replaces os.ReadFile
@@ -39,7 +59,7 @@ func vfsReadFile(path string) ([]byte, error) {
 	if GlobalVFS == nil {
 		panic("GlobalVFS is nil.")
 	}
-	return GlobalVFS.ReadFile(path)
+	return GlobalVFS.ReadFile(vfsRelativize(path))
 }
 
 // vfsGlob replaces filepath.Glob
@@ -49,21 +69,17 @@ func vfsGlob(pattern string) ([]string, error) {
 		panic("GlobalVFS is nil.")
 	}
 	
-	// fs.Glob needs forward slashes
-	pattern = filepath.ToSlash(pattern)
-	pattern = strings.TrimPrefix(pattern, "/")
+	// Convert to VFS-relative path
+	relPattern := vfsRelativize(pattern)
 
-	matches, err := fs.Glob(GlobalVFS, pattern)
+	matches, err := fs.Glob(GlobalVFS, relPattern)
 	if err != nil {
 		return nil, err
 	}
 
-	// For compatibility with old filepath.Glob callers, we should ensure
-	// paths returned have the os-specific separator if the caller expects it?
-	// Actually, fs.FS standardizes on forward slash pathing.
-	// But let's return OS-native paths since the older code expects native paths.
+	// Return absolute OS-native paths for compatibility with legacy callers
 	for i, m := range matches {
-		matches[i] = filepath.FromSlash(m)
+		matches[i] = filepath.Join(GlobalVFSRoot, filepath.FromSlash(m))
 	}
 
 	return matches, nil
@@ -74,9 +90,7 @@ func vfsStat(path string) (fs.FileInfo, error) {
 	if GlobalVFS == nil {
 		panic("GlobalVFS is nil.")
 	}
-	path = filepath.ToSlash(path)
-	path = strings.TrimPrefix(path, "/")
-	return fs.Stat(GlobalVFS, path)
+	return fs.Stat(GlobalVFS, vfsRelativize(path))
 }
 
 // vfsWalkDir replaces filepath.Walk
@@ -85,12 +99,11 @@ func vfsWalkDir(root string, fn fs.WalkDirFunc) error {
 	if GlobalVFS == nil {
 		panic("GlobalVFS is nil.")
 	}
-	root = filepath.ToSlash(root)
-	root = strings.TrimPrefix(root, "/")
+	relRoot := vfsRelativize(root)
 	
-	return fs.WalkDir(GlobalVFS, root, func(path string, d fs.DirEntry, err error) error {
-		// Convert virtual slashes back to OS native for legacy consumers if needed
-		nativePath := filepath.FromSlash(path)
+	return fs.WalkDir(GlobalVFS, relRoot, func(path string, d fs.DirEntry, err error) error {
+		// Convert VFS-relative back to absolute OS-native for legacy callers
+		nativePath := filepath.Join(GlobalVFSRoot, filepath.FromSlash(path))
 		return fn(nativePath, d, err)
 	})
 }
