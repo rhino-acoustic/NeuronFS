@@ -415,7 +415,7 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		}
 		active := 0
 		for _, n := range region.Neurons {
-			if !n.IsDormant {
+			if !n.IsDormant && (n.Counter+n.Dopamine) > 0 {
 				active++
 			}
 		}

@@ -485,7 +485,7 @@ func runSubsumption(brain Brain) SubsumptionResult {
 	for _, region := range brain.Regions {
 		activeNeurons := 0
 		for _, n := range region.Neurons {
-			if !n.IsDormant {
+			if !n.IsDormant && (n.Counter+n.Dopamine) > 0 {
 				activeNeurons++
 				result.TotalCounter += n.Counter
 			}
