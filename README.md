@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/neuronfs_hero.png" alt="Folders ARE the Context — mkdir beats vector" width="800" />
+  <img src="docs/neuronfs_hero.jpg" alt="Folders ARE the Context — mkdir beats vector" width="800" />
 </p>
 
 <p align="center">

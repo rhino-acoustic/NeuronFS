@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/neuronfs_hero.png" alt="폴더가 문맥이다 — mkdir beats vector" width="800" />
+  <img src="docs/neuronfs_hero.jpg" alt="폴더가 문맥이다 — mkdir beats vector" width="800" />
 </p>
 
 <p align="center">
