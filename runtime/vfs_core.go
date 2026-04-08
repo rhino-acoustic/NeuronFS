@@ -22,6 +22,34 @@ type RouterFS struct {
 	Upper fs.FS // The local disk tree (e.g., os.DirFS)
 }
 
+// Open implements the standard fs.FS interface.
+// It prioritizes the Upper layer, falling back to the Lower layer.
+func (rfs *RouterFS) Open(name string) (fs.File, error) {
+	name = filepath.ToSlash(name)
+	name = strings.TrimPrefix(name, "/")
+	if name == "" {
+		name = "."
+	}
+
+	// 1. Try Upper (Disk)
+	if rfs.Upper != nil {
+		f, err := rfs.Upper.Open(name)
+		if err == nil {
+			return f, nil
+		}
+	}
+
+	// 2. Try Lower (Cartridge)
+	if rfs.Lower != nil {
+		f, err := rfs.Lower.Open(name)
+		if err == nil {
+			return f, nil
+		}
+	}
+
+	return nil, os.ErrNotExist
+}
+
 // ReadDir reads a directory by querying both layers and merging the results.
 // Shadows Lower layer with Upper layer on name collision.
 func (rfs *RouterFS) ReadDir(name string) ([]fs.DirEntry, error) {

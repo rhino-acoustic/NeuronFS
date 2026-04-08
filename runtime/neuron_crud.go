@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -27,8 +28,8 @@ func growNeuron(brainRoot string, neuronPath string) error {
 	// ── Guard: block unlimited session_log growth ──
 	if strings.Contains(neuronPath, "session_log") {
 		slDir := filepath.Join(brainRoot, filepath.Dir(neuronPath), "session_log")
-		if info, err := os.Stat(slDir); err == nil && info.IsDir() {
-			existing, _ := filepath.Glob(filepath.Join(slDir, "*.neuron"))
+		if info, err := vfsStat(slDir); err == nil && info.IsDir() {
+			existing, _ := vfsGlob(filepath.Join(slDir, "*.neuron"))
 			if len(existing) >= 3 {
 				fmt.Printf("[SKIP] session_log capped at 3 (has %d)\n", len(existing))
 				return nil
@@ -47,8 +48,8 @@ func growNeuron(brainRoot string, neuronPath string) error {
 		return err
 	}
 
-	// Check if neuron already exists (exact match)
-	if info, err := os.Stat(fullPath); err == nil && info.IsDir() {
+	// Check if neuron already exists (exact match in either physical or virtual layer)
+	if info, err := vfsStat(fullPath); err == nil && info.IsDir() {
 		fmt.Printf("[SKIP] Neuron already exists: %s\n", neuronPath)
 		return nil
 	}
@@ -64,14 +65,14 @@ func growNeuron(brainRoot string, neuronPath string) error {
 
 		for _, scanRegion := range []string{"brainstem", "cortex", "ego", "prefrontal", "hippocampus", "sensors", "limbic"} {
 			scanPath := filepath.Join(brainRoot, scanRegion)
-			if _, err := os.Stat(scanPath); os.IsNotExist(err) {
+			if _, err := vfsStat(scanPath); os.IsNotExist(err) {
 				continue
 			}
-			filepath.Walk(scanPath, func(path string, info os.FileInfo, err error) error {
-				if err != nil || !info.IsDir() || path == scanPath {
+			vfsWalkDir(scanPath, func(path string, d fs.DirEntry, err error) error {
+				if err != nil || !d.IsDir() || path == scanPath {
 					return nil
 				}
-				neuronFiles, _ := filepath.Glob(filepath.Join(path, "*.neuron"))
+				neuronFiles, _ := vfsGlob(filepath.Join(path, "*.neuron"))
 				if len(neuronFiles) == 0 {
 					return nil
 				}
@@ -131,15 +132,15 @@ func fireNeuron(brainRoot string, neuronPath string) {
 	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
 	fullPath := filepath.Join(brainRoot, neuronPath)
 
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+	if _, err := vfsStat(fullPath); os.IsNotExist(err) {
 		fmt.Printf("[WARN] Neuron not found: %s — (Auto-grow disabled by Neuro-Lifecycle architecture)\n", neuronPath)
 		return
 	}
 
-	// Find current counter
+	// Find current counter (reads from virtual OS spanning Cartridge + Disk)
 	currentCounter := 0
 	currentFile := ""
-	entries, _ := os.ReadDir(fullPath)
+	entries, _ := vfsReadDir(fullPath)
 	for _, e := range entries {
 		if m := counterRegex.FindStringSubmatch(e.Name()); m != nil {
 			n, _ := strconv.Atoi(m[1])
@@ -152,12 +153,17 @@ func fireNeuron(brainRoot string, neuronPath string) {
 
 	newCounter := currentCounter + 1
 
-	// Delete old counter file
+	// Delete old counter file (Only if it exists in Physical UpperDir)
 	if currentFile != "" {
-		if err := os.Remove(currentFile); err != nil {
-			fmt.Fprintf(os.Stderr, "[WARN] fire: old counter cleanup: %v\n", err)
+		if _, physicalErr := os.Stat(currentFile); physicalErr == nil {
+			if err := os.Remove(currentFile); err != nil {
+				fmt.Fprintf(os.Stderr, "[WARN] fire: old counter cleanup: %v\n", err)
+			}
 		}
 	}
+
+	// Ensure physical folder exists before writing to UpperDir
+	os.MkdirAll(fullPath, 0755)
 
 	// Create new counter file
 	newFile := filepath.Join(fullPath, fmt.Sprintf("%d.neuron", newCounter))
@@ -179,16 +185,16 @@ func rollbackNeuron(brainRoot string, neuronPath string) error {
 	neuronPath = strings.Trim(strings.ReplaceAll(neuronPath, "\\", "/"), "/")
 	fullPath := filepath.Join(brainRoot, neuronPath)
 
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+	if _, err := vfsStat(fullPath); os.IsNotExist(err) {
 		err := fmt.Errorf("neuron not found: %s", neuronPath)
 		fmt.Printf("[ROLLBACK] ❌ %v\n", err)
 		return err
 	}
 
-	// Find current counter
+	// Find current counter from VFS
 	currentCounter := 0
 	currentFile := ""
-	entries, _ := os.ReadDir(fullPath)
+	entries, _ := vfsReadDir(fullPath)
 	for _, e := range entries {
 		if m := counterRegex.FindStringSubmatch(e.Name()); m != nil {
 			n, _ := strconv.Atoi(m[1])
@@ -206,12 +212,16 @@ func rollbackNeuron(brainRoot string, neuronPath string) error {
 
 	newCounter := currentCounter - 1
 
-	// Delete old counter file
+	// Delete old counter file from UpperDir only
 	if currentFile != "" {
-		if err := os.Remove(currentFile); err != nil {
-			fmt.Fprintf(os.Stderr, "[WARN] rollback: old counter cleanup: %v\n", err)
+		if _, physicalErr := os.Stat(currentFile); physicalErr == nil {
+			if err := os.Remove(currentFile); err != nil {
+				fmt.Fprintf(os.Stderr, "[WARN] rollback: old counter cleanup: %v\n", err)
+			}
 		}
 	}
+
+	os.MkdirAll(fullPath, 0755)
 
 	// Create new counter file
 	newFile := filepath.Join(fullPath, fmt.Sprintf("%d.neuron", newCounter))
@@ -233,16 +243,18 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
 	fullPath := filepath.Join(brainRoot, neuronPath)
 
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+	if _, err := vfsStat(fullPath); os.IsNotExist(err) {
 		err := fmt.Errorf("neuron not found: %s", neuronPath)
 		fmt.Printf("[FATAL] %v\n", err)
 		return err
 	}
 
+	os.MkdirAll(fullPath, 0755)
+
 	switch sigType {
 	case "dopamine":
 		nextDopa := 1
-		entries, _ := os.ReadDir(fullPath)
+		entries, _ := vfsReadDir(fullPath)
 		for _, e := range entries {
 			if m := dopamineRegex.FindStringSubmatch(e.Name()); m != nil {
 				n, _ := strconv.Atoi(m[1])
@@ -263,7 +275,7 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 	case "memory":
 		nextMem := 1
 		memRegex := regexp.MustCompile(`^memory(\d+)\.neuron$`)
-		entries, _ := os.ReadDir(fullPath)
+		entries, _ := vfsReadDir(fullPath)
 		for _, e := range entries {
 			if m := memRegex.FindStringSubmatch(e.Name()); m != nil {
 				n, _ := strconv.Atoi(m[1])
