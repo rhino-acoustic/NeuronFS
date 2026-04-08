@@ -206,9 +206,7 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 			data, _ := json.Marshal(payload)
 			os.WriteFile(sigFile, data, 0644)
 
-			return &mcp.CallToolResult{
-				Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("🌱 신호 기록됨 (수면(REM) 통합 대기): %s", args.Path)}},
-			}, nil
+			return mcpWithRules(brainRoot, fmt.Sprintf("🌱 신호 기록됨 (수면(REM) 통합 대기): %s", args.Path)), nil
 		},
 	)
 
@@ -240,9 +238,7 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 			}
 
 			fireNeuron(brainRoot, args.Path)
-			return &mcp.CallToolResult{
-				Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("🔥 fired: %s", args.Path)}},
-			}, nil
+			return mcpWithRules(brainRoot, fmt.Sprintf("🔥 fired: %s", args.Path)), nil
 		},
 	)
 
@@ -375,11 +371,7 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 				os.WriteFile(sigFile, data, 0644)
 			}
 
-			return &mcp.CallToolResult{
-				Content: []mcp.Content{&mcp.TextContent{
-					Text: fmt.Sprintf("📝 교정 반영 (Signal): %s\n사유: %s\n결과: %s\n⚡ 하네스 로그 및 REM 수면 큐에 기록됨", args.Path, args.Text, action),
-				}},
-			}, nil
+			return mcpWithRules(brainRoot, fmt.Sprintf("📝 교정 반영 (Signal): %s\n사유: %s\n결과: %s\n⚡ 하네스 로그 및 REM 수면 큐에 기록됨", args.Path, args.Text, action)), nil
 		},
 	)
 
@@ -685,9 +677,7 @@ func registerMCPTools(server *mcp.Server, brainRoot string) {
 				}
 			}
 
-			return &mcp.CallToolResult{
-				Content: []mcp.Content{&mcp.TextContent{Text: sb.String()}},
-			}, nil
+			return mcpWithRules(brainRoot, sb.String()), nil
 		},
 	)
 
@@ -836,6 +826,77 @@ func mcpError(msg string) *mcp.CallToolResult {
 		Content: []mcp.Content{&mcp.TextContent{Text: "❌ " + msg}},
 		IsError: true,
 	}
+}
+
+// mcpWithRules wraps a tool response with P0 rules reminder.
+// Every MCP tool call response gets P0 rules appended, so rules are
+// continuously re-injected into the LLM's context window.
+// This combats the "Lost in the Middle" attention decay problem.
+func mcpWithRules(brainRoot string, text string) *mcp.CallToolResult {
+	reminder := buildP0Reminder(brainRoot)
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{&mcp.TextContent{Text: text + reminder}},
+	}
+}
+
+// buildP0Reminder generates a compact P0 rules string from brainstem 禁 neurons.
+// Cached for 60 seconds to avoid scanning on every tool call.
+var (
+	cachedP0      string
+	cachedP0Time  time.Time
+)
+
+func buildP0Reminder(brainRoot string) string {
+	// Cache for 60 seconds
+	if time.Since(cachedP0Time) < 60*time.Second && cachedP0 != "" {
+		return cachedP0
+	}
+
+	brain := scanBrain(brainRoot)
+	var bans []string
+	for _, region := range brain.Regions {
+		if region.Name != "brainstem" {
+			continue
+		}
+		for _, n := range region.Neurons {
+			if n.IsDormant || n.Counter < 5 {
+				continue
+			}
+			if strings.ContainsAny(n.Path, "禁") {
+				sentence := pathToSentence(n.Path)
+				trimmed := strings.TrimSpace(strings.ReplaceAll(sentence, "절대 금지:", ""))
+				if len([]rune(trimmed)) >= 2 {
+					bans = append(bans, trimmed)
+				}
+			}
+		}
+	}
+
+	if len(bans) > 3 {
+		bans = bans[:3]
+	}
+
+	// Read preamble for language rule
+	preamblePath := filepath.Join(brainRoot, "_preamble.txt")
+	langRule := ""
+	if data, err := os.ReadFile(preamblePath); err == nil {
+		lines := strings.Split(string(data), "\n")
+		if len(lines) > 0 {
+			langRule = strings.TrimSpace(lines[0])
+		}
+	}
+
+	var sb strings.Builder
+	sb.WriteString("\n\n---\n⚡ P0: ")
+	if langRule != "" {
+		sb.WriteString(langRule)
+		sb.WriteString(" | ")
+	}
+	sb.WriteString("금지: " + strings.Join(bans, ", "))
+	
+	cachedP0 = sb.String()
+	cachedP0Time = time.Now()
+	return cachedP0
 }
 
 // boolPtr returns a pointer to a boolean value.
