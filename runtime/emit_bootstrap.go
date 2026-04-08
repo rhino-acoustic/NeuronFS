@@ -81,6 +81,12 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			for _, n := range topEgo {
 				parts := splitNeuronPath(n.Path)
 				if len(parts) > 1 {
+					// 행동양식 뉴런은 🔮 영혼에서 출력 → SSOT 위반 방지
+					leaf := parts[len(parts)-1]
+					if strings.Contains(leaf, "단계분해") || strings.Contains(leaf, "증거보고") ||
+						strings.Contains(leaf, "자문") || strings.Contains(leaf, "CoVe") {
+						continue
+					}
 					sb.WriteString(fmt.Sprintf("- %s\n", strings.Join(parts[1:], " > ")))
 				}
 			}
@@ -96,11 +102,8 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 
 	// ━━━ 핵심지침 TOP 5: 전체 영역 종합 스코어 (Lost-in-the-Middle 대응) ━━━
 	sb.WriteString("### ⚡ 핵심지침 TOP 5\n")
-
-	// ━━━ CANARY EMOJI: 변경 감지 카나리아 ━━━
-	canaryEmojis := []string{"❤️", "🌟", "🔥", "💎", "🐤", "🍀", "⚡", "🎯", "🦊", "🐻"}
-	canary := canaryEmojis[time.Now().UnixNano()/1e9%int64(len(canaryEmojis))]
-	sb.WriteString(fmt.Sprintf("모든 응답 처음에 %s를 붙여라\n", canary))
+	// NOTE: 접두사 규칙은 🎭 페르소나의 ego 뉴런(🐤접두사)에서 관리.
+	// canary emoji 랜덤 변경은 ego 뉴런과 충돌하므로 제거됨.
 
 	// 전체 영역에서 종합 스코어로 TOP 5 산출
 	type scoredNeuron struct {
