@@ -214,11 +214,20 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		top5Sentences[sentence] = true
 		idx++
 		regionTag := c.region[:3]
+		// 2-layer 표시: bold(짧은 요약) + description(상세)
+		// 짧은 요약 = 전체 그림/토큰 절약, description = 의미 불확실 시 참조
+		leafSummary := leaf
+		// leaf가 짧으면 부모 맥락 포함 (적층해결 → 쉬프트금지>적층해결)
+		if len([]rune(leaf)) < 6 && len(parts) > 1 {
+			parent := parts[len(parts)-2]
+			leafSummary = parent + ">" + leaf
+		}
+		for hanja, ko := range hanjaToKorean {
+			leafSummary = strings.ReplaceAll(leafSummary, hanja, ko)
+		}
+		leafSummary = strings.TrimSpace(strings.ReplaceAll(leafSummary, "_", " "))
 		if c.neuron.Description != "" {
-			// description이 SSOT → pathToSentence 대신 description을 제목으로 표시
-			// 주입의미 = 해석의미를 보장 (역으로도 풀리도록)
 			desc := c.neuron.Description
-			// 경로 패턴 제거
 			if idx := strings.Index(desc, "c:\\"); idx >= 0 {
 				desc = strings.TrimSpace(desc[:idx])
 			}
@@ -229,12 +238,12 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 				desc = strings.TrimSpace(desc[:idx])
 			}
 			if desc != "" {
-				sb.WriteString(fmt.Sprintf("%d. **%s** [%s](s:%.0f)\n", idx, desc, regionTag, c.score))
+				sb.WriteString(fmt.Sprintf("%d. **%s**: %s [%s](s:%.0f)\n", idx, leafSummary, desc, regionTag, c.score))
 			} else {
-				sb.WriteString(fmt.Sprintf("%d. **%s** [%s](s:%.0f)\n", idx, sentence, regionTag, c.score))
+				sb.WriteString(fmt.Sprintf("%d. **%s** [%s](s:%.0f)\n", idx, leafSummary, regionTag, c.score))
 			}
 		} else {
-			sb.WriteString(fmt.Sprintf("%d. **%s** [%s](s:%.0f)\n", idx, sentence, regionTag, c.score))
+			sb.WriteString(fmt.Sprintf("%d. **%s** [%s](s:%.0f)\n", idx, leafSummary, regionTag, c.score))
 		}
 	}
 	sb.WriteString("\n")
