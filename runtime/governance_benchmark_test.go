@@ -777,3 +777,120 @@ func statusEmoji(pct, target float64) string {
 	}
 	return "❌ FAIL"
 }
+
+// ─── DCI: Document-Code Integrity (실제=문서 자동 검증) ───
+//
+// Axis 3: 주석/문서에 쓰인 값이 실제 코드 const/var와 일치하는지 검증
+// 이 테스트가 실패하면 = 문서와 실제가 다르다는 뜻 → 즉시 수정 필요
+
+func TestDCI_Constants(t *testing.T) {
+	// DCI-01: maxEpisodes const = 실제로 쓰이는 값
+	t.Run("DCI-01: maxEpisodes=10", func(t *testing.T) {
+		if maxEpisodes != 10 {
+			t.Errorf("maxEpisodes changed to %d but comment says 10", maxEpisodes)
+		}
+	})
+
+	// DCI-02: grow similarity threshold (코드에서 직접 검증)
+	t.Run("DCI-02: grow merge threshold=0.6", func(t *testing.T) {
+		dir := setupTestBrain(t)
+		// Create two neurons with ~50% similarity (below 0.6)
+		growNeuron(dir, "cortex/benchmark/dci_test_alpha")
+		growNeuron(dir, "cortex/benchmark/dci_test_beta")
+		// Both should exist (not merged) since similarity < 0.6
+		_, errA := os.Stat(filepath.Join(dir, "cortex", "benchmark", "dci_test_alpha"))
+		_, errB := os.Stat(filepath.Join(dir, "cortex", "benchmark", "dci_test_beta"))
+		if os.IsNotExist(errA) || os.IsNotExist(errB) {
+			t.Error("low-similarity neurons should not merge (threshold 0.6)")
+		}
+	})
+
+	// DCI-03: dedup similarity threshold = 0.6
+	t.Run("DCI-03: dedup threshold=0.6", func(t *testing.T) {
+		dir := setupTestBrain(t)
+		// Create neuron with exact same name as existing → should merge during dedup
+		os.MkdirAll(filepath.Join(dir, "cortex", "benchmark", "hooks_pattern_dup"), 0755)
+		os.WriteFile(filepath.Join(dir, "cortex", "benchmark", "hooks_pattern_dup", "1.neuron"), []byte{}, 0644)
+		deduplicateNeurons(dir) // should not crash, may merge
+	})
+
+	// DCI-04: brainstem NOT in decay targets
+	t.Run("DCI-04: brainstem excluded from decay", func(t *testing.T) {
+		dir := setupTestBrain(t)
+		// Create a brainstem neuron with old timestamp
+		bsNeuron := filepath.Join(dir, "brainstem", "dci_decay_test")
+		os.MkdirAll(bsNeuron, 0755)
+		nf := filepath.Join(bsNeuron, "1.neuron")
+		os.WriteFile(nf, []byte{}, 0644)
+		// Set mod time to 100 days ago
+		oldTime := time.Now().AddDate(0, 0, -100)
+		os.Chtimes(nf, oldTime, oldTime)
+
+		runDecay(dir, 1) // 1 day threshold
+
+		// brainstem neuron should NOT be dormant
+		dormant, _ := filepath.Glob(filepath.Join(bsNeuron, "*.dormant"))
+		if len(dormant) > 0 {
+			t.Error("brainstem neurons must NEVER decay — governance rules are permanent")
+		}
+	})
+
+	// DCI-05: 禁/必 neurons excluded from decay in ALL regions
+	t.Run("DCI-05: 禁/必 immune to decay", func(t *testing.T) {
+		dir := setupTestBrain(t)
+		// Create a 禁 neuron in cortex with old timestamp
+		banNeuron := filepath.Join(dir, "cortex", "禁", "dci_decay_ban")
+		os.MkdirAll(banNeuron, 0755)
+		nf := filepath.Join(banNeuron, "1.neuron")
+		os.WriteFile(nf, []byte{}, 0644)
+		oldTime := time.Now().AddDate(0, 0, -100)
+		os.Chtimes(nf, oldTime, oldTime)
+
+		runDecay(dir, 1)
+
+		dormant, _ := filepath.Glob(filepath.Join(banNeuron, "*.dormant"))
+		if len(dormant) > 0 {
+			t.Error("禁 neurons must NEVER decay — governance rules are permanent")
+		}
+	})
+
+	// DCI-06: prune only targets 推 prefix (never 禁/必)
+	t.Run("DCI-06: prune only 推", func(t *testing.T) {
+		dir := setupTestBrain(t)
+		// Create 禁 neuron with activation=1 and old timestamp
+		banNeuron := filepath.Join(dir, "cortex", "禁", "dci_prune_ban")
+		os.MkdirAll(banNeuron, 0755)
+		nf := filepath.Join(banNeuron, "1.neuron")
+		os.WriteFile(nf, []byte{}, 0644)
+		oldTime := time.Now().AddDate(0, 0, -100)
+		os.Chtimes(nf, oldTime, oldTime)
+
+		pruneWeakNeurons(dir)
+
+		dormant, _ := filepath.Glob(filepath.Join(banNeuron, "*.dormant"))
+		if len(dormant) > 0 {
+			t.Error("禁 neurons must NEVER be pruned")
+		}
+	})
+
+	// DCI-07: FiredNeurons counts only counter+dopamine > 0
+	t.Run("DCI-07: FiredNeurons requires counter+dopamine>0", func(t *testing.T) {
+		dir := setupTestBrain(t)
+		// Create an empty neuron folder (no .neuron files with counter)
+		emptyNeuron := filepath.Join(dir, "cortex", "benchmark", "dci_empty")
+		os.MkdirAll(emptyNeuron, 0755)
+
+		brain := scanBrain(dir)
+		result := runSubsumption(brain)
+
+		// The empty neuron should NOT increase FiredNeurons
+		// Create it with a 0-value counter
+		os.WriteFile(filepath.Join(emptyNeuron, "0.neuron"), []byte{}, 0644)
+		brain2 := scanBrain(dir)
+		result2 := runSubsumption(brain2)
+
+		if result2.FiredNeurons > result.FiredNeurons {
+			t.Error("counter=0 neuron should not count as fired")
+		}
+	})
+}

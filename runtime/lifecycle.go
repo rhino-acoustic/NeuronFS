@@ -121,12 +121,23 @@ func runDecay(brainRoot string, days int) {
 				return nil
 			}
 
-			// 禁/必 접두어 뉴런은 거버넌스 → decay 면제
-			leafName := filepath.Base(path)
-			for _, h := range []string{"禁", "必"} {
-				if strings.HasPrefix(leafName, h) {
-					return nil
+			// 禁/必 경로 내의 뉴런은 거버넌스 → decay 면제
+			// 경로 전체를 검사 (cortex/禁/하드코딩 → 하위도 면제)
+			relPath, _ := filepath.Rel(regionPath, path)
+			isGovernance := false
+			for _, part := range strings.Split(relPath, string(filepath.Separator)) {
+				for _, h := range []string{"禁", "必"} {
+					if strings.HasPrefix(part, h) {
+						isGovernance = true
+						break
+					}
 				}
+				if isGovernance {
+					break
+				}
+			}
+			if isGovernance {
+				return nil
 			}
 
 			// Check if this is a neuron folder (has .neuron files)

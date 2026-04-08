@@ -15,6 +15,9 @@ func setupTestBrain(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
 
+	// VFS 초기화 (테스트에서는 Upper-only 모드)
+	initVFS(dir)
+
 	neuronDirs := []struct {
 		path    string
 		counter int
