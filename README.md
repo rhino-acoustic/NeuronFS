@@ -316,6 +316,86 @@ Emotions naturally decay over time. A `decay_rate` parameter reduces intensity h
 
 ---
 
+## Real-World Scenario: How Neuron Maps Change Coding
+
+```mermaid
+graph LR
+    A[App Analysis] --> B[Neuron Map Gen]
+    B --> C[Layering]
+    C --> D[Correlation Code Map]
+    D --> E[Zero-Mistake Coding]
+    D --> F[Zero Search Overhead]
+```
+
+### Step 1: Projects into Neurons
+
+```bash
+# AI autonomously analyzes the project and builds a neuron hierarchy
+cortex/dev/
+├── VEGAVERY/
+│   ├── 구조/      # Directory structure, core file locations
+│   ├── 의도/      # Business logic, why it was designed this way
+│   └── 문제/      # Known bugs, technical debt
+├── NeuronFS/
+│   ├── 구조/runtime/  # Hierarchy of 30 Go files
+│   ├── 의도/VFS/      # OverlayFS design intent
+│   └── 문제/VFS경로/  # vfsRelativize patch history
+```
+
+### Step 2: Code Map = Neuron Hierarchy
+
+When the AI edits code, it navigates via **neuron paths, not vector searches**:
+- `cortex/dev/VEGAVERY/구조/` → Instant context on where everything is.
+- `cortex/dev/VEGAVERY/문제/` → Pre-emptively avoids known pitfalls.
+- By not wasting tokens on repeated sweeping searches, it **drastically saves context window capacity**.
+
+### Step 3: The Result
+
+| Legacy Approach | NeuronFS Approach |
+|---|---|
+| "Explain this project structure" → Repeated searches | The Neuron Map is natively loaded |
+| Repeated mistake → "Oops, again..." | `hippocampus/에러_패턴` physically blocks it |
+| Where is X in 100 files? → recursive grep | `cortex/dev/프로젝트/구조/` provides instant routing |
+
+---
+
+## Architecture: Brain vs. Cartridges
+
+> **The Brain (Brain) holds only "Experience". Domain knowledge is externalized into "Cartridges".**
+
+```
+brain_v4/                          ← Permanent Brain (Experience + Rules)
+├── cortex/dev/VEGAVERY/           ← Lightweight axon references ONLY
+│   └── .axon → cartridges/vegavery  ← Pointing to "I have done this before"
+│
+cartridges/                        ← Hot-swappable Domain Knowledge
+├── vegavery/                      ← VEGAVERY brand guide, API specs
+├── supabase_patterns/             ← Supabase general best practices
+└── fcpxml_production/             ← Video editing pipeline specs
+```
+
+### Design Principles
+
+| Brain | Cartridge |
+|---|---|
+| "I have used Supabase in VEGAVERY" | VEGAVERY RLS policies, table schemas |
+| "Video editing required 25MB chunks" | Full FCPXML spec, STT pipelines |
+| Axon references (Light, always loaded) | Mounted on demand (Heavy) |
+| Immutable (Experience is permanent) | Swappable / Updatable |
+
+### How It Works
+
+```
+Neuron Fires → "This is a VEGAVERY task"
+             → Auto-mounts the 'vegavery' cartridge via axon & OverlayFS
+             → AI instantly references brand guides + code conventions
+             → Unmounted after task completion (Saves brain capacity)
+```
+
+> 💡 This architecture ensures that even after experiencing 500 projects, **the core Brain remains blazingly fast and lightweight**. Project-specific knowledge (Cartridges) is partitioned and loaded only when strictly necessary.
+
+---
+
 ## Why mkdir Beats Vector
 
 > **"mkdir beats vector."** — A zero-byte folder is a deterministic O(1) wall. A vector DB is a probabilistic O(n) guess.
