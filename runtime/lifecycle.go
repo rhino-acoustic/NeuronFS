@@ -178,7 +178,7 @@ func runDecay(brainRoot string, days int) {
 }
 
 // logEpisode records an event in hippocampus/session_log
-// Circular buffer: keeps only the most recent 100 episodes
+// Circular buffer: keeps only the most recent 10 episodes
 const maxEpisodes = 10
 
 // logEpisode writes an event log to the hippocampus memory store.
@@ -229,7 +229,7 @@ func logEpisode(brainRoot string, event string, detail string) {
 
 // deduplicateNeurons scans brain for semantically similar neuron folders
 // and merges them: cross-region comparison enabled, P-priority survivor selection
-// Uses Jaccard similarity (>= 0.6) on tokenized+stemmed folder names
+// Uses hybrid similarity (Cosine Bigram 60% + Levenshtein 40%, >= 0.6) on folder names
 // Generates axon files at victim location to maintain neural pathways
 func deduplicateNeurons(brainRoot string) {
 	brain := scanBrain(brainRoot)
@@ -294,7 +294,7 @@ func deduplicateNeurons(brainRoot string) {
 				continue // 극성 충돌 → 별개
 			}
 
-			// 유사도 0.4 이상 — 병합 대상
+			// 유사도 0.6 이상 — 병합 대상
 			// 생존자 선택 로직:
 			//   1. 교차 영역: P가 낮은(=강한) 쪽이 생존
 			//   2. 같은 영역: depth 깊거나 counter 높은 쪽
