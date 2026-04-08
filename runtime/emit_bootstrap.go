@@ -227,6 +227,9 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			leafSummary = strings.ReplaceAll(leafSummary, hanja, ko)
 		}
 		leafSummary = strings.TrimSpace(strings.ReplaceAll(leafSummary, "_", " "))
+		// > 앞뒤 공백 정리 (반드시 >적층해결 → 반드시>적층해결)
+		leafSummary = strings.ReplaceAll(leafSummary, " >", ">")
+		leafSummary = strings.ReplaceAll(leafSummary, "> ", ">")
 		if c.neuron.Description != "" {
 			desc := c.neuron.Description
 			if idx := strings.Index(desc, "c:\\"); idx >= 0 {
