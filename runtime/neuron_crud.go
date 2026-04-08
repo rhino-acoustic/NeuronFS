@@ -300,7 +300,7 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 }
 
 // ━━━ Lifecycle (prune/decay/episode) → lifecycle.go ━━━
-// MOVED: pruneWeakNeurons, runDecay, logEpisode, maxEpisodes
+// MOVED: pruneWeakNeurons, runDecay, logEpisode, MaxEpisodes
 
 // normalizeHanjaPath splits hanja-prefixed names into parent/child structure.
 // e.g. "cortex/dev/禁하드코딩" → "cortex/dev/禁/하드코딩"

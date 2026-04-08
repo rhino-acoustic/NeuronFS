@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -914,4 +915,61 @@ func TestDCI_Constants(t *testing.T) {
 			t.Error("counter=0 neuron should not count as fired")
 		}
 	})
+}
+
+// ─── DCI-08: 구조적 감찰 — 매직넘버 하드코딩 검출 ───
+// 소스코드를 직접 읽어서 governance_consts.go에 정의된 값이
+// 다른 파일에 하드코딩되어 있으면 실패.
+// 이 테스트가 있으면 AI든 사람이든 const를 우회할 수 없다.
+
+func TestDCI_NoHardcodedMagicNumbers(t *testing.T) {
+	// 검사 대상 파일들 (구현 코드만, 테스트/const 제외)
+	targetFiles := []string{
+		"neuron_crud.go",
+		"lifecycle.go",
+		"brain.go",
+		"emit_bootstrap.go",
+	}
+
+	// 금지 패턴: 이 정규식이 매칭되면 매직넘버가 하드코딩된 것
+	type forbidden struct {
+		pattern string // regex
+		constName string
+		description string
+	}
+
+	forbiddenPatterns := []forbidden{
+		{
+			// 0.6이 코드에 직접 사용 (주석 제외)
+			// 허용: MergeThreshold, 주석, fmt 출력
+			pattern: `(?m)^[^/]*[><=!]=?\s*0\.6[^0-9]`,
+			constName: "MergeThreshold",
+			description: "similarity threshold 0.6 하드코딩",
+		},
+		{
+			// maxEpisodes (소문자, 로컬 변수)
+			pattern: `(?m)maxEpisodes`,
+			constName: "MaxEpisodes",
+			description: "maxEpisodes 소문자 사용 (MaxEpisodes 사용하라)",
+		},
+	}
+
+	runtimeDir := "."
+
+	for _, tf := range targetFiles {
+		content, err := os.ReadFile(filepath.Join(runtimeDir, tf))
+		if err != nil {
+			t.Logf("SKIP: %s not found", tf)
+			continue
+		}
+
+		for _, fp := range forbiddenPatterns {
+			re := regexp.MustCompile(fp.pattern)
+			matches := re.FindAllString(string(content), -1)
+			if len(matches) > 0 {
+				t.Errorf("[%s] %s — use %s const instead. Found: %v",
+					tf, fp.description, fp.constName, matches)
+			}
+		}
+	}
 }

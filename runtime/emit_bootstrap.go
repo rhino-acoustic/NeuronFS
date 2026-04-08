@@ -376,7 +376,7 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			// Compute effective intensity with time-based decay
 			effectiveIntensity := state.Intensity
 			if effectiveIntensity == 0 {
-				effectiveIntensity = 0.6 // default mid
+				effectiveIntensity = DefaultEmotionIntensity
 			}
 			if state.SetAt != "" && state.DecayRate > 0 {
 				if setTime, err := time.Parse(time.RFC3339, state.SetAt); err == nil {

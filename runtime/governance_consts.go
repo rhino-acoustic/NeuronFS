@@ -27,4 +27,9 @@ const (
 
 	// SessionLogCap: 동일 session_log에 허용되는 최대 .neuron 파일 수
 	SessionLogCap = 3
+
+	// ━━━ Emotion ━━━
+
+	// DefaultEmotionIntensity: limbic 감정 강도 기본값 (0이면 이 값 사용)
+	DefaultEmotionIntensity = 0.6
 )
