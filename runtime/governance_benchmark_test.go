@@ -784,10 +784,31 @@ func statusEmoji(pct, target float64) string {
 // 이 테스트가 실패하면 = 문서와 실제가 다르다는 뜻 → 즉시 수정 필요
 
 func TestDCI_Constants(t *testing.T) {
-	// DCI-01: maxEpisodes const = 실제로 쓰이는 값
-	t.Run("DCI-01: maxEpisodes=10", func(t *testing.T) {
-		if maxEpisodes != 10 {
-			t.Errorf("maxEpisodes changed to %d but comment says 10", maxEpisodes)
+	// DCI-01: MaxEpisodes const (governance_consts.go SSOT)
+	t.Run("DCI-01: MaxEpisodes=10", func(t *testing.T) {
+		if MaxEpisodes != 10 {
+			t.Errorf("MaxEpisodes changed to %d — update this test if intentional", MaxEpisodes)
+		}
+	})
+
+	// DCI-01b: MergeThreshold const
+	t.Run("DCI-01b: MergeThreshold=0.6", func(t *testing.T) {
+		if MergeThreshold != 0.6 {
+			t.Errorf("MergeThreshold changed to %f — update this test if intentional", MergeThreshold)
+		}
+	})
+
+	// DCI-01c: PruneDays const
+	t.Run("DCI-01c: PruneDays=3", func(t *testing.T) {
+		if PruneDays != 3 {
+			t.Errorf("PruneDays changed to %d — update this test if intentional", PruneDays)
+		}
+	})
+
+	// DCI-01d: SessionLogCap const
+	t.Run("DCI-01d: SessionLogCap=3", func(t *testing.T) {
+		if SessionLogCap != 3 {
+			t.Errorf("SessionLogCap changed to %d — update this test if intentional", SessionLogCap)
 		}
 	})
 

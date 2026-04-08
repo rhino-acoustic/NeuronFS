@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 // growNeuron creates a new neuron folder with 1.neuron
-// If a similar neuron already exists (hybrid similarity >= 0.6), fire that instead (consolidation)
+// If a similar neuron already exists (hybrid similarity >= MergeThreshold), fire that instead (consolidation)
 // Uses Cosine Bigram (60%) + Levenshtein (40%) instead of legacy Jaccard
 // Prefix-aware: 禁X and 推X are treated as DIFFERENT neurons (polarity matters)
 // Returns error instead of os.Exit so REST API won't crash
@@ -30,7 +30,7 @@ func growNeuron(brainRoot string, neuronPath string) error {
 		slDir := filepath.Join(brainRoot, filepath.Dir(neuronPath), "session_log")
 		if info, err := vfsStat(slDir); err == nil && info.IsDir() {
 			existing, _ := vfsGlob(filepath.Join(slDir, "*.neuron"))
-			if len(existing) >= 3 {
+			if len(existing) >= SessionLogCap {
 				fmt.Printf("[SKIP] session_log capped at 3 (has %d)\n", len(existing))
 				return nil
 			}
@@ -94,7 +94,7 @@ func growNeuron(brainRoot string, neuronPath string) error {
 			})
 		}
 
-		if bestSimilarity >= 0.6 && bestMatch != "" {
+		if bestSimilarity >= MergeThreshold && bestMatch != "" {
 			fmt.Printf("[MERGE] 🔗 '%s' ≈ '%s' (%.0f%% similar) → firing existing\n",
 				neuronPath, bestMatch, bestSimilarity*100)
 			fireNeuron(brainRoot, bestMatch)

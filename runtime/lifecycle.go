@@ -29,7 +29,7 @@ import (
 // pruneWeakNeurons marks 推-prefix neurons with activation ≤1 and 3+ days inactive as dormant.
 // 추천 뉴런은 우선순위가 낮다 — fire되지 않으면 자연 도태.
 func pruneWeakNeurons(brainRoot string) {
-	cutoff := time.Now().AddDate(0, 0, -3) // 3일
+	cutoff := time.Now().AddDate(0, 0, -PruneDays)
 	pruned := 0
 
 	for _, regionName := range []string{"cortex", "ego", "prefrontal", "limbic", "hippocampus", "sensors"} {
@@ -189,8 +189,8 @@ func runDecay(brainRoot string, days int) {
 }
 
 // logEpisode records an event in hippocampus/session_log
-// Circular buffer: keeps only the most recent 10 episodes
-const maxEpisodes = 10
+// Circular buffer: keeps only the most recent MaxEpisodes episodes
+// (MaxEpisodes defined in governance_consts.go)
 
 // logEpisode writes an event log to the hippocampus memory store.
 func logEpisode(brainRoot string, event string, detail string) {
@@ -217,12 +217,12 @@ func logEpisode(brainRoot string, event string, detail string) {
 	sort.Slice(mems, func(i, j int) bool { return mems[i].num < mems[j].num })
 
 	// Evict oldest if at limit
-	if len(mems) >= maxEpisodes {
-		evictCount := len(mems) - maxEpisodes + 1
+	if len(mems) >= MaxEpisodes {
+		evictCount := len(mems) - MaxEpisodes + 1
 		for i := 0; i < evictCount; i++ {
 			os.Remove(filepath.Join(logDir, mems[i].name))
 		}
-		fmt.Printf("[MEMORY] 🗑️ Evicted %d old episodes (circular buffer %d)\n", evictCount, maxEpisodes)
+		fmt.Printf("[MEMORY] 🗑️ Evicted %d old episodes (circular buffer %d)\n", evictCount, MaxEpisodes)
 	}
 
 	// Find next number
@@ -240,7 +240,7 @@ func logEpisode(brainRoot string, event string, detail string) {
 
 // deduplicateNeurons scans brain for semantically similar neuron folders
 // and merges them: cross-region comparison enabled, P-priority survivor selection
-// Uses hybrid similarity (Cosine Bigram 60% + Levenshtein 40%, >= 0.6) on folder names
+// Uses hybrid similarity (Cosine Bigram 60% + Levenshtein 40%, >= MergeThreshold) on folder names
 // Generates axon files at victim location to maintain neural pathways
 func deduplicateNeurons(brainRoot string) {
 	brain := scanBrain(brainRoot)
@@ -294,7 +294,7 @@ func deduplicateNeurons(brainRoot string) {
 			}
 
 			sim := hybridSimilarity(allRefs[i].tokens, allRefs[j].tokens)
-			if sim < 0.6 {
+			if sim < MergeThreshold {
 				continue
 			}
 
@@ -305,7 +305,7 @@ func deduplicateNeurons(brainRoot string) {
 				continue // 극성 충돌 → 별개
 			}
 
-			// 유사도 0.6 이상 — 병합 대상
+			// 유사도 MergeThreshold 이상 — 병합 대상
 			// 생존자 선택 로직:
 			//   1. 교차 영역: P가 낮은(=강한) 쪽이 생존
 			//   2. 같은 영역: depth 깊거나 counter 높은 쪽
