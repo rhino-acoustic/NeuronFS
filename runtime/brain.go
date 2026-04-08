@@ -441,15 +441,18 @@ func scanBrain(root string) Brain {
 					for _, e := range entries {
 						if !e.IsDir() && strings.HasSuffix(e.Name(), ".neuron") {
 							name := strings.TrimSuffix(e.Name(), ".neuron")
-							// 숫자만인 파일은 카운터용 → 스킵
-							isNumeric := true
+							// 숫자만이거나 시스템 예약 이름은 카운터용 → 스킵
+							isReserved := true
 							for _, r := range name {
 								if r < '0' || r > '9' {
-									isNumeric = false
+									isReserved = false
 									break
 								}
 							}
-							if !isNumeric && len(name) > 2 {
+							if name == "consolidated" || name == "merged" {
+								isReserved = true
+							}
+							if !isReserved && len(name) > 2 {
 								n.Description = strings.ReplaceAll(name, "_", " ")
 								break
 							}

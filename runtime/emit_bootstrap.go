@@ -87,7 +87,8 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 						strings.Contains(leaf, "자문") || strings.Contains(leaf, "CoVe") {
 						continue
 					}
-					sb.WriteString(fmt.Sprintf("- %s\n", strings.Join(parts[1:], " > ")))
+					label := strings.ReplaceAll(strings.Join(parts[1:], " > "), "_", " ")
+					sb.WriteString(fmt.Sprintf("- %s\n", label))
 				}
 			}
 			break
