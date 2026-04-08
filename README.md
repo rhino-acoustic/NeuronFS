@@ -276,6 +276,46 @@ brain_v4/
 
 ---
 
+## Limbic Engine — EmotionPrompt for LLMs
+
+The limbic region (P1) implements a **scientifically-backed emotion state machine** that dynamically adjusts AI agent behavior. Based on two peer-reviewed findings:
+
+- **Anthropic** ["On the Biology of a LLM"](https://transformer-circuits.pub) (2025): Discovered measurable "functional emotions" inside Claude 3.5 — internal activation patterns for desperation, enthusiasm, fear that change model behavior without awareness.
+- **Microsoft/CAS** [EmotionPrompt](https://arxiv.org/abs/2307.11760) (2023): Adding emotional stimuli to prompts improves LLM performance by **8–115%** on BIG-Bench, with +10.9% on human evaluation.
+
+### 5 Emotions × 3 Intensity Tiers
+
+```
+POST /api/emotion {"emotion":"집중","intensity":0.7}
+→ limbic/_state.json
+→ GEMINI.md re-inject
+→ AI behavior changes immediately
+```
+
+| Emotion | Low (≤0.4) | Mid (0.4–0.7) | High (≥0.7) |
+|---|---|---|---|
+| 🔥 **anger** | +1 verification pass | 3× verification, accuracy > speed | All changes require diff + user approval |
+| ⚡ **urgent** | Reduce explanations | Execute core only, minimize steps | One-line answers, no questions, execute now |
+| ◎ **focus** | Limit unrelated suggestions | Single-file only, no multitasking | Current function only, don't open other files |
+| ◆ **anxiety** | Recommend backup before changes | Prepare rollback, add verification | git stash first, all changes revertable, dry-run |
+| ● **satisfied** | Maintain current patterns | Record success patterns, dopamine | Promote to neuron, allow free exploration |
+
+### Auto-Detection (No Buttons Needed)
+
+The IDLE engine's transcript digester automatically detects user emotion from conversation patterns:
+
+```
+User says "왜 안돼?!" 3+ times → auto-switch to urgent(0.5)
+User says "왜 안돼?!" 5+ times → urgent(0.7)
+User says "좋아", "완벽" 3+ times → auto-switch to satisfied(0.6)
+```
+
+### Time-Based Decay
+
+Emotions naturally decay over time. A `decay_rate` parameter reduces intensity hourly — if it drops below 0.1, the system auto-resets to `neutral`. No manual intervention needed.
+
+---
+
 ## Why mkdir Beats Vector
 
 > **"mkdir beats vector."** — A zero-byte folder is a deterministic O(1) wall. A vector DB is a probabilistic O(n) guess.

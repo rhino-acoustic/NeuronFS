@@ -175,9 +175,38 @@ go build .     # ~8.3s — 단일 바이너리
 | 엔드포인트 | 용도 |
 |-----------|------|
 | `http://localhost:9090/` | 3D 뇌 토폴로지 |
-| `http://localhost:9090/api/codemap` | 런타임 파일 트리 JSON |
-| `http://localhost:9090/api/state` | 뇌 상태 JSON |
 | `http://localhost:9090/api/brain` | 전체 뇌 데이터 |
+| `http://localhost:9090/api/usage` | Groq API 사용량 + 감정 상태 + uptime |
+| `http://localhost:9090/api/emotion` | GET: 현재 감정 / POST: 감정 설정 |
+| `http://localhost:9090/api/codemap` | 런타임 파일 트리 JSON |
+
+---
+
+## Limbic EmotionPrompt 엔진
+
+`emit_bootstrap.go`의 감정 상태 머신은 두 개의 피어리뷰 연구에 기반합니다:
+
+1. **Anthropic** "On the Biology of a LLM" (2025) — 기능적 감정(functional emotions) 발견
+2. **Microsoft/CAS** EmotionPrompt (arXiv:2307.11760) — BIG-Bench +115%, Human Eval +10.9%
+
+### 데이터 흐름
+
+```
+[대시보드 버튼] ──→ POST /api/emotion ──→ limbic/_state.json
+[전사 분석] ──→ autoSetEmotion() ──┘         │
+                                              ↓
+                               emitBootstrap() → GEMINI.md
+                                              ↓
+                               emotionBehaviors[emo][tier] 주입
+                               (5감정 × 3단계 = 15개 행동지시)
+```
+
+### 자동 감정 전환 (transcript.go)
+
+`digestTranscripts()`가 사용자 발화를 분석:
+- 답답함 키워드 3회↑ → `autoSetEmotion("긴급", 0.5~0.9)`
+- 만족 키워드 3회↑ → `autoSetEmotion("만족", 0.6)`
+- 시간 경과 시 `decay_rate`에 의해 자동 감쇠 → neutral 리셋
 
 ---
 

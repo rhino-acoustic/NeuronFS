@@ -14,6 +14,23 @@ import (
 	"sync"
 	"time"
 )
+
+// autoSetEmotion writes emotion state to limbic/_state.json and triggers re-injection.
+// Called automatically by transcript digestion when user frustration/satisfaction is detected.
+func autoSetEmotion(brainRoot string, emotion string, intensity float64) {
+	stateFile := filepath.Join(brainRoot, "limbic", "_state.json")
+	os.MkdirAll(filepath.Dir(stateFile), 0755)
+	state := map[string]interface{}{
+		"emotion":   emotion,
+		"intensity": intensity,
+		"since":     time.Now().Format("2006-01-02T15:04:05"),
+		"trigger":   "auto-transcript",
+	}
+	data, _ := json.MarshalIndent(state, "", "  ")
+	os.WriteFile(stateFile, data, 0644)
+	// Trigger re-injection so GEMINI.md picks up the new emotion behavior
+	markBrainDirty()
+}
 func gitSnapshot(brainRoot string) {
 	// Check if git is available
 	if _, err := exec.LookPath("git"); err != nil {
@@ -341,14 +358,20 @@ func digestTranscripts(brainRoot string) int {
 		}
 	}
 
-	// 감정 결과 → limbic 뉴런 자동 fire
+	// 감정 결과 → limbic 뉴런 자동 fire + _state.json 갱신 (EmotionPrompt 자동 전환)
 	if frustrationCount >= 3 {
 		fireNeuron(brainRoot, "limbic/긴급_사용자답답함감지")
-		fmt.Printf("[LIMBIC] 😤 답답함 %d회 감지 → limbic fire\n", frustrationCount)
+		// Auto-switch emotion to urgent (intensity scales with frustration)
+		intensity := 0.5
+		if frustrationCount >= 5 { intensity = 0.7 }
+		if frustrationCount >= 8 { intensity = 0.9 }
+		autoSetEmotion(brainRoot, "긴급", intensity)
+		fmt.Printf("[LIMBIC] 😤 답답함 %d회 감지 → 긴급 모드 (intensity: %.1f)\n", frustrationCount, intensity)
 	}
 	if satisfactionCount >= 3 {
 		fireNeuron(brainRoot, "limbic/칭찬_사용자만족감지")
-		fmt.Printf("[LIMBIC] 😊 만족 %d회 감지 → limbic fire\n", satisfactionCount)
+		autoSetEmotion(brainRoot, "만족", 0.6)
+		fmt.Printf("[LIMBIC] 😊 만족 %d회 감지 → 만족 모드\n", satisfactionCount)
 	}
 
 	// cursor 갱신
