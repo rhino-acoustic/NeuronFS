@@ -109,7 +109,8 @@ func runDecay(brainRoot string, days int) {
 	decayed := 0
 	total := 0
 
-	for _, regionName := range []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"} {
+	// brainstem 제외: P0 거버넌스 규칙(禁/必)은 영구 — decay 대상이 아님
+	for _, regionName := range []string{"limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"} {
 		regionPath := filepath.Join(brainRoot, regionName)
 		if _, err := os.Stat(regionPath); os.IsNotExist(err) {
 			continue
@@ -118,6 +119,14 @@ func runDecay(brainRoot string, days int) {
 		filepath.Walk(regionPath, func(path string, info os.FileInfo, err error) error {
 			if err != nil || !info.IsDir() || path == regionPath {
 				return nil
+			}
+
+			// 禁/必 접두어 뉴런은 거버넌스 → decay 면제
+			leafName := filepath.Base(path)
+			for _, h := range []string{"禁", "必"} {
+				if strings.HasPrefix(leafName, h) {
+					return nil
+				}
 			}
 
 			// Check if this is a neuron folder (has .neuron files)
