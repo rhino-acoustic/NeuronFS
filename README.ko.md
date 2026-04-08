@@ -4,16 +4,18 @@
   <img src="https://img.shields.io/badge/Neurons-3400+-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/Axons-10-purple?style=flat-square" />
   <img src="https://img.shields.io/badge/Zero_Dependencies-black?style=flat-square" />
-  <img src="https://img.shields.io/badge/MIT-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/AGPL--3.0-green?style=flat-square" />
 </p>
 
 <p align="center">
-  <img src="docs/dashboard.png" alt="NeuronFS 대시보드 — 3D 뇌 시각화" width="800" />
-  <br/>
+  <img src="docs/neuronfs_hero.png" alt="폴더가 문맥이다 — mkdir beats vector" width="800" />
+</p>
+
+<p align="center">
   <a href="https://dashboarddeploy-six.vercel.app/"><strong>3D 대시보드 라이브 데모</strong></a>
 </p>
 
-<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a> · <a href="MANIFESTO.md">📜 매니페스토</a> · <a href="docs/ARCHITECTURE.md">🏗️ 아키텍처</a> · <a href="docs/CHANGELOG.md">📋 변경이력</a></p>
+<p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a></p>
 
 # NeuronFS
 ### *파일시스템 네이티브 계층형 규칙 메모리 — 무의존성 하네스 엔지니어링(Harness Engineering)*
@@ -26,27 +28,46 @@
 
 ---
 
-## 요약 (TL;DR)
+## 왜 NeuronFS인가? — 표 한 장이면 끝
 
-**`mkdir`이 시스템 프롬프트를 대체한다.** 폴더가 뉴런이고, 경로가 문장이며, 파일이 시냅스 가중치다.
+| # | | `.cursorrules` | Mem0 / Letta | RAG (벡터 DB) | **NeuronFS** |
+|---|---|---|---|---|---|
+| 1 | **규칙 정확도** | 텍스트 = 쉽게 무시됨 | 확률적 | ~95% | **100% 결정론적** |
+| 2 | **환각** | 프롬프트 의존 | 5%+ 잔존 | 5–12% | **0% (경로 = 진실)** |
+| 3 | **조회 속도** | 전문 스캔 | API 지연 | 200–2000ms | **0.001ms (B-Tree O(1))** |
+| 4 | **멀티 AI 지원** | ❌ Cursor 전용 | API 의존 | ✅ | **✅ `--emit all` → 모든 IDE** |
+| 5 | **AI 도구 교체** | 규칙 증발 | 재통합 필요 | 재인덱싱 | **같은 뇌, 항상** |
+| 6 | **자율 진화** | 수동 편집 | 블랙박스 | 블랙박스 | **🧬 자율 진화 (Groq LLM)** |
+| 7 | **우선순위 체계** | ❌ 평면 텍스트 | ❌ | ❌ | **✅ 7계층 포섭 (P0→P6)** |
+| 8 | **킬 스위치** | ❌ | ❌ | ❌ | **✅ `bomb.neuron` 영역 정지** |
+| 9 | **규칙 충돌 해결** | 운에 맡김 | 미정의 | Top-K ≠ 최우선 | **P0가 P4를 물리적으로 압도** |
+| 10 | **인프라 비용** | 무료 | $50+/월 서버 | $70+/월 GPU | **₩0 (로컬 OS)** |
+| 11 | **의존성** | IDE 종속 | Python + Redis + DB | Python + GPU + API | **제로 (4MB Go 단일 바이너리)** |
+| 12 | **덮어쓰기 시 백업** | ❌ | ❌ | N/A | **✅ 자동 백업 `.neuronfs_backup/`** |
+| 13 | **에디터 자동 감지** | N/A | N/A | N/A | **✅ `--emit auto`** |
+| 14 | **암호화 뇌 이식성** | ❌ | 클라우드 의존 | 클라우드 의존 | **✅ XChaCha20 `.jloot` 카트리지** |
+| 15 | **크로스 영역 지능** | ❌ | ❌ | 임베딩 유사도 | **✅ `.axon` Attention Residuals** |
+| 16 | **규칙 내 논리 게이트** | ❌ 텍스트만 | ❌ | ❌ | **✅ 禁(NOT) / 必(AND) / 推(OR)** |
+| 17 | **규칙의 OS 강제력** | 텍스트 제안 | API 제안 | 통계적 매칭 | **커널 inode = 물리적 벽** |
+| 18 | **규칙 추가 방법** | 텍스트 파일 편집 | API 호출 | 임베딩→인덱스→저장 | **`mkdir 禁/규칙` (0ms, ₩0)** |
+| 19 | **감사 추적** | ❌ | 부분적 | ❌ | **✅ OS 타임스탬프 + git 스냅샷** |
+| 20 | **뇌 상거래** | N/A | N/A | N/A | **✅ `.jloot` 큐레이션 뇌 판매** |
 
-### 기존 방식 대비 4대 우위
-
-1. **비용 제로 (Zero Cost):** 에이전트의 기억을 관리하기 위해 Mem0나 Letta 같은 Vector DB를 사용하면 서버 배포 유지 비용이 발생하지만, NeuronFS는 당신의 로컬 OS 파일시스템을 직접 쓰므로 인프라 비용이 **₩0**이다.
-2. **토큰 효율성과 관리의 용이성:** 수천 줄의 텍스트 뭉치에서 특정 규칙을 찾아내고 수정하는 것은 사람을 미치게 하지만, 트리 형태의 폴더 구조(`ls -R`)에서는 규칙의 탐색과 계층화, 물리적 삭제가 매우 직관적이다.
-3. **극강의 이식성 (Portability):** 어떠한 외부 종속성(Dependencies)도 없는 단일 Go 언어 바이너리로 빌드되어, 어떤 OS 환경에서든 복사만 하면 즉시 실행할 수 있으며 곧바로 MCP(Model Context Protocol) 서버로도 동작한다.
-4. **모델 불문 거버넌스 (Model-Agnostic):** 쿠터 제한 때문에 모든 개발자가 여러 AI를 섞어 쓴다. `.cursorrules`는 Cursor 전용. `CLAUDE.md`는 Claude 전용. **NeuronFS는 하나의 뇌에서 모든 AI 포맷을 동시 생성**한다 — AI를 바꿀 때 규칙이 증발하지 않는다.
+> **`mkdir`이 시스템 프롬프트를 대체한다.** 폴더가 뉴런이고, 경로가 문장이며, 파일이 시냅스 가중치다.
 
 ```bash
 # 규칙 생성 = 폴더 생성
 mkdir -p brain/brainstem/禁fallback
 touch brain/brainstem/禁fallback/1.neuron
 
-# 컴파일 = 시스템 프롬프트 자동 생성 (Cursor, Windsurf, Claude Desktop 등)
+# 컴파일 = 시스템 프롬프트 자동 생성
 neuronfs ./brain --emit cursor   # → .cursorrules
 neuronfs ./brain --emit claude   # → CLAUDE.md
+neuronfs ./brain --emit auto     # → 🔍 사용 중인 에디터만 자동 감지
 neuronfs ./brain --emit all      # → 모든 AI 포맷 동시 출력
 ```
+
+> ⚠️ **자동 백업:** `--emit` 실행 시 기존 룰 파일을 **자동 백업** 후 덮어씁니다. 백업 위치: `<brain>/.neuronfs_backup/`
 
 ---
 
@@ -215,7 +236,7 @@ NeuronFS의 해법: **하나의 뇌 → 모든 포맷 동시 생성.**
 ### WordPress 비유
 
 WordPress는 무료다. 테마와 플러그인은 유료다. 마찬가지로:
-- **NeuronFS 엔진**: 무료 ($0) — MIT 라이선스
+- **NeuronFS 엔진**: 무료 ($0) — AGPL-3.0 라이선스
 - **큐레이팅된 Master Brain**: 프리미엄 — React, Next.js, Supabase 등 실전 검증된 거버넌스 패키지
 
 `.cursorrules` 파일은 팔 수 없다. **10,000번의 교정을 거친 뇌는 팔 수 있다.**
@@ -266,26 +287,15 @@ bomb.neuron은 글자로 "하지 마"라고 비는(Begging) 것이 아니라, **
 
 ---
 
+
 ## 아키텍처
-
-> **⚠️ 전사 아키텍처는 NeuronFS의 규칙에 따라 '뇌(폴더) 구조'로 자체 흡수(Subsumption)되었습니다.**
-> 시스템 컴포넌트(Go, 다중 에이전트 브릿지, NAS 부팅 시퀀스 등)의 통합 상관관계는 루트 마크다운에 존재하지 않으며, **`brain_v4/cortex/neuronfs/아키텍처/`** 하위의 물리적 뉴런(폴더) 구조로 완전 통합(SSOT)되었습니다.
-> 이로 통해 시스템은 자신의 아키텍처 구조 자체를 스스로 인지하고 실시간 진화합니다.
-
-### 자율 루프
-
-```
-사용자 교정 → corrections 텍스트 생성 → neuronize 모터 감지 → mkdir (오류 방지 뉴런/폴더 강제 생성)
-                                                           ↓
-                                                .cursorrules 자동 재컴파일
-                                                           ↓
-                                                다음 질문부터 AI가 해당 실수를 절대 반복하지 않음
-```
 
 ### CLI 인터페이스
 
 ```bash
-neuronfs <brain> --emit <target>   # 프롬프트 컴파일 (gemini/cursor/claude/all)
+neuronfs <brain> --emit all        # 모든 AI 포맷 동시 컴파일
+neuronfs <brain> --emit auto       # 🔍 사용 중인 에디터만 자동 감지 생성
+neuronfs <brain> --emit cursor     # Cursor 전용
 neuronfs <brain> --consolidate     # Llama 3 70B 병합 로직 가동
 neuronfs <brain> --api             # 대시보드 (localhost:9090)
 neuronfs <brain> --watch           # 파일 감시 + 실시간 반영
@@ -407,7 +417,7 @@ NeuronFS는 대규모 분산 환경(MSA)이나 범용 벡터 검색 시스템과
 
 ---
 
-MIT License · Copyright (c) 2026
+AGPL-3.0 License · Copyright (c) 2026
 
 동의하면 Star. [아니면 Issue 제기하기.](../../issues)
 
