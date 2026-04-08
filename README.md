@@ -55,6 +55,30 @@
 
 > **`mkdir` replaces your system prompt.** A folder is a neuron, a path is a sentence, a file is a synaptic weight.
 
+### 3 Use Cases — Solo → Team → Enterprise
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ 1. SOLO DEV — One Brain, All AIs                                │
+│    neuronfs --emit all  →  .cursorrules + CLAUDE.md + GEMINI.md │
+│    Switch AI tools freely. Your rules never evaporate.          │
+├──────────────────────────────────────────────────────────────────┤
+│ 2. MULTI-AGENT — Swarm Orchestration                            │
+│    supervisor.go → 3-process supervisor (bot1, bot2, bot3)      │
+│    inject.go → inter-agent inbox (cross-brain messaging)        │
+│    Each agent reads the SAME brain, but with role-based ego/     │
+│    └─ bot1: ego/ENTP (aggressive)                               │
+│    └─ bot2: ego/ISTJ (conservative)                             │
+│    └─ bot3: ego/QA (verification-only)                          │
+├──────────────────────────────────────────────────────────────────┤
+│ 3. ENTERPRISE — Corporate Brain (사내 브레인)                     │
+│    neuronfs --init ./company_brain → 7-region scaffold           │
+│    CTO curates master P0 rules (禁/security, 禁/compliance)     │
+│    Team clones brain → instant onboarding. New hire = Day 0 AI. │
+│    Distribute as .jloot cartridge → encrypted, versioned, sold. │
+└──────────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## Quickstart

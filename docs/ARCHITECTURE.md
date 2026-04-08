@@ -69,6 +69,7 @@ transcript.go    → 대화를 기록한다
 |------|-----|-------------|
 | `emit.go` | 858 | _rules.md 생성 — Tier 0/1/2 규칙 컴파일 |
 | `emit_helpers.go` | 581 | 인덱스, 트리 렌더링, 경로 유틸 |
+| `emit_tiers.go` | 273 | `--emit auto/all` + 자동 백업 + 에디터 감지 |
 | `neuronize.go` | 760 | Groq LLaMA 기반 자율 뉴런 생성 |
 | `evolve.go` | 644 | 자율 진화 엔진 |
 | `similarity.go` | 261 | 토큰화, 유사도 계산 (순수 리프) |
@@ -177,6 +178,50 @@ go build .     # ~8.3s — 단일 바이너리
 | `http://localhost:9090/api/codemap` | 런타임 파일 트리 JSON |
 | `http://localhost:9090/api/state` | 뇌 상태 JSON |
 | `http://localhost:9090/api/brain` | 전체 뇌 데이터 |
+
+---
+
+## 3대 유즈케이스: Solo → Multi-Agent → Enterprise
+
+### 1. 솔로 개발자 — One Brain, All AIs
+
+```
+neuronfs --emit all → .cursorrules + CLAUDE.md + GEMINI.md 동시 생성
+neuronfs --emit auto → 프로젝트 내 존재하는 에디터 설정만 자동 감지
+```
+
+AI 도구를 자유롭게 전환해도 규칙이 증발하지 않는다.
+
+### 2. 멀티에이전트 — Swarm Orchestration
+
+```
+                    ┌─ bot1 (ego/ENTP) ─── 공격적 해체
+                    │
+supervisor.go ──────┼─ bot2 (ego/ISTJ) ─── 보수적 검증
+                    │
+                    └─ bot3 (ego/QA)  ─── 검증 전용
+                          │
+                    inject.go ← 크로스 브레인 인박스
+```
+
+- 모든 에이전트가 **같은 brain_v4/** 를 읽되, `ego/` 폴더만 다름
+- `inject.go`의 인박스 시스템으로 에이전트 간 비동기 메시징
+- `supervisor.go`가 3개 프로세스를 감독 (crash 시 자동 재시작)
+
+### 3. 엔터프라이즈 — Corporate Brain (사내 브레인)
+
+```
+CTO                    Team
+ ├─ 禁/보안위반          ├─ git clone company_brain
+ ├─ 禁/컴플라이언스       ├─ neuronfs --emit all
+ ├─ 必/코드리뷰          └─ Day 0 = 이미 시니어 수준 AI 장착
+ └─ .jloot 카트리지 배포
+    (암호화 · 버저닝 · 유료 판매)
+```
+
+- CTO가 P0(brainstem) 절대 규칙을 큐레이션 → 팀 전체에 배포
+- `.jloot` 카트리지: XChaCha20 암호화된 뇌 패키지 → 팀/외부 판매 가능
+- 신입사원 온보딩: 뇌를 clone하는 순간 10,000번의 교정이 즉시 적용
 
 ---
 
