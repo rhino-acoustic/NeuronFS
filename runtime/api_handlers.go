@@ -21,6 +21,8 @@ import (
 	"time"
 )
 
+var startTime = time.Now()
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CRUD Routes: grow, fire, signal, decay, state
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -205,6 +207,26 @@ func registerCRUDRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http
 		data := buildBrainJSONResponse(brainRoot)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(data)
+	}))
+
+	// GET /api/usage — API usage stats + system metrics for dashboard
+	mux.HandleFunc("/api/usage", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		// Groq usage from neuronize.go atomic counters
+		groq := GetGroqUsage()
+
+		// Emotion state
+		emotion := map[string]interface{}{"emotion": "neutral", "intensity": 0}
+		stateFile := filepath.Join(brainRoot, "limbic", "_state.json")
+		if data, err := os.ReadFile(stateFile); err == nil {
+			json.Unmarshal(data, &emotion)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"groq":    groq,
+			"emotion": emotion,
+			"uptime":  time.Since(startTime).Round(time.Second).String(),
+		})
 	}))
 }
 

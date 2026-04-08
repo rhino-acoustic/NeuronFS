@@ -60,11 +60,18 @@ type groqChoice struct {
 type groqResponse struct {
 	Choices []groqChoice `json:"choices"`
 	Error   *groqError   `json:"error,omitempty"`
+	Usage   *groqUsage   `json:"usage,omitempty"`
 }
 
 type groqError struct {
 	Message string `json:"message"`
 	Type    string `json:"type"`
+}
+
+type groqUsage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
 }
 
 // ─── Evolution Action Types ───

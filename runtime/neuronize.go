@@ -21,8 +21,17 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"time"
 )
+
+// ─── Global API Usage Counters (atomic, goroutine-safe) ───
+
+var groqCallCount  int64 // 총 호출 수
+var groqTokensIn   int64 // 입력 토큰
+var groqTokensOut  int64 // 출력 토큰
+var groqErrorCount int64 // 에러 수
+var groqLastCall   atomic.Value // string: 마지막 호출 시각
 
 // ─── Neuronize System Prompt (ENFP 프롬프트 엔지니어링 가이드 적용) ───
 
@@ -560,6 +569,7 @@ func callGroqRaw(apiKey string, req groqRequest) (string, error) {
 	client := &http.Client{Timeout: 60 * time.Second}
 	resp, err := client.Do(httpReq)
 	if err != nil {
+		atomic.AddInt64(&groqErrorCount, 1)
 		return "", fmt.Errorf("http request: %w", err)
 	}
 	defer resp.Body.Close()
@@ -579,16 +589,29 @@ func callGroqRaw(apiKey string, req groqRequest) (string, error) {
 		}
 	}
 
+	// Track call
+	atomic.AddInt64(&groqCallCount, 1)
+	groqLastCall.Store(time.Now().Format("2006-01-02T15:04:05"))
+
 	if resp.StatusCode != 200 {
+		atomic.AddInt64(&groqErrorCount, 1)
 		return "", fmt.Errorf("API error %d: %s", resp.StatusCode, body.String())
 	}
 
 	var groqResp groqResponse
 	if err := json.Unmarshal([]byte(body.String()), &groqResp); err != nil {
+		atomic.AddInt64(&groqErrorCount, 1)
 		return "", fmt.Errorf("unmarshal response: %w", err)
 	}
 
+	// Track token usage
+	if groqResp.Usage != nil {
+		atomic.AddInt64(&groqTokensIn, int64(groqResp.Usage.PromptTokens))
+		atomic.AddInt64(&groqTokensOut, int64(groqResp.Usage.CompletionTokens))
+	}
+
 	if groqResp.Error != nil {
+		atomic.AddInt64(&groqErrorCount, 1)
 		return "", fmt.Errorf("groq error: %s", groqResp.Error.Message)
 	}
 
@@ -597,6 +620,22 @@ func callGroqRaw(apiKey string, req groqRequest) (string, error) {
 	}
 
 	return strings.TrimSpace(groqResp.Choices[0].Message.Content), nil
+}
+
+// GetGroqUsage returns current Groq API usage stats (for /api/usage endpoint)
+func GetGroqUsage() map[string]interface{} {
+	lastCall := ""
+	if v := groqLastCall.Load(); v != nil {
+		lastCall = v.(string)
+	}
+	return map[string]interface{}{
+		"calls":     atomic.LoadInt64(&groqCallCount),
+		"tokens_in": atomic.LoadInt64(&groqTokensIn),
+		"tokens_out": atomic.LoadInt64(&groqTokensOut),
+		"errors":    atomic.LoadInt64(&groqErrorCount),
+		"last_call": lastCall,
+		"model":     "llama-3.3-70b-versatile",
+	}
 }
 
 // ─── Rule-based polarity conversion (no Groq needed) ───
