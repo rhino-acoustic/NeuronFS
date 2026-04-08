@@ -215,7 +215,8 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		idx++
 		regionTag := c.region[:3]
 		if c.neuron.Description != "" {
-			// description 축약: 50자 제한, 경로 제거
+			// description이 SSOT → pathToSentence 대신 description을 제목으로 표시
+			// 주입의미 = 해석의미를 보장 (역으로도 풀리도록)
 			desc := c.neuron.Description
 			// 경로 패턴 제거
 			if idx := strings.Index(desc, "c:\\"); idx >= 0 {
@@ -227,11 +228,8 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			if idx := strings.Index(desc, "경로:"); idx >= 0 {
 				desc = strings.TrimSpace(desc[:idx])
 			}
-			if len([]rune(desc)) > 50 {
-				desc = string([]rune(desc)[:50]) + "…"
-			}
 			if desc != "" {
-				sb.WriteString(fmt.Sprintf("%d. **%s**: %s [%s](s:%.0f)\n", idx, sentence, desc, regionTag, c.score))
+				sb.WriteString(fmt.Sprintf("%d. **%s** [%s](s:%.0f)\n", idx, desc, regionTag, c.score))
 			} else {
 				sb.WriteString(fmt.Sprintf("%d. **%s** [%s](s:%.0f)\n", idx, sentence, regionTag, c.score))
 			}
