@@ -399,6 +399,7 @@ func scanBrain(root string) Brain {
 			}
 
 			// ━━━ Natural Language Rule: rule.md → Description (post-Walk) ━━━
+			// Priority: rule.md frontmatter > rule.md first line > .neuron filename > empty
 			if n.Description == "" && n.FullPath != "" {
 				ruleFile := filepath.Join(n.FullPath, "rule.md")
 				if ruleContent, err := vfsReadFile(ruleFile); err == nil {
@@ -428,6 +429,28 @@ func scanBrain(root string) Brain {
 									line = line[:120]
 								}
 								n.Description = line
+								break
+							}
+						}
+					}
+				}
+				// Fallback 2: .neuron 파일 이름 (Path=Sentence 원칙)
+				// 예: "이전작업을_다시하지마라.neuron" → "이전작업을 다시하지마라"
+				if n.Description == "" && n.FullPath != "" {
+					entries, _ := os.ReadDir(n.FullPath)
+					for _, e := range entries {
+						if !e.IsDir() && strings.HasSuffix(e.Name(), ".neuron") {
+							name := strings.TrimSuffix(e.Name(), ".neuron")
+							// 숫자만인 파일은 카운터용 → 스킵
+							isNumeric := true
+							for _, r := range name {
+								if r < '0' || r > '9' {
+									isNumeric = false
+									break
+								}
+							}
+							if !isNumeric && len(name) > 2 {
+								n.Description = strings.ReplaceAll(name, "_", " ")
 								break
 							}
 						}
