@@ -125,6 +125,12 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			if n.IsDormant {
 				continue
 			}
+			// TOP 5는 거버넌스 원칙만: cortex/ego/prefrontal은 禁/必/推만 후보
+			if region.Name == "cortex" || region.Name == "ego" || region.Name == "prefrontal" {
+				if !strings.ContainsAny(n.Path, "禁必推") {
+					continue
+				}
+			}
 			sentence := pathToSentence(n.Path)
 			// preamble과 중복 스킵
 			if strings.Contains(sentence, "한국어로") && strings.Contains(sentence, "대답") {
@@ -162,9 +168,9 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 				score *= 5.0
 			}
 
-			// description 있으면 +10 (의미 전달 가능)
+			// description 있으면 +3 (의미 전달 가능, 과도한 부스트 방지)
 			if n.Description != "" {
-				score += 10
+				score += 3
 			}
 
 			// recency 부스트: 최근 7일 이내 수정 ×1.5
@@ -200,15 +206,37 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		if len([]rune(trimmed)) < 2 {
 			continue
 		}
+		// 동어반복 필터: "절대 금지: 절대금지" 같은 것
+		if strings.Contains(trimmed, "절대금지") || strings.Contains(trimmed, "절대 금지") {
+			continue
+		}
 		seenTop[leaf] = true
 		top5Sentences[sentence] = true
 		idx++
-		pathContext := strings.Join(parts, "/")
 		regionTag := c.region[:3]
 		if c.neuron.Description != "" {
-			sb.WriteString(fmt.Sprintf("%d. **%s**: %s ← `%s` [%s](s:%.0f)\n", idx, sentence, c.neuron.Description, pathContext, regionTag, c.score))
+			// description 축약: 50자 제한, 경로 제거
+			desc := c.neuron.Description
+			// 경로 패턴 제거
+			if idx := strings.Index(desc, "c:\\"); idx >= 0 {
+				desc = strings.TrimSpace(desc[:idx])
+			}
+			if idx := strings.Index(desc, "C:\\"); idx >= 0 {
+				desc = strings.TrimSpace(desc[:idx])
+			}
+			if idx := strings.Index(desc, "경로:"); idx >= 0 {
+				desc = strings.TrimSpace(desc[:idx])
+			}
+			if len([]rune(desc)) > 50 {
+				desc = string([]rune(desc)[:50]) + "…"
+			}
+			if desc != "" {
+				sb.WriteString(fmt.Sprintf("%d. **%s**: %s [%s](s:%.0f)\n", idx, sentence, desc, regionTag, c.score))
+			} else {
+				sb.WriteString(fmt.Sprintf("%d. **%s** [%s](s:%.0f)\n", idx, sentence, regionTag, c.score))
+			}
 		} else {
-			sb.WriteString(fmt.Sprintf("%d. **%s** ← `%s` [%s](s:%.0f)\n", idx, sentence, pathContext, regionTag, c.score))
+			sb.WriteString(fmt.Sprintf("%d. **%s** [%s](s:%.0f)\n", idx, sentence, regionTag, c.score))
 		}
 	}
 	sb.WriteString("\n")
@@ -435,27 +463,55 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	// LLM은 맨 앞(primacy)과 맨 끝(recency)에 가장 주의를 집중한다.
 	sb.WriteString("### 🔒 절대 규칙 (재확인)\n")
 	var banReminders []string
+	seenBanLeaf := make(map[string]bool) // leaf 기준 중복 제거
 	for _, region := range result.ActiveRegions {
 		for _, n := range region.Neurons {
 			if n.IsDormant || (n.Counter+n.Dopamine) < 5 {
 				continue
 			}
-			if strings.ContainsAny(n.Path, "禁") {
-				sentence := pathToSentence(n.Path)
-				if strings.Contains(sentence, "추천:") {
-					continue
-				}
-				// 의미없는 짧은 sentence 제외
-				trimmed := strings.TrimSpace(strings.ReplaceAll(sentence, "절대 금지:", ""))
-				if len([]rune(trimmed)) < 2 {
-					continue
-				}
-				// TOP 5에 이미 나온 것 스킵
-				if top5Sentences[sentence] {
-					continue
-				}
-				banReminders = append(banReminders, sentence)
+			if !strings.ContainsAny(n.Path, "禁") {
+				continue
 			}
+			// 하위 폴더 존재 시 상위 스킵 (중간 경로 제거)
+			hasChild := false
+			for _, other := range region.Neurons {
+				if other.Depth > n.Depth && (strings.HasPrefix(other.Path, n.Path+string(filepath.Separator)) || strings.HasPrefix(other.Path, n.Path+"/")) {
+					hasChild = true
+					break
+				}
+			}
+			if hasChild {
+				continue
+			}
+			sentence := pathToSentence(n.Path)
+			if strings.Contains(sentence, "추천:") {
+				continue
+			}
+			// 의미없는 짧은 sentence 제외
+			trimmed := strings.TrimSpace(strings.ReplaceAll(sentence, "절대 금지:", ""))
+			if len([]rune(trimmed)) < 2 {
+				continue
+			}
+			// 동어반복 필터
+			if strings.Contains(trimmed, "절대금지") || strings.Contains(trimmed, "절대 금지") {
+				continue
+			}
+			// TOP 5에 이미 나온 것 스킵
+			if top5Sentences[sentence] {
+				continue
+			}
+			// cortex ban에 이미 나온 leaf 스킵
+			parts := splitNeuronPath(n.Path)
+			leaf := parts[len(parts)-1]
+			for hanja := range hanjaToKorean {
+				leaf = strings.ReplaceAll(leaf, hanja, "")
+			}
+			leaf = strings.TrimSpace(strings.ReplaceAll(leaf, "_", " "))
+			if seenBanLeaf[leaf] || leaf == "" {
+				continue
+			}
+			seenBanLeaf[leaf] = true
+			banReminders = append(banReminders, sentence)
 		}
 	}
 	if len(banReminders) > 5 {
