@@ -84,9 +84,17 @@
 ## Quickstart
 
 **The One-Liner (원라이너):**
+
+*For Linux / macOS / PowerShell 7+:*
 ```bash
 git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime && go build -o neuronfs . && ./neuronfs --emit all
 ```
+
+*For Windows PowerShell 5.1 (Default):*
+```powershell
+git clone https://github.com/rhino-acoustic/NeuronFS.git; cd NeuronFS/runtime; go build -o neuronfs.exe .; .\neuronfs.exe --emit all
+```
+
 This single line clones, builds, and compiles all AI system prompts from the included 677-neuron demo brain.
 
 **Step by Step (단계별):**
