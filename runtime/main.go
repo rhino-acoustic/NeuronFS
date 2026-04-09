@@ -240,9 +240,9 @@ func main() {
 		realStdout := os.Stdout
 		os.Stdout = os.Stderr
 
-		// REST API on fallback port (9091) to avoid conflict with existing --api on 9090
+		// REST API on fallback port (MCPPort) to avoid conflict with existing --api on APIPort
 		go func() {
-			mcpAPIPort := port + 1 // 9091
+			mcpAPIPort := MCPPort
 			fmt.Fprintf(os.Stderr, "[MCP] REST API on :%d (fallback)\n", mcpAPIPort)
 			startAPI(brainRoot, mcpAPIPort)
 		}()

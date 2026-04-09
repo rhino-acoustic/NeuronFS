@@ -165,9 +165,7 @@ func scanBrain(root string) Brain {
 	sharedPath := filepath.Join(root, ".neuronfs", "shared")
 	if _, err := vfsStat(sharedPath); err == nil {
 		regionsToScan["shared"] = sharedPath
-		regionPriority["shared"] = 7
-		regionIcons["shared"] = "🔗"
-		regionKo["shared"] = "공유 지식"
+		// regionPriority, regionIcons, regionKo는 이제 SSOT(governance_consts.go)에 영구 정의됨
 	}
 
 	for name, regionPath := range regionsToScan {

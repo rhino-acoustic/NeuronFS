@@ -46,6 +46,9 @@ const (
 
 	// APIPort: NeuronFS API 서버 기본 포트
 	APIPort = 9090
+
+	// MCPPort: NeuronFS MCP 서버의 Fallback 모드 REST API 포트
+	MCPPort = 9091
 )
 
 // ━━━ Emotion Mapping (SSOT) ━━━
@@ -107,6 +110,7 @@ var RegionOrder = []string{
 	"cortex",      // P4
 	"ego",         // P5
 	"prefrontal",  // P6
+	"shared",      // P7 (.neuronfs/shared)
 }
 
 // ━━━ Region Metadata (SSOT) ━━━
@@ -121,6 +125,7 @@ var RegionPriority = map[string]int{
 	"cortex":      4,
 	"ego":         5,
 	"prefrontal":  6,
+	"shared":      7, // P7 (가장 낮은 우선순위, .neuronfs/shared)
 }
 
 var RegionIcons = map[string]string{
@@ -131,6 +136,7 @@ var RegionIcons = map[string]string{
 	"cortex":      "🧠",
 	"ego":         "🎭",
 	"prefrontal":  "🎯",
+	"shared":      "🔗",
 }
 
 var RegionKo = map[string]string{
@@ -141,6 +147,7 @@ var RegionKo = map[string]string{
 	"cortex":      "지식/기술",
 	"ego":         "성향/톤",
 	"prefrontal":  "목표/계획",
+	"shared":      "공유 지식",
 }
 
 // ━━━ File Extensions (SSOT) ━━━
