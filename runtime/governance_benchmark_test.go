@@ -1007,15 +1007,6 @@ func TestDCI_RuneSSoT(t *testing.T) {
 		}
 	})
 
-	// 4. hanjaToKorean alias가 RuneToKorean과 동일 객체
-	t.Run("DCI-09d: hanjaToKorean is RuneToKorean alias", func(t *testing.T) {
-		for k, v := range RuneToKorean {
-			if hv, ok := hanjaToKorean[k]; !ok || hv != v {
-				t.Errorf("hanjaToKorean[%s] mismatch: got %q, want %q", k, hv, v)
-			}
-		}
-	})
-
 	// 5. 소스코드에 중복 룬 정의가 없는지 감찰
 	t.Run("DCI-09e: no duplicate rune definitions", func(t *testing.T) {
 		// emit_helpers.go에 map[string]string{ "禁" 패턴이 있으면 중복

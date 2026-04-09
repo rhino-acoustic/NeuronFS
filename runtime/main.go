@@ -154,7 +154,7 @@ func main() {
 		result := runSubsumption(brain)
 		generateBrainJSON(brainRoot, brain, result)
 	case "dashboard":
-		startDashboard(brainRoot, port)
+		startAPI(brainRoot, port)
 	case "grow":
 		neuronPath := getNonFlagArg(1) // brain_v4=0, path=1
 		if neuronPath == "" {

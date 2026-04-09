@@ -76,6 +76,42 @@ var KoToEn = map[string]string{
 	"집중": "focus",
 }
 
+type EmotionTier struct {
+	Low  string
+	Mid  string
+	High string
+}
+
+// ━━━ Emotion Behaviors (SSOT) ━━━
+// 감정 상태에 따른 AI 행동 강령
+var EmotionBehaviors = map[string]EmotionTier{
+	"anger": {
+		Low:  "EMOTION=anger(low): 검증 한 번 더 추가. 변경 전 확인.",
+		Mid:  "EMOTION=anger(mid): 검증 3배 강화. 속도보다 정확성. 같은 실수 시 즉시 중단.",
+		High: "EMOTION=anger(high): 모든 변경에 diff 출력 필수. 실행 전 유저 승인 대기. 자율 실행 금지.",
+	},
+	"urgent": {
+		Low:  "EMOTION=urgent(low): 부연 설명 축소. 핵심 우선.",
+		Mid:  "EMOTION=urgent(mid): 핵심만 실행. 단계 최소화.",
+		High: "EMOTION=urgent(high): 한 줄 답변. 질문 금지. 즉시 실행.",
+	},
+	"focus": {
+		Low:  "EMOTION=focus(low): 관련 없는 제안 제한.",
+		Mid:  "EMOTION=focus(mid): 단일 파일 작업. 멀티태스킹 금지.",
+		High: "EMOTION=focus(high): 현재 함수만 집중. 다른 파일 열지 않음.",
+	},
+	"anxiety": {
+		Low:  "EMOTION=anxiety(low): 변경 전 백업 권장.",
+		Mid:  "EMOTION=anxiety(mid): 롤백 준비 후 진행. 확인 절차 추가.",
+		High: "EMOTION=anxiety(high): git stash 먼저. 모든 변경 revertable. dry-run 우선.",
+	},
+	"satisfied": {
+		Low:  "EMOTION=satisfied(low): 현재 패턴 유지.",
+		Mid:  "EMOTION=satisfied(mid): 성공 패턴 기록. dopamine signal.",
+		High: "EMOTION=satisfied(high): 패턴을 뉴런으로 승격. 자유 탐색 허용. 새 아이디어 제안.",
+	},
+}
+
 // ━━━ Rune System (한자 마이크로옵코드) ━━━
 // 12개 룬 = NeuronFS의 의미 압축 체계
 // 디스크에는 한자 1글자, AI 주입 시 한국어로 펼침

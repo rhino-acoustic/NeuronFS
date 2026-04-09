@@ -15,23 +15,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
-	"sync/atomic"
 	"time"
 )
-
-// ─── Global API Usage Counters (atomic, goroutine-safe) ───
-
-var groqCallCount int64       // 총 호출 수
-var groqTokensIn int64        // 입력 토큰
-var groqTokensOut int64       // 출력 토큰
-var groqErrorCount int64      // 에러 수
-var groqLastCall atomic.Value // string: 마지막 호출 시각
 
 // ─── Neuronize System Prompt (ENFP 프롬프트 엔지니어링 가이드 적용) ───
 
@@ -552,94 +542,6 @@ func runPolarize(brainRoot string, dryRun bool) {
 
 // ─── callGroqRaw: returns raw response content string ───
 
-func callGroqRaw(apiKey string, req groqRequest) (string, error) {
-	jsonData, err := json.Marshal(req)
-	if err != nil {
-		return "", fmt.Errorf("marshal request: %w", err)
-	}
-
-	httpReq, err := http.NewRequest("POST", "https://api.groq.com/openai/v1/chat/completions",
-		strings.NewReader(string(jsonData)))
-	if err != nil {
-		return "", fmt.Errorf("create request: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("Authorization", "Bearer "+apiKey)
-
-	client := &http.Client{Timeout: 60 * time.Second}
-	resp, err := client.Do(httpReq)
-	if err != nil {
-		atomic.AddInt64(&groqErrorCount, 1)
-		return "", fmt.Errorf("http request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body := new(strings.Builder)
-	if _, err := fmt.Fprintf(body, ""); err != nil {
-		return "", err
-	}
-	buf := make([]byte, 32768)
-	for {
-		n, readErr := resp.Body.Read(buf)
-		if n > 0 {
-			body.Write(buf[:n])
-		}
-		if readErr != nil {
-			break
-		}
-	}
-
-	// Track call
-	atomic.AddInt64(&groqCallCount, 1)
-	groqLastCall.Store(time.Now().Format("2006-01-02T15:04:05"))
-
-	if resp.StatusCode != 200 {
-		atomic.AddInt64(&groqErrorCount, 1)
-		return "", fmt.Errorf("API error %d: %s", resp.StatusCode, body.String())
-	}
-
-	var groqResp groqResponse
-	if err := json.Unmarshal([]byte(body.String()), &groqResp); err != nil {
-		atomic.AddInt64(&groqErrorCount, 1)
-		return "", fmt.Errorf("unmarshal response: %w", err)
-	}
-
-	// Track token usage
-	if groqResp.Usage != nil {
-		atomic.AddInt64(&groqTokensIn, int64(groqResp.Usage.PromptTokens))
-		atomic.AddInt64(&groqTokensOut, int64(groqResp.Usage.CompletionTokens))
-	}
-
-	if groqResp.Error != nil {
-		atomic.AddInt64(&groqErrorCount, 1)
-		return "", fmt.Errorf("groq error: %s", groqResp.Error.Message)
-	}
-
-	if len(groqResp.Choices) == 0 {
-		return "", fmt.Errorf("no choices in response")
-	}
-
-	return strings.TrimSpace(groqResp.Choices[0].Message.Content), nil
-}
-
-// GetGroqUsage returns current Groq API usage stats (for /api/usage endpoint)
-func GetGroqUsage() map[string]interface{} {
-	lastCall := ""
-	if v := groqLastCall.Load(); v != nil {
-		lastCall = v.(string)
-	}
-	return map[string]interface{}{
-		"calls":      atomic.LoadInt64(&groqCallCount),
-		"tokens_in":  atomic.LoadInt64(&groqTokensIn),
-		"tokens_out": atomic.LoadInt64(&groqTokensOut),
-		"errors":     atomic.LoadInt64(&groqErrorCount),
-		"last_call":  lastCall,
-		"model":      "llama-3.3-70b-versatile",
-	}
-}
-
-// ─── Rule-based polarity conversion (no Groq needed) ───
-
 func ruleBasedPolarize(name string) string {
 	name = strings.ToLower(name)
 
@@ -692,108 +594,4 @@ func sanitizeNeuronName(name string) string {
 		name = string(runes[:40])
 	}
 	return name
-}
-
-// ─── API handlers for dashboard ───
-
-func handleNeuronizeAPI(brainRoot string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
-			http.Error(w, "POST only", 405)
-			return
-		}
-
-		var req struct {
-			DryRun bool `json:"dry_run"`
-		}
-		json.NewDecoder(r.Body).Decode(&req)
-
-		apiKey := os.Getenv("GROQ_API_KEY")
-		if apiKey == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(500)
-			json.NewEncoder(w).Encode(map[string]string{"error": "GROQ_API_KEY not set"})
-			return
-		}
-
-		// Collect corrections (same as runNeuronize)
-		var corrections []string
-		correctionsPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
-		if data, err := os.ReadFile(correctionsPath); err == nil && len(data) > 0 {
-			for _, line := range strings.Split(string(data), "\n") {
-				line = strings.TrimSpace(line)
-				if line != "" {
-					corrections = append(corrections, line)
-				}
-			}
-		}
-		episodes := collectEpisodes(brainRoot)
-		errorKeywords := []string{"ERROR", "FAIL", "TRAUMA", "ROLLBACK"}
-		for _, ep := range episodes {
-			for _, kw := range errorKeywords {
-				if strings.Contains(strings.ToUpper(ep), kw) {
-					corrections = append(corrections, ep)
-					break
-				}
-			}
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"status":      "neuronize_queued",
-			"corrections": len(corrections),
-			"dry_run":     req.DryRun,
-			"message":     fmt.Sprintf("%d correction sources detected. Use CLI for full execution.", len(corrections)),
-		})
-	}
-}
-
-func handlePolarizeAPI(brainRoot string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
-			http.Error(w, "POST only", 405)
-			return
-		}
-
-		brain := scanBrain(brainRoot)
-
-		positivePatterns := regexp.MustCompile(`(?i)^(use_|always_|prefer_|enable_|ensure_|must_|keep_|apply_)`)
-		englishName := regexp.MustCompile(`^[a-zA-Z_]+$`)
-
-		type candidate struct {
-			Region  string `json:"region"`
-			Path    string `json:"path"`
-			Name    string `json:"name"`
-			Counter int    `json:"counter"`
-			NewName string `json:"new_name"`
-		}
-
-		var candidates []candidate
-		for _, region := range brain.Regions {
-			if region.Name == "brainstem" || region.Name == "limbic" {
-				continue
-			}
-			for _, n := range region.Neurons {
-				if !englishName.MatchString(n.Name) {
-					continue
-				}
-				if positivePatterns.MatchString(n.Name) {
-					candidates = append(candidates, candidate{
-						Region:  region.Name,
-						Path:    n.Path,
-						Name:    n.Name,
-						Counter: n.Counter,
-						NewName: ruleBasedPolarize(n.Name),
-					})
-				}
-			}
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"candidates": candidates,
-			"total":      len(candidates),
-			"message":    "Use CLI --polarize to execute shifts.",
-		})
-	}
 }

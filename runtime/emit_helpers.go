@@ -272,13 +272,13 @@ func renderTree(sb *strings.Builder, node *treeNode, depth int, prefix string) {
 		// 한자 1글자 폴더 감지 — branch가 아니라 opcode modifier로 처리
 		// 禁/hard_coded_text → "절대 금지: hard coded text" (한자 폴더를 투명하게 통과)
 		if isHanjaFolder(child.key) {
-			korean := hanjaToKorean[child.key]
+			korean := RuneToKorean[child.key]
 			// 한자 폴더의 하위 노드에 한국어 접두어를 전파
 			renderTreeWithPrefix(sb, n, depth, prefix+child.key+"/", korean)
 			continue
 		}
 
-		for hanja, korean := range hanjaToKorean {
+		for hanja, korean := range RuneToKorean {
 			name = strings.ReplaceAll(name, hanja, korean)
 		}
 
@@ -339,7 +339,7 @@ func renderTree(sb *strings.Builder, node *treeNode, depth int, prefix string) {
 
 // isHanjaFolder checks if a folder name is a single hanja micro-opcode
 func isHanjaFolder(name string) bool {
-	_, ok := hanjaToKorean[name]
+	_, ok := RuneToKorean[name]
 	return ok
 }
 
@@ -372,7 +372,7 @@ func renderTreeWithPrefix(sb *strings.Builder, node *treeNode, depth int, prefix
 
 		// 재귀적 한자 폴더 (한자/한자/뉴런 — 드물지만 지원)
 		if isHanjaFolder(child.key) {
-			innerKorean := hanjaToKorean[child.key]
+			innerKorean := RuneToKorean[child.key]
 			renderTreeWithPrefix(sb, n, depth, prefix+child.key+"/", koreanPrefix+innerKorean)
 			continue
 		}
@@ -475,12 +475,7 @@ func splitNeuronPath(p string) []string {
 	return result
 }
 
-// hanjaToKorean: DEPRECATED — RuneToKorean (governance_consts.go) 사용
-// 하위 호환을 위해 alias 유지
-var hanjaToKorean = RuneToKorean
 
-// hanjaChars: DEPRECATED — RuneChars (governance_consts.go) 사용
-const hanjaChars = RuneChars
 
 // pathToSentence converts path to readable sentence
 // "frontend\css\glass_blur20" → "frontend > css > glass blur20"
@@ -490,7 +485,7 @@ func pathToSentence(p string) string {
 	s = strings.ReplaceAll(s, "/", " > ")
 	s = strings.ReplaceAll(s, "_", " ")
 	// 한자→한국어 변환
-	for hanja, korean := range hanjaToKorean {
+	for hanja, korean := range RuneToKorean {
 		s = strings.ReplaceAll(s, hanja, korean)
 	}
 	// 연속 공백 정규화 (한자 변환 후 "반드시 " + " > " → "반드시  > " 방지)
@@ -590,7 +585,7 @@ func axonBoostNeurons(brain Brain, currentRegion Region) []Neuron {
 					}
 				}
 				// Also boost 禁/推 neurons unconditionally (they're governance)
-				if strings.ContainsAny(n.Name, hanjaChars) {
+				if strings.ContainsAny(n.Name, RuneChars) {
 					score += 2
 				}
 				if score > 0 {

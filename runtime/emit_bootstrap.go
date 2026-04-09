@@ -2,7 +2,7 @@
 //
 // PROVIDES: emitBootstrap, emitAgentInbox, extractInboxPreview, emitSessionMemory
 // DEPENDS:  brain.go (SubsumptionResult, Neuron, Region)
-//           emit_helpers.go (pathToSentence, splitNeuronPath, sortedActiveNeurons, hanjaToKorean)
+//           emit_helpers.go (pathToSentence, splitNeuronPath, sortedActiveNeurons)
 //
 // emitBootstrap: SubsumptionResult → GEMINI.md 문자열
 //   ├→ emitAgentInbox (에이전트 수신함 섹션)
@@ -241,7 +241,7 @@ func formatTop5CoreRules(sb *strings.Builder, result SubsumptionResult, now time
 			parent := parts[len(parts)-2]
 			leafSummary = parent + ">" + leaf
 		}
-		for hanja, ko := range hanjaToKorean {
+		for hanja, ko := range RuneToKorean {
 			leafSummary = strings.ReplaceAll(leafSummary, hanja, ko)
 		}
 		leafSummary = strings.TrimSpace(strings.ReplaceAll(leafSummary, "_", " "))
@@ -282,7 +282,7 @@ func formatCortexBans(sb *strings.Builder, result SubsumptionResult) {
 				continue
 			}
 			sentence := pathToSentence(n.Path)
-			if strings.Contains(sentence, "금지") || strings.Contains(sentence, "절대") || strings.ContainsAny(n.Path, hanjaChars) {
+			if strings.Contains(sentence, "금지") || strings.Contains(sentence, "절대") || strings.ContainsAny(n.Path, RuneChars) {
 				if strings.Contains(sentence, "추천:") {
 					continue
 				}
@@ -301,7 +301,7 @@ func formatCortexBans(sb *strings.Builder, result SubsumptionResult) {
 				}
 				leafParts := splitNeuronPath(b.Path)
 				leaf := strings.ReplaceAll(leafParts[len(leafParts)-1], "_", " ")
-				for hanja := range hanjaToKorean {
+				for hanja := range RuneToKorean {
 					leaf = strings.ReplaceAll(leaf, hanja, "")
 				}
 				leaf = strings.TrimSpace(leaf)
@@ -504,7 +504,7 @@ func formatAbsoluteRules(sb *strings.Builder, result SubsumptionResult, top5Sent
 			}
 			parts := splitNeuronPath(n.Path)
 			leaf := parts[len(parts)-1]
-			for hanja := range hanjaToKorean {
+			for hanja := range RuneToKorean {
 				leaf = strings.ReplaceAll(leaf, hanja, "")
 			}
 			leaf = strings.TrimSpace(strings.ReplaceAll(leaf, "_", " "))

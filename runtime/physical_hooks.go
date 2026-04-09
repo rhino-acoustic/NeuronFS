@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -154,4 +157,57 @@ try {
 	if err := cmd.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "[HOOK] USB siren error: %v\n", err)
 	}
+}
+
+// ─── EVOLVE TELEGRAM ALERTS ───
+
+func actionIcon(actionType string) string {
+	switch actionType {
+	case "grow":
+		return "🌱"
+	case "fire":
+		return "🔥"
+	case "signal":
+		return "📡"
+	case "prune", "decay":
+		return "💤"
+	case "merge":
+		return "🔗"
+	default:
+		return "❓"
+	}
+}
+
+// sendTelegramEvolve sends a push notification about brain evolution
+func sendTelegramEvolve(brainRoot string, action evoAction) {
+	tgToken := os.Getenv("TELEGRAM_BOT_TOKEN")
+	if tgToken == "" {
+		b, err := os.ReadFile(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".token"))
+		if err == nil {
+			tgToken = strings.TrimSpace(string(b))
+		}
+	}
+	if tgToken == "" {
+		return
+	}
+
+	chatIdBytes, err := os.ReadFile(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".chat_id"))
+	if err != nil || len(chatIdBytes) == 0 {
+		return
+	}
+	chatId := strings.TrimSpace(string(chatIdBytes))
+
+	icon := actionIcon(action.Type)
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("🧬 [NEURON EVOLVED] %s\n\n", action.Path))
+	sb.WriteString(fmt.Sprintf("액션: %s %s\n", icon, strings.ToUpper(action.Type)))
+	sb.WriteString(fmt.Sprintf("사유: %s", action.Reason))
+
+	payload := map[string]string{
+		"chat_id": chatId,
+		"text":    sb.String(),
+	}
+	data, _ := json.Marshal(payload)
+
+	http.Post("https://api.telegram.org/bot"+tgToken+"/sendMessage", "application/json", bytes.NewReader(data))
 }

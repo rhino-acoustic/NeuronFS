@@ -13,7 +13,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -533,77 +532,8 @@ func svStatus(children []*ChildSpec) {
 		c.mu.Unlock()
 
 		if running && pid > 0 {
-			// Memory Check (tasklist)
-			out, err := exec.Command("tasklist", "/FI", fmt.Sprintf("PID eq %d", pid), "/FO", "CSV", "/NH").Output()
-			if err == nil {
-				parts := strings.Split(string(out), "\",\"")
-				if len(parts) >= 5 {
-					memStr := strings.ReplaceAll(parts[4], "\"", "")
-					memStr = strings.ReplaceAll(memStr, " K", "")
-					memStr = strings.ReplaceAll(memStr, ",", "")
-					memStr = strings.TrimSpace(memStr)
-					var memKB int64
-					fmt.Sscanf(memStr, "%d", &memKB)
-					if memKB > 1024*200 { // 200MB Limit
-						svLog("\033[31m[TRAUMA] Synaptic overload detected (Amyloid Plaque > 200MB). Triggering in-memory profile...\033[0m")
-
-						// In-Memory Parsing (Zero External Dependency)
-						var records []runtime.MemProfileRecord
-						n, ok := runtime.MemProfile(nil, true)
-						for {
-							records = make([]runtime.MemProfileRecord, n+50)
-							n, ok = runtime.MemProfile(records, true)
-							if ok {
-								records = records[:n]
-								break
-							}
-						}
-
-						// Sort manually
-						for i := 0; i < len(records); i++ {
-							for j := i + 1; j < len(records); j++ {
-								if records[i].InUseBytes() < records[j].InUseBytes() {
-									records[i], records[j] = records[j], records[i]
-								}
-							}
-						}
-
-						outbox := filepath.Join(filepath.Dir(svLogPath), "..", "brain_v4", "_agents", "bot1", "outbox")
-						if !svPathExists(outbox) {
-							outbox = filepath.Join(filepath.Dir(svLogPath), "..", "brain", "_agents", "bot1", "outbox")
-						}
-						os.MkdirAll(outbox, 0750)
-						dumpPath := filepath.Join(outbox, "pprof_heap_dump.txt")
-
-						dumpOut := "=== Top 5 Memory Leaks (In-Memory Parsed) ===\n"
-						limit := 5
-						if len(records) < 5 {
-							limit = len(records)
-						}
-						for i := 0; i < limit; i++ {
-							r := records[i]
-							caller := "unknown"
-							if len(r.Stack0) > 0 {
-								fn := runtime.FuncForPC(r.Stack0[0])
-								if fn != nil {
-									caller = fn.Name()
-								}
-							}
-							dumpOut += fmt.Sprintf("InUse: %d KB | Objects: %d | Func: %s\n", r.InUseBytes()/1024, r.InUseObjects(), caller)
-						}
-
-						if err := os.WriteFile(dumpPath, []byte(dumpOut), 0600); err == nil {
-							svLog(fmt.Sprintf("\033[35m[DIAG] Saved top 5 heap allocs to %s\033[0m", dumpPath))
-						} else {
-							svLog(fmt.Sprintf("\033[33m[WARN] profile write failed: %v\033[0m", err))
-						}
-
-						// Flatline death screen — OOM visual feedback
-						RenderFlatlineOnOOM(c.Name, memKB, dumpOut)
-
-						c.stop()
-					}
-				}
+			if checkProcessMemoryOverload(c.Name, pid) {
+				c.stop()
 			}
 
 			// Deadlock Check: API Server ping
