@@ -28,35 +28,10 @@ import (
 	"time"
 )
 
-var regionPriority = map[string]int{
-	"brainstem":   0,
-	"limbic":      1,
-	"hippocampus": 2,
-	"sensors":     3,
-	"cortex":      4,
-	"ego":         5,
-	"prefrontal":  6,
-}
-
-var regionIcons = map[string]string{
-	"brainstem":   "🛡️",
-	"limbic":      "💓",
-	"hippocampus": "📝",
-	"sensors":     "👁️",
-	"cortex":      "🧠",
-	"ego":         "🎭",
-	"prefrontal":  "🎯",
-}
-
-var regionKo = map[string]string{
-	"brainstem":   "양심/본능",
-	"limbic":      "감정 필터",
-	"hippocampus": "기록/기억",
-	"sensors":     "환경 제약",
-	"cortex":      "지식/기술",
-	"ego":         "성향/톤",
-	"prefrontal":  "목표/계획",
-}
+// Region metadata → governance_consts.go (SSOT)
+var regionPriority = RegionPriority
+var regionIcons = RegionIcons
+var regionKo = RegionKo
 
 // ─── Neuron = a folder ───
 type Neuron struct {

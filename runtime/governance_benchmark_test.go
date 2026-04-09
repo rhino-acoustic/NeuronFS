@@ -1030,3 +1030,93 @@ func TestDCI_RuneSSoT(t *testing.T) {
 		}
 	})
 }
+
+// ─── DCI-10: Region/Extension/Path SSOT 검증 ───
+
+func TestDCI_FullSSoT(t *testing.T) {
+	// 10a: RegionOrder == RegionPriority keys
+	t.Run("DCI-10a: RegionOrder matches RegionPriority", func(t *testing.T) {
+		if len(RegionOrder) != len(RegionPriority) {
+			t.Errorf("RegionOrder(%d) != RegionPriority(%d)", len(RegionOrder), len(RegionPriority))
+		}
+		for _, r := range RegionOrder {
+			if _, ok := RegionPriority[r]; !ok {
+				t.Errorf("RegionOrder has %q but RegionPriority does not", r)
+			}
+		}
+	})
+
+	// 10b: RegionIcons covers all regions
+	t.Run("DCI-10b: RegionIcons covers all regions", func(t *testing.T) {
+		for _, r := range RegionOrder {
+			if _, ok := RegionIcons[r]; !ok {
+				t.Errorf("RegionIcons missing %q", r)
+			}
+		}
+	})
+
+	// 10c: RegionKo covers all regions
+	t.Run("DCI-10c: RegionKo covers all regions", func(t *testing.T) {
+		for _, r := range RegionOrder {
+			if _, ok := RegionKo[r]; !ok {
+				t.Errorf("RegionKo missing %q", r)
+			}
+		}
+	})
+
+	// 10d: aliases match
+	t.Run("DCI-10d: brain.go aliases match SSOT", func(t *testing.T) {
+		for k, v := range RegionPriority {
+			if regionPriority[k] != v {
+				t.Errorf("regionPriority[%s] = %d, want %d", k, regionPriority[k], v)
+			}
+		}
+		for k, v := range RegionIcons {
+			if regionIcons[k] != v {
+				t.Errorf("regionIcons[%s] mismatch", k)
+			}
+		}
+	})
+
+	// 10e: File extension constants are valid
+	t.Run("DCI-10e: file extension constants", func(t *testing.T) {
+		exts := []string{ExtNeuron, ExtDormant, ExtAxon, ExtContra, ExtGoal}
+		for _, ext := range exts {
+			if ext[0] != '.' {
+				t.Errorf("extension %q must start with '.'", ext)
+			}
+		}
+	})
+
+	// 10f: Special path constants are non-empty
+	t.Run("DCI-10f: special path constants", func(t *testing.T) {
+		paths := map[string]string{
+			"FileRules":       FileRules,
+			"FileIndex":       FileIndex,
+			"FileLimbicState": FileLimbicState,
+			"FileCorrections": FileCorrections,
+			"FileBomb":        FileBomb,
+			"DirSessionLog":   DirSessionLog,
+			"DirAgents":       DirAgents,
+			"DirInbox":        DirInbox,
+			"DirTranscripts":  DirTranscripts,
+			"DirArchive":      DirArchive,
+			"DirSandbox":      DirSandbox,
+		}
+		for name, val := range paths {
+			if val == "" {
+				t.Errorf("%s is empty", name)
+			}
+		}
+	})
+
+	// 10g: EmitThreshold/SpotlightDays aliases match
+	t.Run("DCI-10g: emit aliases match SSOT", func(t *testing.T) {
+		if emitThreshold != EmitThreshold {
+			t.Errorf("emitThreshold=%d != EmitThreshold=%d", emitThreshold, EmitThreshold)
+		}
+		if spotlightDays != SpotlightDays {
+			t.Errorf("spotlightDays=%d != SpotlightDays=%d", spotlightDays, SpotlightDays)
+		}
+	})
+}

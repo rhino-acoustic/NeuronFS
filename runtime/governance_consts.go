@@ -109,3 +109,61 @@ var RegionOrder = []string{
 	"prefrontal",  // P6
 }
 
+// ━━━ Region Metadata (SSOT) ━━━
+// 영역별 우선순위, 아이콘, 한국어 설명
+// brain.go에서 이동 — 단일 정의
+
+var RegionPriority = map[string]int{
+	"brainstem":   0,
+	"limbic":      1,
+	"hippocampus": 2,
+	"sensors":     3,
+	"cortex":      4,
+	"ego":         5,
+	"prefrontal":  6,
+}
+
+var RegionIcons = map[string]string{
+	"brainstem":   "🛡️",
+	"limbic":      "💓",
+	"hippocampus": "📝",
+	"sensors":     "👁️",
+	"cortex":      "🧠",
+	"ego":         "🎭",
+	"prefrontal":  "🎯",
+}
+
+var RegionKo = map[string]string{
+	"brainstem":   "양심/본능",
+	"limbic":      "감정 필터",
+	"hippocampus": "기록/기억",
+	"sensors":     "환경 제약",
+	"cortex":      "지식/기술",
+	"ego":         "성향/톤",
+	"prefrontal":  "목표/계획",
+}
+
+// ━━━ File Extensions (SSOT) ━━━
+const (
+	ExtNeuron     = ".neuron"
+	ExtDormant    = ".dormant"
+	ExtAxon       = ".axon"
+	ExtContra     = ".contra"
+	ExtGoal       = ".goal"
+)
+
+// ━━━ Special Paths (SSOT) ━━━
+const (
+	FileRules       = "_rules.md"
+	FileIndex       = "_index.md"
+	FileLimbicState = "_state.json"
+	FileCorrections = "corrections.jsonl"
+	FileBomb        = "bomb.neuron"
+	DirSessionLog   = "session_log"
+	DirAgents       = "_agents"
+	DirInbox        = "_inbox"
+	DirTranscripts  = "_transcripts"
+	DirArchive      = ".archive"
+	DirSandbox      = "_sandbox"
+)
+
