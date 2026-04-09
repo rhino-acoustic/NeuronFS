@@ -20,6 +20,16 @@ type BootstrapSection struct {
 
 	// AbsoluteRules — brainstem 禁/必 absolute ban/mandate entries
 	AbsoluteRules []string
+
+	// Growth + Soul section
+	InboxPath       string
+	LimbicSummary   string
+	EmotionBehavior string
+	RegionSummary   string
+	BrainRoot       string
+
+	// CortexBans — cortex 금지 1-liner
+	CortexBans string
 }
 
 var bootstrapTemplates *template.Template

@@ -41,7 +41,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 
 	formatCortexBans(&sb, result)
 	formatGrowthAndLimbic(&sb, result, brainRoot)
-	formatCodeMapAndSoul(&sb, result, brainRoot)
 	formatRecentMemory(&sb, result)
 
 	// ━━━ AGENT INBOX ━━━
@@ -319,10 +318,12 @@ func formatCortexBans(sb *strings.Builder, result SubsumptionResult) {
 }
 
 func formatGrowthAndLimbic(sb *strings.Builder, result SubsumptionResult, brainRoot string) {
-	sb.WriteString("### 🌱 자가 성장\n")
-	inboxPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
-	sb.WriteString("교정→`corrections.jsonl` 기록 | 칭찬→dopamine | 3회실패→bomb\n")
-	sb.WriteString(fmt.Sprintf("경로: `%s`\n", inboxPath))
+	data := BootstrapSection{
+		InboxPath: filepath.Join(brainRoot, "_inbox", "corrections.jsonl"),
+		BrainRoot: brainRoot,
+	}
+
+	// Limbic summary
 	for _, r := range result.ActiveRegions {
 		if r.Name == "limbic" && len(r.Neurons) > 0 {
 			var parts []string
@@ -331,11 +332,13 @@ func formatGrowthAndLimbic(sb *strings.Builder, result SubsumptionResult, brainR
 				parts = append(parts, pathToSentence(n.Path))
 			}
 			if len(parts) > 0 {
-				sb.WriteString("Limbic: " + strings.Join(parts, " | ") + "\n")
+				data.LimbicSummary = strings.Join(parts, " | ")
 			}
 			break
 		}
 	}
+
+	// Emotion behavior
 	type emotionTier struct {
 		Low  string
 		Mid  string
@@ -395,16 +398,14 @@ func formatGrowthAndLimbic(sb *strings.Builder, result SubsumptionResult, brainR
 			}
 			if effectiveIntensity > EmoIntensMin {
 				if tier, ok := emotionBehaviors[emo]; ok {
-					var behavior string
 					switch {
 					case effectiveIntensity >= EmoIntensHigh:
-						behavior = tier.High
+						data.EmotionBehavior = tier.High
 					case effectiveIntensity >= EmoIntensMid:
-						behavior = tier.Mid
+						data.EmotionBehavior = tier.Mid
 					default:
-						behavior = tier.Low
+						data.EmotionBehavior = tier.Low
 					}
-					sb.WriteString(behavior + "\n")
 				}
 			}
 			if effectiveIntensity <= EmoIntensMin {
@@ -412,9 +413,8 @@ func formatGrowthAndLimbic(sb *strings.Builder, result SubsumptionResult, brainR
 			}
 		}
 	}
-}
 
-func formatCodeMapAndSoul(sb *strings.Builder, result SubsumptionResult, brainRoot string) {
+	// Region summary (from formatCodeMapAndSoul)
 	var regionParts []string
 	for _, region := range result.ActiveRegions {
 		if region.Name == "brainstem" {
@@ -429,17 +429,12 @@ func formatCodeMapAndSoul(sb *strings.Builder, result SubsumptionResult, brainRo
 		icon := regionIcons[region.Name]
 		regionParts = append(regionParts, fmt.Sprintf("%s%s(%d)", icon, region.Name, active))
 	}
-	sb.WriteString("영역: " + strings.Join(regionParts, " ") + "\n\n")
+	data.RegionSummary = strings.Join(regionParts, " ")
 
-	sb.WriteString(fmt.Sprintf("**작업 전 `%s\\{영역}\\_rules.md`를 반드시 읽는다** (cortex=코딩/NeuronFS, sensors=NAS/브랜드, prefrontal=방향)\n", brainRoot))
-	sb.WriteString("⚠️ 읽지 않으면 금지 규칙 위반이 발생한다. view_file로 먼저 읽어라. MCP read_region 호출 금지(느림).\n")
-
-	sb.WriteString("🗺️ 코드맵=뉴런 계층(cortex/dev/). 코드 수정 전 뉴런 읽기 필수. 플랫 뉴런 금지. `go vet ./...` 실행.\n\n")
-
-	sb.WriteString("### 🔮 영혼\n")
-	sb.WriteString("자문: 진짜야? 불충분? 편한길? 같은실수? 프리미엄? → 걸리면 다시\n")
-	sb.WriteString("CoVe: 초안→검증질문→독립검증→수정본 | 실행후 증거보고(시뮬레이션 금지) | 복잡작업→단계분해\n\n")
+	sb.WriteString(renderSection("section_growth_soul.tmpl", data))
 }
+
+// formatCodeMapAndSoul is now merged into formatGrowthAndLimbic via section_growth_soul.tmpl
 
 func formatRecentMemory(sb *strings.Builder, result SubsumptionResult) {
 	var memories []string
@@ -464,7 +459,6 @@ func formatRecentMemory(sb *strings.Builder, result SubsumptionResult) {
 }
 
 func formatAbsoluteRules(sb *strings.Builder, result SubsumptionResult, top5Sentences map[string]bool) {
-	sb.WriteString("### 🔒 절대 규칙 (재확인)\n")
 	var banReminders []string
 	seenBanLeaf := make(map[string]bool)
 	for _, region := range result.ActiveRegions {
@@ -515,10 +509,7 @@ func formatAbsoluteRules(sb *strings.Builder, result SubsumptionResult, top5Sent
 	if len(banReminders) > 5 {
 		banReminders = banReminders[:5]
 	}
-	for _, ban := range banReminders {
-		sb.WriteString(fmt.Sprintf("- ⛔ %s\n", ban))
-	}
-	sb.WriteString("\n")
+	sb.WriteString(renderSection("section_absolute_rules.tmpl", BootstrapSection{AbsoluteRules: banReminders}))
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
