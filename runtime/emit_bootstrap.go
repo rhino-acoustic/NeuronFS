@@ -29,6 +29,43 @@ import (
 func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	var sb strings.Builder
 
+	if !buildPreamble(&sb, result, brainRoot) {
+		return sb.String()
+	}
+
+	formatPersona(&sb, result)
+	formatSubsumption(&sb)
+
+	now := time.Now()
+	top5Sentences := formatTop5CoreRules(&sb, result, now)
+
+	formatCortexBans(&sb, result)
+	formatGrowthAndLimbic(&sb, result, brainRoot)
+	formatCodeMapAndSoul(&sb, result, brainRoot)
+	formatRecentMemory(&sb, result)
+
+	// ━━━ AGENT INBOX ━━━
+	agentInbox := emitAgentInbox(brainRoot)
+	if agentInbox != "" {
+		sb.WriteString(agentInbox)
+	}
+
+	// ━━━ SESSION TRANSCRIPT LOCATION (절대경로 강제) ━━━
+	transcriptDir := filepath.Join(brainRoot, "_transcripts")
+	if _, err := os.Stat(transcriptDir); err == nil {
+		absTranscript, _ := filepath.Abs(transcriptDir)
+		sb.WriteString(fmt.Sprintf("### 📜 전사 기록\n전사물 경로: `%s`\n\n", absTranscript))
+	}
+
+	formatAbsoluteRules(&sb, result, top5Sentences)
+
+	sb.WriteString("<!-- NEURONFS:END -->\n")
+	return sb.String()
+}
+
+// ─── HELPER FUNCTIONS ───
+
+func buildPreamble(sb *strings.Builder, result SubsumptionResult, brainRoot string) bool {
 	// ━━━ 대원칙: brainstem/_principles.txt → _preamble.txt → 기본값 ━━━
 	principlesPath := filepath.Join(brainRoot, "brainstem", "_principles.txt")
 	preamblePath := filepath.Join(brainRoot, "_preamble.txt")
@@ -66,13 +103,14 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		sb.WriteString(fmt.Sprintf("## 🚨 CIRCUIT BREAKER: %s\n", result.BombSource))
 		sb.WriteString("**ALL OPERATIONS HALTED. REPAIR REQUIRED.**\n\n")
 		sb.WriteString("<!-- NEURONFS:END -->\n")
-		return sb.String()
+		return false
 	}
 
 	sb.WriteString("## NeuronFS Active Rules\n\n")
+	return true
+}
 
-	// ━━━ PRIMACY ZONE: 핵심지침을 가장 먼저 (LLM이 가장 주의하는 위치) ━━━
-
+func formatPersona(sb *strings.Builder, result SubsumptionResult) {
 	// ━━━ PERSONA (from ego region neurons — not hardcoded) ━━━
 	sb.WriteString("### 🎭 페르소나\n")
 	for _, region := range result.ActiveRegions {
@@ -95,24 +133,24 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		}
 	}
 	sb.WriteString("\n")
+}
 
+func formatSubsumption(sb *strings.Builder) {
 	// ━━━ SUBSUMPTION (1-liner) ━━━
 	sb.WriteString("### 🔗 Subsumption Cascade\n")
 	sb.WriteString("```\nbrainstem ←→ limbic ←→ hippocampus ←→ sensors ←→ cortex ←→ ego ←→ prefrontal\n  (P0)         (P1)       (P2)          (P3)       (P4)     (P5)      (P6)\n```\n")
 	sb.WriteString("낮은 P가 높은 P를 항상 우선. bomb은 전체 정지.\n\n")
+}
 
+func formatTop5CoreRules(sb *strings.Builder, result SubsumptionResult, now time.Time) map[string]bool {
 	// ━━━ 핵심지침 TOP 5: 전체 영역 종합 스코어 (Lost-in-the-Middle 대응) ━━━
 	sb.WriteString("### ⚡ 핵심지침 TOP 5\n")
-	// NOTE: 접두사 규칙은 🎭 페르소나의 ego 뉴런(🐤접두사)에서 관리.
-	// canary emoji 랜덤 변경은 ego 뉴런과 충돌하므로 제거됨.
 
-	// 전체 영역에서 종합 스코어로 TOP 5 산출
 	type scoredNeuron struct {
 		neuron Neuron
 		region string
 		score  float64
 	}
-	now := time.Now()
 	var candidates []scoredNeuron
 	for _, region := range result.ActiveRegions {
 		regionMultiplier := 1.0
@@ -126,18 +164,15 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			if n.IsDormant {
 				continue
 			}
-			// TOP 5는 거버넌스 원칙만: cortex/ego/prefrontal은 禁/必/推만 후보
 			if region.Name == "cortex" || region.Name == "ego" || region.Name == "prefrontal" {
 				if !strings.ContainsAny(n.Path, "禁必推") {
 					continue
 				}
 			}
 			sentence := pathToSentence(n.Path)
-			// preamble과 중복 스킵
 			if strings.Contains(sentence, "한국어로") && strings.Contains(sentence, "대답") {
 				continue
 			}
-			// 하위 폴더 존재 시 상위 스킵
 			hasDeeper := false
 			for _, other := range region.Neurons {
 				if other.Depth > n.Depth && (strings.HasPrefix(other.Path, n.Path+string(filepath.Separator)) || strings.HasPrefix(other.Path, n.Path+"/")) {
@@ -149,12 +184,8 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 				continue
 			}
 
-			// === 종합 스코어 산출 (로그 스케일: counter 2000 vs 100의 차이 축소) ===
-			// log(counter+1)로 큰 counter가 스코어를 지배하는 것을 방지
 			logCounter := 1.0
 			if n.Counter > 0 {
-				// 자연로그 근사: newtonSqrt 기반 (math import 충돌 방지)
-				// ln(x) ≈ 2 * (sqrt(x) - 1) / (sqrt(x) + 1) — 충분한 정밀도
 				x := float64(n.Counter + 1)
 				sq := newtonSqrt(x)
 				logCounter = 2 * (sq - 1) / (sq + 1)
@@ -164,34 +195,26 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			}
 			score := logCounter * regionMultiplier
 
-			// 禁/必 거버넌스 뉴런 부스트 (×5 — 로그 스케일에서 더 영향력)
 			if strings.ContainsAny(n.Path, "禁必") {
 				score *= 5.0
 			}
-
-			// description 있으면 +3 (의미 전달 가능, 과도한 부스트 방지)
 			if n.Description != "" {
 				score += 3
 			}
-
-			// recency 부스트: 최근 7일 이내 수정 ×1.5
 			if now.Sub(n.ModTime).Hours() < 168 { // 7일
 				score *= 1.5
 			}
-
 			candidates = append(candidates, scoredNeuron{n, region.Name, score})
 		}
 	}
 
-	// 스코어 내림차순 정렬
 	sort.Slice(candidates, func(i, j int) bool {
 		return candidates[i].score > candidates[j].score
 	})
 
-	// 중복 제거 (leaf 이름 기준) + TOP 5 선정
 	idx := 0
 	seenTop := make(map[string]bool)
-	top5Sentences := make(map[string]bool) // 끝 🔒에서 중복 방지용
+	top5Sentences := make(map[string]bool)
 	for _, c := range candidates {
 		if idx >= 5 {
 			break
@@ -202,12 +225,10 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			continue
 		}
 		sentence := pathToSentence(c.neuron.Path)
-		// 의미없는 짧은 뉴런 필터 ("절대 금지:" 만 있는 것 등)
 		trimmed := strings.TrimSpace(strings.ReplaceAll(sentence, "절대 금지:", ""))
 		if len([]rune(trimmed)) < 2 {
 			continue
 		}
-		// 동어반복 필터: "절대 금지: 절대금지" 같은 것
 		if strings.Contains(trimmed, "절대금지") || strings.Contains(trimmed, "절대 금지") {
 			continue
 		}
@@ -215,10 +236,7 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		top5Sentences[sentence] = true
 		idx++
 		regionTag := c.region[:3]
-		// 2-layer 표시: bold(짧은 요약) + description(상세)
-		// 짧은 요약 = 전체 그림/토큰 절약, description = 의미 불확실 시 참조
 		leafSummary := leaf
-		// leaf가 짧으면 부모 맥락 포함 (적층해결 → 쉬프트금지>적층해결)
 		if len([]rune(leaf)) < 6 && len(parts) > 1 {
 			parent := parts[len(parts)-2]
 			leafSummary = parent + ">" + leaf
@@ -227,19 +245,18 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			leafSummary = strings.ReplaceAll(leafSummary, hanja, ko)
 		}
 		leafSummary = strings.TrimSpace(strings.ReplaceAll(leafSummary, "_", " "))
-		// > 앞뒤 공백 정리 (반드시 >적층해결 → 반드시>적층해결)
 		leafSummary = strings.ReplaceAll(leafSummary, " >", ">")
 		leafSummary = strings.ReplaceAll(leafSummary, "> ", ">")
 		if c.neuron.Description != "" {
 			desc := c.neuron.Description
-			if idx := strings.Index(desc, "c:\\"); idx >= 0 {
-				desc = strings.TrimSpace(desc[:idx])
+			if i := strings.Index(desc, "c:\\"); i >= 0 {
+				desc = strings.TrimSpace(desc[:i])
 			}
-			if idx := strings.Index(desc, "C:\\"); idx >= 0 {
-				desc = strings.TrimSpace(desc[:idx])
+			if i := strings.Index(desc, "C:\\"); i >= 0 {
+				desc = strings.TrimSpace(desc[:i])
 			}
-			if idx := strings.Index(desc, "경로:"); idx >= 0 {
-				desc = strings.TrimSpace(desc[:idx])
+			if i := strings.Index(desc, "경로:"); i >= 0 {
+				desc = strings.TrimSpace(desc[:i])
 			}
 			if desc != "" {
 				sb.WriteString(fmt.Sprintf("%d. **%s**: %s [%s](s:%.0f)\n", idx, leafSummary, desc, regionTag, c.score))
@@ -251,8 +268,10 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		}
 	}
 	sb.WriteString("\n")
+	return top5Sentences
+}
 
-	// ━━━ CORTEX TOP 금지: 중복 제거 + 자동 추출 ━━━
+func formatCortexBans(sb *strings.Builder, result SubsumptionResult) {
 	for _, region := range result.ActiveRegions {
 		if region.Name != "cortex" {
 			continue
@@ -264,7 +283,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			}
 			sentence := pathToSentence(n.Path)
 			if strings.Contains(sentence, "금지") || strings.Contains(sentence, "절대") || strings.ContainsAny(n.Path, hanjaChars) {
-				// "추천:"은 금지가 아님 → 제외
 				if strings.Contains(sentence, "추천:") {
 					continue
 				}
@@ -275,7 +293,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			sort.Slice(bans, func(i, j int) bool {
 				return (bans[i].Counter + bans[i].Dopamine) > (bans[j].Counter + bans[j].Dopamine)
 			})
-			// 중복 제거 (leaf 이름 기준) + TOP 8
 			seen := make(map[string]bool)
 			var banLines []string
 			for _, b := range bans {
@@ -284,7 +301,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 				}
 				leafParts := splitNeuronPath(b.Path)
 				leaf := strings.ReplaceAll(leafParts[len(leafParts)-1], "_", " ")
-				// 한자 제거 (헤더에서 이미 "금지"라고 명시)
 				for hanja := range hanjaToKorean {
 					leaf = strings.ReplaceAll(leaf, hanja, "")
 				}
@@ -293,7 +309,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 					continue
 				}
 				seen[leaf] = true
-				// description이 있으면 풀어쓰기
 				if b.Description != "" {
 					banLines = append(banLines, leaf+": "+b.Description)
 				} else {
@@ -304,13 +319,13 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		}
 		break
 	}
+}
 
-	// ━━━ GROWTH PROTOCOL (ultra-compact) ━━━
+func formatGrowthAndLimbic(sb *strings.Builder, result SubsumptionResult, brainRoot string) {
 	sb.WriteString("### 🌱 자가 성장\n")
 	inboxPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
-	sb.WriteString(fmt.Sprintf("교정→`corrections.jsonl` 기록 | 칭찬→dopamine | 3회실패→bomb\n"))
+	sb.WriteString("교정→`corrections.jsonl` 기록 | 칭찬→dopamine | 3회실패→bomb\n")
 	sb.WriteString(fmt.Sprintf("경로: `%s`\n", inboxPath))
-	// Limbic: 실제 뉴런 기반 동적 렌더링 (하드코딩 금지)
 	for _, r := range result.ActiveRegions {
 		if r.Name == "limbic" && len(r.Neurons) > 0 {
 			var parts []string
@@ -324,7 +339,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			break
 		}
 	}
-	// ── Emotion State Machine (Anthropic emotion-vector inspired) ──
 	type emotionTier struct {
 		Low  string
 		Mid  string
@@ -357,8 +371,7 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			High: "EMOTION=satisfied(high): 패턴을 뉴런으로 승격. 자유 탐색 허용. 새 아이디어 제안.",
 		},
 	}
-	// Legacy Korean key fallback
-	koToEn := KoToEn // governance_consts.go (SSOT)
+	koToEn := KoToEn
 
 	stateFile := filepath.Join(brainRoot, "limbic", "_state.json")
 	if stateData, err := os.ReadFile(stateFile); err == nil {
@@ -373,7 +386,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			if mapped, ok := koToEn[emo]; ok {
 				emo = mapped
 			}
-			// Compute effective intensity with time-based decay
 			effectiveIntensity := state.Intensity
 			if effectiveIntensity == 0 {
 				effectiveIntensity = DefaultEmotionIntensity
@@ -398,15 +410,14 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 					sb.WriteString(behavior + "\n")
 				}
 			}
-			// Auto-reset if decayed below threshold
 			if effectiveIntensity <= EmoIntensMin {
 				os.WriteFile(stateFile, []byte(`{"emotion":"neutral","intensity":0}`), 0600)
 			}
 		}
 	}
-	// (영혼 자문은 🔮 영혼 섹션에서 한 번만 출력 — 중복 제거됨)
+}
 
-	// ━━━ REGION SUMMARY: 한 줄 요약 (상세는 _rules.md) ━━━
+func formatCodeMapAndSoul(sb *strings.Builder, result SubsumptionResult, brainRoot string) {
 	var regionParts []string
 	for _, region := range result.ActiveRegions {
 		if region.Name == "brainstem" {
@@ -423,19 +434,17 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	}
 	sb.WriteString("영역: " + strings.Join(regionParts, " ") + "\n\n")
 
-	// ━━━ MODE SWITCH (강제) ━━━
 	sb.WriteString(fmt.Sprintf("**작업 전 `%s\\{영역}\\_rules.md`를 반드시 읽는다** (cortex=코딩/NeuronFS, sensors=NAS/브랜드, prefrontal=방향)\n", brainRoot))
 	sb.WriteString("⚠️ 읽지 않으면 금지 규칙 위반이 발생한다. view_file로 먼저 읽어라. MCP read_region 호출 금지(느림).\n")
 
-	// ━━━ CODE MAP (1줄 축약) ━━━
-	sb.WriteString(fmt.Sprintf("🗺️ 코드맵=뉴런 계층(cortex/dev/). 코드 수정 전 뉴런 읽기 필수. 플랫 뉴런 금지. `go vet ./...` 실행.\n\n"))
+	sb.WriteString("🗺️ 코드맵=뉴런 계층(cortex/dev/). 코드 수정 전 뉴런 읽기 필수. 플랫 뉴런 금지. `go vet ./...` 실행.\n\n")
 
-	// ━━━ 영혼 (중복 제거 — 이 한 곳에서만 출력) ━━━
 	sb.WriteString("### 🔮 영혼\n")
 	sb.WriteString("자문: 진짜야? 불충분? 편한길? 같은실수? 프리미엄? → 걸리면 다시\n")
 	sb.WriteString("CoVe: 초안→검증질문→독립검증→수정본 | 실행후 증거보고(시뮬레이션 금지) | 복잡작업→단계분해\n\n")
+}
 
-	// ━━━ HIPPOCAMPUS: 최근 에피소드 (컨텍스트 힌트) ━━━
+func formatRecentMemory(sb *strings.Builder, result SubsumptionResult) {
 	for _, region := range result.ActiveRegions {
 		if region.Name != "hippocampus" {
 			continue
@@ -455,25 +464,12 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		}
 		break
 	}
+}
 
-	// ━━━ AGENT INBOX ━━━
-	agentInbox := emitAgentInbox(brainRoot)
-	if agentInbox != "" {
-		sb.WriteString(agentInbox)
-	}
-
-	// ━━━ SESSION TRANSCRIPT LOCATION (절대경로 강제) ━━━
-	transcriptDir := filepath.Join(brainRoot, "_transcripts")
-	if _, err := os.Stat(transcriptDir); err == nil {
-		absTranscript, _ := filepath.Abs(transcriptDir)
-		sb.WriteString(fmt.Sprintf("### 📜 전사 기록\n전사물 경로: `%s`\n\n", absTranscript))
-	}
-
-	// ━━━ RECENCY ANCHOR: 끝에 핵심 禁 규칙 재반복 (Lost-in-the-Middle 대응) ━━━
-	// LLM은 맨 앞(primacy)과 맨 끝(recency)에 가장 주의를 집중한다.
+func formatAbsoluteRules(sb *strings.Builder, result SubsumptionResult, top5Sentences map[string]bool) {
 	sb.WriteString("### 🔒 절대 규칙 (재확인)\n")
 	var banReminders []string
-	seenBanLeaf := make(map[string]bool) // leaf 기준 중복 제거
+	seenBanLeaf := make(map[string]bool)
 	for _, region := range result.ActiveRegions {
 		for _, n := range region.Neurons {
 			if n.IsDormant || (n.Counter+n.Dopamine) < 5 {
@@ -482,7 +478,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			if !strings.ContainsAny(n.Path, "禁") {
 				continue
 			}
-			// 하위 폴더 존재 시 상위 스킵 (중간 경로 제거)
 			hasChild := false
 			for _, other := range region.Neurons {
 				if other.Depth > n.Depth && (strings.HasPrefix(other.Path, n.Path+string(filepath.Separator)) || strings.HasPrefix(other.Path, n.Path+"/")) {
@@ -497,20 +492,16 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			if strings.Contains(sentence, "추천:") {
 				continue
 			}
-			// 의미없는 짧은 sentence 제외
 			trimmed := strings.TrimSpace(strings.ReplaceAll(sentence, "절대 금지:", ""))
 			if len([]rune(trimmed)) < 2 {
 				continue
 			}
-			// 동어반복 필터
 			if strings.Contains(trimmed, "절대금지") || strings.Contains(trimmed, "절대 금지") {
 				continue
 			}
-			// TOP 5에 이미 나온 것 스킵
 			if top5Sentences[sentence] {
 				continue
 			}
-			// cortex ban에 이미 나온 leaf 스킵
 			parts := splitNeuronPath(n.Path)
 			leaf := parts[len(parts)-1]
 			for hanja := range hanjaToKorean {
@@ -531,9 +522,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		sb.WriteString(fmt.Sprintf("- ⛔ %s\n", ban))
 	}
 	sb.WriteString("\n")
-
-	sb.WriteString("<!-- NEURONFS:END -->\n")
-	return sb.String()
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

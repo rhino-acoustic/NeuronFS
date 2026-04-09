@@ -4,9 +4,10 @@
 //
 // 초보 사용자가 처음 `neuronfs`를 실행할 때 바이오해커 랩이 깨어나는 듯한
 // 3단계 ASCII 모션 시퀀스를 렌더링한다.
-//   Step 1: 뇌간 세포 점화 (Brainstem Ignition) — T=0~800ms
-//   Step 2: 시냅스 링크 (First Breath) — T=800~1500ms
-//   Step 3: 각성 완료 (Full Consciousness) — T=1500~2500ms
+//
+//	Step 1: 뇌간 세포 점화 (Brainstem Ignition) — T=0~800ms
+//	Step 2: 시냅스 링크 (First Breath) — T=800~1500ms
+//	Step 3: 각성 완료 (Full Consciousness) — T=1500~2500ms
 //
 // 외부 의존성: 0 (Go stdlib only)
 // 반복실행: .neuronfs_init 마커 → 축약모드

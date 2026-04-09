@@ -3,7 +3,6 @@
 //
 // watchdog.ps1 + 프로세스 관리를 Go 바이너리로 통합.
 //
-//
 // Usage: neuronfs <brain_path> --supervisor
 package main
 
