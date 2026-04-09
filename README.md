@@ -8,7 +8,11 @@
 </p>
 
 <p align="center">
-  <img src="docs/neuronfs_hero.jpg" alt="Folders ARE the Context — mkdir beats vector" width="800" />
+  <img src="docs/vorq_harness.png" alt="vorq — AI obeys what it doesn't understand" width="800" />
+</p>
+
+<p align="center">
+  <img src="docs/neuronfs_hero.jpg" alt="Folders ARE the Context — mkdir beats vector" width="600" />
 </p>
 
 <p align="center">
