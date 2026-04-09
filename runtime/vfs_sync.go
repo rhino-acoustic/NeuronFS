@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os/exec"
 	"time"
 )
 
@@ -17,8 +16,7 @@ func SyncToNAS(brainRoot string, nasRoot string, stopCh <-chan struct{}) {
 		
 		// robocopy returns non-zero exit codes for successful copies (e.g. 1 means files copied),
 		// so we ignore the error return.
-		cmd := exec.Command("robocopy", brainRoot, nasRoot, "/MIR", "/FFT", "/XO", "/MT:4", "/NDL", "/NJH", "/NJS", "/NC", "/NS", "/NP")
-		_ = cmd.Run()
+		_ = SafeExec(ExecTimeoutSync, "robocopy", brainRoot, nasRoot, "/MIR", "/FFT", "/XO", "/MT:4", "/NDL", "/NJH", "/NJS", "/NC", "/NS", "/NP")
 		
 		select {
 		case <-stopCh:

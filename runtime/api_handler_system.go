@@ -183,9 +183,7 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 			return
 		}
 
-		cmd := exec.Command("git", "log", "--pretty=format:%H|%ai|%s", "--name-status", "-n", "50")
-		cmd.Dir = brainRoot
-		out, err := cmd.Output()
+		out, err := SafeOutputDir(ExecTimeoutGit, brainRoot, "git", "log", "--pretty=format:%H|%ai|%s", "--name-status", "-n", "50")
 		if err != nil {
 			json.NewEncoder(w).Encode(map[string]interface{}{"error": err.Error(), "events": []interface{}{}})
 			return
@@ -247,9 +245,7 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		}
 
 		// Unstaged changes as "live" brainwaves
-		diffCmd := exec.Command("git", "status", "--porcelain")
-		diffCmd.Dir = brainRoot
-		diffOut, err := diffCmd.Output()
+		diffOut, err := SafeOutputDir(ExecTimeoutQuery, brainRoot, "git", "status", "--porcelain")
 		if err == nil {
 			for _, line := range strings.Split(string(diffOut), "\n") {
 				line = strings.TrimSpace(line)

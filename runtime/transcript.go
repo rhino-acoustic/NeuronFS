@@ -41,9 +41,7 @@ func gitSnapshot(brainRoot string) {
 	// Auto-init if not a git repo
 	gitDir := filepath.Join(brainRoot, ".git")
 	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
-		cmd := exec.Command("git", "init")
-		cmd.Dir = brainRoot
-		if err := cmd.Run(); err != nil {
+		if err := SafeExecDir(ExecTimeoutGit, brainRoot, "git", "init"); err != nil {
 			fmt.Printf("[GIT] ⚠️ init failed: %v\n", err)
 			return
 		}
@@ -53,18 +51,14 @@ func gitSnapshot(brainRoot string) {
 	}
 
 	// Check for changes
-	statusCmd := exec.Command("git", "status", "--porcelain")
-	statusCmd.Dir = brainRoot
-	out, err := statusCmd.Output()
+	out, err := SafeOutputDir(ExecTimeoutQuery, brainRoot, "git", "status", "--porcelain")
 	if err != nil || len(out) == 0 {
 		fmt.Println("[GIT] No changes to snapshot")
 		return
 	}
 
 	// Stage all
-	addCmd := exec.Command("git", "add", "-A")
-	addCmd.Dir = brainRoot
-	if err := addCmd.Run(); err != nil {
+	if err := SafeExecDir(ExecTimeoutGit, brainRoot, "git", "add", "-A"); err != nil {
 		fmt.Printf("[GIT] ⚠️ add failed: %v\n", err)
 		return
 	}
@@ -77,17 +71,13 @@ func gitSnapshot(brainRoot string) {
 	msg := fmt.Sprintf("[%s] %d neurons, act:%d, Δ%d files",
 		timestamp, result.TotalNeurons, result.TotalCounter, changes)
 
-	commitCmd := exec.Command("git", "commit", "-m", msg, "--no-verify")
-	commitCmd.Dir = brainRoot
-	if err := commitCmd.Run(); err != nil {
+	if err := SafeExecDir(ExecTimeoutGit, brainRoot, "git", "commit", "-m", msg, "--no-verify"); err != nil {
 		return
 	}
 	fmt.Printf("[GIT] 📸 %s\n", msg)
 
 	// ── git diff 진화판정: 뉴런 순감소이면 자동 rollback ──
-	diffCmd := exec.Command("git", "diff", "HEAD~1", "--stat")
-	diffCmd.Dir = brainRoot
-	diffOut, err := diffCmd.Output()
+	diffOut, err := SafeOutputDir(ExecTimeoutGit, brainRoot, "git", "diff", "HEAD~1", "--stat")
 	if err == nil {
 		diffStr := string(diffOut)
 		deletions := strings.Count(diffStr, "deletion")
@@ -95,9 +85,7 @@ func gitSnapshot(brainRoot string) {
 		if deletions > insertions*2 && deletions > 5 {
 			// 삭제가 삽입의 2배 이상이고 5건 초과이면 퇴화로 판정
 			fmt.Printf("[GIT] ⚠️ 퇴화 감지 (삭제 %d > 삽입 %d×2) — 자동 rollback\n", deletions, insertions)
-			revertCmd := exec.Command("git", "revert", "HEAD", "--no-edit")
-			revertCmd.Dir = brainRoot
-			if err := revertCmd.Run(); err != nil {
+			if err := SafeExecDir(ExecTimeoutGit, brainRoot, "git", "revert", "HEAD", "--no-edit"); err != nil {
 				fmt.Printf("[GIT] ❌ rollback 실패: %v\n", err)
 			} else {
 				fmt.Println("[GIT] ✅ 퇴화 commit이 revert 되었습니다")
@@ -213,14 +201,13 @@ func runIdleLoop(brainRoot string) {
 		nasTarget := `Z:\VOL1\VGVR\BRAIN\LW\system\neurons\brain_v4`
 		if _, err := os.Stat(nasTarget); err == nil {
 			fmt.Println("[IDLE] 📡 NAS sync...")
-			syncCmd := exec.Command("robocopy", brainRoot, nasTarget, "/MIR", "/XD", ".git", "/XF", "*.dormant", "/NFL", "/NDL", "/NP", "/NJH", "/NJS")
-			if out, err := syncCmd.CombinedOutput(); err != nil {
+			out, err := SafeCombinedOutput(ExecTimeoutSync, "robocopy", brainRoot, nasTarget, "/MIR", "/XD", ".git", "/XF", "*.dormant", "/NFL", "/NDL", "/NP", "/NJH", "/NJS")
+			if err != nil {
 				// robocopy exit code 1 = files copied (success), only >=8 is error
-				exitCode := syncCmd.ProcessState.ExitCode()
-				if exitCode >= 8 {
-					fmt.Printf("[IDLE] ❌ NAS sync error (exit %d): %s\n", exitCode, string(out))
+				if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() >= 8 {
+					fmt.Printf("[IDLE] ❌ NAS sync error (exit %d): %s\n", exitErr.ExitCode(), string(out))
 				} else {
-					fmt.Printf("[IDLE] ✅ NAS synced (exit %d)\n", exitCode)
+					fmt.Printf("[IDLE] ✅ NAS synced\n")
 				}
 			} else {
 				fmt.Println("[IDLE] ✅ NAS synced (no changes)")
@@ -238,9 +225,7 @@ func runIdleLoop(brainRoot string) {
 		// 9. go vet 자동 검증 (import 동기화 체크)
 		runtimeDir := filepath.Join(filepath.Dir(brainRoot), "runtime")
 		if _, err := os.Stat(runtimeDir); err == nil {
-			vetCmd := exec.Command("go", "vet", "./...")
-			vetCmd.Dir = runtimeDir
-			if vetOut, err := vetCmd.CombinedOutput(); err != nil {
+			if vetOut, err := SafeCombinedOutputDir(ExecTimeoutGit, runtimeDir, "go", "vet", "./..."); err != nil {
 				fmt.Printf("[IDLE] ⚠️ go vet 이상 감지: %s\n", strings.TrimSpace(string(vetOut)))
 				logEpisode(brainRoot, "VET_FAIL", string(vetOut))
 			} else {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -73,10 +72,10 @@ type AddBombReq struct {
 // ─── Check if a process with given image name is running ───
 func isProcessRunning(imageName string) bool {
 	if runtime.GOOS != "windows" {
-		out, err := exec.Command("pgrep", "-f", imageName).Output()
+		out, err := SafeOutput(ExecTimeoutShell, "pgrep", "-f", imageName)
 		return err == nil && len(out) > 0
 	}
-	out, err := exec.Command("tasklist", "/FI", "IMAGENAME eq "+imageName, "/NH", "/FO", "CSV").Output()
+	out, err := SafeOutput(ExecTimeoutShell, "tasklist", "/FI", "IMAGENAME eq "+imageName, "/NH", "/FO", "CSV")
 	if err != nil {
 		return false
 	}
@@ -86,10 +85,10 @@ func isProcessRunning(imageName string) bool {
 // ─── Check if a node.js script is running ───
 func isNodeScriptRunning(scriptName string) bool {
 	if runtime.GOOS != "windows" {
-		out, err := exec.Command("pgrep", "-f", scriptName).Output()
+		out, err := SafeOutput(ExecTimeoutShell, "pgrep", "-f", scriptName)
 		return err == nil && len(out) > 0
 	}
-	out, err := exec.Command("wmic", "process", "where", "name='node.exe'", "get", "commandline", "/format:list").Output()
+	out, err := SafeOutput(ExecTimeoutShell, "wmic", "process", "where", "name='node.exe'", "get", "commandline", "/format:list")
 	if err != nil {
 		return false
 	}

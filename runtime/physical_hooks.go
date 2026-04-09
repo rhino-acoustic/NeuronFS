@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -92,8 +91,7 @@ $window.ShowDialog() | Out-Null
 } finally { $mtx.ReleaseMutex(); $mtx.Dispose() }
 `, escapedRegion)
 
-	cmd := exec.Command("powershell", "-NoProfile", "-STA", "-Command", ps)
-	if err := cmd.Run(); err != nil {
+	if err := SafeExec(ExecTimeoutShell, "powershell", "-NoProfile", "-STA", "-Command", ps); err != nil {
 		fmt.Fprintf(os.Stderr, "[HOOK] Red flash error: %v\n", err)
 	}
 }
@@ -153,8 +151,7 @@ try {
 }
 `, usbSirenCOMPort)
 
-	cmd := exec.Command("powershell", "-NoProfile", "-Command", ps)
-	if err := cmd.Run(); err != nil {
+	if err := SafeExec(ExecTimeoutShell, "powershell", "-NoProfile", "-Command", ps); err != nil {
 		fmt.Fprintf(os.Stderr, "[HOOK] USB siren error: %v\n", err)
 	}
 }

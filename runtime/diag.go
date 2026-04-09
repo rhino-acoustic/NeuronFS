@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -54,9 +53,7 @@ func printDiag(brain Brain, result SubsumptionResult) {
 	}
 
 	// Shadow Context (Dashboard UI Panel logic inline for CLI)
-	diffCmd := exec.Command("git", "status", "--porcelain")
-	diffCmd.Dir = brain.Root
-	out, err := diffCmd.Output()
+	out, err := SafeOutputDir(ExecTimeoutQuery, brain.Root, "git", "status", "--porcelain")
 	var shadowFiles []string
 	if err == nil {
 		lines := strings.Split(string(out), "\n")
@@ -277,7 +274,7 @@ func refreshCodeMap(brainRoot string) {
 // checkProcessMemoryOverload monitors the OS heap for memory leaks.
 // If the threshold (200MB) is breached, it dumps the Go memory profile and renders the Flatline OOM screen.
 func checkProcessMemoryOverload(cName string, pid int) bool {
-	out, err := exec.Command("tasklist", "/FI", fmt.Sprintf("PID eq %d", pid), "/FO", "CSV", "/NH").Output()
+	out, err := SafeOutput(ExecTimeoutShell, "tasklist", "/FI", fmt.Sprintf("PID eq %d", pid), "/FO", "CSV", "/NH")
 	if err != nil {
 		return false
 	}

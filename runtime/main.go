@@ -5,7 +5,6 @@ import (
 	"fmt"
 	_ "net/http/pprof"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -278,7 +277,7 @@ func main() {
 		absTarget, _ := filepath.Abs(targetDir)
 		err := os.Symlink(absTarget, sharedDir)
 		if err != nil {
-			out, e2 := exec.Command("cmd", "/c", "mklink", "/J", sharedDir, absTarget).CombinedOutput()
+			out, e2 := SafeCombinedOutput(ExecTimeoutShell, "cmd", "/c", "mklink", "/J", sharedDir, absTarget)
 			if e2 != nil {
 				fmt.Printf("\033[31m[ERROR] Symlink/Junction failed: %v, out: %s\033[0m\n", e2, string(out))
 			} else {
