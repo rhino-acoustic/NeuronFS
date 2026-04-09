@@ -112,34 +112,31 @@ func buildPreamble(sb *strings.Builder, result SubsumptionResult, brainRoot stri
 
 func formatPersona(sb *strings.Builder, result SubsumptionResult) {
 	// ━━━ PERSONA (from ego region neurons — not hardcoded) ━━━
-	sb.WriteString("### 🎭 페르소나\n")
+	var personaItems []string
 	for _, region := range result.ActiveRegions {
 		if region.Name == "ego" {
 			topEgo := sortedActiveNeurons(region.Neurons, 10)
 			for _, n := range topEgo {
 				parts := splitNeuronPath(n.Path)
 				if len(parts) > 1 {
-					// 행동양식 뉴런은 🔮 영혼에서 출력 → SSOT 위반 방지
 					leaf := parts[len(parts)-1]
 					if strings.Contains(leaf, "단계분해") || strings.Contains(leaf, "증거보고") ||
 						strings.Contains(leaf, "자문") || strings.Contains(leaf, "CoVe") {
 						continue
 					}
 					label := strings.ReplaceAll(strings.Join(parts[1:], " > "), "_", " ")
-					sb.WriteString(fmt.Sprintf("- %s\n", label))
+					personaItems = append(personaItems, label)
 				}
 			}
 			break
 		}
 	}
-	sb.WriteString("\n")
+	sb.WriteString(renderSection("section_persona.tmpl", BootstrapSection{Persona: personaItems}))
 }
 
 func formatSubsumption(sb *strings.Builder) {
-	// ━━━ SUBSUMPTION (1-liner) ━━━
-	sb.WriteString("### 🔗 Subsumption Cascade\n")
-	sb.WriteString("```\nbrainstem ←→ limbic ←→ hippocampus ←→ sensors ←→ cortex ←→ ego ←→ prefrontal\n  (P0)         (P1)       (P2)          (P3)       (P4)     (P5)      (P6)\n```\n")
-	sb.WriteString("낮은 P가 높은 P를 항상 우선. bomb은 전체 정지.\n\n")
+	// ━━━ SUBSUMPTION — rendered from embedded template ━━━
+	sb.WriteString(renderSection("section_subsumption.tmpl", nil))
 }
 
 func formatTop5CoreRules(sb *strings.Builder, result SubsumptionResult, now time.Time) map[string]bool {
@@ -445,24 +442,24 @@ func formatCodeMapAndSoul(sb *strings.Builder, result SubsumptionResult, brainRo
 }
 
 func formatRecentMemory(sb *strings.Builder, result SubsumptionResult) {
+	var memories []string
 	for _, region := range result.ActiveRegions {
 		if region.Name != "hippocampus" {
 			continue
 		}
 		topEpisodes := sortedActiveNeurons(region.Neurons, 3)
-		if len(topEpisodes) > 0 {
-			sb.WriteString("### 📝 최근 기억\n")
-			for _, ep := range topEpisodes {
-				sentence := pathToSentence(ep.Path)
-				if ep.Description != "" {
-					sb.WriteString(fmt.Sprintf("- %s: %s\n", sentence, ep.Description))
-				} else {
-					sb.WriteString(fmt.Sprintf("- %s\n", sentence))
-				}
+		for _, ep := range topEpisodes {
+			sentence := pathToSentence(ep.Path)
+			if ep.Description != "" {
+				memories = append(memories, sentence+": "+ep.Description)
+			} else {
+				memories = append(memories, sentence)
 			}
-			sb.WriteString("\n")
 		}
 		break
+	}
+	if len(memories) > 0 {
+		sb.WriteString(renderSection("section_recent_memory.tmpl", BootstrapSection{RecentMemories: memories}))
 	}
 }
 
