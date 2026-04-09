@@ -433,6 +433,11 @@ func scanBrain(root string) Brain {
 				}
 			}
 
+			// Clean mojibake/encoding issues from description
+			if n.Description != "" && isMojibake(n.Description) {
+				n.Description = ""
+			}
+
 			region.Neurons = append(region.Neurons, *n)
 		}
 

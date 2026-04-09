@@ -101,6 +101,32 @@ func RunHarness(brainRoot string, logger func(string)) {
 		passes++
 	}
 
+	// ── Check 6: 뉴런 인코딩 무결성 (mojibake 감지) ──
+	mojibakeCount := 0
+	for _, r := range essentialRegions {
+		filepath.Walk(filepath.Join(brainRoot, r), func(path string, info os.FileInfo, err error) error {
+			if err != nil || info == nil || info.IsDir() {
+				return nil
+			}
+			if !strings.HasSuffix(info.Name(), ".neuron") {
+				return nil
+			}
+			data, err := os.ReadFile(path)
+			if err != nil {
+				return nil
+			}
+			if isMojibake(string(data)) {
+				mojibakeCount++
+			}
+			return nil
+		})
+	}
+	if mojibakeCount > 0 {
+		fails = append(fails, fmt.Sprintf("인코딩 깨짐(mojibake): %d개 뉴런", mojibakeCount))
+	} else {
+		passes++
+	}
+
 	// ── Result ──
 	if len(fails) == 0 {
 		if logger != nil {
