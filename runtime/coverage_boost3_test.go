@@ -70,7 +70,7 @@ func TestSvTTLDecay(t *testing.T) {
 	svLogPath = filepath.Join(dir, "decay.log")
 	defer func() { svLogPath = oldPath }()
 
-	svTTLDecay(dir)
+	RunTTLDecay(dir, nil)
 	t.Log("OK: svTTLDecay executed without panic")
 }
 
@@ -90,7 +90,7 @@ func TestSvTTLDecay_RecentNeuron(t *testing.T) {
 	svLogPath = filepath.Join(dir, "decay.log")
 	defer func() { svLogPath = oldPath }()
 
-	svTTLDecay(dir)
+	RunTTLDecay(dir, nil)
 	t.Log("OK: svTTLDecay skips recent neurons")
 }
 
@@ -110,7 +110,7 @@ func TestSvTTLDecay_ZeroWeight(t *testing.T) {
 	svLogPath = filepath.Join(dir, "decay.log")
 	defer func() { svLogPath = oldPath }()
 
-	svTTLDecay(dir)
+	RunTTLDecay(dir, nil)
 
 	// Check if archive dir was created
 	archiveDir := filepath.Join(dir, ".archive")

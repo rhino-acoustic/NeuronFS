@@ -19,7 +19,7 @@ import (
 
 func TestSvParseFrontmatter_Valid(t *testing.T) {
 	content := "---\nweight: 42\nlast_activated: 2026-04-01T08:00:00Z\n---\nsome content"
-	weight, lastAct, endIdx := svParseFrontmatter(content)
+	weight, lastAct, endIdx := ttlParseFrontmatter(content)
 
 	if weight != 42 {
 		t.Fatalf("expected weight=42, got %d", weight)
@@ -30,12 +30,12 @@ func TestSvParseFrontmatter_Valid(t *testing.T) {
 	if endIdx <= 0 {
 		t.Fatalf("expected positive endIdx, got %d", endIdx)
 	}
-	t.Logf("OK: svParseFrontmatter weight=%d, lastAct=%s, endIdx=%d", weight, lastAct.Format(time.RFC3339), endIdx)
+	t.Logf("OK: ttlParseFrontmatter weight=%d, lastAct=%s, endIdx=%d", weight, lastAct.Format(time.RFC3339), endIdx)
 }
 
 func TestSvParseFrontmatter_NoFrontmatter(t *testing.T) {
 	content := "no frontmatter here"
-	weight, _, _ := svParseFrontmatter(content)
+	weight, _, _ := ttlParseFrontmatter(content)
 	if weight != -1 {
 		t.Fatalf("expected weight=-1 for no frontmatter, got %d", weight)
 	}
@@ -44,7 +44,7 @@ func TestSvParseFrontmatter_NoFrontmatter(t *testing.T) {
 
 func TestSvParseFrontmatter_MissingClosing(t *testing.T) {
 	content := "---\nweight: 10\nno closing marker"
-	weight, _, _ := svParseFrontmatter(content)
+	weight, _, _ := ttlParseFrontmatter(content)
 	if weight != -1 {
 		t.Fatalf("expected weight=-1 for unclosed frontmatter, got %d", weight)
 	}
@@ -53,7 +53,7 @@ func TestSvParseFrontmatter_MissingClosing(t *testing.T) {
 
 func TestSvParseFrontmatter_NoWeight(t *testing.T) {
 	content := "---\nlast_activated: 2026-01-01T00:00:00Z\n---\ncontent"
-	weight, lastAct, endIdx := svParseFrontmatter(content)
+	weight, lastAct, endIdx := ttlParseFrontmatter(content)
 	if weight != -1 {
 		t.Fatalf("expected weight=-1, got %d", weight)
 	}
@@ -68,11 +68,11 @@ func TestSvParseFrontmatter_NoWeight(t *testing.T) {
 
 func TestSvUpdateWeightFrontmatter(t *testing.T) {
 	content := "---\nweight: 10\nlast_activated: 2026-01-01T00:00:00Z\n---\ncontent here"
-	updated := svUpdateWeightFrontmatter(content, 5)
+	updated := ttlUpdateWeightFrontmatter(content, 5)
 	if updated == content {
 		t.Fatal("content should be modified")
 	}
-	w2, _, _ := svParseFrontmatter(updated)
+	w2, _, _ := ttlParseFrontmatter(updated)
 	if w2 != 5 {
 		t.Fatalf("expected updated weight=5, got %d", w2)
 	}

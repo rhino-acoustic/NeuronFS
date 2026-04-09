@@ -396,3 +396,91 @@ func deduplicateNeurons(brainRoot string) {
 		fmt.Println("[DEDUP] ✓ 중복 뉴런 없음")
 	}
 }
+func ttlParseFrontmatter(content string) (int, time.Time, int) {
+	lines := strings.Split(content, "\n")
+	if len(lines) < 3 || strings.TrimSpace(lines[0]) != "---" {
+		return -1, time.Time{}, -1
+	}
+	weight := -1
+	var lastAct time.Time
+	endIdx := len(lines[0]) + 1
+	for i := 1; i < len(lines); i++ {
+		line := strings.TrimSpace(lines[i])
+		if line == "---" {
+			endIdx += len(lines[i]) + 1
+			return weight, lastAct, endIdx
+		}
+		if strings.HasPrefix(line, "weight:") {
+			if w, err := strconv.Atoi(strings.TrimSpace(strings.TrimPrefix(line, "weight:"))); err == nil {
+				weight = w
+			}
+		} else if strings.HasPrefix(line, "last_activated:") {
+			if t, err := time.Parse(time.RFC3339, strings.TrimSpace(strings.TrimPrefix(line, "last_activated:"))); err == nil {
+				lastAct = t
+			}
+		}
+		endIdx += len(lines[i]) + 1
+	}
+	return -1, time.Time{}, -1
+}
+
+func ttlUpdateWeightFrontmatter(content string, newWeight int) string {
+	lines := strings.Split(content, "\n")
+	for i, l := range lines {
+		if strings.HasPrefix(strings.TrimSpace(l), "weight:") {
+			lines[i] = fmt.Sprintf("weight: %d", newWeight)
+			break
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
+// RunTTLDecay degrades synaptic weight of neurons
+func RunTTLDecay(brainRoot string, logger func(string)) {
+	for regionName := range regionPriority {
+		regionPath := filepath.Join(brainRoot, regionName)
+		if _, err := os.Stat(regionPath); os.IsNotExist(err) {
+			continue
+		}
+		filepath.Walk(regionPath, func(path string, info os.FileInfo, err error) error {
+			if err != nil || info.IsDir() {
+				return nil
+			}
+			if !strings.HasSuffix(path, ".neuron") {
+				return nil
+			}
+			contentBytes, err := os.ReadFile(path)
+			if err != nil {
+				return nil
+			}
+			content := string(contentBytes)
+			weight, lastAct, endIdx := ttlParseFrontmatter(content)
+
+			if weight == -1 || lastAct.IsZero() {
+				return nil
+			}
+
+			if time.Since(lastAct) > 24*time.Hour {
+				newWeight := weight - 1
+				if newWeight <= 0 {
+					archiveDir := filepath.Join(brainRoot, ".archive")
+					os.MkdirAll(archiveDir, 0750)
+					dest := filepath.Join(archiveDir, filepath.Base(path))
+					os.Rename(path, dest)
+					if logger != nil {
+						logger(fmt.Sprintf("\033[90m[PRUNE] Synaptic decay complete: %s moved to archive (weight 0)\033[0m", filepath.Base(path)))
+					}
+					return nil
+				}
+
+				newFrontmatter := ttlUpdateWeightFrontmatter(content[:endIdx], newWeight)
+				newContent := newFrontmatter + content[endIdx:]
+				os.WriteFile(path, []byte(newContent), 0600)
+				if logger != nil {
+					logger(fmt.Sprintf("\033[33m[DECAY] Synaptic weight degraded for %s (new weight: %d)\033[0m", filepath.Base(path), newWeight))
+				}
+			}
+			return nil
+		})
+	}
+}

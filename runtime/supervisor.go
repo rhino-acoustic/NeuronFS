@@ -13,7 +13,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -73,7 +72,6 @@ func runSupervisor(brainRoot string) {
 	logDir := filepath.Join(nfsRoot, "logs")
 	os.MkdirAll(logDir, 0750)
 	svLogPath = filepath.Join(logDir, "supervisor.log")
-	harnessScript := filepath.Join(nfsRoot, "harness.ps1")
 	userHome := filepath.Dir(nfsRoot)
 	aaDir := filepath.Join(userHome, "auto-accept")
 	nasBrain := os.Getenv("NEURONFS_NAS_BRAIN")
@@ -129,7 +127,7 @@ func runSupervisor(brainRoot string) {
 	}
 
 	if nasBrain != "" && svPathExists(nasBrain) {
-		go svNasSync(brainRoot, nasBrain, stopCh)
+		go SyncToNAS(brainRoot, nasBrain, stopCh)
 		svLog("🔄 NAS 동기화 활성 (5초)")
 	}
 
@@ -146,7 +144,7 @@ func runSupervisor(brainRoot string) {
 	defer decayTk.Stop()
 
 	// Initial decay run
-	go svTTLDecay(brainRoot)
+	go RunTTLDecay(brainRoot, svLog)
 
 	svLog("━━━ 감시 루프 진입 ━━━")
 	for {
@@ -161,7 +159,7 @@ func runSupervisor(brainRoot string) {
 			svLog("\033[90m[SLUMBER] Cognitive architecture offline.\033[0m")
 			return
 		case <-harnessTk.C:
-			go svHarness(harnessScript, brainRoot)
+			go RunHarness(brainRoot, svLog)
 		case <-statusTk.C:
 			svStatus(children)
 		case <-lockTk.C:
@@ -179,94 +177,8 @@ func runSupervisor(brainRoot string) {
 				}
 			}
 		case <-decayTk.C:
-			go svTTLDecay(brainRoot)
+			go RunTTLDecay(brainRoot, svLog)
 		}
-	}
-}
-
-func svParseFrontmatter(content string) (int, time.Time, int) {
-	lines := strings.Split(content, "\n")
-	if len(lines) < 3 || strings.TrimSpace(lines[0]) != "---" {
-		return -1, time.Time{}, -1
-	}
-	weight := -1
-	var lastAct time.Time
-	endIdx := len(lines[0]) + 1
-	for i := 1; i < len(lines); i++ {
-		line := strings.TrimSpace(lines[i])
-		if line == "---" {
-			endIdx += len(lines[i]) + 1
-			return weight, lastAct, endIdx
-		}
-		if strings.HasPrefix(line, "weight:") {
-			if w, err := strconv.Atoi(strings.TrimSpace(strings.TrimPrefix(line, "weight:"))); err == nil {
-				weight = w
-			}
-		} else if strings.HasPrefix(line, "last_activated:") {
-			if t, err := time.Parse(time.RFC3339, strings.TrimSpace(strings.TrimPrefix(line, "last_activated:"))); err == nil {
-				lastAct = t
-			}
-		}
-		endIdx += len(lines[i]) + 1
-	}
-	return -1, time.Time{}, -1
-}
-
-func svUpdateWeightFrontmatter(content string, newWeight int) string {
-	lines := strings.Split(content, "\n")
-	for i, l := range lines {
-		if strings.HasPrefix(strings.TrimSpace(l), "weight:") {
-			lines[i] = fmt.Sprintf("weight: %d", newWeight)
-			break
-		}
-	}
-	return strings.Join(lines, "\n")
-}
-
-func svTTLDecay(brainRoot string) {
-	// Let's implement TTL decay
-	// Note: regionPriority is exported from main.go
-	for regionName := range regionPriority {
-		regionPath := filepath.Join(brainRoot, regionName)
-		if !svPathExists(regionPath) {
-			continue
-		}
-		filepath.Walk(regionPath, func(path string, info os.FileInfo, err error) error {
-			if err != nil || info.IsDir() {
-				return nil
-			}
-			if !strings.HasSuffix(path, ".neuron") {
-				return nil
-			}
-			contentBytes, err := os.ReadFile(path)
-			if err != nil {
-				return nil
-			}
-			content := string(contentBytes)
-			weight, lastAct, endIdx := svParseFrontmatter(content)
-
-			if weight == -1 || lastAct.IsZero() {
-				return nil
-			}
-
-			if time.Since(lastAct) > 24*time.Hour {
-				newWeight := weight - 1
-				if newWeight <= 0 {
-					archiveDir := filepath.Join(brainRoot, ".archive")
-					os.MkdirAll(archiveDir, 0750)
-					dest := filepath.Join(archiveDir, filepath.Base(path))
-					os.Rename(path, dest)
-					svLog(fmt.Sprintf("\033[90m[PRUNE] Synaptic decay complete: %s moved to archive (weight 0)\033[0m", filepath.Base(path)))
-					return nil
-				}
-
-				newFrontmatter := svUpdateWeightFrontmatter(content[:endIdx], newWeight)
-				newContent := newFrontmatter + content[endIdx:]
-				os.WriteFile(path, []byte(newContent), 0600)
-				svLog(fmt.Sprintf("\033[33m[DECAY] Synaptic weight degraded for %s (new weight: %d)\033[0m", filepath.Base(path), newWeight))
-			}
-			return nil
-		})
 	}
 }
 
@@ -373,129 +285,6 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 			return
 		case <-time.After(delay):
 		}
-	}
-}
-
-func svNasSync(brain, nas string, stopCh <-chan struct{}) {
-	for {
-		select {
-		case <-stopCh:
-			return
-		default:
-		}
-		cmd := exec.Command("robocopy", brain, nas, "/MIR", "/FFT", "/XO", "/MT:4", "/NDL", "/NJH", "/NJS", "/NC", "/NS", "/NP")
-		cmd.Run()
-		select {
-		case <-stopCh:
-			return
-		case <-time.After(5 * time.Second):
-		}
-	}
-}
-
-func svHarness(script, brainRoot string) {
-	svLog("🔍 harness 실행 (Go native)")
-
-	var fails []string
-	var passes int
-
-	// ── Check 1: Essential regions exist ──
-	essentialRegions := RegionOrder
-	for _, r := range essentialRegions {
-		p := filepath.Join(brainRoot, r)
-		if !svPathExists(p) {
-			fails = append(fails, fmt.Sprintf("영역 누락: %s", r))
-		} else {
-			passes++
-		}
-	}
-
-	// ── Check 2: Brainstem 필수 뉴런 (必/禁 구조) ──
-	bsPath := filepath.Join(brainRoot, "brainstem")
-	for _, hanja := range []string{"必", "禁"} {
-		hp := filepath.Join(bsPath, hanja)
-		if !svPathExists(hp) {
-			fails = append(fails, fmt.Sprintf("brainstem 한자 폴더 누락: %s", hanja))
-		} else {
-			entries, _ := os.ReadDir(hp)
-			childCount := 0
-			for _, e := range entries {
-				if e.IsDir() && !strings.HasPrefix(e.Name(), "_") {
-					childCount++
-				}
-			}
-			if childCount == 0 {
-				fails = append(fails, fmt.Sprintf("brainstem/%s 하위 뉴런 0개", hanja))
-			} else {
-				passes++
-			}
-		}
-	}
-
-	// ── Check 3: _rules.md 존재 (최근 1시간 내 갱신) ──
-	for _, r := range essentialRegions {
-		rulesPath := filepath.Join(brainRoot, r, "_rules.md")
-		info, err := os.Stat(rulesPath)
-		if err != nil {
-			fails = append(fails, fmt.Sprintf("_rules.md 누락: %s", r))
-		} else if time.Since(info.ModTime()) > 2*time.Hour {
-			fails = append(fails, fmt.Sprintf("_rules.md 미갱신 (2h+): %s", r))
-		} else {
-			passes++
-		}
-	}
-
-	// ── Check 4: GEMINI.md 마커 무결성 ──
-	home := os.Getenv("USERPROFILE")
-	if home != "" {
-		geminiPath := filepath.Join(home, ".gemini", "GEMINI.md")
-		data, err := os.ReadFile(geminiPath)
-		if err != nil {
-			fails = append(fails, "GEMINI.md 없음")
-		} else {
-			content := string(data)
-			if !strings.Contains(content, "<!-- NEURONFS:START -->") || !strings.Contains(content, "<!-- NEURONFS:END -->") {
-				fails = append(fails, "GEMINI.md 마커 손상")
-			} else {
-				passes++
-			}
-		}
-	}
-
-	// ── Check 5: bomb 상태 확인 ──
-	bombCount := 0
-	for _, r := range essentialRegions {
-		filepath.Walk(filepath.Join(brainRoot, r), func(path string, info os.FileInfo, err error) error {
-			if err != nil || info == nil {
-				return nil
-			}
-			if info.Name() == "bomb.neuron" {
-				bombCount++
-			}
-			return nil
-		})
-	}
-	if bombCount > 0 {
-		fails = append(fails, fmt.Sprintf("활성 bomb: %d개", bombCount))
-	} else {
-		passes++
-	}
-
-	// ── Result ──
-	if len(fails) == 0 {
-		svLog(fmt.Sprintf("✅ harness PASS (%d checks)", passes))
-	} else {
-		svLog(fmt.Sprintf("⚠️ harness FAIL: %d/%d", len(fails), passes+len(fails)))
-		var report strings.Builder
-		report.WriteString("# from: supervisor\n# priority: urgent\n\n## 🔍 Harness 위반\n\n")
-		for _, f := range fails {
-			report.WriteString(fmt.Sprintf("- ❌ %s\n", f))
-			svLog(fmt.Sprintf("  ❌ %s", f))
-		}
-		d := filepath.Join(brainRoot, "_agents", "bot1", "inbox")
-		os.MkdirAll(d, 0750)
-		fname := filepath.Join(d, time.Now().Format("20060102_150405")+"_sv_harness.md")
-		os.WriteFile(fname, []byte(report.String()), 0600)
 	}
 }
 
