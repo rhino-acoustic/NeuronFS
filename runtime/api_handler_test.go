@@ -33,8 +33,8 @@ func setupAPIServer(t *testing.T) (*httptest.Server, string) {
 		"brainstem/canon/api_test",
 	} {
 		full := filepath.Join(dir, filepath.FromSlash(p))
-		os.MkdirAll(full, 0755)
-		os.WriteFile(filepath.Join(full, "3.neuron"), []byte{}, 0644)
+		os.MkdirAll(full, 0750)
+		os.WriteFile(filepath.Join(full, "3.neuron"), []byte{}, 0600)
 	}
 
 	mux := http.NewServeMux()

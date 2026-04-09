@@ -62,8 +62,8 @@ func registerConfigRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 			return
 		}
 
-		os.MkdirAll(filepath.Dir(principlesFile), 0755)
-		os.WriteFile(principlesFile, []byte(strings.Join(clean, "\n")), 0644)
+		os.MkdirAll(filepath.Dir(principlesFile), 0750)
+		os.WriteFile(principlesFile, []byte(strings.Join(clean, "\n")), 0600)
 
 		autoReinject(brainRoot)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -123,9 +123,9 @@ func registerConfigRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 			"since":     time.Now().Format("2006-01-02T15:04:05"),
 		}
 
-		os.MkdirAll(filepath.Dir(stateFile), 0755)
+		os.MkdirAll(filepath.Dir(stateFile), 0750)
 		stateBytes, _ := json.MarshalIndent(state, "", "  ")
-		os.WriteFile(stateFile, stateBytes, 0644)
+		os.WriteFile(stateFile, stateBytes, 0600)
 
 		emotionNeuronPath := "limbic/" + req.Emotion
 		fireNeuron(brainRoot, emotionNeuronPath)
@@ -178,8 +178,8 @@ func registerConfigRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 			return
 		}
 
-		os.MkdirAll(filepath.Dir(sandboxFile), 0755)
-		os.WriteFile(sandboxFile, []byte(text), 0644)
+		os.MkdirAll(filepath.Dir(sandboxFile), 0750)
+		os.WriteFile(sandboxFile, []byte(text), 0600)
 
 		sandboxDir := filepath.Join(brainRoot, "brainstem", "_sandbox")
 		os.RemoveAll(sandboxDir)
@@ -202,8 +202,8 @@ func registerConfigRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 				continue
 			}
 			neuronDir := filepath.Join(sandboxDir, name)
-			os.MkdirAll(neuronDir, 0755)
-			os.WriteFile(filepath.Join(neuronDir, "1.neuron"), []byte{}, 0644)
+			os.MkdirAll(neuronDir, 0750)
+			os.WriteFile(filepath.Join(neuronDir, "1.neuron"), []byte{}, 0600)
 			createdPaths = append(createdPaths, "brainstem/_sandbox/"+name)
 			created++
 		}

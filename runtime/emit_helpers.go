@@ -430,7 +430,7 @@ func handleReadRegion(brainRoot string) http.HandlerFunc {
 				content = []byte(generated)
 				// Also update the file for view_file access
 				rulesPath := filepath.Join(brainRoot, regionName, "_rules.md")
-				os.WriteFile(rulesPath, content, 0644)
+				os.WriteFile(rulesPath, content, 0600)
 				break
 			}
 		}

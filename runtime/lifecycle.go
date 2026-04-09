@@ -83,7 +83,7 @@ func pruneWeakNeurons(brainRoot string) {
 				os.WriteFile(df, []byte(fmt.Sprintf("Pruned: %s\nReason: 推 prefix, activation=%d, inactive %d days\n",
 					time.Now().Format("2006-01-02"),
 					maxCounter,
-					int(time.Since(newestMod).Hours()/24))), 0644)
+					int(time.Since(newestMod).Hours()/24))), 0600)
 
 				relPath, _ := filepath.Rel(brainRoot, path)
 				fmt.Printf("[PRUNE] 🪦 %s (activation=%d, %d days idle)\n", relPath, maxCounter,
@@ -168,7 +168,7 @@ func runDecay(brainRoot string, days int) {
 				os.WriteFile(df, []byte(fmt.Sprintf("Decayed: %s\nLast active: %s\nThreshold: %d days\n",
 					time.Now().Format("2006-01-02"),
 					newestMod.Format("2006-01-02"),
-					days)), 0644)
+					days)), 0600)
 
 				relPath, _ := filepath.Rel(brainRoot, path)
 				ageDays := int(time.Since(newestMod).Hours() / 24)
@@ -195,7 +195,7 @@ func runDecay(brainRoot string, days int) {
 // logEpisode writes an event log to the hippocampus memory store.
 func logEpisode(brainRoot string, event string, detail string) {
 	logDir := filepath.Join(brainRoot, "hippocampus", "session_log")
-	os.MkdirAll(logDir, 0755)
+	os.MkdirAll(logDir, 0750)
 
 	memRegex := regexp.MustCompile(`^memory(\d+)\.neuron$`)
 	entries, _ := os.ReadDir(logDir)
@@ -233,7 +233,7 @@ func logEpisode(brainRoot string, event string, detail string) {
 
 	content := fmt.Sprintf("%s | %s | %s\n", time.Now().Format("2006-01-02T15:04:05"), event, detail)
 	memFile := filepath.Join(logDir, fmt.Sprintf("memory%d.neuron", nextN))
-	os.WriteFile(memFile, []byte(content), 0644)
+	os.WriteFile(memFile, []byte(content), 0600)
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -351,7 +351,7 @@ func deduplicateNeurons(brainRoot string) {
 				}
 			}
 			newCounterFile := filepath.Join(survivor.fullPath, fmt.Sprintf("%d.neuron", totalCounter))
-			os.WriteFile(newCounterFile, []byte(""), 0644)
+			os.WriteFile(newCounterFile, []byte(""), 0600)
 
 			// victim의 dopamine/memory 시그널을 생존자로 이동
 			victimFiles, _ := filepath.Glob(filepath.Join(victim.fullPath, "*.neuron"))
@@ -373,7 +373,7 @@ func deduplicateNeurons(brainRoot string) {
 				if _, err := os.Stat(axonPath); os.IsNotExist(err) {
 					axonContent := fmt.Sprintf("target: %s\nmerged_from: %s\nsimilarity: %.2f\n",
 						survivor.relPath, victim.relPath, sim)
-					os.WriteFile(axonPath, []byte(axonContent), 0644)
+					os.WriteFile(axonPath, []byte(axonContent), 0600)
 					fmt.Printf("[AXON] 🔗 %s → %s\n", victim.region, survivor.region)
 				}
 			}

@@ -17,17 +17,17 @@ type brainInit struct {
 // neuron simplifies creating a Neuron struct for default system initialization.
 func (b *brainInit) neuron(path string, counter int, signals ...string) {
 	dir := filepath.Join(b.root, path)
-	os.MkdirAll(dir, 0755)
-	os.WriteFile(filepath.Join(dir, fmt.Sprintf("%d.neuron", counter)), []byte(""), 0644)
+	os.MkdirAll(dir, 0750)
+	os.WriteFile(filepath.Join(dir, fmt.Sprintf("%d.neuron", counter)), []byte(""), 0600)
 	for _, sig := range signals {
-		os.WriteFile(filepath.Join(dir, sig+".neuron"), []byte(""), 0644)
+		os.WriteFile(filepath.Join(dir, sig+".neuron"), []byte(""), 0600)
 	}
 }
 
 // axon converts a source/target rule into an Axon struct for cross-references.
 func (b *brainInit) axon(path, target string) {
 	full := filepath.Join(b.root, path)
-	os.WriteFile(full, []byte("TARGET: "+target), 0644)
+	os.WriteFile(full, []byte("TARGET: "+target), 0600)
 }
 
 // initBrain initializes the brain directory structure and injects default rules if missing.

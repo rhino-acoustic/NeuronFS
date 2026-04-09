@@ -400,7 +400,7 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 			}
 			// Auto-reset if decayed below threshold
 			if effectiveIntensity <= EmoIntensMin {
-				os.WriteFile(stateFile, []byte(`{"emotion":"neutral","intensity":0}`), 0644)
+				os.WriteFile(stateFile, []byte(`{"emotion":"neutral","intensity":0}`), 0600)
 			}
 		}
 	}

@@ -329,12 +329,12 @@ func runNeuronize(brainRoot string, dryRun bool) {
 			rationalePath := filepath.Join(fullPath, "rationale.md")
 			content := fmt.Sprintf("# %s\n\n%s\n\n---\n원인: %s\n생성: %s (Auto-Neuronize)\n",
 				c.Name, c.Rationale, c.SourceError, time.Now().Format("2006-01-02 15:04"))
-			os.WriteFile(rationalePath, []byte(content), 0644)
+			os.WriteFile(rationalePath, []byte(content), 0600)
 		}
 
 		// Add .contra file (inhibitory signal)
 		contraFile := filepath.Join(fullPath, "1.contra")
-		os.WriteFile(contraFile, []byte{}, 0644)
+		os.WriteFile(contraFile, []byte{}, 0600)
 
 		fmt.Printf("  %s🌱 생성: %s%s\n", ansiGreen, neuronPath, ansiReset)
 		created++
@@ -531,12 +531,12 @@ func runPolarize(brainRoot string, dryRun bool) {
 			rationalePath := filepath.Join(fullPath, "rationale.md")
 			content := fmt.Sprintf("# %s\n\n%s\n\n---\n원본: %s\n생성: %s (Polarity Shift)\n",
 				s.NewName, s.Rationale, s.OriginalPath, time.Now().Format("2006-01-02 15:04"))
-			os.WriteFile(rationalePath, []byte(content), 0644)
+			os.WriteFile(rationalePath, []byte(content), 0600)
 		}
 
 		// Add .contra file
 		contraFile := filepath.Join(fullPath, "1.contra")
-		os.WriteFile(contraFile, []byte{}, 0644)
+		os.WriteFile(contraFile, []byte{}, 0600)
 
 		fmt.Printf("  %s🔄 전환: %s → %s%s\n", ansiGreen, s.OriginalPath, newPath, ansiReset)
 		executed++

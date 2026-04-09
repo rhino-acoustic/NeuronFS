@@ -175,7 +175,7 @@ func isFirstRun(brainRoot string) bool {
 
 func writeMarker(brainRoot string) {
 	content := fmt.Sprintf("initialized: %s\n", time.Now().Format(time.RFC3339))
-	os.WriteFile(markerPath(brainRoot), []byte(content), 0644)
+	os.WriteFile(markerPath(brainRoot), []byte(content), 0600)
 }
 
 // ─── Main Entry Point ───

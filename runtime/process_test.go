@@ -10,13 +10,13 @@ func TestHarness(t *testing.T) {
 	// corrections.jsonl 파서 검증 및 processInbox 테스트 기반
 	tmpDir := t.TempDir()
 	inboxDir := filepath.Join(tmpDir, "_inbox")
-	os.MkdirAll(inboxDir, 0755)
+	os.MkdirAll(inboxDir, 0750)
 
 	content := `{"ts":"1000","type":"correction","text":"PD칭찬","path":"cortex/test/dopamine","counter_add":1,"author":"pm"}
 {"ts":"1001","type":"correction","text":"완벽합니다","path":"cortex/test/fake","counter_add":1,"author":"enfp"}
 {"ts":"1002","type":"correction","text":"normal rule","path":"cortex/test/normal","counter_add":1,"author":"bot1"}`
 
-	os.WriteFile(filepath.Join(inboxDir, "corrections.jsonl"), []byte(content), 0644)
+	os.WriteFile(filepath.Join(inboxDir, "corrections.jsonl"), []byte(content), 0600)
 
 	processInbox(tmpDir)
 

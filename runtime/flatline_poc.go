@@ -4,9 +4,10 @@
 //
 // 시스템 패닉(OOM 등) 시 Go 기본 스택 트레이스 출력을 차단하고,
 // 생물학적 메타포 기반의 3단계 CLI 데스 스크린을 렌더링한다:
-//   Step 1: 아밀로이드 플라크 발작 (400ms 붉은 글리치)
-//   Step 2: 뇌파 정지 Flatline (1100ms EEG ASCII 모션)
-//   Step 3: 부검 소견서 (CAUSE + FAULT NODE 1줄 파싱)
+//
+//	Step 1: 아밀로이드 플라크 발작 (400ms 붉은 글리치)
+//	Step 2: 뇌파 정지 Flatline (1100ms EEG ASCII 모션)
+//	Step 3: 부검 소견서 (CAUSE + FAULT NODE 1줄 파싱)
 //
 // v2 변경사항:
 //   - \033[2J 대신 \033[H + 빈줄 (tmux 스크롤 이력 보호)
@@ -16,12 +17,14 @@
 //   - Quiet 모드 지원
 //
 // Usage:
-//   defer RenderFlatlineOnPanic()  // ← main() 또는 goroutine 최상위에서 호출
+//
+//	defer RenderFlatlineOnPanic()  // ← main() 또는 goroutine 최상위에서 호출
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"os"
 	"regexp"
 	"runtime/debug"
@@ -111,6 +114,18 @@ func softClear() {
 // Set to true when --quiet flag is active.
 var FlatlineQuiet bool
 
+// secureIntn replaces math/rand.Intn with crypto/rand
+func secureIntn(n int) int {
+	if n <= 0 {
+		return 0
+	}
+	val, err := rand.Int(rand.Reader, big.NewInt(int64(n)))
+	if err != nil {
+		return 0
+	}
+	return int(val.Int64())
+}
+
 // ─── Main Entry Point ───
 
 // RenderFlatlineOnPanic intercepts panics at the top level.
@@ -190,11 +205,11 @@ func renderSeizure(clr flatColor) {
 		softClear()
 		fmt.Fprintf(os.Stderr, "\n%s\n", clr.redBlink("[!!] CORTICAL OVERFLOW [!!]"))
 
-		lineCount := 2 + rand.Intn(2)
+		lineCount := 2 + secureIntn(2)
 		for l := 0; l < lineCount; l++ {
-			frag1 := glitchFragments[rand.Intn(len(glitchFragments))]
-			frag2 := glitchFragments[rand.Intn(len(glitchFragments))]
-			addr := rand.Intn(0xFFFFFF)
+			frag1 := glitchFragments[secureIntn(len(glitchFragments))]
+			frag2 := glitchFragments[secureIntn(len(glitchFragments))]
+			addr := secureIntn(0xFFFFFF)
 			fmt.Fprintf(os.Stderr, "%s\n", clr.red(fmt.Sprintf("%s %s x%06X", frag1, frag2, addr)))
 		}
 		time.Sleep(80 * time.Millisecond)
@@ -325,7 +340,7 @@ func extractFaultNode(rawStack string) string {
 func dumpForensicLog(cause, faultNode, rawStack string) {
 	ts := time.Now().Format("20060102_150405")
 	logDir := "logs"
-	os.MkdirAll(logDir, 0755)
+	os.MkdirAll(logDir, 0750)
 	logPath := fmt.Sprintf("%s/necrosis_%s.log", logDir, ts)
 
 	content := fmt.Sprintf("=== NeuronFS Necrosis Report ===\n"+
@@ -335,7 +350,7 @@ func dumpForensicLog(cause, faultNode, rawStack string) {
 		"=== Full Stack Trace (forensic only) ===\n%s\n",
 		time.Now().Format(time.RFC3339), cause, faultNode, rawStack)
 
-	if err := os.WriteFile(logPath, []byte(content), 0644); err == nil {
+	if err := os.WriteFile(logPath, []byte(content), 0600); err == nil {
 		cm := detectColorMode()
 		clr := flatColor{mode: cm}
 		fmt.Fprintf(os.Stderr, "%s\n", clr.dimGray(fmt.Sprintf("[FORENSIC] Full trace → %s", logPath)))
@@ -375,8 +390,8 @@ func RenderFlatlineOnOOM(processName string, memKB int64, topLeaks string) {
 	for frame := 0; frame < 3; frame++ {
 		softClear()
 		fmt.Fprintf(os.Stderr, "\n%s\n", clr.redBlink("[!!] AMYLOID PLAQUE OVERLOAD [!!]"))
-		frag1 := glitchFragments[rand.Intn(len(glitchFragments))]
-		frag2 := glitchFragments[rand.Intn(len(glitchFragments))]
+		frag1 := glitchFragments[secureIntn(len(glitchFragments))]
+		frag2 := glitchFragments[secureIntn(len(glitchFragments))]
 		fmt.Fprintf(os.Stderr, "%s\n", clr.red(fmt.Sprintf("  %s  %s  PID:%s", frag1, frag2, processName)))
 		time.Sleep(60 * time.Millisecond)
 	}

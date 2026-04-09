@@ -53,7 +53,7 @@ func writeAllTiers(brainRoot string) {
 	// Tier 2: _index.md
 	indexContent := emitIndex(brain, result)
 	indexPath := filepath.Join(brainRoot, "_index.md")
-	if err := os.WriteFile(indexPath, []byte(indexContent), 0644); err != nil {
+	if err := os.WriteFile(indexPath, []byte(indexContent), 0600); err != nil {
 		fmt.Printf("[WARN] Cannot write %s: %v\n", indexPath, err)
 	}
 
@@ -61,7 +61,7 @@ func writeAllTiers(brainRoot string) {
 	for _, region := range brain.Regions {
 		content := emitRegionRules(region, brain)
 		rulesPath := filepath.Join(region.Path, "_rules.md")
-		if err := os.WriteFile(rulesPath, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(rulesPath, []byte(content), 0600); err != nil {
 			fmt.Printf("[WARN] Cannot write %s: %v\n", rulesPath, err)
 		}
 	}
@@ -193,7 +193,7 @@ func backupExistingRule(targetPath string, brainRoot string) string {
 
 	// Create backup directory: <brainRoot>/.neuronfs_backup/
 	backupDir := filepath.Join(brainRoot, ".neuronfs_backup")
-	os.MkdirAll(backupDir, 0755)
+	os.MkdirAll(backupDir, 0750)
 
 	// Generate backup filename with timestamp
 	baseName := filepath.Base(targetPath)
@@ -206,7 +206,7 @@ func backupExistingRule(targetPath string, brainRoot string) string {
 	if err != nil {
 		return ""
 	}
-	if err := os.WriteFile(backupPath, data, 0644); err != nil {
+	if err := os.WriteFile(backupPath, data, 0600); err != nil {
 		return ""
 	}
 	return backupPath
@@ -290,13 +290,13 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 			// Gemini는 글로벌 ~/.gemini/GEMINI.md에 직접 출력 (워크스페이스별 중복 방지)
 			homeDir, _ := os.UserHomeDir()
 			geminiDir := filepath.Join(homeDir, ".gemini")
-			os.MkdirAll(geminiDir, 0755)
+			os.MkdirAll(geminiDir, 0750)
 			targetPath = filepath.Join(geminiDir, "GEMINI.md")
 		} else {
 			// 다른 에디터: 프로젝트 로컬에 직접 쓰기
 			if et.SubDir != "" {
 				subDir := filepath.Join(projectRoot, et.SubDir)
-				os.MkdirAll(subDir, 0755)
+				os.MkdirAll(subDir, 0750)
 				targetPath = filepath.Join(subDir, et.FileName)
 			} else {
 				targetPath = filepath.Join(projectRoot, et.FileName)
@@ -310,7 +310,7 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 		}
 
 		// 전체 덮어쓰기
-		if err := os.WriteFile(targetPath, []byte(bootstrap), 0644); err != nil {
+		if err := os.WriteFile(targetPath, []byte(bootstrap), 0600); err != nil {
 			fmt.Printf("[ERROR] Cannot write %s: %v\n", targetPath, err)
 			continue
 		}
@@ -321,14 +321,14 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 	// Also write Tier 2 + 3 (these are editor-independent)
 	indexContent := emitIndex(brain, result)
 	indexPath := filepath.Join(brainRoot, "_index.md")
-	if err := os.WriteFile(indexPath, []byte(indexContent), 0644); err != nil {
+	if err := os.WriteFile(indexPath, []byte(indexContent), 0600); err != nil {
 		fmt.Printf("[WARN] Cannot write %s: %v\n", indexPath, err)
 	}
 
 	for _, region := range brain.Regions {
 		content := emitRegionRules(region, brain)
 		rulesPath := filepath.Join(region.Path, "_rules.md")
-		if err := os.WriteFile(rulesPath, []byte(content), 0644); err != nil {
+		if err := os.WriteFile(rulesPath, []byte(content), 0600); err != nil {
 			fmt.Printf("[WARN] Cannot write %s: %v\n", rulesPath, err)
 		}
 	}
@@ -352,8 +352,8 @@ func doInjectToFile(filePath string, rules string) {
 	existing, err := os.ReadFile(filePath)
 	if err != nil {
 		// File doesn't exist — create with just the rules
-		os.MkdirAll(filepath.Dir(filePath), 0755)
-		os.WriteFile(filePath, []byte(rules), 0644)
+		os.MkdirAll(filepath.Dir(filePath), 0750)
+		os.WriteFile(filePath, []byte(rules), 0600)
 		return
 	}
 
@@ -372,9 +372,9 @@ func doInjectToFile(filePath string, rules string) {
 	}
 
 	tmpPath := filePath + ".tmp"
-	if err := os.WriteFile(tmpPath, []byte(content), 0644); err == nil {
+	if err := os.WriteFile(tmpPath, []byte(content), 0600); err == nil {
 		os.Rename(tmpPath, filePath) // Atomic replace
 	} else {
-		os.WriteFile(filePath, []byte(content), 0644)
+		os.WriteFile(filePath, []byte(content), 0600)
 	}
 }

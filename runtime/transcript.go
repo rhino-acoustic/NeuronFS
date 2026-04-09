@@ -19,7 +19,7 @@ import (
 // Called automatically by transcript digestion when user frustration/satisfaction is detected.
 func autoSetEmotion(brainRoot string, emotion string, intensity float64) {
 	stateFile := filepath.Join(brainRoot, "limbic", "_state.json")
-	os.MkdirAll(filepath.Dir(stateFile), 0755)
+	os.MkdirAll(filepath.Dir(stateFile), 0750)
 	state := map[string]interface{}{
 		"emotion":   emotion,
 		"intensity": intensity,
@@ -27,7 +27,7 @@ func autoSetEmotion(brainRoot string, emotion string, intensity float64) {
 		"trigger":   "auto-transcript",
 	}
 	data, _ := json.MarshalIndent(state, "", "  ")
-	os.WriteFile(stateFile, data, 0644)
+	os.WriteFile(stateFile, data, 0600)
 	// Trigger re-injection so GEMINI.md picks up the new emotion behavior
 	markBrainDirty()
 }
@@ -48,7 +48,7 @@ func gitSnapshot(brainRoot string) {
 			return
 		}
 		gitignore := filepath.Join(brainRoot, ".gitignore")
-		os.WriteFile(gitignore, []byte("*.dormant\n"), 0644)
+		os.WriteFile(gitignore, []byte("*.dormant\n"), 0600)
 		fmt.Printf("[GIT] 📂 Initialized git repo in %s\n", brainRoot)
 	}
 
@@ -194,11 +194,11 @@ func runIdleLoop(brainRoot string) {
 		brain := scanBrain(brainRoot)
 		result := runSubsumption(brain)
 		growthLogDir := filepath.Join(brainRoot, "hippocampus", "session_log")
-		os.MkdirAll(growthLogDir, 0755)
+		os.MkdirAll(growthLogDir, 0750)
 		growthLogFile := filepath.Join(growthLogDir, "growth.log")
 		entry := fmt.Sprintf("%s: neurons=%d, activation=%d, regions=%d\n",
 			time.Now().Format("2006-01-02_15:04"), result.TotalNeurons, result.TotalCounter, len(result.ActiveRegions))
-		f, _ := os.OpenFile(growthLogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		f, _ := os.OpenFile(growthLogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if f != nil {
 			f.WriteString(entry)
 			f.Close()
@@ -383,12 +383,12 @@ func digestTranscripts(brainRoot string) int {
 	cursor.LastProc = time.Now().Format(time.RFC3339)
 	cursors[today] = cursor
 	cursorData, _ := json.MarshalIndent(cursors, "", "  ")
-	os.WriteFile(cursorPath, cursorData, 0644)
+	os.WriteFile(cursorPath, cursorData, 0600)
 
 	// 교정 턴을 corrections_history.jsonl에 추가
 	if len(corrections) > 0 {
 		historyPath := filepath.Join(brainRoot, "_inbox", "corrections_history.jsonl")
-		f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err == nil {
 			for _, c := range corrections {
 				entry := fmt.Sprintf(`{"type":"transcript_correction","text":"%s","time":"%s"}`,
@@ -430,7 +430,7 @@ func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 		"growth_delta": result.TotalNeurons - prevNeurons,
 	}
 	data, _ := json.MarshalIndent(hb, "", "  ")
-	os.WriteFile(heartbeatPath, data, 0644)
+	os.WriteFile(heartbeatPath, data, 0600)
 
 	// 뉴런 폭발 감지: 20개 이상 증가 시 통합 지시 주입
 	growth := result.TotalNeurons - prevNeurons
@@ -452,9 +452,9 @@ func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 
 		// brainstem에 통합 지시 뉴런 생성 (임시)
 		consolidateDir := filepath.Join(brainRoot, "brainstem", "뉴런통합_필요")
-		os.MkdirAll(consolidateDir, 0755)
+		os.MkdirAll(consolidateDir, 0750)
 		counterFile := filepath.Join(consolidateDir, fmt.Sprintf("%d.neuron", growth))
-		os.WriteFile(counterFile, []byte(directive), 0644)
+		os.WriteFile(counterFile, []byte(directive), 0600)
 
 		// writeAllTiers로 GEMINI.md 즉시 갱신
 		writeAllTiers(brainRoot)

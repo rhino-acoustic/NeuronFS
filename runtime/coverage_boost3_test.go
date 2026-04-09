@@ -59,11 +59,11 @@ func TestSvTTLDecay(t *testing.T) {
 
 	// Create a neuron with frontmatter that has old last_activated
 	neuronDir := filepath.Join(dir, "cortex", "old_neuron")
-	os.MkdirAll(neuronDir, 0755)
+	os.MkdirAll(neuronDir, 0750)
 
 	oldDate := time.Now().Add(-48 * time.Hour).Format(time.RFC3339)
 	content := fmt.Sprintf("---\nweight: 5\nlast_activated: %s\n---\nold content\n", oldDate)
-	os.WriteFile(filepath.Join(neuronDir, "3.neuron"), []byte(content), 0644)
+	os.WriteFile(filepath.Join(neuronDir, "3.neuron"), []byte(content), 0600)
 
 	// Suppress svLog file writes during test
 	oldPath := svLogPath
@@ -80,11 +80,11 @@ func TestSvTTLDecay_RecentNeuron(t *testing.T) {
 
 	// Create a neuron with recent last_activated — should NOT decay
 	neuronDir := filepath.Join(dir, "cortex", "recent_neuron")
-	os.MkdirAll(neuronDir, 0755)
+	os.MkdirAll(neuronDir, 0750)
 
 	recentDate := time.Now().Add(-1 * time.Hour).Format(time.RFC3339)
 	content := fmt.Sprintf("---\nweight: 10\nlast_activated: %s\n---\nrecent content\n", recentDate)
-	os.WriteFile(filepath.Join(neuronDir, "5.neuron"), []byte(content), 0644)
+	os.WriteFile(filepath.Join(neuronDir, "5.neuron"), []byte(content), 0600)
 
 	oldPath := svLogPath
 	svLogPath = filepath.Join(dir, "decay.log")
@@ -100,11 +100,11 @@ func TestSvTTLDecay_ZeroWeight(t *testing.T) {
 
 	// neuron with weight=1, old date — should be archived (weight → 0)
 	neuronDir := filepath.Join(dir, "cortex", "dying_neuron")
-	os.MkdirAll(neuronDir, 0755)
+	os.MkdirAll(neuronDir, 0750)
 
 	oldDate := time.Now().Add(-72 * time.Hour).Format(time.RFC3339)
 	content := fmt.Sprintf("---\nweight: 1\nlast_activated: %s\n---\nabout to die\n", oldDate)
-	os.WriteFile(filepath.Join(neuronDir, "1.neuron"), []byte(content), 0644)
+	os.WriteFile(filepath.Join(neuronDir, "1.neuron"), []byte(content), 0600)
 
 	oldPath := svLogPath
 	svLogPath = filepath.Join(dir, "decay.log")
@@ -131,7 +131,7 @@ func TestSvCrashAlert(t *testing.T) {
 
 	// Set svLogPath so svCrashAlert can derive brainRoot
 	logDir := filepath.Join(dir, "..", "logs")
-	os.MkdirAll(logDir, 0755)
+	os.MkdirAll(logDir, 0750)
 
 	oldPath := svLogPath
 	svLogPath = filepath.Join(logDir, "supervisor.log")
@@ -225,8 +225,8 @@ func TestAutoReinject(t *testing.T) {
 	defer os.Setenv("USERPROFILE", oldHome)
 
 	n := filepath.Join(dir, "cortex", "reinject_test")
-	os.MkdirAll(n, 0755)
-	os.WriteFile(filepath.Join(n, "5.neuron"), []byte{}, 0644)
+	os.MkdirAll(n, 0750)
+	os.WriteFile(filepath.Join(n, "5.neuron"), []byte{}, 0600)
 
 	autoReinject(dir)
 	t.Log("OK: autoReinject executed without panic")
@@ -302,8 +302,8 @@ func TestEmitBootstrap_Full(t *testing.T) {
 		"prefrontal/goals/test_goal",
 	} {
 		fullPath := filepath.Join(dir, filepath.FromSlash(path))
-		os.MkdirAll(fullPath, 0755)
-		os.WriteFile(filepath.Join(fullPath, "15.neuron"), []byte{}, 0644)
+		os.MkdirAll(fullPath, 0750)
+		os.WriteFile(filepath.Join(fullPath, "15.neuron"), []byte{}, 0600)
 	}
 
 	brain := scanBrain(dir)

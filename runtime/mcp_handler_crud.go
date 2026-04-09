@@ -41,7 +41,7 @@ func registerMCPCRUDTools(server *mcp.Server, brainRoot string) {
 			}
 
 			signalPath := filepath.Join(brainRoot, "hippocampus", "_signals")
-			os.MkdirAll(signalPath, 0755)
+			os.MkdirAll(signalPath, 0750)
 			ts := fmt.Sprintf("%d", time.Now().UnixMilli())
 			sigFile := filepath.Join(signalPath, fmt.Sprintf("signal_%s.json", ts))
 
@@ -51,7 +51,7 @@ func registerMCPCRUDTools(server *mcp.Server, brainRoot string) {
 				"ts":   time.Now().Format("2006-01-02T15:04:05"),
 			}
 			data, _ := json.Marshal(payload)
-			os.WriteFile(sigFile, data, 0644)
+			os.WriteFile(sigFile, data, 0600)
 
 			return mcpWithRules(brainRoot, fmt.Sprintf("🌱 신호 기록됨 (수면(REM) 통합 대기): %s", args.Path)), nil
 		},
@@ -170,7 +170,7 @@ func registerMCPCRUDTools(server *mcp.Server, brainRoot string) {
 
 			// ── 1. 교정 로그 기록 (하네스 개인화 데이터 소스) ──
 			inboxDir := filepath.Join(brainRoot, "_inbox")
-			os.MkdirAll(inboxDir, 0755)
+			os.MkdirAll(inboxDir, 0750)
 
 			corrEntry := fmt.Sprintf(`{"path":"%s","text":"%s","ts":"%s"}`,
 				strings.ReplaceAll(args.Path, `"`, `\"`),
@@ -179,7 +179,7 @@ func registerMCPCRUDTools(server *mcp.Server, brainRoot string) {
 
 			// corrections.jsonl — 하네스 사이클 입력 (processInbox가 소비 후 비움)
 			corrPath := filepath.Join(inboxDir, "corrections.jsonl")
-			f, _ := os.OpenFile(corrPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			f, _ := os.OpenFile(corrPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 			if f != nil {
 				f.WriteString(corrEntry + "\n")
 				f.Close()
@@ -187,7 +187,7 @@ func registerMCPCRUDTools(server *mcp.Server, brainRoot string) {
 
 			// corrections_history.jsonl — 영구 이력 (status 도구에서 조회)
 			histPath := filepath.Join(inboxDir, "corrections_history.jsonl")
-			h, _ := os.OpenFile(histPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			h, _ := os.OpenFile(histPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 			if h != nil {
 				h.WriteString(corrEntry + "\n")
 				h.Close()
@@ -204,7 +204,7 @@ func registerMCPCRUDTools(server *mcp.Server, brainRoot string) {
 				action = "fired (카운터 +1)"
 			} else {
 				signalPath := filepath.Join(brainRoot, "hippocampus", "_signals")
-				os.MkdirAll(signalPath, 0755)
+				os.MkdirAll(signalPath, 0750)
 				ts := fmt.Sprintf("%d", time.Now().UnixMilli())
 				sigFile := filepath.Join(signalPath, fmt.Sprintf("signal_%s.json", ts))
 
@@ -215,7 +215,7 @@ func registerMCPCRUDTools(server *mcp.Server, brainRoot string) {
 					"ts":   time.Now().Format("2006-01-02T15:04:05"),
 				}
 				data, _ := json.Marshal(payload)
-				os.WriteFile(sigFile, data, 0644)
+				os.WriteFile(sigFile, data, 0600)
 			}
 
 			return mcpWithRules(brainRoot, fmt.Sprintf("📝 교정 반영 (Signal): %s\n사유: %s\n결과: %s\n⚡ 하네스 로그 및 REM 수면 큐에 기록됨", args.Path, args.Text, action)), nil

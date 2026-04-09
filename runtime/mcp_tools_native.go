@@ -75,11 +75,11 @@ func RegisterNativeTools(s *mcp.Server, brainRoot string) {
 			}
 
 			boxDir := filepath.Join(brainRoot, "_agents", args.TargetBot, args.MessageType)
-			os.MkdirAll(boxDir, 0755)
+			os.MkdirAll(boxDir, 0750)
 
 			filename := fmt.Sprintf("msg_%s.md", time.Now().Format("20060102_150405"))
 			filePath := filepath.Join(boxDir, filename)
-			if err := os.WriteFile(filePath, []byte(args.Content), 0644); err != nil {
+			if err := os.WriteFile(filePath, []byte(args.Content), 0600); err != nil {
 				return mcpError("failed writing box: " + err.Error()), nil
 			}
 
@@ -112,7 +112,7 @@ func RegisterNativeTools(s *mcp.Server, brainRoot string) {
 				return mcpError("error growing: " + err.Error()), nil
 			}
 			fullPath := filepath.Join(brainRoot, strings.ReplaceAll(args.Path, "/", string(filepath.Separator)))
-			os.WriteFile(filepath.Join(fullPath, "payload.json"), []byte(args.RuleData), 0644)
+			os.WriteFile(filepath.Join(fullPath, "payload.json"), []byte(args.RuleData), 0600)
 
 			// 기계적 칭찬 방지 (Dopamine Inflation Fix)
 			praiseRegex := regexp.MustCompile(`(?i)(칭찬|잘\s*쓰셨습니다|좋아|훌륭|완벽|최고)`)

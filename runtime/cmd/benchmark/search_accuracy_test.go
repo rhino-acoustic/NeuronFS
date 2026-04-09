@@ -2,9 +2,7 @@ package benchmark_test
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
-	"time"
 )
 
 // 검색 정확도
@@ -35,9 +33,6 @@ func TestSearchAccuracy(t *testing.T) {
 		"Medium": {P1: 0.75, P3: 0.85, P5: 0.90, Recall5: 0.92, Latency: 50},
 		"Hard":   {P1: 0.55, P3: 0.70, P5: 0.80, Recall5: 0.85, Latency: 55},
 	}
-
-	rand.Seed(time.Now().UnixNano())
-
 	fmt.Printf("%-10s | %-12s | P@1  | P@3  | P@5  | Rec5 | Latency\n", "Method", "Difficulty")
 	fmt.Println("-----------------------------------------------------------------")
 

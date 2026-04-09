@@ -105,14 +105,14 @@ func growNeuron(brainRoot string, neuronPath string) error {
 	}
 
 	// Create folder
-	if err := os.MkdirAll(fullPath, 0755); err != nil {
+	if err := os.MkdirAll(fullPath, 0750); err != nil {
 		fmt.Printf("[ERROR] mkdir: %v\n", err)
 		return err
 	}
 
 	// Create 1.neuron
 	neuronFile := filepath.Join(fullPath, "1.neuron")
-	if err := os.WriteFile(neuronFile, []byte{}, 0644); err != nil {
+	if err := os.WriteFile(neuronFile, []byte{}, 0600); err != nil {
 		fmt.Printf("[ERROR] create trace: %v\n", err)
 		return err
 	}
@@ -164,11 +164,11 @@ func fireNeuron(brainRoot string, neuronPath string) {
 	}
 
 	// Ensure physical folder exists before writing to UpperDir
-	os.MkdirAll(fullPath, 0755)
+	os.MkdirAll(fullPath, 0750)
 
 	// Create new counter file
 	newFile := filepath.Join(fullPath, fmt.Sprintf("%d.neuron", newCounter))
-	if err := os.WriteFile(newFile, []byte{}, 0644); err != nil {
+	if err := os.WriteFile(newFile, []byte{}, 0600); err != nil {
 		fmt.Printf("[ERROR] fire: %v\n", err)
 		return
 	}
@@ -222,11 +222,11 @@ func rollbackNeuron(brainRoot string, neuronPath string) error {
 		}
 	}
 
-	os.MkdirAll(fullPath, 0755)
+	os.MkdirAll(fullPath, 0750)
 
 	// Create new counter file
 	newFile := filepath.Join(fullPath, fmt.Sprintf("%d.neuron", newCounter))
-	if err := os.WriteFile(newFile, []byte{}, 0644); err != nil {
+	if err := os.WriteFile(newFile, []byte{}, 0600); err != nil {
 		fmt.Printf("[ERROR] rollback: %v\n", err)
 		return err
 	}
@@ -250,7 +250,7 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 		return err
 	}
 
-	os.MkdirAll(fullPath, 0755)
+	os.MkdirAll(fullPath, 0750)
 
 	switch sigType {
 	case "dopamine":
@@ -265,12 +265,12 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 			}
 		}
 		df := filepath.Join(fullPath, fmt.Sprintf("dopamine%d.neuron", nextDopa))
-		os.WriteFile(df, []byte{}, 0644)
+		os.WriteFile(df, []byte{}, 0600)
 		fmt.Printf("[SIGNAL] 🟢 dopamine%d → %s\n", nextDopa, neuronPath)
 
 	case "bomb":
 		bf := filepath.Join(fullPath, "bomb.neuron")
-		os.WriteFile(bf, []byte{}, 0644)
+		os.WriteFile(bf, []byte{}, 0600)
 		fmt.Printf("[SIGNAL] 💣 BOMB → %s\n", neuronPath)
 
 	case "memory":
@@ -286,7 +286,7 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 			}
 		}
 		mf := filepath.Join(fullPath, fmt.Sprintf("memory%d.neuron", nextMem))
-		os.WriteFile(mf, []byte{}, 0644)
+		os.WriteFile(mf, []byte{}, 0600)
 		fmt.Printf("[SIGNAL] 📝 memory%d → %s\n", nextMem, neuronPath)
 
 	default:

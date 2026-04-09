@@ -95,7 +95,7 @@ func registerMCPSystemTools(server *mcp.Server, brainRoot string) {
 
 			// Write to _inbox/reports/ as timestamped file
 			reportsDir := filepath.Join(brainRoot, "_inbox", "reports")
-			os.MkdirAll(reportsDir, 0755)
+			os.MkdirAll(reportsDir, 0750)
 
 			ts := fmt.Sprintf("%d", time.Now().UnixMilli())
 			filename := fmt.Sprintf("%s_%s.report", ts, args.Priority)
@@ -105,7 +105,7 @@ func registerMCPSystemTools(server *mcp.Server, brainRoot string) {
 				args.Priority,
 				time.Now().Format("2006-01-02 15:04:05"),
 				args.Message)
-			os.WriteFile(reportPath, []byte(content), 0644)
+			os.WriteFile(reportPath, []byte(content), 0600)
 
 			// Count pending reports
 			entries, _ := os.ReadDir(reportsDir)
@@ -159,7 +159,7 @@ func registerMCPSystemTools(server *mcp.Server, brainRoot string) {
 
 			// If done=true, move oldest report to done
 			if args.Done != nil && *args.Done && len(entries) > 0 {
-				os.MkdirAll(doneDir, 0755)
+				os.MkdirAll(doneDir, 0750)
 				for _, e := range entries {
 					if strings.HasSuffix(e.Name(), ".report") {
 						src := filepath.Join(reportsDir, e.Name())

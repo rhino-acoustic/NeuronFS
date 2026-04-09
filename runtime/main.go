@@ -269,7 +269,7 @@ func main() {
 		}
 
 		sharedDir := filepath.Join(brainRoot, ".neuronfs", "shared")
-		os.MkdirAll(filepath.Dir(sharedDir), 0755)
+		os.MkdirAll(filepath.Dir(sharedDir), 0750)
 
 		absTarget, _ := filepath.Abs(targetDir)
 		err := os.Symlink(absTarget, sharedDir)
@@ -334,8 +334,8 @@ func injectToGemini(brainRoot string, rules string) {
 	// 테스트 격리: brainRoot 내부에만 쓴다
 	if os.Getenv("NEURONFS_TEST_ISOLATION") != "" {
 		safePath := filepath.Join(brainRoot, ".gemini", "GEMINI.md")
-		os.MkdirAll(filepath.Dir(safePath), 0755)
-		os.WriteFile(safePath, []byte(rules), 0644)
+		os.MkdirAll(filepath.Dir(safePath), 0750)
+		os.WriteFile(safePath, []byte(rules), 0600)
 		fmt.Printf("[OK] Rules injected → %s (test isolation)\n", safePath)
 		return
 	}
@@ -349,9 +349,9 @@ func injectToGemini(brainRoot string, rules string) {
 	}
 
 	geminiPath := filepath.Join(home, ".gemini", "GEMINI.md")
-	os.MkdirAll(filepath.Dir(geminiPath), 0755)
+	os.MkdirAll(filepath.Dir(geminiPath), 0750)
 	// 전체 덮어쓰기 — doInject 금지 (중복 누적 원인)
-	if err := os.WriteFile(geminiPath, []byte(rules), 0644); err != nil {
+	if err := os.WriteFile(geminiPath, []byte(rules), 0600); err != nil {
 		fmt.Printf("[ERROR] Cannot write %s: %v\n", geminiPath, err)
 		return
 	}
@@ -380,7 +380,7 @@ func doInject(geminiPath string, rules string) {
 		content = rules + "\n\n" + content
 	}
 
-	err = os.WriteFile(geminiPath, []byte(content), 0644)
+	err = os.WriteFile(geminiPath, []byte(content), 0600)
 	if err != nil {
 		fmt.Printf("[ERROR] Cannot write %s: %v\n", geminiPath, err)
 		return

@@ -63,10 +63,10 @@ func TestCollectEpisodes_Empty(t *testing.T) {
 func TestCollectEpisodes_WithData(t *testing.T) {
 	dir := setupTestBrain(t)
 	logDir := filepath.Join(dir, "hippocampus", "session_log")
-	os.MkdirAll(logDir, 0755)
-	os.WriteFile(filepath.Join(logDir, "memory1.neuron"), []byte("episode 1: test fired"), 0644)
-	os.WriteFile(filepath.Join(logDir, "memory2.neuron"), []byte("episode 2: grow completed"), 0644)
-	os.WriteFile(filepath.Join(logDir, "memory3.neuron"), []byte("episode 3: evolve dry run"), 0644)
+	os.MkdirAll(logDir, 0750)
+	os.WriteFile(filepath.Join(logDir, "memory1.neuron"), []byte("episode 1: test fired"), 0600)
+	os.WriteFile(filepath.Join(logDir, "memory2.neuron"), []byte("episode 2: grow completed"), 0600)
+	os.WriteFile(filepath.Join(logDir, "memory3.neuron"), []byte("episode 3: evolve dry run"), 0600)
 
 	episodes := collectEpisodes(dir)
 	if len(episodes) != 3 {

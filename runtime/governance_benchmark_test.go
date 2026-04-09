@@ -394,7 +394,7 @@ func TestMLA_LifecycleTransitions(t *testing.T) {
 		before := result1.FiredNeurons
 
 		// Mark a neuron dormant
-		os.WriteFile(filepath.Join(dir, "cortex", "left", "frontend", "hooks_pattern", "decay.dormant"), []byte{}, 0644)
+		os.WriteFile(filepath.Join(dir, "cortex", "left", "frontend", "hooks_pattern", "decay.dormant"), []byte{}, 0600)
 		brain2 := scanBrain(dir)
 		result2 := runSubsumption(brain2)
 		after := result2.FiredNeurons
@@ -629,7 +629,7 @@ func TestGovernanceBenchmarkReport(t *testing.T) {
 	dormDir := setupTestBrain(t)
 	brain1 := scanBrain(dormDir)
 	r1 := runSubsumption(brain1)
-	os.WriteFile(filepath.Join(dormDir, "cortex", "left", "frontend", "hooks_pattern", "decay.dormant"), []byte{}, 0644)
+	os.WriteFile(filepath.Join(dormDir, "cortex", "left", "frontend", "hooks_pattern", "decay.dormant"), []byte{}, 0600)
 	brain2 := scanBrain(dormDir)
 	r2 := runSubsumption(brain2)
 	if r2.FiredNeurons < r1.FiredNeurons {
@@ -732,13 +732,13 @@ func plantBombInRegion(t *testing.T, dir string, region string) {
 			for _, se := range subEntries {
 				if se.IsDir() {
 					bombPath := filepath.Join(subPath, se.Name(), "bomb.neuron")
-					os.WriteFile(bombPath, []byte{}, 0644)
+					os.WriteFile(bombPath, []byte{}, 0600)
 					return
 				}
 			}
 			// If no sub-subdirectory, plant in the first subdirectory
 			bombPath := filepath.Join(subPath, "bomb.neuron")
-			os.WriteFile(bombPath, []byte{}, 0644)
+			os.WriteFile(bombPath, []byte{}, 0600)
 			return
 		}
 	}
@@ -816,12 +816,12 @@ func TestDCI_Constants(t *testing.T) {
 	// DCI-02: grow similarity threshold (코드에서 직접 검증)
 	t.Run("DCI-02: grow merge threshold=0.6", func(t *testing.T) {
 		dir := setupTestBrain(t)
-		// Create two neurons with ~50% similarity (below 0.6)
-		growNeuron(dir, "cortex/benchmark/dci_test_alpha")
-		growNeuron(dir, "cortex/benchmark/dci_test_beta")
+		// Create two neurons with low similarity (below 0.6)
+		growNeuron(dir, "cortex/benchmark/dci_apple_tree")
+		growNeuron(dir, "cortex/benchmark/dci_sports_car")
 		// Both should exist (not merged) since similarity < 0.6
-		_, errA := os.Stat(filepath.Join(dir, "cortex", "benchmark", "dci_test_alpha"))
-		_, errB := os.Stat(filepath.Join(dir, "cortex", "benchmark", "dci_test_beta"))
+		_, errA := os.Stat(filepath.Join(dir, "cortex", "benchmark", "dci_apple_tree"))
+		_, errB := os.Stat(filepath.Join(dir, "cortex", "benchmark", "dci_sports_car"))
 		if os.IsNotExist(errA) || os.IsNotExist(errB) {
 			t.Error("low-similarity neurons should not merge (threshold 0.6)")
 		}
@@ -831,8 +831,8 @@ func TestDCI_Constants(t *testing.T) {
 	t.Run("DCI-03: dedup threshold=0.6", func(t *testing.T) {
 		dir := setupTestBrain(t)
 		// Create neuron with exact same name as existing → should merge during dedup
-		os.MkdirAll(filepath.Join(dir, "cortex", "benchmark", "hooks_pattern_dup"), 0755)
-		os.WriteFile(filepath.Join(dir, "cortex", "benchmark", "hooks_pattern_dup", "1.neuron"), []byte{}, 0644)
+		os.MkdirAll(filepath.Join(dir, "cortex", "benchmark", "hooks_pattern_dup"), 0750)
+		os.WriteFile(filepath.Join(dir, "cortex", "benchmark", "hooks_pattern_dup", "1.neuron"), []byte{}, 0600)
 		deduplicateNeurons(dir) // should not crash, may merge
 	})
 
@@ -841,9 +841,9 @@ func TestDCI_Constants(t *testing.T) {
 		dir := setupTestBrain(t)
 		// Create a brainstem neuron with old timestamp
 		bsNeuron := filepath.Join(dir, "brainstem", "dci_decay_test")
-		os.MkdirAll(bsNeuron, 0755)
+		os.MkdirAll(bsNeuron, 0750)
 		nf := filepath.Join(bsNeuron, "1.neuron")
-		os.WriteFile(nf, []byte{}, 0644)
+		os.WriteFile(nf, []byte{}, 0600)
 		// Set mod time to 100 days ago
 		oldTime := time.Now().AddDate(0, 0, -100)
 		os.Chtimes(nf, oldTime, oldTime)
@@ -862,9 +862,9 @@ func TestDCI_Constants(t *testing.T) {
 		dir := setupTestBrain(t)
 		// Create a 禁 neuron in cortex with old timestamp
 		banNeuron := filepath.Join(dir, "cortex", "禁", "dci_decay_ban")
-		os.MkdirAll(banNeuron, 0755)
+		os.MkdirAll(banNeuron, 0750)
 		nf := filepath.Join(banNeuron, "1.neuron")
-		os.WriteFile(nf, []byte{}, 0644)
+		os.WriteFile(nf, []byte{}, 0600)
 		oldTime := time.Now().AddDate(0, 0, -100)
 		os.Chtimes(nf, oldTime, oldTime)
 
@@ -881,9 +881,9 @@ func TestDCI_Constants(t *testing.T) {
 		dir := setupTestBrain(t)
 		// Create 禁 neuron with activation=1 and old timestamp
 		banNeuron := filepath.Join(dir, "cortex", "禁", "dci_prune_ban")
-		os.MkdirAll(banNeuron, 0755)
+		os.MkdirAll(banNeuron, 0750)
 		nf := filepath.Join(banNeuron, "1.neuron")
-		os.WriteFile(nf, []byte{}, 0644)
+		os.WriteFile(nf, []byte{}, 0600)
 		oldTime := time.Now().AddDate(0, 0, -100)
 		os.Chtimes(nf, oldTime, oldTime)
 
@@ -900,14 +900,14 @@ func TestDCI_Constants(t *testing.T) {
 		dir := setupTestBrain(t)
 		// Create an empty neuron folder (no .neuron files with counter)
 		emptyNeuron := filepath.Join(dir, "cortex", "benchmark", "dci_empty")
-		os.MkdirAll(emptyNeuron, 0755)
+		os.MkdirAll(emptyNeuron, 0750)
 
 		brain := scanBrain(dir)
 		result := runSubsumption(brain)
 
 		// The empty neuron should NOT increase FiredNeurons
 		// Create it with a 0-value counter
-		os.WriteFile(filepath.Join(emptyNeuron, "0.neuron"), []byte{}, 0644)
+		os.WriteFile(filepath.Join(emptyNeuron, "0.neuron"), []byte{}, 0600)
 		brain2 := scanBrain(dir)
 		result2 := runSubsumption(brain2)
 

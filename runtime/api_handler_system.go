@@ -142,11 +142,11 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 			req.Priority = "normal"
 		}
 		reportsDir := filepath.Join(brainRoot, "_inbox", "reports")
-		os.MkdirAll(reportsDir, 0755)
+		os.MkdirAll(reportsDir, 0750)
 		ts := fmt.Sprintf("%d", time.Now().UnixMilli())
 		filename := fmt.Sprintf("%s_%s.report", ts, req.Priority)
 		content := fmt.Sprintf("priority: %s\ntimestamp: %s\n\n%s\n", req.Priority, time.Now().Format("2006-01-02 15:04:05"), req.Message)
-		os.WriteFile(filepath.Join(reportsDir, filename), []byte(content), 0644)
+		os.WriteFile(filepath.Join(reportsDir, filename), []byte(content), 0600)
 
 		entries, _ := os.ReadDir(reportsDir)
 		pending := 0

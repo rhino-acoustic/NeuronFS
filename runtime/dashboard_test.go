@@ -386,7 +386,7 @@ func TestDoInjectToFile_PreservesContent(t *testing.T) {
 
 	// Create existing file with markers
 	initial := "# My Config\n\n<!-- NEURONFS:START -->\nold content\n<!-- NEURONFS:END -->\n\n# Footer\n"
-	os.WriteFile(filePath, []byte(initial), 0644)
+	os.WriteFile(filePath, []byte(initial), 0600)
 
 	// Inject new content
 	newRules := "<!-- NEURONFS:START -->\nnew content\n<!-- NEURONFS:END -->\n"

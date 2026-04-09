@@ -257,13 +257,13 @@ func startDashboard(brainRoot string, port int) {
 		path = strings.Trim(path, "/")
 
 		neuronDir := filepath.Join(brainRoot, req.Region, path)
-		if err := os.MkdirAll(neuronDir, 0755); err != nil {
+		if err := os.MkdirAll(neuronDir, 0750); err != nil {
 			http.Error(w, "mkdir failed: "+err.Error(), 500)
 			return
 		}
 
 		counterFile := filepath.Join(neuronDir, "1.neuron")
-		if err := os.WriteFile(counterFile, []byte(""), 0644); err != nil {
+		if err := os.WriteFile(counterFile, []byte(""), 0600); err != nil {
 			http.Error(w, "write failed: "+err.Error(), 500)
 			return
 		}
@@ -291,9 +291,9 @@ func startDashboard(brainRoot string, port int) {
 		}
 
 		bombDir := filepath.Join(brainRoot, req.Region, req.Name)
-		os.MkdirAll(bombDir, 0755)
+		os.MkdirAll(bombDir, 0750)
 		bombFile := filepath.Join(bombDir, "bomb.neuron")
-		os.WriteFile(bombFile, []byte(""), 0644)
+		os.WriteFile(bombFile, []byte(""), 0600)
 
 		fmt.Printf("[BOMB] 💀 %s/%s\n", req.Region, req.Name)
 		w.Write([]byte("BOMB placed: " + req.Region + "/" + req.Name))
@@ -337,7 +337,7 @@ func startDashboard(brainRoot string, port int) {
 		}
 		newCounter := currentCounter + 1
 		newFile := filepath.Join(neuronDir, fmt.Sprintf("%d.neuron", newCounter))
-		os.WriteFile(newFile, []byte(""), 0644)
+		os.WriteFile(newFile, []byte(""), 0600)
 
 		fmt.Printf("[FIRE] %s/%s: %d → %d\n", req.Region, req.Path, currentCounter, newCounter)
 		w.Write([]byte(fmt.Sprintf("%d", newCounter)))
@@ -445,11 +445,11 @@ func startDashboard(brainRoot string, port int) {
 		}
 
 		reportsDir := filepath.Join(brainRoot, "_inbox", "reports")
-		os.MkdirAll(reportsDir, 0755)
+		os.MkdirAll(reportsDir, 0750)
 		ts := fmt.Sprintf("%d", time.Now().UnixMilli())
 		filename := fmt.Sprintf("%s_%s.report", ts, req.Priority)
 		content := fmt.Sprintf("priority: %s\ntimestamp: %s\n\n%s\n", req.Priority, time.Now().Format("2006-01-02 15:04:05"), req.Message)
-		os.WriteFile(filepath.Join(reportsDir, filename), []byte(content), 0644)
+		os.WriteFile(filepath.Join(reportsDir, filename), []byte(content), 0600)
 
 		entries, _ := os.ReadDir(reportsDir)
 		pending := 0

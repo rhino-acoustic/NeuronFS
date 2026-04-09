@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -48,6 +49,9 @@ func vfsRelativize(path string) string {
 
 // vfsReadDir replaces os.ReadDir
 func vfsReadDir(dir string) ([]fs.DirEntry, error) {
+	if os.Getenv("NEURONFS_TEST_ISOLATION") == "1" {
+		return os.ReadDir(dir)
+	}
 	if GlobalVFS == nil {
 		panic("GlobalVFS is nil. Call MountCartridge() early.")
 	}
@@ -56,6 +60,9 @@ func vfsReadDir(dir string) ([]fs.DirEntry, error) {
 
 // vfsReadFile replaces os.ReadFile
 func vfsReadFile(path string) ([]byte, error) {
+	if os.Getenv("NEURONFS_TEST_ISOLATION") == "1" {
+		return os.ReadFile(path)
+	}
 	if GlobalVFS == nil {
 		panic("GlobalVFS is nil.")
 	}
@@ -65,6 +72,9 @@ func vfsReadFile(path string) ([]byte, error) {
 // vfsGlob replaces filepath.Glob
 // Uses the built-in io/fs.Glob which seamlessly traverses our RouterFS.
 func vfsGlob(pattern string) ([]string, error) {
+	if os.Getenv("NEURONFS_TEST_ISOLATION") == "1" {
+		return filepath.Glob(pattern)
+	}
 	if GlobalVFS == nil {
 		panic("GlobalVFS is nil.")
 	}
@@ -87,6 +97,9 @@ func vfsGlob(pattern string) ([]string, error) {
 
 // vfsStat replaces os.Stat
 func vfsStat(path string) (fs.FileInfo, error) {
+	if os.Getenv("NEURONFS_TEST_ISOLATION") == "1" {
+		return os.Stat(path)
+	}
 	if GlobalVFS == nil {
 		panic("GlobalVFS is nil.")
 	}
@@ -96,6 +109,9 @@ func vfsStat(path string) (fs.FileInfo, error) {
 // vfsWalkDir replaces filepath.Walk
 // Note: It uses fs.WalkDir which passes fs.DirEntry instead of os.FileInfo.
 func vfsWalkDir(root string, fn fs.WalkDirFunc) error {
+	if os.Getenv("NEURONFS_TEST_ISOLATION") == "1" {
+		return filepath.WalkDir(root, fn)
+	}
 	if GlobalVFS == nil {
 		panic("GlobalVFS is nil.")
 	}

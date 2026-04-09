@@ -170,7 +170,7 @@ func generateBrainJSON(brainRoot string, _ Brain, result SubsumptionResult) {
 
 	outPath := filepath.Join(brainRoot, "..", "brain_state.json")
 	abs, _ := filepath.Abs(outPath)
-	if err := os.WriteFile(abs, jsonBytes, 0644); err != nil {
+	if err := os.WriteFile(abs, jsonBytes, 0600); err != nil {
 		fmt.Printf("[ERROR] Write: %v\n", err)
 		return
 	}
@@ -266,6 +266,6 @@ func refreshCodeMap(brainRoot string) {
 	sb.WriteString("2. Always verify: `go vet ./...` → `go build .` after ANY change\n")
 	sb.WriteString("3. main.go is the orchestrator (CLI dispatch only)\n")
 
-	os.WriteFile(codeMapPath, []byte(sb.String()), 0644)
+	os.WriteFile(codeMapPath, []byte(sb.String()), 0600)
 	fmt.Printf("[IDLE] 📋 CODE_MAP.md refreshed (%d files, %d lines)\n", totalFiles, totalLines)
 }

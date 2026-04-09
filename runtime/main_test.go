@@ -41,15 +41,15 @@ func setupTestBrain(t *testing.T) string {
 
 	for _, nd := range neuronDirs {
 		fullDir := filepath.Join(dir, nd.path)
-		os.MkdirAll(fullDir, 0755)
+		os.MkdirAll(fullDir, 0750)
 		counterFile := filepath.Join(fullDir, fmt.Sprintf("%d.neuron", nd.counter))
-		os.WriteFile(counterFile, []byte{}, 0644)
+		os.WriteFile(counterFile, []byte{}, 0600)
 	}
 
 	os.WriteFile(filepath.Join(dir, "brainstem", "connect_limbic.axon"),
-		[]byte("TARGET: limbic"), 0644)
+		[]byte("TARGET: limbic"), 0600)
 	os.WriteFile(filepath.Join(dir, "limbic", "connect_brainstem.axon"),
-		[]byte("TARGET: brainstem"), 0644)
+		[]byte("TARGET: brainstem"), 0600)
 
 	return dir
 }
@@ -80,7 +80,7 @@ func TestP0Bomb_AllBlocked(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	bombDir := filepath.Join(dir, "brainstem", "canon", "never_use_fallback")
-	os.WriteFile(filepath.Join(bombDir, "bomb.neuron"), []byte{}, 0644)
+	os.WriteFile(filepath.Join(bombDir, "bomb.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)
 	result := runSubsumption(brain)
@@ -106,7 +106,7 @@ func TestLimbicBomb_BrainstemSurvives(t *testing.T) {
 	dir := setupTestBrain(t)
 
 	bombDir := filepath.Join(dir, "limbic", "emotion_parser", "detect_urgency")
-	os.WriteFile(filepath.Join(bombDir, "bomb.neuron"), []byte{}, 0644)
+	os.WriteFile(filepath.Join(bombDir, "bomb.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)
 	result := runSubsumption(brain)
@@ -213,7 +213,7 @@ func TestRecoveryFlow_BombAndRestore(t *testing.T) {
 
 	bombDir := filepath.Join(dir, "brainstem", "canon", "never_use_fallback")
 	bombFile := filepath.Join(bombDir, "bomb.neuron")
-	os.WriteFile(bombFile, []byte{}, 0644)
+	os.WriteFile(bombFile, []byte{}, 0600)
 
 	brainA := scanBrain(dir)
 	resultA := runSubsumption(brainA)
@@ -279,9 +279,9 @@ func TestAxonCrosslinks(t *testing.T) {
 func TestInvalidFolders_Ignored(t *testing.T) {
 	dir := setupTestBrain(t)
 
-	os.MkdirAll(filepath.Join(dir, "random_stuff"), 0755)
-	os.MkdirAll(filepath.Join(dir, "notes"), 0755)
-	os.WriteFile(filepath.Join(dir, "random_stuff", "test.neuron"), []byte{}, 0644)
+	os.MkdirAll(filepath.Join(dir, "random_stuff"), 0750)
+	os.MkdirAll(filepath.Join(dir, "notes"), 0750)
+	os.WriteFile(filepath.Join(dir, "random_stuff", "test.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)
 

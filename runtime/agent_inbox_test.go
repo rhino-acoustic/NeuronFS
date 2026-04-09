@@ -13,14 +13,14 @@ func TestEmitAgentInbox(t *testing.T) {
 
 	// _agents/bot1/inbox/ 생성
 	bot1Inbox := filepath.Join(brainRoot, "_agents", "bot1", "inbox")
-	os.MkdirAll(bot1Inbox, 0755)
-	os.WriteFile(filepath.Join(bot1Inbox, "test_task.md"), []byte("# [요청] 빌드 검증\n\n**발신: FORGE (ENTP)**\n"), 0644)
+	os.MkdirAll(bot1Inbox, 0750)
+	os.WriteFile(filepath.Join(bot1Inbox, "test_task.md"), []byte("# [요청] 빌드 검증\n\n**발신: FORGE (ENTP)**\n"), 0600)
 
 	// _agents/enfp/inbox/ 생성
 	enfpInbox := filepath.Join(brainRoot, "_agents", "enfp", "inbox")
-	os.MkdirAll(enfpInbox, 0755)
-	os.WriteFile(filepath.Join(enfpInbox, "review_req.md"), []byte("**발신: ANCHOR (bot1)**\n\n# 리뷰 요청\n"), 0644)
-	os.WriteFile(filepath.Join(enfpInbox, "deck_req.md"), []byte("# Enterprise 세일즈 덱\n\n**발신: FORGE (ENTP)**\n"), 0644)
+	os.MkdirAll(enfpInbox, 0750)
+	os.WriteFile(filepath.Join(enfpInbox, "review_req.md"), []byte("**발신: ANCHOR (bot1)**\n\n# 리뷰 요청\n"), 0600)
+	os.WriteFile(filepath.Join(enfpInbox, "deck_req.md"), []byte("# Enterprise 세일즈 덱\n\n**발신: FORGE (ENTP)**\n"), 0600)
 
 	result := emitAgentInbox(brainRoot)
 

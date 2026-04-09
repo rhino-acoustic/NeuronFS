@@ -61,7 +61,7 @@ func svLog(msg string) {
 	line := fmt.Sprintf("[%s] %s", ts, msg)
 	fmt.Println(line)
 	if svLogPath != "" {
-		f, err := os.OpenFile(svLogPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(svLogPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err == nil {
 			fmt.Fprintln(f, line)
 			f.Close()
@@ -73,7 +73,7 @@ func runSupervisor(brainRoot string) {
 	nfsRoot := filepath.Dir(brainRoot)
 	nfsExe, _ := os.Executable()
 	logDir := filepath.Join(nfsRoot, "logs")
-	os.MkdirAll(logDir, 0755)
+	os.MkdirAll(logDir, 0750)
 	svLogPath = filepath.Join(logDir, "supervisor.log")
 	harnessScript := filepath.Join(nfsRoot, "harness.ps1")
 	userHome := filepath.Dir(nfsRoot)
@@ -255,7 +255,7 @@ func svTTLDecay(brainRoot string) {
 				newWeight := weight - 1
 				if newWeight <= 0 {
 					archiveDir := filepath.Join(brainRoot, ".archive")
-					os.MkdirAll(archiveDir, 0755)
+					os.MkdirAll(archiveDir, 0750)
 					dest := filepath.Join(archiveDir, filepath.Base(path))
 					os.Rename(path, dest)
 					svLog(fmt.Sprintf("\033[90m[PRUNE] Synaptic decay complete: %s moved to archive (weight 0)\033[0m", filepath.Base(path)))
@@ -264,7 +264,7 @@ func svTTLDecay(brainRoot string) {
 
 				newFrontmatter := svUpdateWeightFrontmatter(content[:endIdx], newWeight)
 				newContent := newFrontmatter + content[endIdx:]
-				os.WriteFile(path, []byte(newContent), 0644)
+				os.WriteFile(path, []byte(newContent), 0600)
 				svLog(fmt.Sprintf("\033[33m[DECAY] Synaptic weight degraded for %s (new weight: %d)\033[0m", filepath.Base(path), newWeight))
 			}
 			return nil
@@ -306,7 +306,7 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 		cmd := exec.Command(c.Cmd, c.Args...)
 		cmd.Dir = c.Dir
 		lp := filepath.Join(filepath.Dir(svLogPath), c.Name+".log")
-		lf, err := os.OpenFile(lp, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		lf, err := os.OpenFile(lp, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err == nil {
 			cmd.Stdout = lf
 			cmd.Stderr = lf
@@ -495,9 +495,9 @@ func svHarness(script, brainRoot string) {
 			svLog(fmt.Sprintf("  ❌ %s", f))
 		}
 		d := filepath.Join(brainRoot, "_agents", "bot1", "inbox")
-		os.MkdirAll(d, 0755)
+		os.MkdirAll(d, 0750)
 		fname := filepath.Join(d, time.Now().Format("20060102_150405")+"_sv_harness.md")
-		os.WriteFile(fname, []byte(report.String()), 0644)
+		os.WriteFile(fname, []byte(report.String()), 0600)
 	}
 }
 
@@ -573,7 +573,7 @@ func svStatus(children []*ChildSpec) {
 						if !svPathExists(outbox) {
 							outbox = filepath.Join(filepath.Dir(svLogPath), "..", "brain", "_agents", "bot1", "outbox")
 						}
-						os.MkdirAll(outbox, 0755)
+						os.MkdirAll(outbox, 0750)
 						dumpPath := filepath.Join(outbox, "pprof_heap_dump.txt")
 
 						dumpOut := "=== Top 5 Memory Leaks (In-Memory Parsed) ===\n"
@@ -593,7 +593,7 @@ func svStatus(children []*ChildSpec) {
 							dumpOut += fmt.Sprintf("InUse: %d KB | Objects: %d | Func: %s\n", r.InUseBytes()/1024, r.InUseObjects(), caller)
 						}
 
-						if err := os.WriteFile(dumpPath, []byte(dumpOut), 0644); err == nil {
+						if err := os.WriteFile(dumpPath, []byte(dumpOut), 0600); err == nil {
 							svLog(fmt.Sprintf("\033[35m[DIAG] Saved top 5 heap allocs to %s\033[0m", dumpPath))
 						} else {
 							svLog(fmt.Sprintf("\033[33m[WARN] profile write failed: %v\033[0m", err))
@@ -645,7 +645,7 @@ func svCrashAlert(c *ChildSpec) {
 	}
 
 	inboxDir := filepath.Join(brainRoot, "_agents", "bot1", "inbox")
-	os.MkdirAll(inboxDir, 0755)
+	os.MkdirAll(inboxDir, 0750)
 	fname := fmt.Sprintf("%s_sv_crash_alert_%s.md", time.Now().Format("20060102_150405"), c.Name)
 	content := fmt.Sprintf("# from: supervisor\n# priority: urgent\n\n## 🚨 프로세스 서킷 브레이커\n\n"+
 		"**프로세스:** %s\n"+
@@ -653,7 +653,7 @@ func svCrashAlert(c *ChildSpec) {
 		"**시각:** %s\n\n"+
 		"60초 쿨다운 후 재시작을 시도합니다. 반복 발생 시 수동 개입이 필요합니다.\n",
 		c.Name, c.restartCount, time.Now().Format("2006-01-02 15:04:05"))
-	os.WriteFile(filepath.Join(inboxDir, fname), []byte(content), 0644)
+	os.WriteFile(filepath.Join(inboxDir, fname), []byte(content), 0600)
 	svLog(fmt.Sprintf("📨 크래시 알림 → %s", fname))
 }
 

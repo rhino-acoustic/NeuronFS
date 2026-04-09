@@ -219,7 +219,7 @@ func runEvolve(brainRoot string, dryRun bool) {
 			if _, err := os.Stat(fullPath); err == nil {
 				dormantFile := filepath.Join(fullPath, "evolve.dormant")
 				os.WriteFile(dormantFile, []byte(fmt.Sprintf("Evolved: %s\nReason: %s\n",
-					time.Now().Format("2006-01-02"), action.Reason)), 0644)
+					time.Now().Format("2006-01-02"), action.Reason)), 0600)
 				fmt.Printf("    💤 Pruned: %s\n", action.Path)
 				executed++
 			} else {
@@ -630,7 +630,7 @@ func handleEvolveAPI(brainRoot string) http.HandlerFunc {
 					if _, err := os.Stat(fullPath); err == nil {
 						dormantFile := filepath.Join(fullPath, "evolve.dormant")
 						os.WriteFile(dormantFile, []byte(fmt.Sprintf("Evolved: %s\nReason: %s\n",
-							time.Now().Format("2006-01-02"), action.Reason)), 0644)
+							time.Now().Format("2006-01-02"), action.Reason)), 0600)
 						executed++
 					} else {
 						skipped++

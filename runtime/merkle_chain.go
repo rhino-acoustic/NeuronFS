@@ -198,7 +198,7 @@ func loadOrCreateHMACKey(brainRoot string) []byte {
 	h := sha256.Sum256([]byte(brainRoot + "neuronfs-integrity-v1"))
 	copy(key, h[:])
 
-	os.MkdirAll(neuronfsDir, 0755)
+	os.MkdirAll(neuronfsDir, 0750)
 	os.WriteFile(keyPath, key, 0600) // 키 파일은 600 권한
 
 	return key

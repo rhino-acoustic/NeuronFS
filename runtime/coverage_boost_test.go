@@ -40,12 +40,12 @@ func TestCountNeuronFiles(t *testing.T) {
 	dir := t.TempDir()
 
 	// Create some .neuron files at various depths
-	os.MkdirAll(filepath.Join(dir, "a", "b"), 0755)
-	os.WriteFile(filepath.Join(dir, "1.neuron"), []byte{}, 0644)
-	os.WriteFile(filepath.Join(dir, "a", "2.neuron"), []byte{}, 0644)
-	os.WriteFile(filepath.Join(dir, "a", "b", "3.neuron"), []byte{}, 0644)
-	os.WriteFile(filepath.Join(dir, "a", "b", "bomb.neuron"), []byte{}, 0644)
-	os.WriteFile(filepath.Join(dir, "a", "notaneuron.txt"), []byte{}, 0644)
+	os.MkdirAll(filepath.Join(dir, "a", "b"), 0750)
+	os.WriteFile(filepath.Join(dir, "1.neuron"), []byte{}, 0600)
+	os.WriteFile(filepath.Join(dir, "a", "2.neuron"), []byte{}, 0600)
+	os.WriteFile(filepath.Join(dir, "a", "b", "3.neuron"), []byte{}, 0600)
+	os.WriteFile(filepath.Join(dir, "a", "b", "bomb.neuron"), []byte{}, 0600)
+	os.WriteFile(filepath.Join(dir, "a", "notaneuron.txt"), []byte{}, 0600)
 
 	count := countNeuronFiles(dir)
 	if count != 4 {
@@ -180,7 +180,7 @@ func TestPrintDiag_NoCrash(t *testing.T) {
 func TestPrintDiag_WithBomb(t *testing.T) {
 	dir := setupTestBrain(t)
 	bombDir := filepath.Join(dir, "brainstem", "canon", "never_use_fallback")
-	os.WriteFile(filepath.Join(bombDir, "bomb.neuron"), []byte{}, 0644)
+	os.WriteFile(filepath.Join(bombDir, "bomb.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)
 	result := runSubsumption(brain)

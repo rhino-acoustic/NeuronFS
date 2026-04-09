@@ -176,7 +176,7 @@ func processInbox(brainRoot string) {
 			}
 			// PM 칭찬은 바로 도파민 발화
 			fullPath := filepath.Join(brainRoot, strings.ReplaceAll(neuronPath, "/", string(filepath.Separator)))
-			_ = os.MkdirAll(fullPath, 0755)
+			_ = os.MkdirAll(fullPath, 0750)
 			_ = signalNeuron(brainRoot, neuronPath, "dopamine")
 			fmt.Printf("[INBOX] 🟢 PM 칭찬 확인 — 도파민 배포: %s\n", neuronPath)
 			processed++
@@ -215,13 +215,13 @@ func processInbox(brainRoot string) {
 	if processed > 0 {
 		// Append to persistent history before clearing (for --neuronize)
 		historyPath := filepath.Join(brainRoot, "_inbox", "corrections_history.jsonl")
-		f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if err == nil {
 			f.Write(data)
 			f.Close()
 		}
 		// Clear inbox
-		os.WriteFile(inboxPath, []byte{}, 0644)
+		os.WriteFile(inboxPath, []byte{}, 0600)
 		markBrainDirty()
 		fmt.Printf("[INBOX] ✅ %d entries processed, inbox cleared (history preserved)\n", processed)
 	}
@@ -237,7 +237,7 @@ func runInjectionLoop(brainRoot string) {
 	defer watcher.Close()
 
 	inboxDir := filepath.Join(brainRoot, "_inbox")
-	os.MkdirAll(inboxDir, 0755)
+	os.MkdirAll(inboxDir, 0750)
 	if err := watcher.Add(inboxDir); err != nil {
 		fmt.Printf("[ERROR] fsnotify watch _inbox: %v\n", err)
 	}

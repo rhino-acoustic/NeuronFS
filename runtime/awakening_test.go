@@ -112,7 +112,7 @@ func TestAwakening_SecondRun(t *testing.T) {
 
 	// Pre-create marker (simulate previous run)
 	markerFile := filepath.Join(tmpDir, ".neuronfs_init")
-	os.WriteFile(markerFile, []byte("initialized: 2026-04-01T00:00:00Z\n"), 0644)
+	os.WriteFile(markerFile, []byte("initialized: 2026-04-01T00:00:00Z\n"), 0600)
 
 	cfg := AwakeningConfig{
 		BrainRoot:   tmpDir,

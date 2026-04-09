@@ -107,7 +107,7 @@ func TestChildSpec_IsLocked(t *testing.T) {
 	}
 
 	// Create lock file → locked
-	os.WriteFile(lockFile, []byte{}, 0644)
+	os.WriteFile(lockFile, []byte{}, 0600)
 	if !child.isLocked() {
 		t.Fatal("should be locked with lock file present")
 	}
@@ -275,8 +275,8 @@ func TestWriteAllTiersForTargets(t *testing.T) {
 	defer os.Setenv("USERPROFILE", oldHome)
 
 	neuronDir := filepath.Join(dir, "cortex", "test_emit")
-	os.MkdirAll(neuronDir, 0755)
-	os.WriteFile(filepath.Join(neuronDir, "5.neuron"), []byte{}, 0644)
+	os.MkdirAll(neuronDir, 0750)
+	os.WriteFile(filepath.Join(neuronDir, "5.neuron"), []byte{}, 0600)
 
 	writeAllTiersForTargets(dir, "generic")
 	t.Log("OK: writeAllTiersForTargets executed without panic")
@@ -292,8 +292,8 @@ func TestWriteAllTiers(t *testing.T) {
 	defer os.Setenv("USERPROFILE", oldHome)
 
 	neuronDir := filepath.Join(dir, "brainstem", "canon", "test_rule")
-	os.MkdirAll(neuronDir, 0755)
-	os.WriteFile(filepath.Join(neuronDir, "10.neuron"), []byte{}, 0644)
+	os.MkdirAll(neuronDir, 0750)
+	os.WriteFile(filepath.Join(neuronDir, "10.neuron"), []byte{}, 0600)
 
 	writeAllTiers(dir)
 	t.Log("OK: writeAllTiers executed without panic")
@@ -309,8 +309,8 @@ func TestComputeMountHash(t *testing.T) {
 
 	// Create some neurons
 	n1 := filepath.Join(dir, "cortex", "test1")
-	os.MkdirAll(n1, 0755)
-	os.WriteFile(filepath.Join(n1, "1.neuron"), []byte{}, 0644)
+	os.MkdirAll(n1, 0750)
+	os.WriteFile(filepath.Join(n1, "1.neuron"), []byte{}, 0600)
 
 	hash := computeMountHash(dir)
 	if hash == "" {
@@ -325,8 +325,8 @@ func TestComputeMountHash(t *testing.T) {
 
 	// Different content → different hash
 	n2 := filepath.Join(dir, "cortex", "test2")
-	os.MkdirAll(n2, 0755)
-	os.WriteFile(filepath.Join(n2, "1.neuron"), []byte{}, 0644)
+	os.MkdirAll(n2, 0750)
+	os.WriteFile(filepath.Join(n2, "1.neuron"), []byte{}, 0600)
 
 	hash3 := computeMountHash(dir)
 	if hash3 == hash {
@@ -341,8 +341,8 @@ func TestGenerateBrainJSON(t *testing.T) {
 	initBrain(dir)
 
 	n1 := filepath.Join(dir, "cortex", "json_test")
-	os.MkdirAll(n1, 0755)
-	os.WriteFile(filepath.Join(n1, "5.neuron"), []byte{}, 0644)
+	os.MkdirAll(n1, 0750)
+	os.WriteFile(filepath.Join(n1, "5.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)
 	result := runSubsumption(brain)
@@ -367,7 +367,7 @@ func TestProcessInbox_EmptyInbox(t *testing.T) {
 	initBrain(dir)
 
 	inboxDir := filepath.Join(dir, "_inbox")
-	os.MkdirAll(inboxDir, 0755)
+	os.MkdirAll(inboxDir, 0750)
 
 	// Should not panic on empty inbox
 	processInbox(dir)
@@ -380,9 +380,9 @@ func TestProcessInbox_WithItems(t *testing.T) {
 
 	// Create inbox with correction entry
 	inboxDir := filepath.Join(dir, "_inbox")
-	os.MkdirAll(inboxDir, 0755)
+	os.MkdirAll(inboxDir, 0750)
 	corrections := `{"type":"correction","path":"cortex/test/inbox_test","text":"test correction","counter_add":1}`
-	os.WriteFile(filepath.Join(inboxDir, "corrections.jsonl"), []byte(corrections), 0644)
+	os.WriteFile(filepath.Join(inboxDir, "corrections.jsonl"), []byte(corrections), 0600)
 
 	processInbox(dir)
 	t.Log("OK: processInbox processed correction entry")
@@ -397,8 +397,8 @@ func TestEmitIndex(t *testing.T) {
 	initBrain(dir)
 
 	n1 := filepath.Join(dir, "cortex", "idx_test")
-	os.MkdirAll(n1, 0755)
-	os.WriteFile(filepath.Join(n1, "3.neuron"), []byte{}, 0644)
+	os.MkdirAll(n1, 0750)
+	os.WriteFile(filepath.Join(n1, "3.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)
 	result := runSubsumption(brain)
@@ -419,8 +419,8 @@ func TestEmitRegionRules(t *testing.T) {
 	initBrain(dir)
 
 	n1 := filepath.Join(dir, "cortex", "rule_test")
-	os.MkdirAll(n1, 0755)
-	os.WriteFile(filepath.Join(n1, "7.neuron"), []byte{}, 0644)
+	os.MkdirAll(n1, 0750)
+	os.WriteFile(filepath.Join(n1, "7.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)
 
@@ -443,7 +443,7 @@ func TestLogEpisode_CreatesFile(t *testing.T) {
 	initBrain(dir)
 
 	hippoDir := filepath.Join(dir, "hippocampus", "episodes")
-	os.MkdirAll(hippoDir, 0755)
+	os.MkdirAll(hippoDir, 0750)
 
 	logEpisode(dir, "TEST_EVENT", "test detail for coverage boost")
 
@@ -470,10 +470,10 @@ func TestDeduplicateNeurons_WithDuplicates(t *testing.T) {
 
 	n1 := filepath.Join(dir, "cortex", "test_dedup", "rule_a")
 	n2 := filepath.Join(dir, "cortex", "test_dedup", "rule_as")
-	os.MkdirAll(n1, 0755)
-	os.MkdirAll(n2, 0755)
-	os.WriteFile(filepath.Join(n1, "5.neuron"), []byte{}, 0644)
-	os.WriteFile(filepath.Join(n2, "3.neuron"), []byte{}, 0644)
+	os.MkdirAll(n1, 0750)
+	os.MkdirAll(n2, 0750)
+	os.WriteFile(filepath.Join(n1, "5.neuron"), []byte{}, 0600)
+	os.WriteFile(filepath.Join(n2, "3.neuron"), []byte{}, 0600)
 
 	deduplicateNeurons(dir)
 	t.Log("OK: deduplicateNeurons executed with potential duplicates")
@@ -585,8 +585,8 @@ func TestCollectAllNeurons(t *testing.T) {
 	initBrain(dir)
 
 	n := filepath.Join(dir, "cortex", "collect_test")
-	os.MkdirAll(n, 0755)
-	os.WriteFile(filepath.Join(n, "1.neuron"), []byte{}, 0644)
+	os.MkdirAll(n, 0750)
+	os.WriteFile(filepath.Join(n, "1.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)
 	result := runSubsumption(brain)
@@ -604,8 +604,8 @@ func TestSortedActiveNeurons(t *testing.T) {
 
 	for i, name := range []string{"alpha", "beta", "gamma"} {
 		n := filepath.Join(dir, "cortex", name)
-		os.MkdirAll(n, 0755)
-		os.WriteFile(filepath.Join(n, filepath.Base(name)+".neuron"), []byte{}, 0644)
+		os.MkdirAll(n, 0750)
+		os.WriteFile(filepath.Join(n, filepath.Base(name)+".neuron"), []byte{}, 0600)
 		_ = i
 	}
 
