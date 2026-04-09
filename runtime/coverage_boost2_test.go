@@ -79,16 +79,16 @@ func TestSvUpdateWeightFrontmatter(t *testing.T) {
 	t.Logf("OK: weight updated 10→5")
 }
 
-func TestSvPathExists(t *testing.T) {
+func TestFileExists(t *testing.T) {
 	dir := t.TempDir()
 
-	if !svPathExists(dir) {
+	if !fileExists(dir) {
 		t.Fatal("existing dir should return true")
 	}
-	if svPathExists(filepath.Join(dir, "nonexistent")) {
+	if fileExists(filepath.Join(dir, "nonexistent")) {
 		t.Fatal("nonexistent path should return false")
 	}
-	t.Log("OK: svPathExists correctly checks file existence")
+	t.Log("OK: fileExists correctly checks file existence")
 }
 
 func TestChildSpec_IsLocked(t *testing.T) {
@@ -548,7 +548,7 @@ func TestSplitNeuronPath(t *testing.T) {
 		expect int // expected number of parts
 	}{
 		{"cortex/frontend/hooks_pattern", 3},
-		{"brainstem/canon/never_use_fallback", 3},
+		{"brainstem/canon/절대_폴백_금지", 3},
 		{"ego/tone", 2},
 	}
 

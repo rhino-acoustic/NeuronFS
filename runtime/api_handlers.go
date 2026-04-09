@@ -41,4 +41,3 @@ func rollbackAll(brainRoot string) error {
 
 	return nil
 }
-

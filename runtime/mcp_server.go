@@ -88,7 +88,9 @@ func startMCPServerWithStdout(brainRoot string, stdout *os.File) {
 func registerMCPTools(server *mcp.Server, brainRoot string) {
 	registerMCPReadTools(server, brainRoot)
 	registerMCPCRUDTools(server, brainRoot)
-	registerMCPSystemTools(server, brainRoot)
+	registerMCPSysTools(server, brainRoot)
+	registerMCPEvolveTools(server, brainRoot)
+	RegisterTemporalAndEpisodicTools(server, brainRoot)
 
 	RegisterNativeTools(server, brainRoot)
 }

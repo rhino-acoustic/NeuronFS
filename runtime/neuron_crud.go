@@ -12,7 +12,22 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+var (
+	neuronLocks = make(map[string]*sync.Mutex)
+	nLockMutex  sync.Mutex
+)
+
+func lockNeuronPath(path string) *sync.Mutex {
+	nLockMutex.Lock()
+	defer nLockMutex.Unlock()
+	if _, ok := neuronLocks[path]; !ok {
+		neuronLocks[path] = &sync.Mutex{}
+	}
+	return neuronLocks[path]
+}
 
 // growNeuron creates a new neuron folder with 1.neuron
 // If a similar neuron already exists (hybrid similarity >= MergeThreshold), fire that instead (consolidation)
@@ -20,8 +35,10 @@ import (
 // Prefix-aware: 禁X and 推X are treated as DIFFERENT neurons (polarity matters)
 // Returns error instead of os.Exit so REST API won't crash
 func growNeuron(brainRoot string, neuronPath string) error {
-	// Normalize path separators
 	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
+	mu := lockNeuronPath(neuronPath)
+	mu.Lock()
+	defer mu.Unlock()
 
 	// ── Hanja prefix normalization: 禁하드코딩 → 禁/하드코딩 ──
 	neuronPath = normalizeHanjaPath(neuronPath)
@@ -131,6 +148,11 @@ func growNeuron(brainRoot string, neuronPath string) error {
 // Usage: neuronfs brain_v4 --fire cortex/frontend/coding/no_console_log
 func fireNeuron(brainRoot string, neuronPath string) {
 	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
+	
+	mu := lockNeuronPath(neuronPath)
+	mu.Lock()
+	defer mu.Unlock()
+
 	fullPath := filepath.Join(brainRoot, neuronPath)
 
 	if _, err := vfsStat(fullPath); os.IsNotExist(err) {
@@ -184,6 +206,11 @@ func fireNeuron(brainRoot string, neuronPath string) {
 // Usage: neuronfs brain_v4 --rollback cortex/frontend/coding/no_console_log
 func rollbackNeuron(brainRoot string, neuronPath string) error {
 	neuronPath = strings.Trim(strings.ReplaceAll(neuronPath, "\\", "/"), "/")
+	
+	mu := lockNeuronPath(neuronPath)
+	mu.Lock()
+	defer mu.Unlock()
+
 	fullPath := filepath.Join(brainRoot, neuronPath)
 
 	if _, err := vfsStat(fullPath); os.IsNotExist(err) {
@@ -242,6 +269,11 @@ func rollbackNeuron(brainRoot string, neuronPath string) error {
 // Returns error instead of os.Exit so REST API won't crash
 func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
+	
+	mu := lockNeuronPath(neuronPath)
+	mu.Lock()
+	defer mu.Unlock()
+
 	fullPath := filepath.Join(brainRoot, neuronPath)
 
 	if _, err := vfsStat(fullPath); os.IsNotExist(err) {

@@ -36,7 +36,7 @@ func runNeuronize(brainRoot string, dryRun bool) {
 			}
 		}
 	}
-	
+
 	correctionsPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
 	if data, err := os.ReadFile(correctionsPath); err == nil && len(data) > 0 {
 		for _, line := range strings.Split(string(data), "\n") {
@@ -108,7 +108,7 @@ func runNeuronize(brainRoot string, dryRun bool) {
 			})
 		}
 	}
-	
+
 	limit := 50
 	if len(allNeurons) < limit {
 		limit = len(allNeurons)

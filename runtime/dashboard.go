@@ -49,14 +49,21 @@ type RegionJSON struct {
 	Axons    []string     `json:"axons"`
 }
 
-type BrainJSON struct {
-	Root         string       `json:"root"`
-	Regions      []RegionJSON `json:"regions"`
-	BombSource   string       `json:"bombSource"`
-	FiredNeurons int          `json:"firedNeurons"`
-	TotalNeurons int          `json:"totalNeurons"`
-	TotalCounter int          `json:"totalCounter"`
+type CartridgeJSON struct {
+	Name string `json:"name"`
+	Size int64  `json:"size"`
 }
+
+type BrainJSON struct {
+	Root         string          `json:"root"`
+	Regions      []RegionJSON    `json:"regions"`
+	Cartridges   []CartridgeJSON `json:"cartridges"`
+	BombSource   string          `json:"bombSource"`
+	FiredNeurons int             `json:"firedNeurons"`
+	TotalNeurons int             `json:"totalNeurons"`
+	TotalCounter int             `json:"totalCounter"`
+}
+
 
 type AddNeuronReq struct {
 	Region string `json:"region"`
@@ -67,7 +74,6 @@ type AddBombReq struct {
 	Region string `json:"region"`
 	Name   string `json:"name"`
 }
-
 
 // ─── Check if a process with given image name is running ───
 func isProcessRunning(imageName string) bool {
@@ -142,6 +148,21 @@ func buildBrainJSONResponse(brainRoot string) BrainJSON {
 		TotalCounter: result.TotalCounter,
 	}
 
+	// Scan Jloot Cartridges
+	searchPaths := []string{
+		filepath.Join(brainRoot, "..", "runtime"),
+		filepath.Join(brainRoot, "..", "tools", "jloot"),
+	}
+	for _, p := range searchPaths {
+		filepath.Walk(p, func(path string, info os.FileInfo, err error) error {
+			if err == nil && !info.IsDir() && strings.HasSuffix(info.Name(), ".jloot") {
+				data.Cartridges = append(data.Cartridges, CartridgeJSON{Name: info.Name(), Size: info.Size()})
+			}
+			return nil
+		})
+	}
+
+
 	for _, region := range brain.Regions {
 		rj := RegionJSON{
 			Name:     region.Name,
@@ -169,5 +190,3 @@ func buildBrainJSONResponse(brainRoot string) BrainJSON {
 	}
 	return data
 }
-
-

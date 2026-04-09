@@ -15,9 +15,9 @@ func pathExists(p string) bool {
 
 func main() {
 	brainRoot := os.Args[1]
-	
+
 	regionOrder := []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"}
-	
+
 	total := 0
 	pass := 0
 	fail := 0
@@ -130,7 +130,7 @@ func main() {
 			pass++
 		}
 	}
-	
+
 	// ── Check 7: _rules.md 인코딩 무결성 (cortex) ──
 	total++
 	cortexRules := filepath.Join(brainRoot, "cortex", "_rules.md")
@@ -158,7 +158,7 @@ func main() {
 	pct := float64(pass) / float64(total) * 100
 	fmt.Println("━━━ NeuronFS Harness Report ━━━")
 	fmt.Printf("통과: %d/%d (%.1f%%)\n\n", pass, total, pct)
-	
+
 	if len(failures) > 0 {
 		fmt.Println("❌ 실패 항목:")
 		for _, f := range failures {
@@ -167,7 +167,7 @@ func main() {
 	} else {
 		fmt.Println("✅ 모든 검사 통과!")
 	}
-	
+
 	if pct < 100 {
 		os.Exit(1)
 	}

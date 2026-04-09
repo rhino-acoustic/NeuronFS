@@ -7,7 +7,6 @@ import (
 	"testing"
 )
 
-
 // ━━━ TEST 20: rollbackNeuron — counter decrements ━━━
 func TestRollbackNeuron_Decrements(t *testing.T) {
 	dir := setupTestBrain(t)
@@ -120,11 +119,16 @@ func TestEmitTarget_CursorOutput(t *testing.T) {
 // ━━━ TEST 25: EmitTarget — writeAllTiersForTargets all ━━━
 func TestEmitTarget_AllOutput(t *testing.T) {
 	dir := setupTestBrain(t)
+	projectRoot := filepath.Dir(dir)
+
+	// Set mock home to projectRoot to prevent polluting the real ~/.gemini
+	os.Setenv("NEURONFS_MOCK_HOME", filepath.Join(projectRoot, "mock_home"))
+	defer os.Unsetenv("NEURONFS_MOCK_HOME")
 
 	// Write to all targets
 	writeAllTiersForTargets(dir, "all")
 
-	projectRoot := filepath.Dir(dir)
+
 
 	// Check each target file exists
 	checks := map[string]string{
@@ -143,6 +147,12 @@ func TestEmitTarget_AllOutput(t *testing.T) {
 	copilotPath := filepath.Join(projectRoot, ".github", "copilot-instructions.md")
 	if _, err := os.Stat(copilotPath); os.IsNotExist(err) {
 		t.Fatalf("copilot file not created: %s", copilotPath)
+	}
+
+	// Verify Gemini mock target
+	geminiPath := filepath.Join(projectRoot, "mock_home", ".gemini", "GEMINI.md")
+	if _, err := os.Stat(geminiPath); os.IsNotExist(err) {
+		t.Fatalf("gemini file not created in mock_home: %s", geminiPath)
 	}
 
 	t.Logf("OK: --emit all creates all 5 target files")

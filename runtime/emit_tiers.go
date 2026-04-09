@@ -289,6 +289,9 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 		if t == "gemini" {
 			// Gemini는 글로벌 ~/.gemini/GEMINI.md에 직접 출력 (워크스페이스별 중복 방지)
 			homeDir, _ := os.UserHomeDir()
+			if mock := os.Getenv("NEURONFS_MOCK_HOME"); mock != "" {
+				homeDir = mock
+			}
 			geminiDir := filepath.Join(homeDir, ".gemini")
 			os.MkdirAll(geminiDir, 0750)
 			targetPath = filepath.Join(geminiDir, "GEMINI.md")

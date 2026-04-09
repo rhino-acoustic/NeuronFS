@@ -22,11 +22,11 @@ func setupTestBrain(t *testing.T) string {
 		path    string
 		counter int
 	}{
-		{"brainstem/canon/never_use_fallback", 103},
+		{"brainstem/canon/절대_폴백_금지", 103},
 		{"brainstem/canon/no_simulation", 100},
 		{"brainstem/reflexes/self_debug", 100},
-		{"limbic/emotion_parser/detect_urgency", 50},
-		{"limbic/neurotransmitters/dopamine_reward", 30},
+		{"limbic/emotion_parser/긴급_상황_감지", 50},
+		{"limbic/neurotransmitters/도파민_보상", 30},
 		{"hippocampus/rewards/dopamine_log", 10},
 		{"hippocampus/failures/error_patterns", 5},
 		{"sensors/workspace/nas_write_cmd", 20},
@@ -79,7 +79,7 @@ func TestNormal_AllRegionsActive(t *testing.T) {
 func TestP0Bomb_AllBlocked(t *testing.T) {
 	dir := setupTestBrain(t)
 
-	bombDir := filepath.Join(dir, "brainstem", "canon", "never_use_fallback")
+	bombDir := filepath.Join(dir, "brainstem", "canon", "절대_폴백_금지")
 	os.WriteFile(filepath.Join(bombDir, "bomb.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)
@@ -105,7 +105,7 @@ func TestP0Bomb_AllBlocked(t *testing.T) {
 func TestLimbicBomb_BrainstemSurvives(t *testing.T) {
 	dir := setupTestBrain(t)
 
-	bombDir := filepath.Join(dir, "limbic", "emotion_parser", "detect_urgency")
+	bombDir := filepath.Join(dir, "limbic", "emotion_parser", "긴급_상황_감지")
 	os.WriteFile(filepath.Join(bombDir, "bomb.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)
@@ -200,9 +200,9 @@ func TestEmitFormat_MarkersAndOrder(t *testing.T) {
 	if !strings.Contains(rules, "TOP 5") {
 		t.Fatal("missing TOP 5 section")
 	}
-	if !strings.Contains(rules, "never use fallback") {
+	if !strings.Contains(rules, "절대 폴백 금지") {
 		t.Logf("GENERATED RULES:\n%s\n", rules)
-		t.Fatal("expected brainstem 'never use fallback' neuron in TOP 5")
+		t.Fatal("expected brainstem '절대 폴백 금지' neuron in TOP 5")
 	}
 
 	t.Logf("OK: markers present, brainstem TOP 5 rendered")
@@ -212,7 +212,7 @@ func TestEmitFormat_MarkersAndOrder(t *testing.T) {
 func TestRecoveryFlow_BombAndRestore(t *testing.T) {
 	dir := setupTestBrain(t)
 
-	bombDir := filepath.Join(dir, "brainstem", "canon", "never_use_fallback")
+	bombDir := filepath.Join(dir, "brainstem", "canon", "절대_폴백_금지")
 	bombFile := filepath.Join(bombDir, "bomb.neuron")
 	os.WriteFile(bombFile, []byte{}, 0600)
 

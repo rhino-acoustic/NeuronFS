@@ -179,7 +179,7 @@ func TestPrintDiag_NoCrash(t *testing.T) {
 // ━━━ printDiag with bomb ━━━
 func TestPrintDiag_WithBomb(t *testing.T) {
 	dir := setupTestBrain(t)
-	bombDir := filepath.Join(dir, "brainstem", "canon", "never_use_fallback")
+	bombDir := filepath.Join(dir, "brainstem", "canon", "절대_폴백_금지")
 	os.WriteFile(filepath.Join(bombDir, "bomb.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)

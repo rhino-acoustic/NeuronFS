@@ -269,7 +269,7 @@ func refreshCodeMap(brainRoot string) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// DIAGNOSTICS: OOM, Memory Profiling 
+// DIAGNOSTICS: OOM, Memory Profiling
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // checkProcessMemoryOverload monitors the OS heap for memory leaks.
 // If the threshold (200MB) is breached, it dumps the Go memory profile and renders the Flatline OOM screen.
@@ -310,7 +310,7 @@ func checkProcessMemoryOverload(cName string, pid int) bool {
 			}
 
 			outbox := filepath.Join(filepath.Dir(svLogPath), "..", "brain_v4", "_agents", "bot1", "outbox")
-			if !svPathExists(outbox) {
+			if !fileExists(outbox) {
 				outbox = filepath.Join(filepath.Dir(svLogPath), "..", "brain", "_agents", "bot1", "outbox")
 			}
 			os.MkdirAll(outbox, 0750)

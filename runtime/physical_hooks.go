@@ -20,11 +20,7 @@ import (
 // 4. USB 사이렌: COM 포트 시리얼 명령 (Adafruit Tower Light 등)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// 텔레그램 봇 설정 (BotFather에서 발급)
-const (
-	telegramBotToken = "" // @BotFather → /newbot → 토큰 붙여넣기
-	telegramChatID   = "" // @userinfobot으로 chat_id 확인
-)
+// 텔레그램 봇 설정은 os.Getenv("TELEGRAM_BOT_TOKEN"), os.Getenv("TELEGRAM_CHAT_ID") 사용
 
 // USB 사이렌 COM 포트 설정
 // 추천 제품: Adafruit Tri-Color USB Tower Light w/ Buzzer (~$30)
@@ -98,16 +94,19 @@ $window.ShowDialog() | Out-Null
 
 // triggerTelegram — BotFather 봇으로 PD에게 긴급 알림
 func triggerTelegram(regionName string) {
-	if telegramBotToken == "" || telegramChatID == "" {
-		fmt.Fprintf(os.Stderr, "[HOOK] Telegram not configured (set token/chatID in physical_hooks.go)\n")
+	tgToken := os.Getenv("TELEGRAM_BOT_TOKEN")
+	tgChatID := os.Getenv("TELEGRAM_CHAT_ID")
+
+	if tgToken == "" || tgChatID == "" {
+		fmt.Fprintf(os.Stderr, "[HOOK] Telegram not configured (set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID env variables)\n")
 		return
 	}
 
 	msg := fmt.Sprintf("NEURONFS BOMB\n\nRegion: %s\nAction: rm bomb.neuron\nStatus: Agent HALTED", regionName)
-	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", telegramBotToken)
+	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", tgToken)
 
 	resp, err := http.PostForm(apiURL, url.Values{
-		"chat_id": {telegramChatID},
+		"chat_id": {tgChatID},
 		"text":    {msg},
 	})
 	if err != nil {
@@ -200,11 +199,21 @@ func sendTelegramEvolve(brainRoot string, action evoAction) {
 	sb.WriteString(fmt.Sprintf("액션: %s %s\n", icon, strings.ToUpper(action.Type)))
 	sb.WriteString(fmt.Sprintf("사유: %s", action.Reason))
 
-	payload := map[string]string{
-		"chat_id": chatId,
-		"text":    sb.String(),
-	}
-	data, _ := json.Marshal(payload)
+	// 멀티바이트(한글) 깨짐 방지를 위해 rune 단위 4000자 분할 전송
+	runes := []rune(sb.String())
+	chunkSize := 4000
 
-	http.Post("https://api.telegram.org/bot"+tgToken+"/sendMessage", "application/json", bytes.NewReader(data))
+	for i := 0; i < len(runes); i += chunkSize {
+		end := i + chunkSize
+		if end > len(runes) {
+			end = len(runes)
+		}
+
+		payload := map[string]string{
+			"chat_id": chatId,
+			"text":    string(runes[i:end]),
+		}
+		data, _ := json.Marshal(payload)
+		http.Post("https://api.telegram.org/bot"+tgToken+"/sendMessage", "application/json", bytes.NewReader(data))
+	}
 }

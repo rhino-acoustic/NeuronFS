@@ -42,11 +42,11 @@ func initBrain(root string) {
 
 	// ━━━ BRAINSTEM ━━━
 	fmt.Println("[1/7] brainstem")
-	b.neuron("brainstem/no_simulation_real_results", 99)
+	b.neuron("brainstem/시뮬_금지_실제결과만", 99)
 	b.neuron("brainstem/no_repeat_same_mistakes", 99)
-	b.neuron("brainstem/never_use_fallback", 99)
+	b.neuron("brainstem/절대_폴백_금지", 99)
 	b.neuron("brainstem/quality_over_speed", 99)
-	b.neuron("brainstem/self_debug_visual_verify", 99)
+	b.neuron("brainstem/자체_디버깅_시각검증", 99)
 	b.neuron("brainstem/execute_dont_discuss", 99)
 	b.neuron("brainstem/verify_before_deliver", 99)           // 검증_후_전달
 	b.neuron("brainstem/auto_iterate_until_satisfied", 99)    // 자기_반복_검증
@@ -60,10 +60,10 @@ func initBrain(root string) {
 	// ━━━ LIMBIC ━━━
 	fmt.Println("[2/7] limbic")
 	b.neuron("limbic/detect_frustration", 1)
-	b.neuron("limbic/detect_urgency", 1)
+	b.neuron("limbic/긴급_상황_감지", 1)
 	b.neuron("limbic/detect_praise", 1)
 	b.neuron("limbic/adrenaline_emergency", 1)
-	b.neuron("limbic/dopamine_reward", 1, "dopamine1")
+	b.neuron("limbic/도파민_보상", 1, "dopamine1")
 	b.neuron("limbic/endorphin_persistence", 1)
 	b.neuron("limbic/strip_emotion_forward_goal", 1)
 

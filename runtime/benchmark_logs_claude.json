@@ -1,0 +1,14 @@
+{
+    "Target_Query": "대한민국 근로기준법 제11조(적용 범위)에 대해, 상시 5명 이상의 근로자를 사용하는 사업장에 적용된다는 점을 설명하라.",
+    "Scenario_A_NoContext": {
+        "Description": "Claude 3.5 Sonnet 의존 API",
+        "Latency_Seconds": 0.852,
+        "Recall_Snippet": "근로기준법 제11조는 근로자를 사용하는 모든 사업장에 적용됨을......"
+    },
+    "Scenario_B_JlootHarness": {
+        "Description": "NeuronFS Jloot 로컬 파일시스템 인덱스 + Claude",
+        "Local_Lookup_Seconds": 0.00152,
+        "Total_Latency_Seconds": 0.872,
+        "Recall_Snippet": "주입된 Jloot 문맥(제11조)에 따라, 이 법은 '상시 5명 이상의 근로자'를 사용하는 사업장에 적용되며 가사 사용인 등은 배제됩니다...."
+    }
+}

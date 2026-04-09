@@ -19,7 +19,7 @@ func TestEncryptDecrypt_RoundTrip(t *testing.T) {
 		t.Fatalf("GenerateDEK failed: %v", err)
 	}
 
-	original := []byte("brainstem/canon/never_use_fallback: counter=103")
+	original := []byte("brainstem/canon/절대_폴백_금지: counter=103")
 	ct, nonce, err := EncryptNeuron(original, dek)
 	if err != nil {
 		t.Fatalf("EncryptNeuron failed: %v", err)

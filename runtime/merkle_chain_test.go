@@ -32,7 +32,7 @@ func testHMACKey() []byte {
 
 func TestBuildChain_Basic(t *testing.T) {
 	dir := makeTestRegion(t, map[string]string{
-		"canon" + string(os.PathSeparator) + "1.neuron":    "never_use_fallback counter=103",
+		"canon" + string(os.PathSeparator) + "1.neuron":    "절대_폴백_금지 counter=103",
 		"canon" + string(os.PathSeparator) + "2.neuron":    "no_simulation counter=100",
 		"reflexes" + string(os.PathSeparator) + "1.neuron": "self_debug counter=100",
 	})
@@ -55,8 +55,8 @@ func TestBuildChain_Basic(t *testing.T) {
 
 func TestVerifyChain_Intact(t *testing.T) {
 	dir := makeTestRegion(t, map[string]string{
-		"rule1.neuron": "dopamine_reward counter=50",
-		"rule2.neuron": "detect_urgency counter=30",
+		"rule1.neuron": "도파민_보상 counter=50",
+		"rule2.neuron": "긴급_상황_감지 counter=30",
 	})
 
 	key := testHMACKey()
