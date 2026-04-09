@@ -32,7 +32,33 @@ const (
 
 	// DefaultEmotionIntensity: limbic 감정 강도 기본값 (0이면 이 값 사용)
 	DefaultEmotionIntensity = 0.6
+
+	// ━━━ Emission ━━━
+
+	// EmitThreshold: region listing에 표시되는 최소 counter 값
+	// counter < EmitThreshold인 뉴런은 _rules.md에서 생략
+	EmitThreshold = 5
+
+	// SpotlightDays: 신규 뉴런이 counter 무관하게 표시되는 일수
+	SpotlightDays = 7
+
+	// ━━━ Network ━━━
+
+	// APIPort: NeuronFS API 서버 기본 포트
+	APIPort = 9090
 )
+
+// ━━━ Emotion Mapping (SSOT) ━━━
+// limbic _state.json의 한국어 감정 → 영어 변환
+// emit_bootstrap에서 GEMINI.md 표시에 사용
+
+var KoToEn = map[string]string{
+	"분노": "anger",
+	"긴급": "urgent",
+	"만족": "satisfied",
+	"불안": "anxiety",
+	"집중": "focus",
+}
 
 // ━━━ Rune System (한자 마이크로옵코드) ━━━
 // 12개 룬 = NeuronFS의 의미 압축 체계

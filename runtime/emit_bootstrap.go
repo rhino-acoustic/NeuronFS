@@ -358,7 +358,7 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		},
 	}
 	// Legacy Korean key fallback
-	koToEn := map[string]string{"분노": "anger", "긴급": "urgent", "만족": "satisfied", "불안": "anxiety", "집중": "focus"}
+	koToEn := KoToEn // governance_consts.go (SSOT)
 
 	stateFile := filepath.Join(brainRoot, "limbic", "_state.json")
 	if stateData, err := os.ReadFile(stateFile); err == nil {

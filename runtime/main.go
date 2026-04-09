@@ -24,7 +24,7 @@ func main() {
 	}
 
 	mode := "diag"
-	port := 9090
+	port := APIPort
 	dryRun := false
 	quietMode := false
 	forceAwakening := false

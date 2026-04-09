@@ -81,10 +81,10 @@ type Neuron struct {
 	BirthTime   time.Time // folder creation time (grow 시점)
 }
 
-// Emission thresholds
-const (
-	emitThreshold = 5 // min counter to appear in region listings
-	spotlightDays = 7 // days a new neuron gets spotlight regardless of counter
+// Emission thresholds → governance_consts.go (SSOT)
+var (
+	emitThreshold = EmitThreshold
+	spotlightDays = SpotlightDays
 )
 
 // ─── Region ───

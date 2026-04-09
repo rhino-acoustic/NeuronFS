@@ -606,7 +606,7 @@ func svStatus(children []*ChildSpec) {
 			// Deadlock Check: API Server ping
 			if c.Name == "neuronfs-api" {
 				client := http.Client{Timeout: 3 * time.Second}
-				resp, err := client.Get("http://127.0.0.1:9090/api/health")
+				resp, err := client.Get(fmt.Sprintf("http://127.0.0.1:%d/api/health", APIPort))
 				if err != nil {
 					svLog("\033[31m[TRAUMA] Synaptic overload detected. Memory integrity compromised.\033[0m")
 					c.stop()
