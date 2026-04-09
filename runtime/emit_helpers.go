@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 )
+
 func emitIndex(brain Brain, result SubsumptionResult) string {
 	var sb strings.Builder
 
@@ -137,11 +138,11 @@ func emitIndex(brain Brain, result SubsumptionResult) string {
 // treeNode represents a compressed tree of neurons
 type treeNode struct {
 	name        string
-	counter     int       // if this is a leaf neuron
+	counter     int // if this is a leaf neuron
 	dopamine    int
 	hasBomb     bool
-	description string    // natural language rule from rule.md
-	globs       string    // file scope pattern
+	description string // natural language rule from rule.md
+	globs       string // file scope pattern
 	children    map[string]*treeNode
 	isLeaf      bool
 }
@@ -267,8 +268,6 @@ func renderTree(sb *strings.Builder, node *treeNode, depth int, prefix string) {
 	for _, child := range children {
 		n := child.node
 		name := strings.ReplaceAll(child.key, "_", " ")
-
-
 
 		// 한자 1글자 폴더 감지 — branch가 아니라 opcode modifier로 처리
 		// 禁/hard_coded_text → "절대 금지: hard coded text" (한자 폴더를 투명하게 통과)

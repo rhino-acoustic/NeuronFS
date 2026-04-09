@@ -27,13 +27,13 @@ func TestTokenCountEfficiency(t *testing.T) {
 	fmt.Println("=== Token Efficiency Benchmark ===")
 	fmt.Println("Neurons,IndexTokens,RulesTokens,AvgNeuronTokens")
 	scenarios := []int{100, 300, 500, 1000}
-	
+
 	for _, sz := range scenarios {
 		// Mock estimation for benchmark based on size
-		indexTokens := sz * 2   // Approx 2 tokens per line
-		rulesTokens := sz * 15  // Approx 15 tokens per injected rule
-		neuronTokens := 50      // Avg trace content
-		
+		indexTokens := sz * 2  // Approx 2 tokens per line
+		rulesTokens := sz * 15 // Approx 15 tokens per injected rule
+		neuronTokens := 50     // Avg trace content
+
 		fmt.Printf("%d,%d,%d,%d\n", sz, indexTokens, rulesTokens, neuronTokens)
 	}
 	fmt.Println("==================================")

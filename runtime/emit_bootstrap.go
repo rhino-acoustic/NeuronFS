@@ -406,7 +406,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	}
 	// (영혼 자문은 🔮 영혼 섹션에서 한 번만 출력 — 중복 제거됨)
 
-
 	// ━━━ REGION SUMMARY: 한 줄 요약 (상세는 _rules.md) ━━━
 	var regionParts []string
 	for _, region := range result.ActiveRegions {

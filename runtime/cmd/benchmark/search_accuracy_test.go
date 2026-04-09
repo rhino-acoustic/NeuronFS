@@ -2,27 +2,27 @@ package benchmark_test
 
 import (
 	"fmt"
-	"testing"
 	"math/rand"
+	"testing"
 	"time"
 )
 
-// 검색 정확도 
+// 검색 정확도
 // 30 질의 (Easy 10 + Medium 10 + Hard 10)
 // P@1, P@3, P@5, Recall@5, Latency
 
 type AccuracyResult struct {
-	P1       float64
-	P3       float64
-	P5       float64
-	Recall5  float64
-	Latency  int
+	P1      float64
+	P3      float64
+	P5      float64
+	Recall5 float64
+	Latency int
 }
 
 func TestSearchAccuracy(t *testing.T) {
 	fmt.Println("=== Vector vs Jaccard Accuracy Test ===")
 	difficulties := []string{"Easy", "Medium", "Hard"}
-	
+
 	// Mock Jaccard simulation
 	jaccardScores := map[string]AccuracyResult{
 		"Easy":   {P1: 0.85, P3: 0.90, P5: 0.95, Recall5: 0.95, Latency: 2},
@@ -40,7 +40,7 @@ func TestSearchAccuracy(t *testing.T) {
 
 	fmt.Printf("%-10s | %-12s | P@1  | P@3  | P@5  | Rec5 | Latency\n", "Method", "Difficulty")
 	fmt.Println("-----------------------------------------------------------------")
-	
+
 	for _, diff := range difficulties {
 		j := jaccardScores[diff]
 		fmt.Printf("%-10s | %-12s | %.2f | %.2f | %.2f | %.2f | %d ms\n", "Jaccard", diff, j.P1, j.P3, j.P5, j.Recall5, j.Latency)

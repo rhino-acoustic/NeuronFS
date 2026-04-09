@@ -92,7 +92,6 @@ type SubsumptionResult struct {
 var counterRegex = regexp.MustCompile(`^(\d+)\.neuron$`)
 var dopamineRegex = regexp.MustCompile(`^dopamine(\d+)\.neuron$`)
 
-
 // ─── Find brain root ───
 func findBrainRoot() string {
 	// First non-flag arg

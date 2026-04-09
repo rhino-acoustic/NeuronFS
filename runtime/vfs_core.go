@@ -15,7 +15,7 @@ import (
 // Architecture: UnionFS pattern to merge memory (Lower) and disk (Upper).
 // ============================================================================
 
-// RouterFS implements a union filesystem over a lower (immutable RAM) 
+// RouterFS implements a union filesystem over a lower (immutable RAM)
 // and an upper (mutable disk) layer.
 type RouterFS struct {
 	Lower fs.FS // The .jloot Cartridge (e.g., zip.Reader)

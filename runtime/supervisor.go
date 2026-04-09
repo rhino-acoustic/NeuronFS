@@ -9,16 +9,16 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
-	"strconv"
-	"net/http"
-	"runtime"
 )
 
 type ChildSpec struct {
@@ -246,11 +246,11 @@ func svTTLDecay(brainRoot string) {
 			}
 			content := string(contentBytes)
 			weight, lastAct, endIdx := svParseFrontmatter(content)
-			
+
 			if weight == -1 || lastAct.IsZero() {
 				return nil
 			}
-			
+
 			if time.Since(lastAct) > 24*time.Hour {
 				newWeight := weight - 1
 				if newWeight <= 0 {
@@ -261,7 +261,7 @@ func svTTLDecay(brainRoot string) {
 					svLog(fmt.Sprintf("\033[90m[PRUNE] Synaptic decay complete: %s moved to archive (weight 0)\033[0m", filepath.Base(path)))
 					return nil
 				}
-				
+
 				newFrontmatter := svUpdateWeightFrontmatter(content[:endIdx], newWeight)
 				newContent := newFrontmatter + content[endIdx:]
 				os.WriteFile(path, []byte(newContent), 0644)
@@ -547,7 +547,7 @@ func svStatus(children []*ChildSpec) {
 					fmt.Sscanf(memStr, "%d", &memKB)
 					if memKB > 1024*200 { // 200MB Limit
 						svLog("\033[31m[TRAUMA] Synaptic overload detected (Amyloid Plaque > 200MB). Triggering in-memory profile...\033[0m")
-						
+
 						// In-Memory Parsing (Zero External Dependency)
 						var records []runtime.MemProfileRecord
 						n, ok := runtime.MemProfile(nil, true)
@@ -559,7 +559,7 @@ func svStatus(children []*ChildSpec) {
 								break
 							}
 						}
-						
+
 						// Sort manually
 						for i := 0; i < len(records); i++ {
 							for j := i + 1; j < len(records); j++ {
@@ -568,33 +568,37 @@ func svStatus(children []*ChildSpec) {
 								}
 							}
 						}
-						
+
 						outbox := filepath.Join(filepath.Dir(svLogPath), "..", "brain_v4", "_agents", "bot1", "outbox")
 						if !svPathExists(outbox) {
 							outbox = filepath.Join(filepath.Dir(svLogPath), "..", "brain", "_agents", "bot1", "outbox")
 						}
 						os.MkdirAll(outbox, 0755)
 						dumpPath := filepath.Join(outbox, "pprof_heap_dump.txt")
-						
+
 						dumpOut := "=== Top 5 Memory Leaks (In-Memory Parsed) ===\n"
 						limit := 5
-						if len(records) < 5 { limit = len(records) }
+						if len(records) < 5 {
+							limit = len(records)
+						}
 						for i := 0; i < limit; i++ {
 							r := records[i]
 							caller := "unknown"
 							if len(r.Stack0) > 0 {
 								fn := runtime.FuncForPC(r.Stack0[0])
-								if fn != nil { caller = fn.Name() }
+								if fn != nil {
+									caller = fn.Name()
+								}
 							}
 							dumpOut += fmt.Sprintf("InUse: %d KB | Objects: %d | Func: %s\n", r.InUseBytes()/1024, r.InUseObjects(), caller)
 						}
-						
+
 						if err := os.WriteFile(dumpPath, []byte(dumpOut), 0644); err == nil {
 							svLog(fmt.Sprintf("\033[35m[DIAG] Saved top 5 heap allocs to %s\033[0m", dumpPath))
 						} else {
-						    svLog(fmt.Sprintf("\033[33m[WARN] profile write failed: %v\033[0m", err))
+							svLog(fmt.Sprintf("\033[33m[WARN] profile write failed: %v\033[0m", err))
 						}
-						
+
 						// Flatline death screen — OOM visual feedback
 						RenderFlatlineOnOOM(c.Name, memKB, dumpOut)
 
@@ -602,7 +606,7 @@ func svStatus(children []*ChildSpec) {
 					}
 				}
 			}
-			
+
 			// Deadlock Check: API Server ping
 			if c.Name == "neuronfs-api" {
 				client := http.Client{Timeout: 3 * time.Second}

@@ -34,7 +34,7 @@ func MergeCounters(local, remote int) int {
 
 func main() {
 	fmt.Println("=== NeuronFS Multi-Node Sync Prototype ===")
-	
+
 	isLeader := true // 1-node self-elected leader
 	if isLeader {
 		fmt.Println("[\033[33mCluster\033[0m] Node elected as LEADER.")

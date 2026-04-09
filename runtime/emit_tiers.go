@@ -85,7 +85,7 @@ func applyOOMProtection(brainRoot string, result *SubsumptionResult) int {
 		size   int
 	}
 	var flat []*nInfo
-	
+
 	now := time.Now()
 	totalBytes := 0
 	for i := range result.ActiveRegions {
@@ -103,7 +103,7 @@ func applyOOMProtection(brainRoot string, result *SubsumptionResult) int {
 				}
 			}
 			if size == 0 {
-				size = 50 
+				size = 50
 			}
 			totalBytes += size
 
@@ -143,15 +143,15 @@ func applyOOMProtection(brainRoot string, result *SubsumptionResult) int {
 			flat = append(flat, &nInfo{rIdx: i, nIdx: j, weight: effectiveWeight, size: size})
 		}
 	}
-	
+
 	if totalBytes <= 50000 {
 		return 0
 	}
-	
+
 	sort.Slice(flat, func(i, j int) bool {
 		return flat[i].weight < flat[j].weight // 낮은 weight 먼저 탈락
 	})
-	
+
 	dropped := 0
 	for _, info := range flat {
 		if totalBytes <= 50000 {

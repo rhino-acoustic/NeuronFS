@@ -73,8 +73,8 @@ func initBrain(root string) {
 	b.neuron("hippocampus/bomb_history", 1, "memory1")
 	b.neuron("hippocampus/error_patterns", 1, "memory1")
 	b.neuron("hippocampus/dopamine_log", 1, "memory1")
-	b.neuron("hippocampus/context_restore_from_previous", 30, "memory1")  // 대화 복원
-	b.neuron("hippocampus/user_correction_ground_truth", 30, "memory1")   // 사용자_표본_학습
+	b.neuron("hippocampus/context_restore_from_previous", 30, "memory1") // 대화 복원
+	b.neuron("hippocampus/user_correction_ground_truth", 30, "memory1")  // 사용자_표본_학습
 
 	// ━━━ SENSORS ━━━
 	fmt.Println("[4/7] sensors")
@@ -86,9 +86,9 @@ func initBrain(root string) {
 	b.neuron("sensors/design/glassmorphism_blur20", 15)
 	b.neuron("sensors/design/button_rounded_full", 15)
 	b.neuron("sensors/typography/font_suit_ko_instrument_en", 20)
-	b.neuron("sensors/brand/vegavery_run_premium_wellness", 30)    // 브랜드 정체성
-	b.neuron("sensors/brand/tone_premium_natural_luxury", 30)      // 톤앤매너
-	b.neuron("sensors/nas_brain/path_z_vol1_vgvr_brain_lw", 20)   // NAS BRAIN 경로
+	b.neuron("sensors/brand/vegavery_run_premium_wellness", 30) // 브랜드 정체성
+	b.neuron("sensors/brand/tone_premium_natural_luxury", 30)   // 톤앤매너
+	b.neuron("sensors/nas_brain/path_z_vol1_vgvr_brain_lw", 20) // NAS BRAIN 경로
 
 	// ━━━ CORTEX ━━━
 	fmt.Println("[5/7] cortex")
@@ -111,12 +111,12 @@ func initBrain(root string) {
 	b.neuron("cortex/backend/devops/multi_stage_build", 5)
 
 	// methodology (from global principles)
-	b.neuron("cortex/methodology/community_academic_search", 30)   // 커뮤니티_학계_검색
-	b.neuron("cortex/methodology/positive_negative_both", 30)      // 긍정_부정_양방향
-	b.neuron("cortex/methodology/two_persona_debate", 20)          // 두_페르소나_논쟁
-	b.neuron("cortex/methodology/third_party_audit", 20)           // 제3자_시선_감사
-	b.neuron("cortex/methodology/dictionary_based_matching", 20)   // 사전_기반_매칭
-	b.neuron("cortex/methodology/ask_only_when_necessary", 30)     // 필요한_경우만_질문
+	b.neuron("cortex/methodology/community_academic_search", 30) // 커뮤니티_학계_검색
+	b.neuron("cortex/methodology/positive_negative_both", 30)    // 긍정_부정_양방향
+	b.neuron("cortex/methodology/two_persona_debate", 20)        // 두_페르소나_논쟁
+	b.neuron("cortex/methodology/third_party_audit", 20)         // 제3자_시선_감사
+	b.neuron("cortex/methodology/dictionary_based_matching", 20) // 사전_기반_매칭
+	b.neuron("cortex/methodology/ask_only_when_necessary", 30)   // 필요한_경우만_질문
 
 	// NeuronFS meta-knowledge
 	b.neuron("cortex/neuronfs/axiom/folder_is_neuron", 99, "dopamine1")
@@ -213,18 +213,18 @@ func initBrain(root string) {
 	fmt.Println("[AXON] layered network")
 
 	// --- Cascade (top-down priority chain) ---
-	b.axon("brainstem/cascade_to_limbic.axon", "limbic")          // bomb이면 감정 차단
-	b.axon("limbic/cascade_from_brainstem.axon", "brainstem")     // 감정 전에 양심 체크
-	b.axon("limbic/cascade_to_hippocampus.axon", "hippocampus")   // 감정이 기억 트리거
-	b.axon("hippocampus/cascade_from_limbic.axon", "limbic")      // 기억 전에 감정 체크
-	b.axon("hippocampus/cascade_to_sensors.axon", "sensors")      // 기억이 환경 인식에 영향
-	b.axon("sensors/cascade_from_hippocampus.axon", "hippocampus")// 환경 전에 과거 패턴 체크
-	b.axon("sensors/cascade_to_cortex.axon", "cortex")            // 환경 제약이 지식 필터링
-	b.axon("cortex/cascade_from_sensors.axon", "sensors")         // 지식 적용 전에 환경 확인
-	b.axon("cortex/cascade_to_ego.axon", "ego")                   // 지식이 표현 방식 결정
-	b.axon("ego/cascade_from_cortex.axon", "cortex")              // 톤 결정 전에 지식 확인
-	b.axon("ego/cascade_to_prefrontal.axon", "prefrontal")        // 성향이 목표 해석에 영향
-	b.axon("prefrontal/cascade_from_ego.axon", "ego")             // 목표 전에 성향 확인
+	b.axon("brainstem/cascade_to_limbic.axon", "limbic")           // bomb이면 감정 차단
+	b.axon("limbic/cascade_from_brainstem.axon", "brainstem")      // 감정 전에 양심 체크
+	b.axon("limbic/cascade_to_hippocampus.axon", "hippocampus")    // 감정이 기억 트리거
+	b.axon("hippocampus/cascade_from_limbic.axon", "limbic")       // 기억 전에 감정 체크
+	b.axon("hippocampus/cascade_to_sensors.axon", "sensors")       // 기억이 환경 인식에 영향
+	b.axon("sensors/cascade_from_hippocampus.axon", "hippocampus") // 환경 전에 과거 패턴 체크
+	b.axon("sensors/cascade_to_cortex.axon", "cortex")             // 환경 제약이 지식 필터링
+	b.axon("cortex/cascade_from_sensors.axon", "sensors")          // 지식 적용 전에 환경 확인
+	b.axon("cortex/cascade_to_ego.axon", "ego")                    // 지식이 표현 방식 결정
+	b.axon("ego/cascade_from_cortex.axon", "cortex")               // 톤 결정 전에 지식 확인
+	b.axon("ego/cascade_to_prefrontal.axon", "prefrontal")         // 성향이 목표 해석에 영향
+	b.axon("prefrontal/cascade_from_ego.axon", "ego")              // 목표 전에 성향 확인
 
 	// --- Cross-links (shortcuts = small-world network) ---
 	b.axon("prefrontal/shortcut_to_cortex.axon", "cortex")       // 목표가 직접 지식 선택

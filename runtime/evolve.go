@@ -40,12 +40,12 @@ type groqMessage struct {
 }
 
 type groqRequest struct {
-	Model       string         `json:"model"`
-	Messages    []groqMessage  `json:"messages"`
-	Temperature float64        `json:"temperature"`
-	MaxTokens   int            `json:"max_tokens"`
-	TopP        float64        `json:"top_p"`
-	Stream      bool           `json:"stream"`
+	Model          string              `json:"model"`
+	Messages       []groqMessage       `json:"messages"`
+	Temperature    float64             `json:"temperature"`
+	MaxTokens      int                 `json:"max_tokens"`
+	TopP           float64             `json:"top_p"`
+	Stream         bool                `json:"stream"`
 	ResponseFormat *groqResponseFormat `json:"response_format,omitempty"`
 }
 
@@ -443,10 +443,10 @@ func callGroq(apiKey string, prompt string) (*evoResult, error) {
 			{Role: "system", Content: "당신은 NeuronFS 뇌의 '백혈구(자가면역 세포)'입니다. 사용자의 교정 로그와 에러 내역을 분석하여, 미래의 AI 에이전트들이 **같은 실수를 절대 반복하지 못하도록** 강력한 억제(Contra) 규칙을 만드십시오.\n\n**[Rule Writing Guidelines]**\n1. **파일명 (Filename):** 부정/금지형 명사로 10자 이내 작성 (예: `반복루프_금지.md`, `절대경로_의존X.md`)\n2. **종결어미:** \"~해야 합니다\", \"~하는 것이 좋습니다\" 금지. \"~~마라\", \"~~할 것\", \"~~금지\" 등 군더더기 없는 명령조(Imperative) 사용.\n3. **서문 금지:** \"알겠습니다\", \"다음은 규칙입니다\" 같은 응답 생성 절대 금지. 오직 Markdown 본문만 출력할 것.\n\n또한 기존 긍정형 뉴런을 부정형으로 전환할 경우, 내부 본문의 첫 문장에 금지의 이유(Rationale)를 단 한 줄의 강력한 메타포로 서술하십시오."},
 			{Role: "user", Content: prompt},
 		},
-		Temperature: EvolveTemp,
-		MaxTokens:   EvolveTokens,
-		TopP:        EvolveTopP,
-		Stream:      false,
+		Temperature:    EvolveTemp,
+		MaxTokens:      EvolveTokens,
+		TopP:           EvolveTopP,
+		Stream:         false,
 		ResponseFormat: &groqResponseFormat{Type: "json_object"},
 	}
 
@@ -687,10 +687,14 @@ func sendTelegramEvolve(brainRoot string, action evoAction) {
 			tgToken = strings.TrimSpace(string(b))
 		}
 	}
-	if tgToken == "" { return }
+	if tgToken == "" {
+		return
+	}
 
 	chatIdBytes, err := os.ReadFile(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".chat_id"))
-	if err != nil || len(chatIdBytes) == 0 { return }
+	if err != nil || len(chatIdBytes) == 0 {
+		return
+	}
 	chatId := strings.TrimSpace(string(chatIdBytes))
 
 	icon := actionIcon(action.Type)
@@ -701,7 +705,7 @@ func sendTelegramEvolve(brainRoot string, action evoAction) {
 
 	payload := map[string]string{
 		"chat_id": chatId,
-		"text": sb.String(),
+		"text":    sb.String(),
 	}
 	data, _ := json.Marshal(payload)
 

@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 )
+
 // growNeuron creates a new neuron folder with 1.neuron
 // If a similar neuron already exists (hybrid similarity >= MergeThreshold), fire that instead (consolidation)
 // Uses Cosine Bigram (60%) + Levenshtein (40%) instead of legacy Jaccard

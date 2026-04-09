@@ -32,8 +32,8 @@ func testHMACKey() []byte {
 
 func TestBuildChain_Basic(t *testing.T) {
 	dir := makeTestRegion(t, map[string]string{
-		"canon" + string(os.PathSeparator) + "1.neuron": "never_use_fallback counter=103",
-		"canon" + string(os.PathSeparator) + "2.neuron": "no_simulation counter=100",
+		"canon" + string(os.PathSeparator) + "1.neuron":    "never_use_fallback counter=103",
+		"canon" + string(os.PathSeparator) + "2.neuron":    "no_simulation counter=100",
 		"reflexes" + string(os.PathSeparator) + "1.neuron": "self_debug counter=100",
 	})
 

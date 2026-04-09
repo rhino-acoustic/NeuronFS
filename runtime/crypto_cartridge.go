@@ -40,7 +40,7 @@ func EncryptCartridge(plaintext []byte, dek []byte, outPath string) error {
 	return os.WriteFile(outPath, finalPayload, 0600)
 }
 
-// DecryptCartridgeToRAM loads a .jloot enc-zip, decrypts it using the 32-byte key, 
+// DecryptCartridgeToRAM loads a .jloot enc-zip, decrypts it using the 32-byte key,
 // and returns the raw ZIP bytes entirely in memory.
 func DecryptCartridgeToRAM(jlootPath string, key []byte) ([]byte, error) {
 	if len(key) != chacha20poly1305.KeySize {

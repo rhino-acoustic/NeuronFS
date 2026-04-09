@@ -83,18 +83,18 @@ var KoToEn = map[string]string{
 
 // RuneToKorean: 룬 → 한국어 번역 (SSOT)
 var RuneToKorean = map[string]string{
-	"禁": "절대 금지: ",  // 필수 부정 — ~하지 마라
-	"必": "반드시 ",      // 필수 긍정 — ~해라
-	"推": "추천: ",       // 권장 — ~하는 게 좋다
-	"要": "요구: ",       // 데이터/포맷 요구
-	"答": "답변: ",       // 톤/구조 강제
-	"想": "창의: ",       // 제한 해제, 아이디어
-	"索": "검색: ",       // 외부 참조 우선
-	"改": "개선: ",       // 리팩토링/최적화
-	"略": "생략: ",       // 부연 금지, 결과만
-	"參": "참조: ",       // 타 뉴런/문서 링크
-	"結": "결론: ",       // 요약/결론만 도출
-	"警": "경고: ",       // 주의 — ~하면 위험
+	"禁": "절대 금지: ", // 필수 부정 — ~하지 마라
+	"必": "반드시 ",    // 필수 긍정 — ~해라
+	"推": "추천: ",    // 권장 — ~하는 게 좋다
+	"要": "요구: ",    // 데이터/포맷 요구
+	"答": "답변: ",    // 톤/구조 강제
+	"想": "창의: ",    // 제한 해제, 아이디어
+	"索": "검색: ",    // 외부 참조 우선
+	"改": "개선: ",    // 리팩토링/최적화
+	"略": "생략: ",    // 부연 금지, 결과만
+	"參": "참조: ",    // 타 뉴런/문서 링크
+	"結": "결론: ",    // 요약/결론만 도출
+	"警": "경고: ",    // 주의 — ~하면 위험
 }
 
 // RuneChars: ContainsAny용 12룬 문자열
@@ -165,11 +165,11 @@ var RegionKo = map[string]string{
 
 // ━━━ File Extensions (SSOT) ━━━
 const (
-	ExtNeuron     = ".neuron"
-	ExtDormant    = ".dormant"
-	ExtAxon       = ".axon"
-	ExtContra     = ".contra"
-	ExtGoal       = ".goal"
+	ExtNeuron  = ".neuron"
+	ExtDormant = ".dormant"
+	ExtAxon    = ".axon"
+	ExtContra  = ".contra"
+	ExtGoal    = ".goal"
 )
 
 // ━━━ Special Paths (SSOT) ━━━
@@ -186,4 +186,3 @@ const (
 	DirArchive      = ".archive"
 	DirSandbox      = "_sandbox"
 )
-

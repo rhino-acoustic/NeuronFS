@@ -52,7 +52,7 @@ func handleRetrieve(brainRoot string) http.HandlerFunc {
 					traceContent, err := os.ReadFile(traceFiles[0])
 					if err == nil {
 						content = string(traceContent)
-						// svParseFrontmatter parses weight. 
+						// svParseFrontmatter parses weight.
 						// To parse cognitive_tier, we do a simple string search.
 						lines := strings.Split(content, "\n")
 						for _, l := range lines {

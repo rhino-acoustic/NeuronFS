@@ -49,13 +49,13 @@ var (
 
 // validRegions are the 7 brain regions in NeuronFS.
 var validRegions = map[string]bool{
-	"brainstem":    true,
-	"limbic":       true,
-	"hippocampus":  true,
-	"sensors":      true,
-	"cortex":       true,
-	"ego":          true,
-	"prefrontal":   true,
+	"brainstem":   true,
+	"limbic":      true,
+	"hippocampus": true,
+	"sensors":     true,
+	"cortex":      true,
+	"ego":         true,
+	"prefrontal":  true,
 }
 
 // globalPolicy holds the loaded policy (module-level singleton).

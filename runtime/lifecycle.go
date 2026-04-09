@@ -16,14 +16,14 @@ package main
 //   main.go         → counterRegex, regionPriority (package vars)
 
 import (
-"fmt"
-"os"
-"path/filepath"
-"regexp"
-"sort"
-"strconv"
-"strings"
-"time"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 )
 
 // pruneWeakNeurons marks 推-prefix neurons with activation ≤1 and 3+ days inactive as dormant.

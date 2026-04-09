@@ -11,11 +11,11 @@ import (
 // runStats prints visibility and fragmentation metrics
 func runStats(brainRoot string) {
 	fmt.Println("=== NeuronFS Diagnostic Stats ===")
-	
+
 	brain := scanBrain(brainRoot)
 	var allNeurons []Neuron
 	dormantCount := 0
-	
+
 	for _, region := range brain.Regions {
 		for _, n := range region.Neurons {
 			allNeurons = append(allNeurons, n)
@@ -24,14 +24,14 @@ func runStats(brainRoot string) {
 			}
 		}
 	}
-	
+
 	// Top 5 heaviest (most bytes)
 	sort.Slice(allNeurons, func(i, j int) bool {
-		// Mock physical size check by sorting path length + counter logically 
+		// Mock physical size check by sorting path length + counter logically
 		// Real implementation would read file info. We just check Counter here for Top 5 violations as an MVP.
 		return allNeurons[i].Counter > allNeurons[j].Counter
 	})
-	
+
 	fmt.Println("[Top 5 Violations (Highest Action Count)]")
 	limit := 5
 	if len(allNeurons) < 5 {
@@ -42,7 +42,7 @@ func runStats(brainRoot string) {
 	}
 
 	fmt.Printf("\n[Dormant Neurons]: %d found.\n", dormantCount)
-	
+
 	// Fragmentation check in hippocampus
 	hippocampusCount := 0
 	for _, n := range allNeurons {

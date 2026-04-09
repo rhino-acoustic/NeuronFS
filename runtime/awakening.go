@@ -40,10 +40,10 @@ type AwakeningConfig struct {
 type colorMode int
 
 const (
-	colorNone     colorMode = 0 // NO_COLOR or TERM=dumb
-	colorBasic    colorMode = 1 // 8-color ANSI
-	color256      colorMode = 2 // 256-color
-	colorTrueC    colorMode = 3 // Truecolor (24-bit)
+	colorNone  colorMode = 0 // NO_COLOR or TERM=dumb
+	colorBasic colorMode = 1 // 8-color ANSI
+	color256   colorMode = 2 // 256-color
+	colorTrueC colorMode = 3 // Truecolor (24-bit)
 )
 
 // detectColorMode probes environment variables to determine ANSI color capability.

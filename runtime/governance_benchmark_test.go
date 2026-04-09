@@ -28,8 +28,8 @@ import (
 // ALLOW = no bomb, all regions active
 
 type cascadeScenario struct {
-	name       string
-	bombRegion string // which region gets the bomb ("" = no bomb)
+	name          string
+	bombRegion    string   // which region gets the bomb ("" = no bomb)
 	expectBlocked []string // regions expected to be blocked
 	expectActive  []string // regions expected to remain active
 }
@@ -933,8 +933,8 @@ func TestDCI_NoHardcodedMagicNumbers(t *testing.T) {
 
 	// 금지 패턴: 이 정규식이 매칭되면 매직넘버가 하드코딩된 것
 	type forbidden struct {
-		pattern string // regex
-		constName string
+		pattern     string // regex
+		constName   string
 		description string
 	}
 
@@ -942,14 +942,14 @@ func TestDCI_NoHardcodedMagicNumbers(t *testing.T) {
 		{
 			// 0.6이 코드에 직접 사용 (주석 제외)
 			// 허용: MergeThreshold, 주석, fmt 출력
-			pattern: `(?m)^[^/]*[><=!]=?\s*0\.6[^0-9]`,
-			constName: "MergeThreshold",
+			pattern:     `(?m)^[^/]*[><=!]=?\s*0\.6[^0-9]`,
+			constName:   "MergeThreshold",
 			description: "similarity threshold 0.6 하드코딩",
 		},
 		{
 			// maxEpisodes (소문자, 로컬 변수)
-			pattern: `(?m)maxEpisodes`,
-			constName: "MaxEpisodes",
+			pattern:     `(?m)maxEpisodes`,
+			constName:   "MaxEpisodes",
 			description: "maxEpisodes 소문자 사용 (MaxEpisodes 사용하라)",
 		},
 	}

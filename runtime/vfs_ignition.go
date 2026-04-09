@@ -17,7 +17,7 @@ import (
 // It uses a fixed deterministic salt because Brainwallet IS the key.
 func DeriveMasterKey(mnemonic string) []byte {
 	salt := []byte("Jloot.NeuronFS.Brainwallet.Salt.V1")
-	
+
 	// Argon2id parameters (moderately secure for CLI fast-boot)
 	time := uint32(1)
 	memory := uint32(64 * 1024)
@@ -40,7 +40,7 @@ func StartIgnition(jlootPath string) []byte {
 	}
 
 	fmt.Printf("\n[🔒 Jloot OS] Sealed memory cartridge detected: %s\n", jlootPath)
-	
+
 	fd := int(os.Stdin.Fd())
 	if !term.IsTerminal(fd) {
 		fmt.Println("[!] Warning: Non-interactive terminal cannot supply Brainwallet passphrase securely.")
@@ -58,7 +58,7 @@ func StartIgnition(jlootPath string) []byte {
 	}
 
 	fmt.Println("\n[⏳] Deriving synaptic master key (Argon2)...")
-	
+
 	mnemonic := string(passwordBytes)
 	key := DeriveMasterKey(mnemonic)
 

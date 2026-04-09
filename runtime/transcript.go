@@ -363,8 +363,12 @@ func digestTranscripts(brainRoot string) int {
 		fireNeuron(brainRoot, "limbic/긴급_사용자답답함감지")
 		// Auto-switch emotion to urgent (intensity scales with frustration)
 		intensity := 0.5
-		if frustrationCount >= 5 { intensity = 0.7 }
-		if frustrationCount >= 8 { intensity = 0.9 }
+		if frustrationCount >= 5 {
+			intensity = 0.7
+		}
+		if frustrationCount >= 8 {
+			intensity = 0.9
+		}
 		autoSetEmotion(brainRoot, "긴급", intensity)
 		fmt.Printf("[LIMBIC] 😤 답답함 %d회 감지 → 긴급 모드 (intensity: %.1f)\n", frustrationCount, intensity)
 	}
@@ -418,12 +422,12 @@ func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 
 	// 현재 상태 기록
 	hb := map[string]interface{}{
-		"last_cycle":    time.Now().Format(time.RFC3339),
-		"neurons":       result.TotalNeurons,
-		"activation":    result.TotalCounter,
-		"regions":       len(result.ActiveRegions),
-		"prev_neurons":  prevNeurons,
-		"growth_delta":  result.TotalNeurons - prevNeurons,
+		"last_cycle":   time.Now().Format(time.RFC3339),
+		"neurons":      result.TotalNeurons,
+		"activation":   result.TotalCounter,
+		"regions":      len(result.ActiveRegions),
+		"prev_neurons": prevNeurons,
+		"growth_delta": result.TotalNeurons - prevNeurons,
 	}
 	data, _ := json.MarshalIndent(hb, "", "  ")
 	os.WriteFile(heartbeatPath, data, 0644)
@@ -463,8 +467,6 @@ func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 // DEDUP: 중복 뉴런 폴더 병합 (카운터 합산)
 // ━━━ Deduplication → lifecycle.go ━━━
 // MOVED: deduplicateNeurons
-
-
 
 // ━━━ REST API + Rollback → api_server.go ━━━
 // MOVED: startAPI, rollbackAll

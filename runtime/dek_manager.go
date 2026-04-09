@@ -36,8 +36,8 @@ type KeyMetadata struct {
 // KeyStore는 DEK 키 저장소를 관리한다.
 type KeyStore struct {
 	mu       sync.RWMutex
-	storeDir string        // .neuronfs/keys/
-	active   *KeyMetadata  // 현재 활성 키 메타데이터
+	storeDir string       // .neuronfs/keys/
+	active   *KeyMetadata // 현재 활성 키 메타데이터
 }
 
 // keyEnvelope는 키를 디스크에 저장할 때 사용하는 구조체이다.

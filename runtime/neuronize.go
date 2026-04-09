@@ -27,11 +27,11 @@ import (
 
 // ─── Global API Usage Counters (atomic, goroutine-safe) ───
 
-var groqCallCount  int64 // 총 호출 수
-var groqTokensIn   int64 // 입력 토큰
-var groqTokensOut  int64 // 출력 토큰
-var groqErrorCount int64 // 에러 수
-var groqLastCall   atomic.Value // string: 마지막 호출 시각
+var groqCallCount int64       // 총 호출 수
+var groqTokensIn int64        // 입력 토큰
+var groqTokensOut int64       // 출력 토큰
+var groqErrorCount int64      // 에러 수
+var groqLastCall atomic.Value // string: 마지막 호출 시각
 
 // ─── Neuronize System Prompt (ENFP 프롬프트 엔지니어링 가이드 적용) ───
 
@@ -629,12 +629,12 @@ func GetGroqUsage() map[string]interface{} {
 		lastCall = v.(string)
 	}
 	return map[string]interface{}{
-		"calls":     atomic.LoadInt64(&groqCallCount),
-		"tokens_in": atomic.LoadInt64(&groqTokensIn),
+		"calls":      atomic.LoadInt64(&groqCallCount),
+		"tokens_in":  atomic.LoadInt64(&groqTokensIn),
 		"tokens_out": atomic.LoadInt64(&groqTokensOut),
-		"errors":    atomic.LoadInt64(&groqErrorCount),
-		"last_call": lastCall,
-		"model":     "llama-3.3-70b-versatile",
+		"errors":     atomic.LoadInt64(&groqErrorCount),
+		"last_call":  lastCall,
+		"model":      "llama-3.3-70b-versatile",
 	}
 }
 

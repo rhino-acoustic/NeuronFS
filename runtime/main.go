@@ -102,7 +102,7 @@ func main() {
 	if _, err := os.Stat(jlootCartridge); os.IsNotExist(err) {
 		jlootCartridge = "" // Run purely UpperDir if no cartridge
 	}
-	
+
 	if err := MountCartridge(jlootCartridge, brainRoot); err != nil {
 		fmt.Printf("\033[31m[FATAL] VFS Hardware Error: %v\033[0m\n", err)
 		os.Exit(1)
@@ -267,10 +267,10 @@ func main() {
 			fmt.Println("[FATAL] Usage: neuronfs <brain> --symlink <global_path>")
 			os.Exit(1)
 		}
-		
+
 		sharedDir := filepath.Join(brainRoot, ".neuronfs", "shared")
 		os.MkdirAll(filepath.Dir(sharedDir), 0755)
-		
+
 		absTarget, _ := filepath.Abs(targetDir)
 		err := os.Symlink(absTarget, sharedDir)
 		if err != nil {
@@ -285,7 +285,6 @@ func main() {
 		}
 	}
 }
-
 
 // ─── Region priority (hardcoded — no folder prefix numbers) ───
 // ━━━ Brain structs/scanner → brain.go ━━━

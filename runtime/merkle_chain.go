@@ -19,16 +19,16 @@ import (
 // ============================================================================
 
 var (
-	errEmptyRegion   = errors.New("merkle: region path is empty")
-	errChainBroken   = errors.New("merkle: chain integrity violation detected")
-	errNoFiles       = errors.New("merkle: no neuron files found in region")
+	errEmptyRegion = errors.New("merkle: region path is empty")
+	errChainBroken = errors.New("merkle: chain integrity violation detected")
+	errNoFiles     = errors.New("merkle: no neuron files found in region")
 )
 
 // MerkleNode represents a single file's hash entry in the chain.
 type MerkleNode struct {
-	Path     string `json:"path"`      // Relative file path
-	Hash     string `json:"hash"`      // HMAC-SHA256 hex digest
-	Index    int    `json:"index"`     // Position in chain
+	Path  string `json:"path"`  // Relative file path
+	Hash  string `json:"hash"`  // HMAC-SHA256 hex digest
+	Index int    `json:"index"` // Position in chain
 }
 
 // MerkleChain holds the full integrity chain for a brain region.
@@ -36,7 +36,7 @@ type MerkleChain struct {
 	Region   string       `json:"region"`
 	Nodes    []MerkleNode `json:"nodes"`
 	RootHash string       `json:"root_hash"` // Final chained hash
-	HMAC_Key []byte       `json:"-"`          // Secret key (not serialized)
+	HMAC_Key []byte       `json:"-"`         // Secret key (not serialized)
 }
 
 // BuildChain constructs a Merkle Hash Chain for all .neuron files in a region.

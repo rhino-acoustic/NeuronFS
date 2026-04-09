@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 )
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func printDiag(brain Brain, result SubsumptionResult) {
 	fmt.Println("═══ NeuronFS v4.0 — Folder-as-Neuron Engine ═══")
@@ -65,11 +66,13 @@ func printDiag(brain Brain, result SubsumptionResult) {
 			}
 		}
 	}
-	
+
 	fmt.Printf("\n  [Shadow Context: %d active working files]\n", len(shadowFiles))
 	limit := 5
-	if len(shadowFiles) < 5 { limit = len(shadowFiles) }
-	for i:=0; i<limit; i++ {
+	if len(shadowFiles) < 5 {
+		limit = len(shadowFiles)
+	}
+	for i := 0; i < limit; i++ {
 		fmt.Printf("    * %s\n", strings.TrimSpace(shadowFiles[i]))
 	}
 	if len(shadowFiles) > 5 {
@@ -206,7 +209,6 @@ func getNonFlagArg(n int) string {
 // MOVED: tokenize, stem, jaccardSimilarity, hybridSimilarity,
 //        cosineTokens, levenshteinDistance, extractPrefix,
 //        newtonSqrt, maxInt, minInt
-
 
 // ━━━ Neuron CRUD → neuron_crud.go ━━━
 // ━━━ Injection Pipeline → inject.go ━━━

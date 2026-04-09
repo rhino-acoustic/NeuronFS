@@ -68,7 +68,7 @@ func vfsGlob(pattern string) ([]string, error) {
 	if GlobalVFS == nil {
 		panic("GlobalVFS is nil.")
 	}
-	
+
 	// Convert to VFS-relative path
 	relPattern := vfsRelativize(pattern)
 
@@ -100,7 +100,7 @@ func vfsWalkDir(root string, fn fs.WalkDirFunc) error {
 		panic("GlobalVFS is nil.")
 	}
 	relRoot := vfsRelativize(root)
-	
+
 	return fs.WalkDir(GlobalVFS, relRoot, func(path string, d fs.DirEntry, err error) error {
 		// Convert VFS-relative back to absolute OS-native for legacy callers
 		nativePath := filepath.Join(GlobalVFSRoot, filepath.FromSlash(path))
