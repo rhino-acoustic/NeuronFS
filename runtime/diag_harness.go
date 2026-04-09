@@ -8,13 +8,9 @@ import (
 	"time"
 )
 
-func diagPathExists(p string) bool {
-	_, err := os.Stat(p)
-	return err == nil
-}
-
 // RunHarness checks the structural integrity of the NeuronFS brain
 // and logs failures into the agent inbox.
+// Uses svPathExists from supervisor.go (single source of truth for path checking).
 func RunHarness(brainRoot string, logger func(string)) {
 	if logger != nil {
 		logger("🔍 harness 실행 (Go native)")
@@ -27,7 +23,7 @@ func RunHarness(brainRoot string, logger func(string)) {
 	essentialRegions := RegionOrder
 	for _, r := range essentialRegions {
 		p := filepath.Join(brainRoot, r)
-		if !diagPathExists(p) {
+		if !svPathExists(p) {
 			fails = append(fails, fmt.Sprintf("영역 누락: %s", r))
 		} else {
 			passes++
@@ -38,7 +34,7 @@ func RunHarness(brainRoot string, logger func(string)) {
 	bsPath := filepath.Join(brainRoot, "brainstem")
 	for _, hanja := range []string{"必", "禁"} {
 		hp := filepath.Join(bsPath, hanja)
-		if !diagPathExists(hp) {
+		if !svPathExists(hp) {
 			fails = append(fails, fmt.Sprintf("brainstem 한자 폴더 누락: %s", hanja))
 		} else {
 			entries, _ := os.ReadDir(hp)
