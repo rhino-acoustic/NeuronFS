@@ -1,0 +1,5 @@
+### ⚡ 핵심지침 TOP 5
+{{- range .Top5Rules}}
+{{.Index}}. **{{.Label}}**{{if .Desc}}: {{.Desc}}{{end}} [{{.RegionTag}}](s:{{.Score}})
+{{- end}}
+

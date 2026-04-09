@@ -140,7 +140,6 @@ func formatSubsumption(sb *strings.Builder) {
 
 func formatTop5CoreRules(sb *strings.Builder, result SubsumptionResult, now time.Time) map[string]bool {
 	// ━━━ 핵심지침 TOP 5: 전체 영역 종합 스코어 (Lost-in-the-Middle 대응) ━━━
-	sb.WriteString("### ⚡ 핵심지침 TOP 5\n")
 
 	type scoredNeuron struct {
 		neuron Neuron
@@ -211,6 +210,7 @@ func formatTop5CoreRules(sb *strings.Builder, result SubsumptionResult, now time
 	idx := 0
 	seenTop := make(map[string]bool)
 	top5Sentences := make(map[string]bool)
+	var rules []RuleItem
 	for _, c := range candidates {
 		if idx >= 5 {
 			break
@@ -243,8 +243,10 @@ func formatTop5CoreRules(sb *strings.Builder, result SubsumptionResult, now time
 		leafSummary = strings.TrimSpace(strings.ReplaceAll(leafSummary, "_", " "))
 		leafSummary = strings.ReplaceAll(leafSummary, " >", ">")
 		leafSummary = strings.ReplaceAll(leafSummary, "> ", ">")
+
+		desc := ""
 		if c.neuron.Description != "" {
-			desc := c.neuron.Description
+			desc = c.neuron.Description
 			if i := strings.Index(desc, "c:\\"); i >= 0 {
 				desc = strings.TrimSpace(desc[:i])
 			}
@@ -254,16 +256,16 @@ func formatTop5CoreRules(sb *strings.Builder, result SubsumptionResult, now time
 			if i := strings.Index(desc, "경로:"); i >= 0 {
 				desc = strings.TrimSpace(desc[:i])
 			}
-			if desc != "" {
-				sb.WriteString(fmt.Sprintf("%d. **%s**: %s [%s](s:%.0f)\n", idx, leafSummary, desc, regionTag, c.score))
-			} else {
-				sb.WriteString(fmt.Sprintf("%d. **%s** [%s](s:%.0f)\n", idx, leafSummary, regionTag, c.score))
-			}
-		} else {
-			sb.WriteString(fmt.Sprintf("%d. **%s** [%s](s:%.0f)\n", idx, leafSummary, regionTag, c.score))
 		}
+		rules = append(rules, RuleItem{
+			Index:     idx,
+			Label:     leafSummary,
+			Desc:      desc,
+			RegionTag: regionTag,
+			Score:     fmt.Sprintf("%.0f", c.score),
+		})
 	}
-	sb.WriteString("\n")
+	sb.WriteString(renderSection("section_top5.tmpl", BootstrapSection{Top5Rules: rules}))
 	return top5Sentences
 }
 

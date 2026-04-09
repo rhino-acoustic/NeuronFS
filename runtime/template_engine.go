@@ -30,6 +30,18 @@ type BootstrapSection struct {
 
 	// CortexBans — cortex 금지 1-liner
 	CortexBans string
+
+	// Top5Rules — 핵심지침 TOP 5 항목
+	Top5Rules []RuleItem
+}
+
+// RuleItem represents a single rendered rule in the TOP 5 section.
+type RuleItem struct {
+	Index     int
+	Label     string
+	Desc      string
+	RegionTag string
+	Score     string
 }
 
 var bootstrapTemplates *template.Template
