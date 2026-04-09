@@ -19,7 +19,7 @@ func main() {
 	brainRoot := findBrainRoot()
 	if brainRoot == "" {
 		fmt.Println("[FATAL] brain directory not found")
-		fmt.Println("Usage: neuronfs <brain_path> [--emit|--inject|--watch|--dashboard|--grow|--fire|--signal|--decay|--api]")
+		fmt.Println("Usage: neuronfs <brain_path> [--emit|--inject|--watch|--dashboard|--grow|--fire|--signal|--decay|--api|--harness]")
 		os.Exit(1)
 	}
 
@@ -94,6 +94,8 @@ func main() {
 			quietMode = true
 		case "--awakening":
 			forceAwakening = true
+		case "--harness":
+			mode = "harness"
 		}
 	}
 
@@ -146,6 +148,8 @@ func main() {
 	case "inject":
 		processInbox(brainRoot)
 		writeAllTiers(brainRoot)
+	case "harness":
+		RunHarness(brainRoot, func(msg string) { fmt.Println(msg) })
 	case "watch":
 		fmt.Println("[NeuronFS] Watch mode — monitoring brain/ for changes...")
 		runWatch(brainRoot)
