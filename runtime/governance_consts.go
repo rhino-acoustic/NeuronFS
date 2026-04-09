@@ -33,3 +33,36 @@ const (
 	// DefaultEmotionIntensity: limbic 감정 강도 기본값 (0이면 이 값 사용)
 	DefaultEmotionIntensity = 0.6
 )
+
+// ━━━ Rune System (한자 마이크로옵코드) ━━━
+// 12개 룬 = NeuronFS의 의미 압축 체계
+// 디스크에는 한자 1글자, AI 주입 시 한국어로 펼침
+// 이 map이 유일한 정의 (SSOT) — 다른 곳에서 정의 금지
+
+// RuneToKorean: 룬 → 한국어 번역 (SSOT)
+var RuneToKorean = map[string]string{
+	"禁": "절대 금지: ",  // 필수 부정 — ~하지 마라
+	"必": "반드시 ",      // 필수 긍정 — ~해라
+	"推": "추천: ",       // 권장 — ~하는 게 좋다
+	"要": "요구: ",       // 데이터/포맷 요구
+	"答": "답변: ",       // 톤/구조 강제
+	"想": "창의: ",       // 제한 해제, 아이디어
+	"索": "검색: ",       // 외부 참조 우선
+	"改": "개선: ",       // 리팩토링/최적화
+	"略": "생략: ",       // 부연 금지, 결과만
+	"參": "참조: ",       // 타 뉴런/문서 링크
+	"結": "결론: ",       // 요약/결론만 도출
+	"警": "경고: ",       // 주의 — ~하면 위험
+}
+
+// RuneChars: ContainsAny용 12룬 문자열
+const RuneChars = "禁必推要答想索改略參結警"
+
+// RuneKeys: 정규화용 룬 목록 (normalizeHanjaPath에서 사용)
+func RuneKeys() []string {
+	keys := make([]string, 0, len(RuneToKorean))
+	for k := range RuneToKorean {
+		keys = append(keys, k)
+	}
+	return keys
+}

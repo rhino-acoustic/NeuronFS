@@ -476,25 +476,12 @@ func splitNeuronPath(p string) []string {
 	return result
 }
 
-// hanjaToKorean 한자 마이크로옵코드 → 한국어 자연어 변환
-// 디스크에는 한자 1글자로 압축, AI 주입 시 한국어로 풀어서 전달
-var hanjaToKorean = map[string]string{
-	"禁": "절대 금지: ",  // 필수 부정 — ~하지 마라
-	"必": "반드시 ",  // 필수 긍정 — ~해라
-	"推": "추천: ",   // 권장 — ~하는 게 좋다
-	"要": "요구: ",   // 데이터/포맷 요구
-	"答": "답변: ",   // 톤/구조 강제
-	"想": "창의: ",   // 제한 해제, 아이디어
-	"索": "검색: ",   // 외부 참조 우선
-	"改": "개선: ",   // 리팩토링/최적화
-	"略": "생략: ",   // 부연 금지, 결과만
-	"參": "참조: ",   // 타 뉴런/문서 링크
-	"結": "결론: ",   // 요약/결론만 도출
-	"警": "경고: ",   // 주의 — ~하면 위험
-}
+// hanjaToKorean: DEPRECATED — RuneToKorean (governance_consts.go) 사용
+// 하위 호환을 위해 alias 유지
+var hanjaToKorean = RuneToKorean
 
-// hanjaChars: ContainsAny용 12한자 문자열
-const hanjaChars = "禁必推要答想索改略參結警"
+// hanjaChars: DEPRECATED — RuneChars (governance_consts.go) 사용
+const hanjaChars = RuneChars
 
 // pathToSentence converts path to readable sentence
 // "frontend\css\glass_blur20" → "frontend > css > glass blur20"

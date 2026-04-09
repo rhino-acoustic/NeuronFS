@@ -973,3 +973,60 @@ func TestDCI_NoHardcodedMagicNumbers(t *testing.T) {
 		}
 	}
 }
+
+// ─── DCI-09: 룬(Rune) SSOT 검증 ───
+// governance_consts.go의 RuneToKorean이 유일한 정의인지 확인.
+// 다른 파일에 중복 정의가 있으면 실패.
+
+func TestDCI_RuneSSoT(t *testing.T) {
+	// 1. RuneToKorean은 정확히 12개
+	t.Run("DCI-09a: 12 runes defined", func(t *testing.T) {
+		if len(RuneToKorean) != 12 {
+			t.Errorf("RuneToKorean has %d entries, expected 12", len(RuneToKorean))
+		}
+	})
+
+	// 2. RuneChars와 RuneToKorean 일치
+	t.Run("DCI-09b: RuneChars matches RuneToKorean", func(t *testing.T) {
+		for _, r := range RuneChars {
+			if _, ok := RuneToKorean[string(r)]; !ok {
+				t.Errorf("RuneChars contains '%c' but RuneToKorean does not", r)
+			}
+		}
+		if len([]rune(RuneChars)) != len(RuneToKorean) {
+			t.Errorf("RuneChars length %d != RuneToKorean length %d",
+				len([]rune(RuneChars)), len(RuneToKorean))
+		}
+	})
+
+	// 3. RuneKeys()와 RuneToKorean 일치
+	t.Run("DCI-09c: RuneKeys matches RuneToKorean", func(t *testing.T) {
+		keys := RuneKeys()
+		if len(keys) != len(RuneToKorean) {
+			t.Errorf("RuneKeys() returned %d, expected %d", len(keys), len(RuneToKorean))
+		}
+	})
+
+	// 4. hanjaToKorean alias가 RuneToKorean과 동일 객체
+	t.Run("DCI-09d: hanjaToKorean is RuneToKorean alias", func(t *testing.T) {
+		for k, v := range RuneToKorean {
+			if hv, ok := hanjaToKorean[k]; !ok || hv != v {
+				t.Errorf("hanjaToKorean[%s] mismatch: got %q, want %q", k, hv, v)
+			}
+		}
+	})
+
+	// 5. 소스코드에 중복 룬 정의가 없는지 감찰
+	t.Run("DCI-09e: no duplicate rune definitions", func(t *testing.T) {
+		// emit_helpers.go에 map[string]string{ "禁" 패턴이 있으면 중복
+		content, err := os.ReadFile("emit_helpers.go")
+		if err != nil {
+			t.Skip("emit_helpers.go not found")
+		}
+		re := regexp.MustCompile(`"禁":\s*"`)
+		matches := re.FindAllString(string(content), -1)
+		if len(matches) > 0 {
+			t.Errorf("emit_helpers.go still has inline rune definition — use RuneToKorean alias")
+		}
+	})
+}

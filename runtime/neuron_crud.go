@@ -302,10 +302,10 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 // ━━━ Lifecycle (prune/decay/episode) → lifecycle.go ━━━
 // MOVED: pruneWeakNeurons, runDecay, logEpisode, MaxEpisodes
 
-// normalizeHanjaPath splits hanja-prefixed names into parent/child structure.
+// normalizeHanjaPath splits rune-prefixed names into parent/child structure.
 // e.g. "cortex/dev/禁하드코딩" → "cortex/dev/禁/하드코딩"
-// Hanja opcodes must be single-character structural containers (Path=Sentence).
-var hanjaOpcodes = []string{"必", "禁", "推", "核心", "絶対", "軽量", "單一", "過多", "自動"}
+// Rune opcodes are single-character structural containers (Path=Sentence).
+// Rune list is defined in governance_consts.go (SSOT).
 
 func normalizeHanjaPath(p string) string {
 	sep := string(filepath.Separator)
@@ -313,7 +313,7 @@ func normalizeHanjaPath(p string) string {
 	var result []string
 	for _, part := range parts {
 		normalized := false
-		for _, h := range hanjaOpcodes {
+		for _, h := range RuneKeys() {
 			if strings.HasPrefix(part, h) && len(part) > len(h) {
 				// Split: 禁하드코딩 → 禁, 하드코딩
 				result = append(result, h, part[len(h):])
