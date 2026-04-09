@@ -402,7 +402,7 @@ func svHarness(script, brainRoot string) {
 	var passes int
 
 	// ── Check 1: Essential regions exist ──
-	essentialRegions := []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"}
+	essentialRegions := RegionOrder
 	for _, r := range essentialRegions {
 		p := filepath.Join(brainRoot, r)
 		if !svPathExists(p) {

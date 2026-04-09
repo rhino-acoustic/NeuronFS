@@ -82,7 +82,7 @@ func emitIndex(brain Brain, result SubsumptionResult) string {
 		sb.WriteString(fmt.Sprintf("<summary>🆕 신규 (probation) — %d neurons (%dd window)</summary>\n\n", len(spotlight), spotlightDays))
 
 		// Group by region in P0→P6 order
-		regionOrder := []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"}
+		regionOrder := RegionOrder
 		grouped := make(map[string][]neuronWithRegion)
 		for _, rn := range spotlight {
 			grouped[rn.region] = append(grouped[rn.region], rn)

@@ -32,7 +32,7 @@ func pruneWeakNeurons(brainRoot string) {
 	cutoff := time.Now().AddDate(0, 0, -PruneDays)
 	pruned := 0
 
-	for _, regionName := range []string{"cortex", "ego", "prefrontal", "limbic", "hippocampus", "sensors"} {
+	for _, regionName := range RegionOrder[1:] { // brainstem(P0) 제외
 		regionPath := filepath.Join(brainRoot, regionName)
 		if _, err := os.Stat(regionPath); os.IsNotExist(err) {
 			continue
@@ -110,7 +110,7 @@ func runDecay(brainRoot string, days int) {
 	total := 0
 
 	// brainstem 제외: P0 거버넌스 규칙(禁/必)은 영구 — decay 대상이 아님
-	for _, regionName := range []string{"limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"} {
+	for _, regionName := range RegionOrder[1:] { // brainstem(P0) 영구 제외
 		regionPath := filepath.Join(brainRoot, regionName)
 		if _, err := os.Stat(regionPath); os.IsNotExist(err) {
 			continue

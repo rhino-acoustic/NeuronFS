@@ -66,3 +66,20 @@ func RuneKeys() []string {
 	}
 	return keys
 }
+
+// ━━━ Region Names (SSOT) ━━━
+// 7개 영역의 정렬된 이름 목록
+// P0(brainstem) → P6(prefrontal) 순서 보장
+// 코드에서 []string{"brainstem", "limbic", ...} 대신 이 함수를 사용하라
+
+// RegionOrder: priority 순서대로 정렬된 영역 이름 (SSOT)
+var RegionOrder = []string{
+	"brainstem",   // P0
+	"limbic",      // P1
+	"hippocampus", // P2
+	"sensors",     // P3
+	"cortex",      // P4
+	"ego",         // P5
+	"prefrontal",  // P6
+}
+

@@ -458,7 +458,7 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		hmacKey := loadOrCreateHMACKey(brainRoot)
 		targetRegion := r.URL.Query().Get("region")
 
-		regions := []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"}
+		regions := RegionOrder
 		if targetRegion != "" {
 			if _, ok := regionPriority[targetRegion]; !ok {
 				http.Error(w, `{"error":"invalid region"}`, 400)
