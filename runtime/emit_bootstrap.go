@@ -384,13 +384,13 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 					effectiveIntensity -= elapsed * state.DecayRate
 				}
 			}
-			if effectiveIntensity > 0.1 {
+			if effectiveIntensity > EmoIntensMin {
 				if tier, ok := emotionBehaviors[emo]; ok {
 					var behavior string
 					switch {
-					case effectiveIntensity >= 0.7:
+					case effectiveIntensity >= EmoIntensHigh:
 						behavior = tier.High
-					case effectiveIntensity >= 0.4:
+					case effectiveIntensity >= EmoIntensMid:
 						behavior = tier.Mid
 					default:
 						behavior = tier.Low
@@ -399,7 +399,7 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 				}
 			}
 			// Auto-reset if decayed below threshold
-			if effectiveIntensity <= 0.1 {
+			if effectiveIntensity <= EmoIntensMin {
 				os.WriteFile(stateFile, []byte(`{"emotion":"neutral","intensity":0}`), 0644)
 			}
 		}

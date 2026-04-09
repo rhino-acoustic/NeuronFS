@@ -33,6 +33,19 @@ const (
 	// DefaultEmotionIntensity: limbic 감정 강도 기본값 (0이면 이 값 사용)
 	DefaultEmotionIntensity = 0.6
 
+	// EmoIntensHigh: 강한 감정 발현 임계값
+	EmoIntensHigh = 0.7
+	// EmoIntensMid: 중간 감정 발현 임계값
+	EmoIntensMid = 0.4
+	// EmoIntensMin: 감정 발현 최소 임계값 (이하일 경우 neutral로 리셋)
+	EmoIntensMin = 0.1
+
+	// ━━━ AI Evolution Parameters ━━━
+
+	EvolveTemp   = 0.3
+	EvolveTopP   = 0.9
+	EvolveTokens = 4096
+
 	// ━━━ Emission ━━━
 
 	// EmitThreshold: region listing에 표시되는 최소 counter 값
