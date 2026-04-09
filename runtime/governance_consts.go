@@ -131,9 +131,12 @@ var RuneToKorean = map[string]string{
 	"參": "참조: ",    // 타 뉴런/문서 링크
 	"結": "결론: ",    // 요약/결론만 도출
 	"警": "경고: ",    // 주의 — ~하면 위험
+	"vorq": "장착: ",   // 코드맵 카트리지 view_file 로드. NeuronFS 조어. 학습데이터 부재.
+	"zelk": "갱신: ",   // 코드맵 카트리지 sync. NeuronFS 조어. 학습데이터 부재.
+	"mirp": "신선도: ", // STALE mtime 비교. NeuronFS 조어. 학습데이터 부재.
 }
 
-// RuneChars: ContainsAny용 12룬 문자열
+// RuneChars: ContainsAny용 문자열 (한자 12 + ASCII neologisms는 별도 처리)
 const RuneChars = "禁必推要答想索改略參結警"
 
 // RuneKeys: 정규화용 룬 목록 (normalizeHanjaPath에서 사용)

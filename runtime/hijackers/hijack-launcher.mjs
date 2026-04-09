@@ -122,18 +122,45 @@ function _tgApiCall(apiMethod, payload) {
     });
 }
 
+// HTML 파싱 에러 시 parse_mode 제거 후 플레인 텍스트 폴백
+async function _tgSafeSend(apiMethod, payload) {
+    const resp = await _tgApiCall(apiMethod, payload);
+    if (resp && !resp.ok && resp.description && resp.description.toLowerCase().includes('parse')) {
+        tgLog(`⚠️ HTML parse error → plaintext fallback: ${resp.description}`);
+        const fallback = { ...payload };
+        delete fallback.parse_mode;
+        return _tgApiCall(apiMethod, fallback);
+    }
+    return resp;
+}
+
 function _formatTgMsg(r, label, rawText) {
     const esc = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const truncated = rawText.length > 3900 ? rawText.substring(0, 3900) + '\n[...]' : rawText;
-    if (r === 'USER') return `👤 ${label}${esc(truncated)}`;
+    
+    // Markdown to Telegram HTML converter
+    const md2html = (txt) => {
+        let t = esc(txt);
+        t = t.replace(/```(?:[a-zA-Z0-9_\-]+)?\n([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+        t = t.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+        t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+        t = t.replace(/\*\*([^\*]+)\*\*/g, '<b>$1</b>');
+        return t;
+    };
+    
+    const formatted = md2html(truncated);
+
+    if (r === 'USER') return `👤 ${label}${formatted}`;
     if (r === 'THINK') return `🧠 ${label}\n<pre><code class="language-text">${esc(truncated)}</code></pre>`;
     if (r === 'CMD') return `⚡ ${label}\n<pre><code class="language-powershell">${esc(truncated)}</code></pre>`;
-    if (r === 'NEURON') return `🧬 ${label}${esc(truncated)}`;
-    return `💬 ${label}${esc(truncated)}`;
+    if (r === 'NEURON') return `🧬 ${label}${formatted}`;
+    return `💬 ${label}${formatted}`;
 }
 
 const _tgStartTime = Date.now();
 const TG_WARMUP_MS = 15000; // 15초 워밍업 (재시작 시 기존 DOM 재캡처 스킵)
+let _tgEditTimer = null;
+let _tgEditPending = false;
 
 async function _sendToTelegramInner(text, proj, role) {
     if (Date.now() - _tgStartTime < TG_WARMUP_MS) { tgLog('SKIP: warmup'); return; }
@@ -163,18 +190,28 @@ async function _sendToTelegramInner(text, proj, role) {
         && (_lastTg.rawText.length + text.length) < 3900) {
         _lastTg.rawText += '\n' + text;
         _lastTg.ts = now;
-        const merged = _formatTgMsg(r, label, _lastTg.rawText);
-        const resp = await _tgApiCall('editMessageText', {
-            chat_id: TG_CHAT_ID, message_id: _lastTg.msgId,
-            text: merged, parse_mode: 'HTML'
-        });
-        tgLog(`EDIT [${proj}] ${r}: merged ${_lastTg.rawText.length}ch`);
+        _tgEditPending = true;
+
+        // 2초 Throttling (API Rate Limit 429회피 및 텍스트 증발 방지)
+        if (!_tgEditTimer) {
+            _tgEditTimer = setTimeout(async () => {
+                _tgEditTimer = null;
+                if (!_tgEditPending) return;
+                _tgEditPending = false;
+                const merged = _formatTgMsg(r, label, _lastTg.rawText);
+                await _tgSafeSend('editMessageText', {
+                    chat_id: TG_CHAT_ID, message_id: _lastTg.msgId,
+                    text: merged, parse_mode: 'HTML'
+                });
+                tgLog(`EDIT [${proj}] ${r}: merged ${_lastTg.rawText.length}ch (Throttled)`);
+            }, 2000);
+        }
         return;
     }
     
     // 새 메시지
     const msg = _formatTgMsg(r, label, text);
-    const resp = await _tgApiCall('sendMessage', { chat_id: TG_CHAT_ID, text: msg, parse_mode: 'HTML' });
+    const resp = await _tgSafeSend('sendMessage', { chat_id: TG_CHAT_ID, text: msg, parse_mode: 'HTML' });
     if (resp?.ok && resp.result?.message_id) {
         _lastTg = { msgId: resp.result.message_id, role: r, rawText: text, label, ts: now };
     }
@@ -356,26 +393,39 @@ function appendTranscript(entry, projectLabel) {
 // v4-hook.cjs의 [Last Session Memory] 시스템이 이 파일을 읽음
 // ============================================================
 const TRANSCRIPT_JSONL = path.join(BRAIN_DIR, '_agents', 'global_inbox', 'transcript_latest.jsonl');
+const RECENT_CHAT_NEURON = path.join(BRAIN_DIR, 'hippocampus', 'session_log', '절대_최근대화_전사기록_동기화.neuron');
 const MAX_TRANSCRIPT_LINES = 20;
 
 function updateSessionTranscript(role, text, cascadeId) {
     try {
-        const entry = JSON.stringify({
+        const entryObj = {
             ts: new Date().toISOString(),
             role: role,
             text: (text || '').substring(0, 2000),
             cascade: (cascadeId || '').substring(0, 12)
-        });
+        };
+        const entry = JSON.stringify(entryObj);
 
-        // Append
+        // 1. JSONL Append & Rolling
         fs.appendFileSync(TRANSCRIPT_JSONL, entry + '\n', 'utf8');
-
-        // Rolling: 20행 초과 시 오래된 것 삭제
-        const lines = fs.readFileSync(TRANSCRIPT_JSONL, 'utf8').trim().split('\n').filter(l => l.trim());
+        let lines = fs.readFileSync(TRANSCRIPT_JSONL, 'utf8').trim().split('\n').filter(l => l.trim());
         if (lines.length > MAX_TRANSCRIPT_LINES) {
-            const trimmed = lines.slice(-MAX_TRANSCRIPT_LINES).join('\n') + '\n';
-            fs.writeFileSync(TRANSCRIPT_JSONL, trimmed, 'utf8');
+            lines = lines.slice(-MAX_TRANSCRIPT_LINES);
+            fs.writeFileSync(TRANSCRIPT_JSONL, lines.join('\n') + '\n', 'utf8');
         }
+
+        // 2. 단기기억(Hippocampus) 뉴런 파각 (Hooking)
+        // 사용자가 "대화를 기억해" 라고 요구했으므로, 뇌의 메인 규칙망(_rules.md)에 즉각 마운트되도록 강제 주입.
+        let neuronDoc = "# 최근 대화 콘텍스트 주입 (실시간 동기화)\n\n이전 대화 맥락을 파악하고 대답을 연계할 것:\n\n";
+        for (const l of lines) {
+            try {
+                const p = JSON.parse(l);
+                const time = p.ts.split('T')[1].substring(0, 8);
+                neuronDoc += `[${time}] ${p.role.toUpperCase()}: ${p.text.substring(0, 400).replace(/\\n/g, ' ')}\n`;
+            } catch(e) {}
+        }
+        fs.writeFileSync(RECENT_CHAT_NEURON, neuronDoc, 'utf8');
+
     } catch (e) {
         // 쓰기 실패 무시
     }

@@ -197,6 +197,18 @@ func emitRegionRules(region Region, brainOpt ...Brain) string {
 		}
 	}
 
+	// ━━━ Codemap Auto-Injection (방안 E: 하이브리드 하네스 강화) ━━━
+	// AI가 코드 수정 시 관련 코드맵을 반드시 참조하도록 구조적으로 강제
+	codemapEntries := collectCodemapPaths(region.Path)
+	if len(codemapEntries) > 0 {
+		sb.WriteString("## 🗺️ vorq cartridge (코드 수정 전 必vorq)\n")
+		sb.WriteString("vorq=view_file로 .neuron 읽기 | zelk=작업 후 .neuron 갱신 | mirp=STALE이면 즉시 zelk\n\n")
+		for _, entry := range codemapEntries {
+			sb.WriteString(entry + "\n")
+		}
+		sb.WriteString("\n")
+	}
+
 	// Build tree from neuron paths
 	root := &treeNode{name: region.Name, children: make(map[string]*treeNode)}
 	for _, n := range region.Neurons {
@@ -475,8 +487,6 @@ func splitNeuronPath(p string) []string {
 	return result
 }
 
-
-
 // pathToSentence converts path to readable sentence
 // "frontend\css\glass_blur20" → "frontend > css > glass blur20"
 // 한자 prefix는 한국어로 자동 변환
@@ -605,4 +615,91 @@ func axonBoostNeurons(brain Brain, currentRegion Region) []Neuron {
 		boosted = boosted[:3]
 	}
 	return boosted
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Codemap Path Collector (방안 E)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// collectCodemapPaths scans a region for _codemap directories and returns
+// formatted path + summary entries for auto-injection into _rules.md.
+// Includes freshness validation: if a .neuron file has a "source:" field,
+// the source file's mtime is compared to the cartridge's mtime.
+// Stale cartridges are marked with ⚠️ STALE to structurally force AI to update.
+func collectCodemapPaths(regionPath string) []string {
+	var entries []string
+
+	// Recursive finder for _codemap directories
+	filepath.WalkDir(regionPath, func(path string, d os.DirEntry, err error) error {
+		if err != nil || !d.IsDir() {
+			return nil
+		}
+		name := d.Name()
+		if strings.HasPrefix(name, ".") {
+			return filepath.SkipDir
+		}
+		if strings.HasPrefix(name, "_") && name != "_codemap" {
+			return filepath.SkipDir
+		}
+
+		if name == "_codemap" {
+			filepath.WalkDir(path, func(subPath string, subD os.DirEntry, subErr error) error {
+				if subErr != nil || !subD.IsDir() || subPath == path {
+					return nil
+				}
+
+				relPath, _ := filepath.Rel(regionPath, subPath)
+
+				neuronFiles, _ := filepath.Glob(filepath.Join(subPath, "*.neuron"))
+				summary := ""
+				staleTag := ""
+
+				if len(neuronFiles) > 0 {
+					content, readErr := os.ReadFile(neuronFiles[0])
+					if readErr == nil {
+						neuronInfo, _ := os.Stat(neuronFiles[0])
+						lines := strings.Split(strings.TrimSpace(string(content)), "\n")
+
+						for _, line := range lines {
+							line = strings.TrimSpace(line)
+							// Strip BOM
+							line = strings.TrimPrefix(line, "\xEF\xBB\xBF")
+							line = strings.TrimPrefix(line, "\uFEFF")
+
+							// source: field → freshness check
+							if strings.HasPrefix(strings.ToLower(line), "source:") {
+								srcPath := strings.TrimSpace(strings.TrimPrefix(line, "source:"))
+								srcPath = strings.TrimSpace(strings.TrimPrefix(srcPath, "Source:"))
+								if srcInfo, srcErr := os.Stat(srcPath); srcErr == nil {
+									if neuronInfo != nil && srcInfo.ModTime().After(neuronInfo.ModTime()) {
+										staleTag = " ⚠️ STALE(카트리지 갱신 필요)"
+									}
+								}
+								continue
+							}
+
+							// First non-empty, non-header, non-source line = summary
+							if summary == "" && line != "" && !strings.HasPrefix(line, "#") {
+								if len(line) > 80 {
+									line = line[:80] + "..."
+								}
+								summary = line
+							}
+						}
+					}
+				}
+
+				if summary != "" {
+					entries = append(entries, fmt.Sprintf("- `%s` — %s%s", relPath, summary, staleTag))
+				} else {
+					entries = append(entries, fmt.Sprintf("- `%s`%s", relPath, staleTag))
+				}
+				return nil
+			})
+			return filepath.SkipDir
+		}
+		return nil
+	})
+
+	return entries
 }
