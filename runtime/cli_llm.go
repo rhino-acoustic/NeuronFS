@@ -1,15 +1,3 @@
-// neuronize.go — Groq 기반 자동 부정형 뉴런 생성 + 극성 전환 (Polarity Shift)
-//
-// 두 가지 파이프라인:
-//   1. --neuronize: corrections 로그/에피소드 → Groq → contra 뉴런 자동 생성
-//   2. --polarize:  기존 긍정형 뉴런 스캔 → 부정형 전환 제안/실행
-//
-// Usage:
-//   neuronfs <brain_path> --neuronize           — Groq 기반 contra 뉴런 자동 생성
-//   neuronfs <brain_path> --neuronize --dry-run — 제안만 (실행 안 함)
-//   neuronfs <brain_path> --polarize            — 긍정형→부정형 전환 실행
-//   neuronfs <brain_path> --polarize --dry-run  — 전환 대상만 리스트
-
 package main
 
 import (
@@ -18,60 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 )
-
-// ─── Neuronize System Prompt (ENFP 프롬프트 엔지니어링 가이드 적용) ───
-
-const neuronizeSystemPrompt = `당신은 NeuronFS 뇌의 '백혈구(자가면역 세포)'입니다. 사용자의 교정 로그와 에러 내역을 분석하여, 미래의 AI 에이전트들이 **같은 실수를 절대 반복하지 못하도록** 강력한 억제(Contra) 규칙을 만드십시오.
-
-**[Rule Writing Guidelines]**
-1. **파일명 (Filename):** 순수 한국어로 10자 이내 금지형 명사 작성 (예: 반복루프_금지, 절대경로_의존금지, 시뮬레이션_금지). 한자(禁/必/推) 사용 절대 금지.
-2. **종결어미:** "~해야 합니다", "~하는 것이 좋습니다" 금지. "~~마라", "~~할 것", "~~금지" 등 군더더기 없는 명령조(Imperative) 사용.
-3. **서문 금지:** "알겠습니다", "다음은 규칙입니다" 같은 응답 생성 절대 금지. 오직 JSON만 출력할 것.
-4. **이유(Rationale):** 각 규칙의 첫 문장에 금지의 이유를 단 한 줄의 강력한 메타포로 서술할 것.
-
-**[Output Format — JSON]**
-{
-  "contras": [
-    {
-      "name": "시뮬레이션_금지",
-      "region": "cortex",
-      "category": "quality",
-      "rationale": "시뮬레이션은 뇌의 기억을 오염시키는 환각이다. 실제 실행 결과만 기억할 것.",
-      "source_error": "빌드 결과를 시뮬레이션으로 통과 처리됨"
-    }
-  ]
-}
-
-오직 JSON만 출력하라. Markdown 금지. 서문 금지. 해설 금지.`
-
-// ─── Polarize System Prompt ───
-
-const polarizeSystemPrompt = `당신은 NeuronFS 뇌의 극성 전환(Polarity Shift) 엔진입니다. 긍정형 뉴런 목록을 받아, 각각을 부정/억제형(Contra)으로 전환하는 규칙을 생성합니다.
-
-**[전환 원칙]**
-- "use_X" → "禁X_의존" 또는 "X_남용금지"
-- "always_Y" → "Y만_고집금지" 
-- 영어 긍정형 → 한국어 부정형 (네이티브 한국어 사용)
-- 전환 시 원래 뉴런의 의도를 왜곡하지 마라. 과잉 적용 방지용 억제 규칙을 만들어라.
-
-**[Output Format — JSON]**
-{
-  "shifts": [
-    {
-      "original_path": "cortex/frontend/use_fast_routing",
-      "new_name": "禁클라측_라우팅의존",
-      "new_region": "cortex",
-      "new_category": "frontend",
-      "rationale": "클라이언트 사이드 라우팅은 뇌의 시냅스 응답성을 떨어트린다. 오직 서버 사이드/정적 라우팅만 허용한다."
-    }
-  ]
-}
-
-오직 JSON만 출력하라.`
 
 // ─── runNeuronize: corrections/episodes → Groq → contra neurons ───
 
@@ -88,10 +25,8 @@ func runNeuronize(brainRoot string, dryRun bool) {
 		fmt.Printf("%s  ⚠️  DRY RUN — 제안만, 실행 안 함%s\n", ansiYellow, ansiReset)
 	}
 
-	// 1. Collect correction sources
 	var corrections []string
 
-	// Source A: corrections_history.jsonl (persistent, not cleared by --watch)
 	historyPath := filepath.Join(brainRoot, "_inbox", "corrections_history.jsonl")
 	if data, err := os.ReadFile(historyPath); err == nil && len(data) > 0 {
 		for _, line := range strings.Split(string(data), "\n") {
@@ -101,7 +36,7 @@ func runNeuronize(brainRoot string, dryRun bool) {
 			}
 		}
 	}
-	// Fallback: corrections.jsonl (may be empty if --watch already processed)
+	
 	correctionsPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
 	if data, err := os.ReadFile(correctionsPath); err == nil && len(data) > 0 {
 		for _, line := range strings.Split(string(data), "\n") {
@@ -112,7 +47,6 @@ func runNeuronize(brainRoot string, dryRun bool) {
 		}
 	}
 
-	// Source B: hippocampus episode logs (errors/corrections only)
 	episodes := collectEpisodes(brainRoot)
 	errorKeywords := []string{"ERROR", "FAIL", "TRAUMA", "ROLLBACK", "BLOCKED", "SECURITY", "차단"}
 	for _, ep := range episodes {
@@ -124,7 +58,6 @@ func runNeuronize(brainRoot string, dryRun bool) {
 		}
 	}
 
-	// Source C: agent inbox crash alerts
 	inboxDir := filepath.Join(brainRoot, "_agents", "bot1", "inbox")
 	if entries, err := os.ReadDir(inboxDir); err == nil {
 		for _, e := range entries {
@@ -144,13 +77,11 @@ func runNeuronize(brainRoot string, dryRun bool) {
 
 	fmt.Printf("  📝 교정 소스 수집: %d건\n", len(corrections))
 
-	// 2. Build prompt for Groq
 	var sb strings.Builder
 	sb.WriteString("다음은 NeuronFS 시스템의 최근 교정 로그 및 에러 기록입니다.\n")
 	sb.WriteString("이 로그들을 분석하여 '같은 실수를 방지하기 위한 contra(억제) 뉴런'을 생성하십시오.\n\n")
 	sb.WriteString("## 교정 로그\n```\n")
 
-	// Limit to last 30 entries to fit context
 	start := 0
 	if len(corrections) > 30 {
 		start = len(corrections) - 30
@@ -163,8 +94,6 @@ func runNeuronize(brainRoot string, dryRun bool) {
 	}
 	sb.WriteString("```\n\n")
 
-	// Add current brain state for context (avoid duplicates)
-	// 토큰 절약: 전체 뉴런 대신 카운터 상위 50개만 전송
 	brain := scanBrain(brainRoot)
 	type scoredNeuron struct {
 		path    string
@@ -179,11 +108,7 @@ func runNeuronize(brainRoot string, dryRun bool) {
 			})
 		}
 	}
-	// 카운터 내림차순 정렬
-	sort.Slice(allNeurons, func(i, j int) bool {
-		return allNeurons[i].counter > allNeurons[j].counter
-	})
-	// 상위 50개만 전송
+	
 	limit := 50
 	if len(allNeurons) < limit {
 		limit = len(allNeurons)
@@ -194,7 +119,6 @@ func runNeuronize(brainRoot string, dryRun bool) {
 	}
 	sb.WriteString("\n위 기존 뉴런과 겹치지 않는 새로운 contra 규칙만 생성하라. 최대 5개.\n")
 
-	// 3. Call Groq
 	fmt.Printf("  🌐 Groq API 호출 중 (llama-3.3-70b-versatile)...\n")
 	startTime := time.Now()
 
@@ -220,7 +144,6 @@ func runNeuronize(brainRoot string, dryRun bool) {
 	elapsed := time.Since(startTime)
 	fmt.Printf("  ✅ 응답 수신 (%s)\n\n", elapsed.Round(time.Millisecond))
 
-	// 4. Parse response
 	type contraEntry struct {
 		Name        string `json:"name"`
 		Region      string `json:"region"`
@@ -234,7 +157,6 @@ func runNeuronize(brainRoot string, dryRun bool) {
 
 	var result neuronizeResult
 	if err := json.Unmarshal([]byte(respBody), &result); err != nil {
-		// Try to extract JSON
 		if idx := strings.Index(respBody, "{"); idx >= 0 {
 			cleaned := respBody[idx:]
 			if lastIdx := strings.LastIndex(cleaned, "}"); lastIdx >= 0 {
@@ -249,7 +171,6 @@ func runNeuronize(brainRoot string, dryRun bool) {
 		return
 	}
 
-	// 5. Display
 	fmt.Printf("╔══════════════════════════════════════╗\n")
 	fmt.Printf("║   🧬 AUTO-NEURONIZE RESULTS         ║\n")
 	fmt.Printf("╚══════════════════════════════════════╝\n\n")
@@ -264,7 +185,6 @@ func runNeuronize(brainRoot string, dryRun bool) {
 		fmt.Println()
 	}
 
-	// 6. Execute (if not dry run)
 	if dryRun {
 		fmt.Printf("%s  ⚠️  DRY RUN — 위 contra 뉴런은 생성되지 않았습니다.%s\n", ansiYellow, ansiReset)
 		logEpisode(brainRoot, "NEURONIZE:DRY", fmt.Sprintf("%d contras suggested", len(result.Contras)))
@@ -273,7 +193,6 @@ func runNeuronize(brainRoot string, dryRun bool) {
 
 	created := 0
 	for _, c := range result.Contras {
-		// Validate region
 		region := c.Region
 		if region == "" {
 			region = "cortex"
@@ -281,18 +200,15 @@ func runNeuronize(brainRoot string, dryRun bool) {
 		if _, ok := regionPriority[region]; !ok {
 			region = "cortex"
 		}
-		// Block brainstem/limbic
 		if region == "brainstem" || region == "limbic" {
 			fmt.Printf("  🛡️ Blocked: %s (P0/P1 보호)\n", c.Name)
 			continue
 		}
 
-		// Build path
 		category := c.Category
 		if category == "" {
 			category = "contra"
 		}
-		// Sanitize name for filesystem
 		safeName := sanitizeNeuronName(c.Name)
 		if safeName == "" {
 			continue
@@ -300,7 +216,6 @@ func runNeuronize(brainRoot string, dryRun bool) {
 
 		neuronPath := fmt.Sprintf("%s/%s/%s", region, category, safeName)
 
-		// Check if already exists
 		fullPath := filepath.Join(brainRoot, strings.ReplaceAll(neuronPath, "/", string(filepath.Separator)))
 		if _, err := os.Stat(fullPath); err == nil {
 			fmt.Printf("  ⚠️  이미 존재: %s\n", neuronPath)
@@ -308,13 +223,11 @@ func runNeuronize(brainRoot string, dryRun bool) {
 			continue
 		}
 
-		// Grow the contra neuron
 		if err := growNeuron(brainRoot, neuronPath); err != nil {
 			fmt.Printf("  ❌ 생성 실패: %s — %v\n", neuronPath, err)
 			continue
 		}
 
-		// Write rationale to the neuron folder
 		if c.Rationale != "" {
 			rationalePath := filepath.Join(fullPath, "rationale.md")
 			content := fmt.Sprintf("# %s\n\n%s\n\n---\n원인: %s\n생성: %s (Auto-Neuronize)\n",
@@ -322,7 +235,6 @@ func runNeuronize(brainRoot string, dryRun bool) {
 			os.WriteFile(rationalePath, []byte(content), 0600)
 		}
 
-		// Add .contra file (inhibitory signal)
 		contraFile := filepath.Join(fullPath, "1.contra")
 		os.WriteFile(contraFile, []byte{}, 0600)
 
@@ -348,9 +260,8 @@ func runPolarize(brainRoot string, dryRun bool) {
 
 	brain := scanBrain(brainRoot)
 
-	// Scan for positive-pattern neurons (candidates for polarity shift)
-	positivePatterns := regexp.MustCompile(`(?i)^(use_|always_|prefer_|enable_|ensure_|must_|keep_|apply_)`)
-	englishName := regexp.MustCompile(`^[a-zA-Z_]+$`)
+	positivePatterns := regexp.MustCompile("(?i)^(use_|always_|prefer_|enable_|ensure_|must_|keep_|apply_)")
+	englishName := regexp.MustCompile("^[a-zA-Z_]+$")
 
 	type polarizeCandidate struct {
 		Region  string
@@ -362,13 +273,11 @@ func runPolarize(brainRoot string, dryRun bool) {
 	var candidates []polarizeCandidate
 
 	for _, region := range brain.Regions {
-		// Skip protected regions
 		if region.Name == "brainstem" || region.Name == "limbic" {
 			continue
 		}
 
 		for _, n := range region.Neurons {
-			// Only target English-named positive neurons
 			if !englishName.MatchString(n.Name) {
 				continue
 			}
@@ -390,7 +299,6 @@ func runPolarize(brainRoot string, dryRun bool) {
 
 	fmt.Printf("  🔍 전환 대상 발견: %d개\n\n", len(candidates))
 
-	// If we have GROQ_API_KEY, use Groq for smart conversion; otherwise use rules
 	apiKey := os.Getenv("GROQ_API_KEY")
 
 	type shiftEntry struct {
@@ -407,7 +315,6 @@ func runPolarize(brainRoot string, dryRun bool) {
 	var shifts []shiftEntry
 
 	if apiKey != "" && len(candidates) > 0 {
-		// Groq-powered smart conversion
 		var sb strings.Builder
 		sb.WriteString("다음 긍정형 뉴런들을 부정/억제형(Contra)으로 전환하십시오.\n\n")
 		sb.WriteString("## 전환 대상\n")
@@ -441,7 +348,6 @@ func runPolarize(brainRoot string, dryRun bool) {
 		}
 	}
 
-	// Fallback: rule-based conversion if Groq didn't work
 	if len(shifts) == 0 {
 		for _, c := range candidates {
 			newName := ruleBasedPolarize(c.Name)
@@ -463,7 +369,6 @@ func runPolarize(brainRoot string, dryRun bool) {
 		}
 	}
 
-	// Display
 	fmt.Printf("╔══════════════════════════════════════╗\n")
 	fmt.Printf("║   🔄 POLARITY SHIFT RESULTS          ║\n")
 	fmt.Printf("╚══════════════════════════════════════╝\n\n")
@@ -484,7 +389,6 @@ func runPolarize(brainRoot string, dryRun bool) {
 		return
 	}
 
-	// Execute shifts
 	executed := 0
 	for _, s := range shifts {
 		safeName := sanitizeNeuronName(s.NewName)
@@ -503,20 +407,17 @@ func runPolarize(brainRoot string, dryRun bool) {
 
 		newPath := fmt.Sprintf("%s/%s/%s", region, category, safeName)
 
-		// Don't overwrite existing
 		fullPath := filepath.Join(brainRoot, strings.ReplaceAll(newPath, "/", string(filepath.Separator)))
 		if _, err := os.Stat(fullPath); err == nil {
 			fmt.Printf("  ⚠️  이미 존재: %s\n", newPath)
 			continue
 		}
 
-		// Create the contra neuron
 		if err := growNeuron(brainRoot, newPath); err != nil {
 			fmt.Printf("  ❌ 생성 실패: %s — %v\n", newPath, err)
 			continue
 		}
 
-		// Write rationale
 		if s.Rationale != "" {
 			rationalePath := filepath.Join(fullPath, "rationale.md")
 			content := fmt.Sprintf("# %s\n\n%s\n\n---\n원본: %s\n생성: %s (Polarity Shift)\n",
@@ -524,7 +425,6 @@ func runPolarize(brainRoot string, dryRun bool) {
 			os.WriteFile(rationalePath, []byte(content), 0600)
 		}
 
-		// Add .contra file
 		contraFile := filepath.Join(fullPath, "1.contra")
 		os.WriteFile(contraFile, []byte{}, 0600)
 
@@ -540,58 +440,163 @@ func runPolarize(brainRoot string, dryRun bool) {
 	}
 }
 
-// ─── callGroqRaw: returns raw response content string ───
+// ─── Main evolve function ───
 
-func ruleBasedPolarize(name string) string {
-	name = strings.ToLower(name)
-
-	replacements := map[string]string{
-		"use_":    "禁",
-		"always_": "禁무조건_",
-		"prefer_": "禁",
-		"enable_": "禁",
-		"ensure_": "禁강제_",
-		"must_":   "禁필수_",
-		"keep_":   "禁유지강제_",
-		"apply_":  "禁적용강제_",
+func runEvolve(brainRoot string, dryRun bool) {
+	apiKey := os.Getenv("GROQ_API_KEY")
+	if apiKey == "" {
+		fmt.Println("[FATAL] GROQ_API_KEY not set")
+		fmt.Println("  Set: $env:GROQ_API_KEY = '<your-groq-api-key>'")
+		os.Exit(1)
 	}
 
-	for prefix, replacement := range replacements {
-		if strings.HasPrefix(name, prefix) {
-			rest := strings.TrimPrefix(name, prefix)
-			return replacement + rest + "_의존"
+	fmt.Println("═══ NeuronFS Evolve Engine ═══")
+	fmt.Println("  🧬 Groq-powered autonomous brain evolution")
+	if dryRun {
+		fmt.Println("  ⚠️  DRY RUN — suggestions only, no execution")
+	}
+	fmt.Println()
+
+	processInbox(brainRoot)
+
+	episodes := collectEpisodes(brainRoot)
+	fmt.Printf("  📝 Episodes collected: %d\n", len(episodes))
+
+	brain := scanBrain(brainRoot)
+	result := runSubsumption(brain)
+	brainSummary := buildBrainSummary(brain, result)
+	fmt.Printf("  🧠 Brain: %d neurons, activation: %d\n", result.TotalNeurons, result.TotalCounter)
+
+	prompt := buildEvolvePrompt(episodes, brainSummary, result)
+
+	fmt.Println("\n  🌐 Calling Groq API (llama-3.3-70b-versatile)...")
+	startTime := time.Now()
+
+	evoResp, err := callGroq(apiKey, prompt)
+	if err != nil {
+		fmt.Printf("[ERROR] Groq API: %v\n", err)
+		os.Exit(1)
+	}
+
+	elapsed := time.Since(startTime)
+	fmt.Printf("  ✅ Response received in %s\n\n", elapsed.Round(time.Millisecond))
+
+	fmt.Println("╔══════════════════════════════════════╗")
+	fmt.Println("║   🧬 EVOLUTION ANALYSIS              ║")
+	fmt.Println("╚══════════════════════════════════════╝")
+	fmt.Println()
+	fmt.Printf("  📋 Summary: %s\n\n", evoResp.Summary)
+
+	if len(evoResp.Insights) > 0 {
+		fmt.Println("  💡 Insights:")
+		for _, insight := range evoResp.Insights {
+			fmt.Printf("    • %s\n", insight)
+		}
+		fmt.Println()
+	}
+
+	if len(evoResp.Actions) == 0 {
+		fmt.Println("  ✅ No actions recommended — brain is in good shape.")
+		logEpisode(brainRoot, "EVOLVE", "No actions needed. Brain healthy.")
+		return
+	}
+
+	fmt.Printf("  🎯 Actions (%d):\n", len(evoResp.Actions))
+	for i, action := range evoResp.Actions {
+		icon := actionIcon(action.Type)
+		fmt.Printf("    %d. %s [%s] %s\n", i+1, icon, action.Type, action.Path)
+		if action.Signal != "" {
+			fmt.Printf("       Signal: %s\n", action.Signal)
+		}
+		fmt.Printf("       Reason: %s\n", action.Reason)
+	}
+	fmt.Println()
+
+	if dryRun {
+		fmt.Println("  ⚠️  DRY RUN — no actions executed.")
+		fmt.Println("  Run without --dry-run to apply these changes.")
+		logEpisode(brainRoot, "EVOLVE:DRY", fmt.Sprintf("%d actions suggested", len(evoResp.Actions)))
+		return
+	}
+
+	fmt.Println("  ⚡ Executing actions...")
+	executed := 0
+	skipped := 0
+
+	for _, action := range evoResp.Actions {
+		switch action.Type {
+		case "grow":
+			if strings.HasPrefix(action.Path, "brainstem") || strings.HasPrefix(action.Path, "limbic") {
+				fmt.Printf("    🛡️ Blocked: %s (P0/P1 보호 — grow 금지)\n", action.Path)
+				skipped++
+				continue
+			}
+			err := growNeuron(brainRoot, action.Path)
+			if err != nil {
+				fmt.Printf("    ❌ grow %s: %v\n", action.Path, err)
+				skipped++
+			} else {
+				executed++
+				go sendTelegramEvolve(brainRoot, action)
+			}
+
+		case "fire":
+			fireNeuron(brainRoot, action.Path)
+			executed++
+
+		case "signal":
+			if action.Signal == "" {
+				action.Signal = "dopamine"
+			}
+			err := signalNeuron(brainRoot, action.Path, action.Signal)
+			if err != nil {
+				fmt.Printf("    ❌ signal %s %s: %v\n", action.Signal, action.Path, err)
+				skipped++
+			} else {
+				executed++
+			}
+
+		case "prune", "decay":
+			fullPath := filepath.Join(brainRoot, strings.ReplaceAll(action.Path, "/", string(filepath.Separator)))
+			if _, err := os.Stat(fullPath); err == nil {
+				dormantFile := filepath.Join(fullPath, "evolve.dormant")
+				os.WriteFile(dormantFile, []byte(fmt.Sprintf("Evolved: %s\nReason: %s\n",
+					time.Now().Format("2006-01-02"), action.Reason)), 0600)
+				fmt.Printf("    💤 Pruned: %s\n", action.Path)
+				executed++
+			} else {
+				fmt.Printf("    ❌ prune %s: not found\n", action.Path)
+				skipped++
+			}
+
+		default:
+			fmt.Printf("    ⚠️  Unknown action type: %s\n", action.Type)
+			skipped++
 		}
 	}
 
-	return "禁" + name
-}
+	fmt.Printf("\n  📊 Result: %d executed, %d skipped\n", executed, skipped)
 
-// ─── sanitizeNeuronName: filesystem-safe neuron name ───
-
-func sanitizeNeuronName(name string) string {
-	name = strings.TrimSpace(name)
-	name = strings.ReplaceAll(name, " ", "_")
-	name = strings.Map(func(r rune) rune {
-		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') ||
-			r == '_' || r == '-' ||
-			(r >= 0xAC00 && r <= 0xD7AF) || // 한글 음절
-			(r >= 0x3131 && r <= 0x318E) || // 한글 자모
-			(r >= 0x4E00 && r <= 0x9FFF) { // 한자 CJK (禁 등)
-			return r
+	if executed > 0 || len(evoResp.Actions) == 0 {
+		signalDir := filepath.Join(brainRoot, "hippocampus", "_signals")
+		if entries, err := os.ReadDir(signalDir); err == nil {
+			cleared := 0
+			for _, e := range entries {
+				if strings.HasSuffix(e.Name(), ".json") {
+					os.Remove(filepath.Join(signalDir, e.Name()))
+					cleared++
+				}
+			}
+			if cleared > 0 {
+				fmt.Printf("  🧹 Cleared %d processed signals\n", cleared)
+			}
 		}
-		return '_'
-	}, name)
-
-	// Remove consecutive underscores
-	for strings.Contains(name, "__") {
-		name = strings.ReplaceAll(name, "__", "_")
 	}
-	name = strings.Trim(name, "_")
 
-	// Rune-based truncation to prevent UTF-8 mid-character split
-	runes := []rune(name)
-	if len(runes) > 40 {
-		name = string(runes[:40])
+	logEpisode(brainRoot, "EVOLVE", fmt.Sprintf("%d actions executed, %d skipped. Summary: %s",
+		executed, skipped, truncate(evoResp.Summary, 200)))
+
+	if executed > 0 {
+		autoReinject(brainRoot)
 	}
-	return name
 }
