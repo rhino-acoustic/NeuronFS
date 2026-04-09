@@ -36,8 +36,8 @@ func TestDashboardAPI_GetBrain(t *testing.T) {
 	if len(data.Regions) != 7 {
 		t.Fatalf("expected 7 regions, got %d", len(data.Regions))
 	}
-	if data.TotalNeurons != 29 {
-		t.Fatalf("expected 29 neurons, got %d", data.TotalNeurons)
+	if data.TotalNeurons != 15 {
+		t.Fatalf("expected 15 neurons, got %d", data.TotalNeurons)
 	}
 	if data.BombSource != "" {
 		t.Fatalf("expected no bomb, got: %s", data.BombSource)

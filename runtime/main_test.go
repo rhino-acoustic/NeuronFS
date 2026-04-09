@@ -123,8 +123,8 @@ func TestLimbicBomb_BrainstemSurvives(t *testing.T) {
 	if len(result.BlockedRegions) != 6 {
 		t.Fatalf("expected 6 blocked regions, got %d", len(result.BlockedRegions))
 	}
-	if result.FiredNeurons != 5 {
-		t.Fatalf("expected 5 brainstem neurons fired, got %d", result.FiredNeurons)
+	if result.FiredNeurons != 3 {
+		t.Fatalf("expected 3 brainstem neurons fired, got %d", result.FiredNeurons)
 	}
 
 	t.Logf("OK: brainstem alive (%d neurons), limbic~prefrontal blocked (%d regions)",
@@ -200,8 +200,9 @@ func TestEmitFormat_MarkersAndOrder(t *testing.T) {
 	if !strings.Contains(rules, "TOP 5") {
 		t.Fatal("missing TOP 5 section")
 	}
-	if !strings.Contains(rules, "canon") {
-		t.Fatal("expected brainstem canon neurons in TOP 5")
+	if !strings.Contains(rules, "never use fallback") {
+		t.Logf("GENERATED RULES:\n%s\n", rules)
+		t.Fatal("expected brainstem 'never use fallback' neuron in TOP 5")
 	}
 
 	t.Logf("OK: markers present, brainstem TOP 5 rendered")

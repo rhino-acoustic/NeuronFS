@@ -364,9 +364,9 @@ func doInjectToFile(filePath string, rules string) {
 	startIdx := strings.Index(content, startMarker)
 	endIdx := strings.Index(content, endMarker)
 
-	if startIdx >= 0 && endIdx >= 0 {
-		// START 앞의 기존 preamble + END 뒤 전부 교체
-		content = rules
+	if startIdx >= 0 && endIdx >= 0 && endIdx > startIdx {
+		// START 앞의 기존 preamble + END 뒤 푸터 보존
+		content = content[:startIdx] + rules + content[endIdx+len(endMarker):]
 	} else {
 		content = rules + "\n\n" + content
 	}
