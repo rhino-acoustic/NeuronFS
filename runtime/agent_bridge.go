@@ -1,0 +1,214 @@
+// agent_bridge.go — agent-bridge.mjs Go 포팅
+// 에이전트 간 inbox 감시 → CDP로 해당 에이전트 창에 메시지 주입
+// 외부 의존성: 0 (cdp_client.go 사용)
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"time"
+)
+
+const abCDPPort = 9000
+const abPollMs = 3000
+
+var agentTargets = map[string]string{
+	"bot1":     "bot1",
+	"entp":     "entp",
+	"enfp":     "enfp",
+	"NeuronFS": "NeuronFS",
+}
+
+func runAgentBridge(brainRoot string) {
+	agentsDir := filepath.Join(brainRoot, "_agents")
+	logFile := filepath.Join(filepath.Dir(brainRoot), "logs", "bridge.log")
+
+	// NAS brain
+	nasBrain := os.Getenv("NEURONFS_NAS_BRAIN")
+	var nasAgentsDir string
+	if nasBrain != "" {
+		nasAgentsDir = filepath.Join(nasBrain, "_agents")
+	}
+
+	// inbox 폴더 확보
+	for agentID := range agentTargets {
+		os.MkdirAll(filepath.Join(agentsDir, agentID, "inbox"), 0750)
+		os.MkdirAll(filepath.Join(agentsDir, agentID, "outbox"), 0750)
+	}
+
+	abLog(logFile, "=== Agent Bridge v2.0 (Go native) ===")
+	abLog(logFile, "Agents: bot1, entp, enfp, NeuronFS")
+
+	processed := make(map[string]bool)
+
+	for {
+		abCheckInboxes(agentsDir, nasAgentsDir, logFile, processed)
+		time.Sleep(time.Duration(abPollMs) * time.Millisecond)
+	}
+}
+
+func abLog(logFile, msg string) {
+	ts := time.Now().Format("15:04:05")
+	line := fmt.Sprintf("[%s] %s", ts, msg)
+	fmt.Println(line)
+	if logFile != "" {
+		f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+		if err == nil {
+			fmt.Fprintln(f, line)
+			f.Close()
+		}
+	}
+}
+
+func abCheckInboxes(agentsDir, nasAgentsDir, logFile string, processed map[string]bool) {
+	sources := []string{agentsDir}
+	if nasAgentsDir != "" {
+		if _, err := os.Stat(nasAgentsDir); err == nil {
+			sources = append(sources, nasAgentsDir)
+		}
+	}
+
+	for agentID := range agentTargets {
+		for _, baseDir := range sources {
+			inbox := filepath.Join(baseDir, agentID, "inbox")
+			entries, err := os.ReadDir(inbox)
+			if err != nil {
+				continue
+			}
+
+			for _, e := range entries {
+				name := e.Name()
+				if e.IsDir() || !strings.HasSuffix(name, ".md") || strings.HasPrefix(name, "_") {
+					continue
+				}
+				if processed[name] {
+					continue
+				}
+				processed[name] = true
+
+				fp := filepath.Join(inbox, name)
+				data, err := os.ReadFile(fp)
+				if err != nil {
+					delete(processed, name)
+					continue
+				}
+
+				content := string(data)
+				isNas := baseDir != agentsDir
+				prefix := ""
+				if isNas {
+					prefix = "[NAS] "
+				}
+				abLog(logFile, fmt.Sprintf("📨 %s%s/inbox/%s", prefix, agentID, name))
+
+				// 헤더 파싱
+				fromRe := regexp.MustCompile(`(?m)^# from: (.+)$`)
+				priorityRe := regexp.MustCompile(`(?m)^# priority: (.+)$`)
+				from := "unknown"
+				priority := "normal"
+				if m := fromRe.FindStringSubmatch(content); len(m) > 1 {
+					from = m[1]
+				}
+				if m := priorityRe.FindStringSubmatch(content); len(m) > 1 {
+					priority = m[1]
+				}
+
+				// 헤더 제거
+				headerRe := regexp.MustCompile(`(?m)^#.*$`)
+				body := strings.TrimSpace(headerRe.ReplaceAllString(content, ""))
+
+				urgentPrefix := ""
+				if priority == "urgent" {
+					urgentPrefix = "🚨 URGENT: "
+				}
+				injection := fmt.Sprintf("[%s → %s] %s%s", from, agentID, urgentPrefix, body)
+
+				ok := abInjectToAgent(agentID, injection)
+				if ok {
+					os.Rename(fp, filepath.Join(inbox, "_"+name))
+					abLog(logFile, fmt.Sprintf("✅ %s → %s injected%s", name, agentID, func() string {
+						if isNas {
+							return " (from NAS)"
+						}
+						return ""
+					}()))
+				} else {
+					delete(processed, name)
+				}
+			}
+		}
+	}
+}
+
+func abInjectToAgent(agentID, message string) bool {
+	keyword, ok := agentTargets[agentID]
+	if !ok {
+		return false
+	}
+
+	targets, err := cdpListTargets(abCDPPort)
+	if err != nil {
+		return false
+	}
+
+	var target *CDPTarget
+	for i, t := range targets {
+		if strings.Contains(t.URL, "workbench.html") &&
+			strings.HasPrefix(strings.ToLower(t.Title), strings.ToLower(keyword)) &&
+			t.Type == "page" {
+			target = &targets[i]
+			break
+		}
+	}
+	if target == nil || target.WebSocketDebuggerURL == "" {
+		return false
+	}
+
+	client, err := NewCDPClient(target.WebSocketDebuggerURL)
+	if err != nil {
+		return false
+	}
+	defer client.Close()
+
+	client.Call("Runtime.enable", map[string]interface{}{})
+	time.Sleep(300 * time.Millisecond)
+
+	// Focus chat input
+	focusExpr := `(() => {
+		function collectAll(root) {
+			const found = [];
+			const walk = n => { if(!n)return; if(n.shadowRoot)walk(n.shadowRoot); if(n.matches&&n.matches('[aria-label="Message input"][role="textbox"]'))found.push(n); for(const c of(n.children||[]))walk(c); };
+			walk(root); return found;
+		}
+		const inputs = collectAll(document);
+		if (inputs.length > 0) { inputs[0].textContent=''; inputs[0].focus(); return 'ok'; }
+		return 'not_found';
+	})()`
+
+	result, err := client.Call("Runtime.evaluate", map[string]interface{}{"expression": focusExpr, "returnByValue": true})
+	if err != nil {
+		return false
+	}
+
+	var evalRes struct {
+		Result struct {
+			Value string `json:"value"`
+		} `json:"result"`
+	}
+	json.Unmarshal(result, &evalRes)
+	if evalRes.Result.Value != "ok" {
+		return false
+	}
+
+	time.Sleep(200 * time.Millisecond)
+	client.Call("Input.insertText", map[string]interface{}{"text": message})
+	time.Sleep(200 * time.Millisecond)
+	client.Call("Input.dispatchKeyEvent", map[string]interface{}{"type": "keyDown", "key": "Enter", "code": "Enter", "windowsVirtualKeyCode": 13})
+	client.Call("Input.dispatchKeyEvent", map[string]interface{}{"type": "keyUp", "key": "Enter", "code": "Enter", "windowsVirtualKeyCode": 13})
+
+	return true
+}

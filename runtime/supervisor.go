@@ -173,16 +173,11 @@ func runSupervisor(brainRoot string) {
 	fmt.Println("╚══════════════════════════════════════════════════╝")
 	fmt.Println("")
 
-	hijackDir := filepath.Join(userHome, "_architecture_hijack_v4")
-
 	children := []*ChildSpec{
 		{Name: "neuronfs-api", Cmd: nfsExe, Args: []string{brainRoot, "--api"}, Dir: nfsRoot, Enabled: true},
 		{Name: "neuronfs-watch", Cmd: nfsExe, Args: []string{brainRoot, "--watch"}, Dir: nfsRoot, Enabled: true},
-		// auto-accept: Go 네이티브 (Node 은퇴)
-		{Name: "agent-bridge", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "core_agents", "agent-bridge.mjs")}, Dir: nfsRoot, Enabled: true},
 		{Name: "hijack-launcher", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "hijackers", "hijack-launcher.mjs")}, Dir: nfsRoot, Enabled: true},
-		{Name: "headless-executor", Cmd: "node", Args: []string{filepath.Join(hijackDir, "headless-executor.mjs")}, Dir: hijackDir, Enabled: fileExists(filepath.Join(hijackDir, "headless-executor.mjs"))},
-		// context-hijacker: Go 네이티브 (Node 은퇴)
+		// auto-accept, agent-bridge, headless-executor, context-hijacker: Go 네이티브
 	}
 
 	svLog("\033[35m[AURA] Awakening cognitive architecture... Supervisor online.\033[0m")
@@ -229,6 +224,14 @@ func runSupervisor(brainRoot string) {
 	// Go 네이티브 auto-accept (Node 대체)
 	go runAutoAccept(brainRoot)
 	svLog("🖱️ Auto-Accept (Go native) 시작")
+
+	// Go 네이티브 agent-bridge (Node 대체)
+	go runAgentBridge(brainRoot)
+	svLog("📨 Agent Bridge (Go native) 시작")
+
+	// Go 네이티브 headless-executor (Node 대체)
+	go runHeadlessExecutor(brainRoot)
+	svLog("⚡ Headless Executor (Go native) 시작")
 
 	svBootTime = time.Now()
 	svLoadTelegram(nfsRoot)
