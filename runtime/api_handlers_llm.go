@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 
 func handleNeuronizeAPI(brainRoot string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("[API] neuronize request from %s", r.RemoteAddr)
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
 			return
@@ -67,6 +69,7 @@ func handleNeuronizeAPI(brainRoot string) http.HandlerFunc {
 
 func handlePolarizeAPI(brainRoot string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("[API] polarize request from %s", r.RemoteAddr)
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
 			return
@@ -117,6 +120,7 @@ func handlePolarizeAPI(brainRoot string) http.HandlerFunc {
 
 func handleEvolveAPI(brainRoot string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("[API] evolve request from %s", r.RemoteAddr)
 		if r.Method != "POST" {
 			http.Error(w, "POST only", 405)
 			return
@@ -147,6 +151,7 @@ func handleEvolveAPI(brainRoot string) http.HandlerFunc {
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(500)
+			log.Printf("[API] evolve Groq error: %v", err)
 			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 			return
 		}

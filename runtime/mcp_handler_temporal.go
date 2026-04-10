@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -31,6 +32,7 @@ func RegisterTemporalAndEpisodicTools(s *mcp.Server, brainRoot string) {
 				return mcpError("invalid arguments: " + err.Error()), nil
 			}
 
+			log.Printf("[MCP] search sort=%s filter=%s", args.SortBy, args.TimeFilter)
 			brain := scanBrain(brainRoot)
 			type Result struct {
 				Path    string
@@ -123,6 +125,7 @@ func RegisterTemporalAndEpisodicTools(s *mcp.Server, brainRoot string) {
 			neuronStr := fmt.Sprintf("%s_%s", dateStr, safeTitle)
 			neuronPath := filepath.Join("hippocampus", "episodes", neuronStr)
 
+			log.Printf("[MCP] log_episode title=%s", args.Title)
 			if err := growNeuron(brainRoot, neuronPath); err != nil {
 				return mcpError("failed to create episode neuron: " + err.Error()), nil
 			}

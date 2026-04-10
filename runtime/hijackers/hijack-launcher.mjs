@@ -284,7 +284,7 @@ function tgPoll() {
                                         break;
                                     }
                                 }
-                            } catch {}
+                            } catch(e) { tgLog(`ERR agent_scan: ${e.message}`); }
                         }
 
                         // Inbox 저장 (Agent가 확인하도록)
@@ -639,7 +639,7 @@ function getExistingRuleNeurons() {
                     scanDir(path.join(dir, e.name), prefix + '/' + e.name);
                 }
             }
-        } catch {}
+        } catch(e) { log(`ERR rule_scan: ${e.message}`); }
     };
     
     const regions = ['brainstem', 'cortex', 'ego', 'prefrontal'];
@@ -698,7 +698,7 @@ async function harnessCycle() {
         const corrPath = path.join(BRAIN_DIR, '_inbox', 'corrections.jsonl');
         const corrData = fs.readFileSync(corrPath, 'utf8');
         corrections = corrData.split('\n').filter(l => l.trim()).slice(-10);
-    } catch {}
+    } catch(e) { log(`ERR corrections_read: ${e.message}`); }
     
     // ── 3. 기존 禁/推 뉴런 목록 (중복 방지) ──
     const existingRules = getExistingRuleNeurons();
@@ -872,7 +872,7 @@ function discoverProcesses() {
                 
                 const lsNetstat = execSync(`netstat -ano | findstr "LISTENING" | findstr " ${ls.pid}"`, { encoding: 'utf8', timeout: 5000 });
                 ls.ports = [...lsNetstat.matchAll(/127\.0\.0\.1:(\d+)/g)].map(m => parseInt(m[1]));
-            } catch {}
+            } catch(e) { log(`ERR netstat: ${e.message}`); }
         }
     }
     
@@ -886,7 +886,7 @@ async function findInspectorPort(pid) {
     // _debugProcess 시그널 전송
     try {
         execSync(`node -e "process._debugProcess(${pid})"`, { timeout: 5000 });
-    } catch {}
+    } catch(e) { log(`ERR debugProcess(${pid}): ${e.message}`); }
     
     await new Promise(r => setTimeout(r, 1500));
     
@@ -901,9 +901,9 @@ async function findInspectorPort(pid) {
                 if (Array.isArray(data) && data.length > 0) {
                     return { port, targets: data };
                 }
-            } catch {}
+            } catch(e) { log(`ERR cdp_probe port: ${e.message}`); }
         }
-    } catch {}
+    } catch(e) { log(`ERR cdp_discover: ${e.message}`); }
     return null;
 }
 
@@ -1015,7 +1015,7 @@ function attachDOMScraper(wsUrl, label) {
                     }
                 }
             }
-        } catch {}
+        } catch(e) { log(`ERR dom_poll: ${e.message}`); }
     });
     
     ws.on('error', () => {});
@@ -1119,7 +1119,7 @@ function attachCDPNetwork(wsUrl, label) {
                                 messageBuffer.push(`[CMD] ${cmd}`);
                                 processChunk().catch(() => {});
                             }
-                        } catch {}
+                        } catch(e) { log(`ERR net_chunk: ${e.message}`); }
                     }
                 }
             }
