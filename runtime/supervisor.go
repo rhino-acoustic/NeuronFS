@@ -183,7 +183,7 @@ func runSupervisor(brainRoot string) {
 		{Name: "agent-bridge", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "core_agents", "agent-bridge.mjs")}, Dir: nfsRoot, Enabled: true},
 		{Name: "hijack-launcher", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "hijackers", "hijack-launcher.mjs")}, Dir: nfsRoot, Enabled: true},
 		{Name: "headless-executor", Cmd: "node", Args: []string{filepath.Join(hijackDir, "headless-executor.mjs")}, Dir: hijackDir, Enabled: fileExists(filepath.Join(hijackDir, "headless-executor.mjs"))},
-		{Name: "context-hijacker", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "hijackers", "context-hijacker.mjs")}, Dir: nfsRoot, Enabled: true},
+		// context-hijacker: Go 네이티브 (Node 은퇴)
 	}
 
 	svLog("\033[35m[AURA] Awakening cognitive architecture... Supervisor online.\033[0m")
@@ -222,6 +222,10 @@ func runSupervisor(brainRoot string) {
 		go SyncToNAS(brainRoot, nasBrain, stopCh)
 		svLog("🔄 NAS 동기화 활성 (5초)")
 	}
+
+	// Go 네이티브 context hijacker (Node 대체)
+	go runContextHijacker(brainRoot)
+	svLog("📡 Context Hijacker (Go native) 시작")
 
 	svBootTime = time.Now()
 	svLoadTelegram(nfsRoot)
