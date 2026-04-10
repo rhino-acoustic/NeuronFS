@@ -164,7 +164,6 @@ func runSupervisor(brainRoot string) {
 	os.MkdirAll(logDir, 0750)
 	svLogPath = filepath.Join(logDir, "supervisor.log")
 	userHome := filepath.Dir(nfsRoot)
-	aaDir := filepath.Join(userHome, "auto-accept")
 	nasBrain := os.Getenv("NEURONFS_NAS_BRAIN")
 
 	fmt.Println("")
@@ -179,7 +178,7 @@ func runSupervisor(brainRoot string) {
 	children := []*ChildSpec{
 		{Name: "neuronfs-api", Cmd: nfsExe, Args: []string{brainRoot, "--api"}, Dir: nfsRoot, Enabled: true},
 		{Name: "neuronfs-watch", Cmd: nfsExe, Args: []string{brainRoot, "--watch"}, Dir: nfsRoot, Enabled: true},
-		{Name: "auto-accept", Cmd: "node", Args: []string{filepath.Join(aaDir, "auto-accept.mjs")}, Dir: aaDir, Enabled: fileExists(filepath.Join(aaDir, "auto-accept.mjs"))},
+		// auto-accept: Go 네이티브 (Node 은퇴)
 		{Name: "agent-bridge", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "core_agents", "agent-bridge.mjs")}, Dir: nfsRoot, Enabled: true},
 		{Name: "hijack-launcher", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "hijackers", "hijack-launcher.mjs")}, Dir: nfsRoot, Enabled: true},
 		{Name: "headless-executor", Cmd: "node", Args: []string{filepath.Join(hijackDir, "headless-executor.mjs")}, Dir: hijackDir, Enabled: fileExists(filepath.Join(hijackDir, "headless-executor.mjs"))},
@@ -226,6 +225,10 @@ func runSupervisor(brainRoot string) {
 	// Go 네이티브 context hijacker (Node 대체)
 	go runContextHijacker(brainRoot)
 	svLog("📡 Context Hijacker (Go native) 시작")
+
+	// Go 네이티브 auto-accept (Node 대체)
+	go runAutoAccept(brainRoot)
+	svLog("🖱️ Auto-Accept (Go native) 시작")
 
 	svBootTime = time.Now()
 	svLoadTelegram(nfsRoot)
