@@ -175,8 +175,7 @@ func runSupervisor(brainRoot string) {
 	children := []*ChildSpec{
 		{Name: "neuronfs-api", Cmd: nfsExe, Args: []string{brainRoot, "--api"}, Dir: nfsRoot, Enabled: true},
 		{Name: "neuronfs-watch", Cmd: nfsExe, Args: []string{brainRoot, "--watch"}, Dir: nfsRoot, Enabled: true},
-		{Name: "hijack-launcher", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "hijackers", "hijack-launcher.mjs")}, Dir: nfsRoot, Enabled: true},
-		// auto-accept, agent-bridge, headless-executor, context-hijacker: Go 네이티브
+		// 전체 Node.js 데몬 Go 네이티브 전환 완료
 	}
 
 	svLog("\033[35m[AURA] Awakening cognitive architecture... Supervisor online.\033[0m")
@@ -231,6 +230,10 @@ func runSupervisor(brainRoot string) {
 	// Go 네이티브 headless-executor (Node 대체)
 	go runHeadlessExecutor(brainRoot)
 	svLog("⚡ Headless Executor (Go native) 시작")
+
+	// Go 네이티브 hijack-launcher (Node 대체 — 마지막)
+	go runHijackLauncher(brainRoot)
+	svLog("🚀 Hijack Launcher (Go native) 시작")
 
 	svBootTime = time.Now()
 	svLoadTelegram(nfsRoot)
