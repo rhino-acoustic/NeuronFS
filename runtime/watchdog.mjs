@@ -303,6 +303,29 @@ function calcUptime(targetName) {
     return total > 0 ? ((total - downMs) / total * 100).toFixed(2) : '100.00';
 }
 
+const METRICS_FILE = path.join(path.dirname(new URL(import.meta.url).pathname.slice(1)), '..', 'logs', 'watchdog_metrics.json');
+
+function writeMetricsFile() {
+    const data = {
+        ts: new Date().toISOString(),
+        bootTime: new Date(BOOT_TIME).toISOString(),
+        uptimeMs: Date.now() - BOOT_TIME,
+        checkCount: metrics.checkCount,
+        avgCheckMs: metrics.checkCount > 0 ? Math.round(metrics.totalCheckMs / metrics.checkCount) : 0,
+        services: TARGETS.map(t => ({
+            name: t.name,
+            status: metrics.downSince[t.name] ? 'DOWN' : 'UP',
+            sla: parseFloat(calcUptime(t.name)),
+            restarts: metrics.restarts[t.name].length,
+            lastRestart: metrics.restarts[t.name].length > 0 ? new Date(metrics.restarts[t.name].slice(-1)[0].ts).toISOString() : null,
+            zombieCount: t.zombieCount,
+            lastSeen: new Date(metrics.lastSeen[t.name]).toISOString(),
+            healthChecks: (t.health || []).map(h => h.desc)
+        }))
+    };
+    try { fs.writeFileSync(METRICS_FILE, JSON.stringify(data, null, 2), 'utf8'); } catch {}
+}
+
 function statusReport() {
     const uptimeMin = ((Date.now() - BOOT_TIME) / 60000).toFixed(1);
     const avgCheckMs = metrics.checkCount > 0 ? (metrics.totalCheckMs / metrics.checkCount).toFixed(0) : 0;
@@ -317,11 +340,15 @@ function statusReport() {
     }
     fallbackLog(report);
     tgAlert(report);
+    writeMetricsFile();
 }
 
+// 매 체크 후 메트릭 파일 갱신
+const _wrapCheck = checkProcesses;
+checkProcesses = function() { _wrapCheck(); writeMetricsFile(); };
+
 setInterval(checkProcesses, 30000);
-setInterval(statusReport, 30 * 60 * 1000); // 30분마다 상태 보고
+setInterval(statusReport, 30 * 60 * 1000);
 console.log(`👀 NeuronFS Watchdog v4 (Enterprise) PID=${process.pid}`);
 setTimeout(checkProcesses, 5000);
-// 첫 상태 보고: 1분 후
 setTimeout(statusReport, 60000);

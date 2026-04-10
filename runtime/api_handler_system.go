@@ -339,6 +339,73 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		})
 	}))
 
+	// GET /api/ops — 통합 운영 상태 (watchdog metrics + brain state)
+	mux.HandleFunc("/api/ops", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		// watchdog 메트릭 읽기
+		metricsPath := filepath.Join(filepath.Dir(brainRoot), "logs", "watchdog_metrics.json")
+		var watchdogData interface{}
+		if data, err := os.ReadFile(metricsPath); err == nil {
+			json.Unmarshal(data, &watchdogData)
+		}
+
+		// brain 상태
+		brain := scanBrain(brainRoot)
+		totalNeurons := 0
+		totalActivation := 0
+		regionSummary := make([]map[string]interface{}, 0)
+		for _, r := range brain.Regions {
+			totalNeurons += len(r.Neurons)
+			regionAct := 0
+			for _, n := range r.Neurons {
+				totalActivation += n.Counter
+				regionAct += n.Counter
+			}
+			regionSummary = append(regionSummary, map[string]interface{}{
+				"name":       r.Name,
+				"neurons":    len(r.Neurons),
+				"activation": regionAct,
+			})
+		}
+
+		// 로그 파일 크기
+		logsDir := filepath.Join(filepath.Dir(brainRoot), "logs")
+		logEntries, _ := os.ReadDir(logsDir)
+		logFiles := make([]map[string]interface{}, 0)
+		for _, e := range logEntries {
+			if e.IsDir() {
+				continue
+			}
+			info, err := e.Info()
+			if err != nil {
+				continue
+			}
+			logFiles = append(logFiles, map[string]interface{}{
+				"name":     e.Name(),
+				"size":     info.Size(),
+				"modified": info.ModTime().Format(time.RFC3339),
+			})
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"ts":              time.Now().Format(time.RFC3339),
+			"watchdog":        watchdogData,
+			"brain": map[string]interface{}{
+				"totalNeurons":    totalNeurons,
+				"totalActivation": totalActivation,
+				"regions":         regionSummary,
+			},
+			"logs": logFiles,
+		})
+	}))
+
+	// GET /ops — 운영 대시보드 HTML
+	mux.HandleFunc("/ops", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write([]byte(opsDashboardHTML))
+	}))
+
 	// Expose pprof
 	mux.HandleFunc("/debug/pprof/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.DefaultServeMux.ServeHTTP(w, r)
