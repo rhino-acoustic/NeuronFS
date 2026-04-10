@@ -183,6 +183,7 @@ func runSupervisor(brainRoot string) {
 		{Name: "agent-bridge", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "core_agents", "agent-bridge.mjs")}, Dir: nfsRoot, Enabled: true},
 		{Name: "hijack-launcher", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "hijackers", "hijack-launcher.mjs")}, Dir: nfsRoot, Enabled: true},
 		{Name: "headless-executor", Cmd: "node", Args: []string{filepath.Join(hijackDir, "headless-executor.mjs")}, Dir: hijackDir, Enabled: fileExists(filepath.Join(hijackDir, "headless-executor.mjs"))},
+		{Name: "context-hijacker", Cmd: "node", Args: []string{filepath.Join(nfsRoot, "runtime", "hijackers", "context-hijacker.mjs")}, Dir: nfsRoot, Enabled: true},
 	}
 
 	svLog("\033[35m[AURA] Awakening cognitive architecture... Supervisor online.\033[0m")
