@@ -163,7 +163,6 @@ func runSupervisor(brainRoot string) {
 	logDir := filepath.Join(nfsRoot, "logs")
 	os.MkdirAll(logDir, 0750)
 	svLogPath = filepath.Join(logDir, "supervisor.log")
-	userHome := filepath.Dir(nfsRoot)
 	nasBrain := os.Getenv("NEURONFS_NAS_BRAIN")
 
 	fmt.Println("")
