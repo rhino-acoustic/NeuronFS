@@ -3,265 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuronFS — 5분 만에 시작하기</title>
-    <meta name="description" content="NeuronFS를 처음 써보는 사람을 위한 단계별 가이드. 초등학생도 따라할 수 있습니다.">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <title>NeuronFS — 당신의 레벨을 선택하세요</title>
+    <meta name="description" content="NeuronFS 가이드: 초보자부터 고수까지. 당신의 레벨에 맞는 가이드를 선택하세요.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0a0a0f;
-            --bg-card: #12121a;
-            --bg-card-hover: #1a1a2a;
-            --cyan: #00e5ff;
-            --magenta: #ff2daa;
-            --green: #00ff88;
-            --yellow: #ffd600;
-            --orange: #ff8c00;
-            --red: #ff4444;
-            --text: #e8e8f0;
-            --text-dim: #8888aa;
-            --border: #2a2a3a;
-            --radius: 16px;
-        }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', sans-serif;
             line-height: 1.7;
             overflow-x: hidden;
+            transition: background 0.8s ease, color 0.8s ease;
         }
 
-        /* Animated background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: 
-                radial-gradient(ellipse at 20% 50%, rgba(0,229,255,0.03) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 50%, rgba(255,45,170,0.03) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
+        /* ============ LEVEL SELECT ============ */
+        .level-select {
+            min-height: 100vh;
+            background: #0a0a0f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 24px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Hero */
-        .hero {
-            text-align: center;
-            padding: 80px 0 60px;
-        }
-
-        .hero-badge {
-            display: inline-block;
-            padding: 6px 16px;
-            border: 1px solid var(--cyan);
-            border-radius: 100px;
-            font-size: 13px;
-            color: var(--cyan);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 24px;
-            animation: fadeInDown 0.6s ease;
-        }
-
-        .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4rem);
+        .level-select h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
             font-weight: 900;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 16px;
-            animation: fadeInDown 0.8s ease;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            color: var(--text-dim);
-            max-width: 600px;
-            margin: 0 auto 32px;
-            animation: fadeInUp 0.8s ease;
-        }
-
-        .hero-analogy {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 32px;
-            text-align: left;
-            animation: fadeInUp 1s ease;
-        }
-
-        .hero-analogy h3 {
-            color: var(--yellow);
-            margin-bottom: 12px;
-            font-size: 1.1rem;
-        }
-
-        .analogy-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-top: 16px;
-        }
-
-        .analogy-item {
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            padding: 16px;
+            color: #fff;
             text-align: center;
-        }
-
-        .analogy-item .emoji {
-            font-size: 2.5rem;
-            display: block;
             margin-bottom: 8px;
         }
 
-        .analogy-item .label {
-            font-size: 0.85rem;
-            color: var(--text-dim);
+        .level-select .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+            text-align: center;
+            margin-bottom: 48px;
         }
 
-        .analogy-item .value {
-            font-weight: 700;
-            color: var(--cyan);
-            font-size: 0.95rem;
+        .level-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 960px;
+            width: 100%;
         }
 
-        /* Progress bar */
-        .progress-container {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(10,10,15,0.9);
-            backdrop-filter: blur(16px);
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border);
+        @media (max-width: 768px) {
+            .level-cards { grid-template-columns: 1fr; }
         }
 
-        .progress-bar {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        .progress-dot {
-            width: 40px;
-            height: 6px;
-            border-radius: 3px;
-            background: var(--border);
-            transition: all 0.4s ease;
+        .level-card {
+            border-radius: 24px;
+            padding: 40px 28px;
+            text-align: center;
             cursor: pointer;
-        }
-
-        .progress-dot.active {
-            background: var(--cyan);
-            box-shadow: 0 0 12px rgba(0,229,255,0.4);
-        }
-
-        .progress-dot.done {
-            background: var(--green);
-        }
-
-        /* Steps */
-        .step {
-            margin: 48px 0;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.6s ease;
-        }
-
-        .step.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .step-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .step-number {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 1.5rem;
-            flex-shrink: 0;
+            transition: all 0.4s ease;
             position: relative;
+            overflow: hidden;
         }
 
-        .step-number::after {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            animation: pulse-ring 2s ease infinite;
+        .level-card:hover {
+            transform: translateY(-8px) scale(1.02);
         }
 
-        .step:nth-child(1) .step-number { background: linear-gradient(135deg, #1a3a4a, #0a2a3a); color: var(--cyan); border: 2px solid var(--cyan); }
-        .step:nth-child(2) .step-number { background: linear-gradient(135deg, #2a1a4a, #1a0a3a); color: var(--magenta); border: 2px solid var(--magenta); }
-        .step:nth-child(3) .step-number { background: linear-gradient(135deg, #1a3a2a, #0a2a1a); color: var(--green); border: 2px solid var(--green); }
-        .step:nth-child(4) .step-number { background: linear-gradient(135deg, #3a3a1a, #2a2a0a); color: var(--yellow); border: 2px solid var(--yellow); }
-        .step:nth-child(5) .step-number { background: linear-gradient(135deg, #3a2a1a, #2a1a0a); color: var(--orange); border: 2px solid var(--orange); }
-        .step:nth-child(6) .step-number { background: linear-gradient(135deg, #3a1a1a, #2a0a0a); color: var(--red); border: 2px solid var(--red); }
+        .level-card .level-emoji {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 16px;
+        }
 
-        .step-title {
+        .level-card .level-name {
             font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .level-card .level-desc {
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            opacity: 0.8;
+        }
+
+        .level-card .level-tag {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 100px;
+            font-size: 0.8rem;
             font-weight: 700;
         }
 
-        .step-subtitle {
+        /* Beginner card */
+        .card-beginner {
+            background: linear-gradient(135deg, #fff5f5, #fff0e6, #fef3ff);
+            color: #333;
+            border: 2px solid #ffd6e0;
+        }
+        .card-beginner:hover { box-shadow: 0 20px 60px rgba(255,150,180,0.3); }
+        .card-beginner .level-tag { background: #ffe0e8; color: #d63384; }
+
+        /* Intermediate card */
+        .card-intermediate {
+            background: linear-gradient(135deg, #0d1117, #161b22);
+            color: #e6edf3;
+            border: 2px solid #30363d;
+        }
+        .card-intermediate:hover { box-shadow: 0 20px 60px rgba(0,229,255,0.2); border-color: #00e5ff; }
+        .card-intermediate .level-tag { background: rgba(0,229,255,0.15); color: #00e5ff; }
+
+        /* Advanced card */
+        .card-advanced {
+            background: #000;
+            color: #00ff41;
+            border: 2px solid #003300;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .card-advanced:hover { box-shadow: 0 20px 60px rgba(0,255,65,0.15); border-color: #00ff41; }
+        .card-advanced .level-tag { background: rgba(0,255,65,0.1); color: #00ff41; border: 1px solid #00ff41; }
+        .card-advanced .level-name { font-family: 'JetBrains Mono', monospace; }
+
+        /* ============ CONTENT PAGES ============ */
+        .page { display: none; min-height: 100vh; }
+        .page.active { display: block; }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 999;
+            padding: 8px 20px;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
             font-size: 0.9rem;
-            color: var(--text-dim);
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
         }
 
-        .step-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 32px;
-            transition: all 0.3s ease;
-        }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
 
-        .step-card:hover {
-            background: var(--bg-card-hover);
-            border-color: rgba(0,229,255,0.2);
-        }
-
-        .step-card p {
-            margin-bottom: 16px;
-            color: var(--text-dim);
-            font-size: 1.05rem;
-        }
-
-        .step-card .highlight {
-            color: var(--text);
-            font-weight: 600;
-        }
-
-        /* Code blocks */
+        /* Code blocks shared */
         .code-block {
-            background: #0d0d18;
-            border: 1px solid var(--border);
             border-radius: 12px;
             padding: 20px 24px;
             font-family: 'JetBrains Mono', monospace;
@@ -271,791 +155,710 @@
             position: relative;
         }
 
-        .code-block .prompt {
-            color: var(--green);
-            user-select: none;
-        }
-
-        .code-block .command {
-            color: var(--cyan);
-        }
-
-        .code-block .comment {
-            color: #555577;
-        }
-
-        .code-block .output {
-            color: var(--text-dim);
-        }
-
-        .code-block .success {
-            color: var(--green);
-        }
-
         .copy-btn {
             position: absolute;
             top: 12px;
             right: 12px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid var(--border);
             border-radius: 8px;
-            color: var(--text-dim);
-            padding: 6px 12px;
+            padding: 6px 14px;
             font-size: 12px;
             cursor: pointer;
             font-family: 'Inter', sans-serif;
             transition: all 0.2s;
+            border: 1px solid;
         }
 
-        .copy-btn:hover {
-            background: rgba(0,229,255,0.15);
-            color: var(--cyan);
-            border-color: var(--cyan);
+        /* ============ BEGINNER THEME — Duolingo vibes ============ */
+        .page-beginner {
+            background: linear-gradient(180deg, #fff8f0, #fff5fa, #f0f8ff);
+            color: #333;
+            font-family: 'Nunito', 'Inter', sans-serif;
         }
 
-        .copy-btn.copied {
-            background: rgba(0,255,136,0.15);
-            color: var(--green);
-            border-color: var(--green);
+        .page-beginner .back-btn {
+            background: #fff;
+            color: #d63384;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
         }
 
-        /* Result visualization */
-        .result-tree {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            line-height: 1.8;
-            padding: 20px;
-            background: #0d0d18;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            margin: 16px 0;
-        }
-
-        .result-tree .folder {
-            color: var(--yellow);
-        }
-
-        .result-tree .file {
-            color: var(--text-dim);
-        }
-
-        .result-tree .new-tag {
-            color: var(--green);
-            font-size: 0.75rem;
-            background: rgba(0,255,136,0.1);
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-left: 8px;
-        }
-
-        /* Callout */
-        .callout {
-            border-radius: 12px;
-            padding: 20px 24px;
-            margin: 16px 0;
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
-
-        .callout-tip {
-            background: rgba(0,255,136,0.06);
-            border: 1px solid rgba(0,255,136,0.15);
-        }
-
-        .callout-warn {
-            background: rgba(255,214,0,0.06);
-            border: 1px solid rgba(255,214,0,0.15);
-        }
-
-        .callout-info {
-            background: rgba(0,229,255,0.06);
-            border: 1px solid rgba(0,229,255,0.15);
-        }
-
-        .callout-icon {
-            font-size: 1.3rem;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .callout-text {
-            font-size: 0.95rem;
-            color: var(--text-dim);
-        }
-
-        .callout-text strong {
-            color: var(--text);
-        }
-
-        /* OS tabs */
-        .os-tabs {
-            display: flex;
-            gap: 4px;
-            margin-bottom: -1px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .os-tab {
-            padding: 10px 20px;
-            border-radius: 10px 10px 0 0;
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-dim);
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .os-tab.active {
-            background: #0d0d18;
-            border-color: var(--border);
-            border-bottom-color: #0d0d18;
-            color: var(--cyan);
-        }
-
-        .os-content {
-            display: none;
-        }
-
-        .os-content.active {
-            display: block;
-        }
-
-        /* Final CTA */
-        .final-section {
+        .page-beginner .hero-section {
             text-align: center;
-            padding: 80px 0;
+            padding: 80px 0 48px;
         }
 
-        .final-section h2 {
-            font-size: 2rem;
+        .page-beginner .hero-section h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
             font-weight: 900;
-            margin-bottom: 16px;
-            background: linear-gradient(135deg, var(--green), var(--cyan));
+            color: #333;
+        }
+
+        .page-beginner .hero-section h1 .gradient {
+            background: linear-gradient(135deg, #ff6b9d, #c44dff, #4d9dff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .final-section p {
-            color: var(--text-dim);
-            font-size: 1.1rem;
-            margin-bottom: 32px;
+        .page-beginner .step-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 32px;
+            margin: 24px 0;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            border: 2px solid #f0f0f5;
+            transition: all 0.3s;
         }
 
-        .btn-group {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            flex-wrap: wrap;
+        .page-beginner .step-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
 
-        .btn {
+        .page-beginner .step-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 1rem;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--cyan), #0088ff);
-            color: #000;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,229,255,0.3);
-        }
-
-        .btn-secondary {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid var(--border);
-            color: var(--text);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: var(--cyan);
-        }
-
-        /* Checker */
-        .checklist {
-            list-style: none;
-            padding: 0;
-        }
-
-        .checklist li {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-            font-size: 1rem;
-        }
-
-        .check-icon {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            flex-shrink: 0;
-            border: 2px solid var(--border);
-            color: var(--text-dim);
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .check-icon.checked {
-            border-color: var(--green);
-            background: rgba(0,255,136,0.15);
-            color: var(--green);
-        }
-
-        /* Animations */
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulse-ring {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 0.3; border-color: inherit; }
-        }
-
-        /* Mobile */
-        @media (max-width: 640px) {
-            .analogy-grid { grid-template-columns: 1fr; }
-            .step-header { flex-direction: column; text-align: center; }
-            .step-card { padding: 20px; }
-            .code-block { font-size: 0.8rem; padding: 16px; }
-            .btn-group { flex-direction: column; align-items: center; }
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 40px 0;
-            color: var(--text-dim);
+            background: linear-gradient(135deg, #ff6b9d, #c44dff);
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 100px;
             font-size: 0.85rem;
-            border-top: 1px solid var(--border);
+            font-weight: 900;
+            margin-bottom: 12px;
         }
 
-        footer a {
-            color: var(--cyan);
-            text-decoration: none;
+        .page-beginner .step-card h3 {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .page-beginner .step-card p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .page-beginner .code-block {
+            background: #1e1e2e;
+            border: 2px solid #e0e0e8;
+            color: #cdd6f4;
+        }
+
+        .page-beginner .code-block .prompt { color: #a6e3a1; }
+        .page-beginner .code-block .command { color: #89b4fa; }
+        .page-beginner .code-block .comment { color: #585b70; }
+        .page-beginner .code-block .output { color: #bac2de; }
+        .page-beginner .code-block .success { color: #a6e3a1; }
+
+        .page-beginner .copy-btn {
+            background: rgba(255,255,255,0.1);
+            color: #bac2de;
+            border-color: #45475a;
+        }
+
+        .page-beginner .callout {
+            border-radius: 16px;
+            padding: 20px;
+            margin: 16px 0;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            background: #fff5f8;
+            border: 2px solid #ffe0e8;
+        }
+
+        .page-beginner .callout-blue {
+            background: #f0f4ff;
+            border-color: #d0dcff;
+        }
+
+        .page-beginner .analogy-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .page-beginner .analogy-item {
+            background: linear-gradient(135deg, #fff0f5, #f5f0ff);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #f0e0f0;
+        }
+
+        .page-beginner .analogy-item .emoji { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+        .page-beginner .analogy-item .val { font-weight: 900; color: #c44dff; }
+
+        .page-beginner .ag-section {
+            background: linear-gradient(135deg, #e8f4ff, #f0e8ff);
+            border-radius: 20px;
+            padding: 32px;
+            margin: 32px 0;
+            border: 2px solid #d0dcff;
+        }
+
+        /* ============ INTERMEDIATE THEME — Cyberpunk ============ */
+        .page-intermediate {
+            background: #0a0a0f;
+            color: #e8e8f0;
+        }
+
+        .page-intermediate .back-btn {
+            background: rgba(0,229,255,0.1);
+            color: #00e5ff;
+            border: 1px solid #00e5ff;
+        }
+
+        .page-intermediate .hero-section {
+            text-align: center;
+            padding: 80px 0 48px;
+        }
+
+        .page-intermediate .hero-section h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #00e5ff, #ff2daa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-intermediate .step-card {
+            background: #12121a;
+            border: 1px solid #2a2a3a;
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+            transition: all 0.3s;
+        }
+
+        .page-intermediate .step-card:hover { border-color: rgba(0,229,255,0.3); }
+
+        .page-intermediate .step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,229,255,0.1);
+            color: #00e5ff;
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border: 1px solid rgba(0,229,255,0.3);
+            margin-bottom: 12px;
+        }
+
+        .page-intermediate .step-card h3 { color: #fff; font-size: 1.3rem; margin-bottom: 8px; }
+        .page-intermediate .step-card p { color: #8888aa; }
+
+        .page-intermediate .code-block {
+            background: #0d0d18;
+            border: 1px solid #2a2a3a;
+            color: #e8e8f0;
+        }
+
+        .page-intermediate .code-block .prompt { color: #00ff88; }
+        .page-intermediate .code-block .command { color: #00e5ff; }
+        .page-intermediate .code-block .comment { color: #555577; }
+        .page-intermediate .code-block .output { color: #8888aa; }
+        .page-intermediate .code-block .success { color: #00ff88; }
+
+        .page-intermediate .copy-btn {
+            background: rgba(0,229,255,0.08);
+            color: #8888aa;
+            border-color: #2a2a3a;
+        }
+
+        .page-intermediate .callout {
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+            display: flex;
+            gap: 12px;
+            background: rgba(0,229,255,0.04);
+            border: 1px solid rgba(0,229,255,0.15);
+        }
+
+        /* ============ ADVANCED THEME — Matrix terminal ============ */
+        .page-advanced {
+            background: #000;
+            color: #00ff41;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .page-advanced .back-btn {
+            background: #000;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .page-advanced .hero-section {
+            padding: 80px 0 48px;
+        }
+
+        .page-advanced .hero-section h1 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: #00ff41;
+            text-shadow: 0 0 20px rgba(0,255,65,0.3);
+        }
+
+        .page-advanced .hero-section h1::before {
+            content: '$ ';
+            color: #005500;
+        }
+
+        .page-advanced .step-card {
+            background: rgba(0,255,65,0.02);
+            border: 1px solid #003300;
+            border-radius: 4px;
+            padding: 24px;
+            margin: 16px 0;
+            transition: all 0.3s;
+        }
+
+        .page-advanced .step-card:hover { border-color: #00ff41; }
+
+        .page-advanced .step-badge {
+            display: inline-block;
+            color: #00ff41;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .page-advanced .step-badge::before { content: '// '; color: #005500; }
+
+        .page-advanced .step-card h3 {
+            color: #00ff41;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .page-advanced .step-card h3::before { content: '> '; color: #005500; }
+
+        .page-advanced .step-card p { color: #008800; font-size: 0.9rem; }
+
+        .page-advanced .code-block {
+            background: #000;
+            border: 1px solid #003300;
+            color: #00ff41;
+            border-radius: 2px;
+        }
+
+        .page-advanced .code-block .prompt { color: #005500; }
+        .page-advanced .code-block .command { color: #00ff41; }
+        .page-advanced .code-block .comment { color: #004400; }
+        .page-advanced .code-block .output { color: #008800; }
+        .page-advanced .code-block .success { color: #00ff41; text-shadow: 0 0 8px rgba(0,255,65,0.5); }
+
+        .page-advanced .copy-btn {
+            background: #000;
+            color: #005500;
+            border-color: #003300;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .page-advanced .callout {
+            border: 1px solid #003300;
+            padding: 16px;
+            margin: 16px 0;
+            display: flex;
+            gap: 12px;
+            background: rgba(0,255,65,0.02);
+            border-radius: 2px;
+        }
+
+        .page-advanced .callout p { color: #008800; }
+
+        /* Scanline effect for advanced */
+        .page-advanced::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.15) 0px,
+                rgba(0,0,0,0.15) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Glitch animation for advanced title */
+        @keyframes glitch {
+            0%, 100% { text-shadow: 0 0 20px rgba(0,255,65,0.3); }
+            20% { text-shadow: -2px 0 #ff0000, 2px 0 #00ffff; }
+            40% { text-shadow: 2px 0 #ff0000, -2px 0 #00ffff; }
+            60% { text-shadow: 0 0 20px rgba(0,255,65,0.5); }
+        }
+
+        .page-advanced .glitch { animation: glitch 3s infinite; }
+
+        /* Shared */
+        .callout-icon { font-size: 1.3rem; flex-shrink: 0; }
+
+        .footer-section {
+            text-align: center;
+            padding: 60px 0;
+            font-size: 0.85rem;
+            opacity: 0.5;
+        }
+
+        .footer-section a { color: inherit; }
+
+        /* Transition animation */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in { animation: slideIn 0.6s ease forwards; }
+
+        @media (max-width: 640px) {
+            .page-beginner .analogy-box { grid-template-columns: 1fr; }
+            .step-card { padding: 20px !important; }
         }
     </style>
 </head>
 <body>
 
-<!-- Hero -->
-<section class="hero">
+<!-- ============ LEVEL SELECT SCREEN ============ -->
+<div class="level-select" id="levelSelect">
+    <h1>NeuronFS</h1>
+    <p class="subtitle">당신의 레벨을 선택하세요</p>
+    <div class="level-cards">
+        <!-- Beginner -->
+        <div class="level-card card-beginner" onclick="showPage('beginner')">
+            <span class="level-emoji">🐣</span>
+            <div class="level-name">초보자</div>
+            <div class="level-desc">"AI가 뭔지는 아는데<br>터미널이 무서워요"</div>
+            <span class="level-tag">5분 가이드</span>
+        </div>
+        <!-- Intermediate -->
+        <div class="level-card card-intermediate" onclick="showPage('intermediate')">
+            <span class="level-emoji">⚔️</span>
+            <div class="level-name">중급자</div>
+            <div class="level-desc">"git push는 할 줄 아는데<br>AI가 말을 안 들어요"</div>
+            <span class="level-tag">실전 가이드</span>
+        </div>
+        <!-- Advanced -->
+        <div class="level-card card-advanced" onclick="showPage('advanced')">
+            <span class="level-emoji">💀</span>
+            <div class="level-name">// HACKER</div>
+            <div class="level-desc">"아키텍처를 보여줘.<br>README는 이미 읽었어."</div>
+            <span class="level-tag">$ sudo guide</span>
+        </div>
+    </div>
+</div>
+
+<!-- ============ BEGINNER PAGE ============ -->
+<div class="page page-beginner" id="page-beginner">
+    <button class="back-btn" onclick="goBack()">← 레벨 선택</button>
     <div class="container">
-        <div class="hero-badge">🐣 초보자 & 바이브코더를 위한 완벽 가이드</div>
-        <h1>NeuronFS<br>시작 가이드</h1>
-        <p>코딩을 몰라도 됩니다. AI에게 규칙을 텍스트로 부탁하면 60%만 따릅니다.<br>
-        폴더로 만들면 100% 따릅니다. <strong style="color:var(--cyan)">5분이면 끝납니다.</strong></p>
+        <div class="hero-section animate-in">
+            <div style="font-size:4rem;margin-bottom:16px;">🐣</div>
+            <h1>환영해요!<br><span class="gradient">NeuronFS 시작하기</span></h1>
+            <p style="color:#888;margin-top:12px;">코딩을 몰라도 괜찮아요. 천천히 따라하면 됩니다!</p>
+        </div>
 
-        <div class="hero-analogy">
-            <h3>🤔 NeuronFS가 뭔데?</h3>
-            <p style="color: var(--text-dim);">학교에서 선생님(AI)한테 "숙제 안 하면 안 돼!"라고 말하면 가끔 까먹죠?<br>
-            하지만 <span style="color:var(--cyan);font-weight:700;">교실 문에 "숙제 안 하면 출입 금지"라고 붙여놓으면?</span> 절대 못 지나갑니다.<br><br>
-            NeuronFS는 <strong style="color:var(--text);">AI의 교실 문에 규칙을 붙여놓는 도구</strong>입니다.</p>
+        <!-- What is it -->
+        <div class="step-card animate-in">
+            <span class="step-badge">🤔 이게 뭔데?</span>
+            <h3>NeuronFS = AI의 교실 규칙표</h3>
+            <p>선생님(AI)한테 "숙제 안 하면 안 돼!"라고 말하면 가끔 까먹죠?<br>
+            근데 <strong style="color:#c44dff;">교실 문에 "숙제 안 하면 출입 금지"라고 붙여놓으면?</strong> 절대 못 지나갑니다.</p>
 
-            <div class="analogy-grid">
+            <div class="analogy-box">
                 <div class="analogy-item">
                     <span class="emoji">📁</span>
-                    <div class="label">폴더</div>
-                    <div class="value">= 규칙</div>
-                </div>
-                <div class="analogy-item">
-                    <span class="emoji">🧠</span>
-                    <div class="label">폴더 구조</div>
-                    <div class="value">= AI의 뇌</div>
+                    <div>폴더</div>
+                    <div class="val">= 규칙</div>
                 </div>
                 <div class="analogy-item">
                     <span class="emoji">🚫</span>
-                    <div class="label">禁 (금지)</div>
-                    <div class="value">= 절대 하면 안 돼!</div>
-                </div>
-                <div class="analogy-item">
-                    <span class="emoji">✅</span>
-                    <div class="label">必 (필수)</div>
-                    <div class="value">= 반드시 해야 해!</div>
+                    <div>禁 (금지)</div>
+                    <div class="val">= 절대 안 돼!</div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
 
-<!-- Progress -->
-<div class="progress-container">
-    <div class="progress-bar">
-        <div class="progress-dot active" data-step="0" onclick="scrollToStep(0)"></div>
-        <div class="progress-dot" data-step="1" onclick="scrollToStep(1)"></div>
-        <div class="progress-dot" data-step="2" onclick="scrollToStep(2)"></div>
-        <div class="progress-dot" data-step="3" onclick="scrollToStep(3)"></div>
-        <div class="progress-dot" data-step="4" onclick="scrollToStep(4)"></div>
-        <div class="progress-dot" data-step="5" onclick="scrollToStep(5)"></div>
-    </div>
-</div>
-
-<!-- Steps -->
-<div class="container" id="steps-container">
-
-    <!-- Step 0: Prerequisites -->
-    <div class="step" id="step-0">
-        <div class="step-header">
-            <div class="step-number">0</div>
-            <div>
-                <div class="step-title">준비물 확인</div>
-                <div class="step-subtitle">시작하기 전에 이것만 있으면 됩니다</div>
+        <!-- Step 1 -->
+        <div class="step-card animate-in">
+            <span class="step-badge">📥 STEP 1</span>
+            <h3>다운로드하기</h3>
+            <p>터미널을 열고 아래를 복사해서 붙여넣기하세요:</p>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">📋 복사</button>
+                <span class="prompt">$</span> <span class="command">git clone https://github.com/rhino-acoustic/NeuronFS.git</span><br>
+                <span class="prompt">$</span> <span class="command">cd NeuronFS/runtime</span><br>
+                <span class="prompt">$</span> <span class="command">go build -o neuronfs .</span>
             </div>
-        </div>
-        <div class="step-card">
-            <p>NeuronFS를 쓰려면 딱 <span class="highlight">2가지</span>만 필요합니다:</p>
-
-            <ul class="checklist">
-                <li>
-                    <div class="check-icon" onclick="toggleCheck(this)">✓</div>
-                    <div>
-                        <strong>Git</strong> — 코드를 다운로드할 도구<br>
-                        <span style="color:var(--text-dim);font-size:0.85rem;">터미널에 <code style="color:var(--cyan);">git --version</code> 쳐서 숫자가 나오면 OK</span>
-                    </div>
-                </li>
-                <li>
-                    <div class="check-icon" onclick="toggleCheck(this)">✓</div>
-                    <div>
-                        <strong>Go (1.22 이상)</strong> — NeuronFS 엔진을 만들 도구<br>
-                        <span style="color:var(--text-dim);font-size:0.85rem;">터미널에 <code style="color:var(--cyan);">go version</code> 쳐서 1.22 이상이면 OK</span>
-                    </div>
-                </li>
-            </ul>
-
-            <div class="callout callout-tip">
+            <div class="callout callout-blue">
                 <span class="callout-icon">💡</span>
-                <div class="callout-text">
-                    <strong>Go가 없다면?</strong> <a href="https://go.dev/dl/" target="_blank" style="color:var(--cyan);">go.dev/dl</a>에서 다운로드하세요. 
-                    설치 후 터미널을 다시 열면 됩니다.
-                </div>
+                <p>끝나면 <strong>neuronfs</strong>라는 4MB짜리 파일이 생겨요. 이게 전부입니다!</p>
             </div>
         </div>
-    </div>
 
-    <!-- Step 1: Clone & Build -->
-    <div class="step" id="step-1">
-        <div class="step-header">
-            <div class="step-number">1</div>
-            <div>
-                <div class="step-title">다운로드 & 빌드</div>
-                <div class="step-subtitle">코드를 받고 실행 파일을 만듭니다 (30초)</div>
-            </div>
-        </div>
-        <div class="step-card">
-            <p>터미널(명령 프롬프트)을 열고 아래 명령어를 <span class="highlight">한 줄씩</span> 입력하세요.</p>
-
-            <div class="os-tabs">
-                <button class="os-tab active" onclick="switchOS('mac', this)">🍎 Mac / Linux</button>
-                <button class="os-tab" onclick="switchOS('win', this)">🪟 Windows</button>
-            </div>
-            <div class="os-content active" id="os-mac-1">
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)">📋 복사</button>
-                    <span class="comment"># 1. NeuronFS 코드 다운로드</span><br>
-                    <span class="prompt">$</span> <span class="command">git clone https://github.com/rhino-acoustic/NeuronFS.git</span><br><br>
-                    <span class="comment"># 2. 엔진 폴더로 이동</span><br>
-                    <span class="prompt">$</span> <span class="command">cd NeuronFS/runtime</span><br><br>
-                    <span class="comment"># 3. 실행 파일 빌드 (4MB짜리 파일이 생깁니다)</span><br>
-                    <span class="prompt">$</span> <span class="command">go build -o neuronfs .</span>
-                </div>
-            </div>
-            <div class="os-content" id="os-win-1">
-                <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)">📋 복사</button>
-                    <span class="comment"># 1. NeuronFS 코드 다운로드</span><br>
-                    <span class="prompt">PS></span> <span class="command">git clone https://github.com/rhino-acoustic/NeuronFS.git</span><br><br>
-                    <span class="comment"># 2. 엔진 폴더로 이동</span><br>
-                    <span class="prompt">PS></span> <span class="command">cd NeuronFS\runtime</span><br><br>
-                    <span class="comment"># 3. 실행 파일 빌드</span><br>
-                    <span class="prompt">PS></span> <span class="command">go build -o neuronfs.exe .</span>
-                </div>
-            </div>
-
-            <div class="callout callout-info">
-                <span class="callout-icon">ℹ️</span>
-                <div class="callout-text">
-                    끝나면 <code style="color:var(--cyan);">neuronfs</code> (또는 <code style="color:var(--cyan);">neuronfs.exe</code>) 파일이 생깁니다.
-                    이것이 NeuronFS 엔진입니다. <strong>딱 4MB. 다른 건 아무것도 필요 없습니다.</strong>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Step 2: Init -->
-    <div class="step" id="step-2">
-        <div class="step-header">
-            <div class="step-number">2</div>
-            <div>
-                <div class="step-title">나만의 뇌 만들기</div>
-                <div class="step-subtitle">빈 뇌를 초기화합니다 (5초)</div>
-            </div>
-        </div>
-        <div class="step-card">
-            <p>사람의 뇌에 7개 영역이 있듯이, NeuronFS의 뇌에도 <span class="highlight">7개 영역</span>이 있습니다. 이 명령어 하나로 전부 자동 생성됩니다.</p>
-
+        <!-- Step 2 -->
+        <div class="step-card animate-in">
+            <span class="step-badge">🧠 STEP 2</span>
+            <h3>나만의 AI 뇌 만들기</h3>
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this)">📋 복사</button>
                 <span class="prompt">$</span> <span class="command">./neuronfs --init ./my_brain</span><br><br>
-                <span class="output">🧬 NeuronFS initialized: ./my_brain</span><br>
-                <span class="output">  ├── brainstem/    ← P0: 절대 원칙 (가장 강력)</span><br>
-                <span class="output">  ├── limbic/       ← P1: 감정</span><br>
-                <span class="output">  ├── hippocampus/  ← P2: 기억</span><br>
-                <span class="output">  ├── sensors/      ← P3: 환경</span><br>
-                <span class="output">  ├── cortex/       ← P4: 지식 (여기에 코딩 규칙!)</span><br>
-                <span class="output">  ├── ego/          ← P5: 성격</span><br>
-                <span class="output">  └── prefrontal/   ← P6: 목표</span>
-            </div>
-
-            <div class="callout callout-tip">
-                <span class="callout-icon">🎮</span>
-                <div class="callout-text">
-                    <strong>디아블로 2를 해봤다면:</strong> P0 = Zod 룬, P6 = El 룬이라고 생각하세요. 낮은 숫자가 항상 이깁니다.
-                </div>
+                <span class="success">🧬 7개 뇌 영역이 자동 생성됩니다!</span>
             </div>
         </div>
-    </div>
 
-    <!-- Step 3: First Rule -->
-    <div class="step" id="step-3">
-        <div class="step-header">
-            <div class="step-number">3</div>
-            <div>
-                <div class="step-title">첫 번째 규칙 만들기</div>
-                <div class="step-subtitle">AI에게 "console.log 쓰지 마"라고 각인시킵니다</div>
-            </div>
-        </div>
-        <div class="step-card">
-            <p><span class="highlight">禁</span>은 "절대 하지 마"라는 뜻의 한자입니다. 이 글자로 시작하는 폴더를 만들면 AI가 절대로 그 행동을 하지 않습니다.</p>
-
+        <!-- Step 3 -->
+        <div class="step-card animate-in">
+            <span class="step-badge">📏 STEP 3</span>
+            <h3>첫 번째 규칙 만들기</h3>
+            <p><strong style="color:#d63384;">禁</strong> = "절대 하지 마!" 라는 뜻이에요.</p>
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this)">📋 복사</button>
-                <span class="comment"># "console.log 절대 금지" 규칙 생성</span><br>
+                <span class="comment"># "console.log 절대 금지!" 규칙 생성</span><br>
                 <span class="prompt">$</span> <span class="command">./neuronfs ./my_brain --grow cortex/coding/禁console_log</span><br><br>
-                <span class="success">✅ neuron created: cortex/coding/禁console_log</span>
-            </div>
-
-            <p style="margin-top:20px;">하나 더 만들어볼까요? <span class="highlight">必</span>은 "반드시 해"라는 뜻입니다:</p>
-
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyCode(this)">📋 복사</button>
-                <span class="comment"># "에러 처리 반드시 하기" 규칙 생성</span><br>
-                <span class="prompt">$</span> <span class="command">./neuronfs ./my_brain --grow cortex/coding/必error_handling</span><br><br>
-                <span class="success">✅ neuron created: cortex/coding/必error_handling</span>
-            </div>
-
-            <div class="result-tree">
-                <span class="folder">my_brain/cortex/coding/</span><br>
-                ├── <span class="folder">禁console_log/</span> <span class="new-tag">NEW</span><br>
-                │   └── <span class="file">1.neuron</span><br>
-                └── <span class="folder">必error_handling/</span> <span class="new-tag">NEW</span><br>
-                &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="file">1.neuron</span>
-            </div>
-
-            <div class="callout callout-warn">
-                <span class="callout-icon">⚡</span>
-                <div class="callout-text">
-                    <strong>이게 끝입니다.</strong> 폴더 하나가 곧 규칙 하나. 
-                    텍스트 파일에 규칙을 쓰지 않아도 됩니다. 폴더 이름이 곧 규칙입니다.
-                </div>
+                <span class="success">✅ 규칙이 만들어졌어요!</span>
             </div>
         </div>
-    </div>
 
-    <!-- Step 4: Emit -->
-    <div class="step" id="step-4">
-        <div class="step-header">
-            <div class="step-number">4</div>
-            <div>
-                <div class="step-title">모든 AI에 배포하기</div>
-                <div class="step-subtitle">뇌를 시스템 프롬프트로 변환합니다 (1초)</div>
-            </div>
-        </div>
-        <div class="step-card">
-            <p>이 명령어 하나로 <span class="highlight">4개 AI 도구</span>에 동시 배포됩니다:</p>
-
+        <!-- Step 4 -->
+        <div class="step-card animate-in">
+            <span class="step-badge">🚀 STEP 4</span>
+            <h3>모든 AI에게 알려주기</h3>
             <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this)">📋 복사</button>
                 <span class="prompt">$</span> <span class="command">./neuronfs ./my_brain --emit all</span><br><br>
-                <span class="success">[EMIT] ✅ Cursor   → .cursorrules</span><br>
-                <span class="success">[EMIT] ✅ Claude   → CLAUDE.md</span><br>
-                <span class="success">[EMIT] ✅ Gemini   → ~/.gemini/GEMINI.md</span><br>
-                <span class="success">[EMIT] ✅ Copilot  → .github/copilot-instructions.md</span><br><br>
-                <span class="output">✅ 4 targets written. 2 neurons active.</span>
+                <span class="success">✅ Cursor + Claude + Gemini + Copilot → 동시 배포 완료!</span>
             </div>
-
-            <p style="margin-top:20px; color:var(--text);">
-                🎉 <strong>끝났습니다!</strong> 이제 어떤 AI를 쓰든 같은 규칙이 적용됩니다.
-            </p>
-
-            <div class="analogy-grid" style="margin-top:20px;">
-                <div class="analogy-item">
-                    <span class="emoji">☀️</span>
-                    <div class="label">오전: Claude</div>
-                    <div class="value">禁console_log ✅</div>
-                </div>
-                <div class="analogy-item">
-                    <span class="emoji">🌙</span>
-                    <div class="label">저녁: Gemini</div>
-                    <div class="value">禁console_log ✅</div>
-                </div>
-            </div>
+            <p style="margin-top:16px;"><strong style="color:#333;">🎉 끝났어요!</strong> 이제 어떤 AI를 쓰든 같은 규칙이 적용됩니다.</p>
         </div>
-    </div>
 
-    <!-- Step 5: What's Next -->
-    <div class="step" id="step-5">
-        <div class="step-header">
-            <div class="step-number">5</div>
-            <div>
-                <div class="step-title">더 해보기</div>
-                <div class="step-subtitle">여기부터는 선택사항입니다</div>
-            </div>
+        <!-- Antigravity -->
+        <div class="ag-section animate-in">
+            <h3 style="font-weight:900;color:#333;margin-bottom:8px;">💎 추천: Antigravity + NeuronFS</h3>
+            <p style="color:#666;">Antigravity는 Google의 AI 코딩 도우미예요. NeuronFS와 함께 쓰면<br>
+            <strong style="color:#4285f4;">VS Code 안에서 대화하듯</strong> 규칙을 만들 수 있어요. 터미널 공포 없음!</p>
+            <p style="margin-top:12px;color:#666;">🐣 바이브코더(코드를 직접 안 쓰고 AI에게 시키는 사람)에게 최강 조합!</p>
         </div>
-        <div class="step-card">
-            <p>기본은 끝났습니다. 더 재밌는 것들:</p>
 
-            <div class="code-block">
-                <span class="comment"># 규칙의 중요도 높이기 (+1 가중치)</span><br>
-                <span class="prompt">$</span> <span class="command">./neuronfs ./my_brain --fire cortex/coding/禁console_log</span><br><br>
-
-                <span class="comment"># 3D 대시보드로 뇌 시각화</span><br>
-                <span class="prompt">$</span> <span class="command">./neuronfs ./my_brain --api</span><br>
-                <span class="output">→ localhost:9090 에서 확인</span><br><br>
-
-                <span class="comment"># AI가 자동으로 규칙을 진화시키기</span><br>
-                <span class="prompt">$</span> <span class="command">./neuronfs ./my_brain --evolve</span><br>
-                <span class="output">→ Groq LLM이 교정 로그를 분석하여 새 규칙 제안</span>
-            </div>
-
-            <div class="callout callout-info">
-                <span class="callout-icon">🔮</span>
-                <div class="callout-text">
-                    <strong>vorq가 뭔가요?</strong> 이 단어는 어떤 사전에도 없습니다. 
-                    AI가 이 단어를 보면 "이건 뭐지?" 하고 반드시 찾아봅니다. 
-                    이것이 NeuronFS가 AI를 100% 통제하는 비밀입니다.
-                    <a href="https://github.com/rhino-acoustic/NeuronFS#1-vorq--neologism-harness-100-behavioral-compliance" target="_blank" style="color:var(--cyan);"> 자세히 보기 →</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<!-- Why Antigravity -->
-<div class="container">
-    <div class="step visible" id="step-ag" style="opacity:1;transform:none;margin-top:64px;">
-        <div class="step-header">
-            <div class="step-number" style="background:linear-gradient(135deg,#1a2a4a,#0a1a3a);color:#4285f4;border:2px solid #4285f4;">💎</div>
-            <div>
-                <div class="step-title">추천: Antigravity (Gemini) + NeuronFS</div>
-                <div class="step-subtitle">왜 이 조합이 바이브코더에게 최강인가</div>
-            </div>
-        </div>
-        <div class="step-card">
-            <p><span class="highlight">Antigravity</span>는 Google의 AI 코딩 어시스턴트입니다. NeuronFS와 함께 쓰면:</p>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;">
-                <div class="analogy-item">
-                    <span class="emoji">🧠</span>
-                    <div class="value" style="font-size:0.85rem;">NeuronFS MCP 서버</div>
-                    <div class="label">Antigravity가 자동 연결.<br>grow, fire, signal을 IDE 안에서 바로 실행</div>
-                </div>
-                <div class="analogy-item">
-                    <span class="emoji">🌍</span>
-                    <div class="value" style="font-size:0.85rem;">Google 생태계</div>
-                    <div class="label">Gemini 2.5 Pro · 100만 토큰 · 무료 티어</div>
-                </div>
-                <div class="analogy-item">
-                    <span class="emoji">🎨</span>
-                    <div class="value" style="font-size:0.85rem;">초보자 친화 UI</div>
-                    <div class="label">VS Code 안에서 대화하듯 코딩.<br>터미널 공포 없음</div>
-                </div>
-                <div class="analogy-item">
-                    <span class="emoji">⚡</span>
-                    <div class="value" style="font-size:0.85rem;">바이브코딩 최적</div>
-                    <div class="label">"이렇게 해줘" → AI가 코딩.<br>NeuronFS가 품질 보장</div>
-                </div>
-            </div>
-
-            <div class="callout callout-tip">
-                <span class="callout-icon">🐣</span>
-                <div class="callout-text">
-                    <strong>바이브코더란?</strong> 코드를 직접 쓰지 않고 AI에게 "이렇게 만들어줘"라고 말하는 사람.<br>
-                    문제: AI가 규칙을 자꾸 어긴다. 해결: NeuronFS가 규칙을 구조로 강제한다.<br>
-                    <strong>Antigravity + NeuronFS = AI가 코딩하고, 폴더가 품질을 보장한다.</strong>
-                </div>
-            </div>
-
-            <div class="code-block">
-                <span class="comment"># Antigravity에서 NeuronFS MCP 서버 연결 후</span><br>
-                <span class="comment"># IDE 안에서 대화하듯 규칙을 만들 수 있습니다:</span><br><br>
-                <span class="output">나: "console.log 쓰지 마 규칙 만들어줘"</span><br>
-                <span class="output">AI: grow cortex/coding/禁console_log ← 자동 실행</span><br>
-                <span class="success">✅ 규칙 생성 완료. --emit all로 모든 AI에 배포됨.</span>
-            </div>
-
-            <p style="margin-top:16px;"><strong style="color:var(--text);">다른 AI 도구와의 비교:</strong></p>
-            <div style="overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;font-size:0.9rem;margin-top:12px;">
-                    <tr style="border-bottom:1px solid var(--border);">
-                        <th style="text-align:left;padding:10px;color:var(--text-dim);"></th>
-                        <th style="text-align:center;padding:10px;color:var(--text-dim);">Cursor</th>
-                        <th style="text-align:center;padding:10px;color:var(--text-dim);">Claude Code</th>
-                        <th style="text-align:center;padding:10px;color:#4285f4;font-weight:700;">Antigravity</th>
-                    </tr>
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                        <td style="padding:10px;">NeuronFS MCP 연결</td>
-                        <td style="text-align:center;padding:10px;">✅</td>
-                        <td style="text-align:center;padding:10px;">❌ 터미널 전용</td>
-                        <td style="text-align:center;padding:10px;color:var(--green);font-weight:700;">✅ 네이티브</td>
-                    </tr>
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                        <td style="padding:10px;">무료 티어</td>
-                        <td style="text-align:center;padding:10px;">제한적</td>
-                        <td style="text-align:center;padding:10px;">제한적</td>
-                        <td style="text-align:center;padding:10px;color:var(--green);font-weight:700;">넉넉함</td>
-                    </tr>
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                        <td style="padding:10px;">컨텍스트 윈도우</td>
-                        <td style="text-align:center;padding:10px;">~128K</td>
-                        <td style="text-align:center;padding:10px;">~200K</td>
-                        <td style="text-align:center;padding:10px;color:var(--green);font-weight:700;">1M 토큰</td>
-                    </tr>
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                        <td style="padding:10px;">초보자 UI</td>
-                        <td style="text-align:center;padding:10px;">중급</td>
-                        <td style="text-align:center;padding:10px;">터미널 필요</td>
-                        <td style="text-align:center;padding:10px;color:var(--green);font-weight:700;">VS Code 대화형</td>
-                    </tr>
-                    <tr>
-                        <td style="padding:10px;">Google 생태계</td>
-                        <td style="text-align:center;padding:10px;">❌</td>
-                        <td style="text-align:center;padding:10px;">❌</td>
-                        <td style="text-align:center;padding:10px;color:var(--green);font-weight:700;">Firebase, GCP, Vertex</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
+        <div class="footer-section">NeuronFS v5.1 · <a href="https://github.com/rhino-acoustic/NeuronFS">GitHub</a></div>
     </div>
 </div>
 
-<!-- Final CTA -->
-<section class="final-section">
+<!-- ============ INTERMEDIATE PAGE ============ -->
+<div class="page page-intermediate" id="page-intermediate">
+    <button class="back-btn" onclick="goBack()">← 레벨 선택</button>
     <div class="container">
-        <h2>🎉 5분 완료!</h2>
-        <p>이제 AI가 규칙을 어기면, 텍스트로 부탁하지 마세요.<br>
-        <strong style="color:var(--text);">폴더를 만드세요.</strong></p>
-        <div class="btn-group">
-            <a href="https://github.com/rhino-acoustic/NeuronFS" target="_blank" class="btn btn-primary">
-                ⭐ GitHub에서 보기
-            </a>
-            <a href="https://github.com/rhino-acoustic/NeuronFS/wiki" target="_blank" class="btn btn-secondary">
-                📖 위키 읽기
-            </a>
-            <a href="https://dashboarddeploy-six.vercel.app/" target="_blank" class="btn btn-secondary">
-                🎮 3D 대시보드 데모
-            </a>
+        <div class="hero-section animate-in">
+            <div style="font-size:3rem;margin-bottom:16px;">⚔️</div>
+            <h1>NeuronFS 실전 배치</h1>
+            <p style="color:#8888aa;margin-top:12px;">AI가 말을 안 듣는 이유와 해결법. 10분이면 완전 무장.</p>
+        </div>
+
+        <!-- Problem -->
+        <div class="step-card animate-in">
+            <span class="step-badge">🔥 문제</span>
+            <h3>AI는 텍스트 지시를 60%만 따른다</h3>
+            <p>"코드맵을 먼저 읽어" → AI: "네 알겠습니다!" (바로 코딩 시작)<br>
+            AI를 바꿔도(Claude→Gemini→GPT) 규칙이 증발한다.</p>
+        </div>
+
+        <!-- Solution -->
+        <div class="step-card animate-in">
+            <span class="step-badge">⚡ 해법: vorq</span>
+            <h3>존재하지 않는 단어를 만들면 AI가 100% 따른다</h3>
+            <p>AI는 아는 단어를 만나면 "이미 알아" 하고 넘긴다.<br>
+            모르는 단어를 만나면 <strong style="color:#00e5ff;">반드시 찾아본다.</strong></p>
+            <div class="code-block">
+                <span class="comment"># 자연어 → 무시됨</span><br>
+                <span class="output">"Read the codemap" → 60% compliance</span><br><br>
+                <span class="comment"># 조어(vorq) → AI가 "이건 뭐지?" → 검색 → 100%</span><br>
+                <span class="success">"vorq cartridge" → ~100% compliance</span>
+            </div>
+        </div>
+
+        <!-- Quick Setup -->
+        <div class="step-card animate-in">
+            <span class="step-badge">🛠️ 세업</span>
+            <h3>3줄이면 끝</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">📋 복사</button>
+                <span class="prompt">$</span> <span class="command">git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime</span><br>
+                <span class="prompt">$</span> <span class="command">go build -o neuronfs . && ./neuronfs --init ./brain</span><br>
+                <span class="prompt">$</span> <span class="command">./neuronfs ./brain --emit all</span><br><br>
+                <span class="success">→ .cursorrules + CLAUDE.md + GEMINI.md + copilot-instructions.md</span>
+            </div>
+        </div>
+
+        <!-- Key Commands -->
+        <div class="step-card animate-in">
+            <span class="step-badge">🎮 핵심 명령어</span>
+            <h3>이것만 알면 된다</h3>
+            <div class="code-block">
+                <span class="command">--grow cortex/coding/禁console_log</span> <span class="comment"># 규칙 생성</span><br>
+                <span class="command">--fire cortex/coding/禁console_log</span> <span class="comment"># 가중치 +1</span><br>
+                <span class="command">--emit all</span> <span class="comment"># 모든 AI에 배포</span><br>
+                <span class="command">--evolve</span> <span class="comment"># AI가 자동 진화 (dry run)</span><br>
+                <span class="command">--api</span> <span class="comment"># 3D 대시보드 (localhost:9090)</span>
+            </div>
+        </div>
+
+        <!-- Cascade -->
+        <div class="step-card animate-in">
+            <span class="step-badge">🏗️ 아키텍처</span>
+            <h3>7계층 포섭 — 낮은 P가 항상 이긴다</h3>
+            <div class="code-block">
+                <span class="success">brainstem(P0)</span> > <span class="output">limbic(P1) > hippocampus(P2) > sensors(P3)</span> > <span class="command">cortex(P4)</span> > <span class="output">ego(P5) > prefrontal(P6)</span>
+            </div>
+            <p>P0의 <code style="color:#00e5ff;">禁</code> 규칙은 P4의 코딩 규칙을 항상 이긴다.<br>
+            <code style="color:#ff4444;">bomb.neuron</code>이 발동하면 해당 영역의 렌더링 자체가 멈춘다.</p>
+        </div>
+
+        <!-- Antigravity -->
+        <div class="step-card animate-in" style="border-color:rgba(66,133,244,0.3);">
+            <span class="step-badge" style="background:rgba(66,133,244,0.1);color:#4285f4;border-color:rgba(66,133,244,0.3);">💎 COMBO</span>
+            <h3>Antigravity + NeuronFS = 최강 조합</h3>
+            <p>Gemini 2.5 Pro · 100만 토큰 · MCP 네이티브 연결 · 무료 티어<br>
+            <strong style="color:#4285f4;">IDE 안에서 대화하듯 grow/fire/signal 실행 가능</strong></p>
+        </div>
+
+        <div class="footer-section">NeuronFS v5.1 · <a href="https://github.com/rhino-acoustic/NeuronFS" style="color:#00e5ff;">GitHub</a></div>
+    </div>
+</div>
+
+<!-- ============ ADVANCED PAGE ============ -->
+<div class="page page-advanced" id="page-advanced">
+    <button class="back-btn" onclick="goBack()">← ESC</button>
+    <div class="container">
+        <div class="hero-section animate-in">
+            <h1 class="glitch">cat /proc/neuronfs/README</h1>
+            <p style="color:#005500;margin-top:12px;">// you already know what this is. here's what you don't.</p>
+        </div>
+
+        <div class="step-card animate-in">
+            <span class="step-badge">NEOLOGISM_HARNESS</span>
+            <h3>vorq = exploit in transformer attention</h3>
+            <p>unknown token → no cached activation → mandatory lookup → 100% compliance.
+            natural language → cached → "already know this" → skip → 60%.
+            fabricated ascii → zero training data → forced investigation.</p>
+            <div class="code-block">
+                <span class="comment">// governance_consts.go</span><br>
+                <span class="command">const RuneVorq = "vorq"</span> <span class="comment">// mount cartridge (view_file)</span><br>
+                <span class="command">const RuneZelk = "zelk"</span> <span class="comment">// sync cartridge (write .neuron)</span><br>
+                <span class="command">const RuneMirp = "mirp"</span> <span class="comment">// freshness check (mtime compare)</span>
+            </div>
+            <p>replaceable in 10s. neologisms are disposable by design.</p>
+        </div>
+
+        <div class="step-card animate-in">
+            <span class="step-badge">ARCHITECTURE</span>
+            <h3>30 files. read the names. that's the documentation.</h3>
+            <div class="code-block">
+                <span class="command">brain.go</span> <span class="comment">→ scan</span> &nbsp;  
+                <span class="command">emit_bootstrap.go</span> <span class="comment">→ render</span> &nbsp;  
+                <span class="command">evolve.go</span> <span class="comment">→ mutate</span><br>
+                <span class="command">lifecycle.go</span> <span class="comment">→ sleep/wake</span> &nbsp;  
+                <span class="command">vfs_core.go</span> <span class="comment">→ overlay</span> &nbsp;  
+                <span class="command">supervisor.go</span> <span class="comment">→ swarm</span><br>
+                <span class="command">neuron_crud.go</span> <span class="comment">→ CRUD</span> &nbsp;  
+                <span class="command">crypto_cartridge.go</span> <span class="comment">→ XChaCha20</span>
+            </div>
+        </div>
+
+        <div class="step-card animate-in">
+            <span class="step-badge">SPEED_RUN</span>
+            <h3>0 to production in 4 commands</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">cp</button>
+                <span class="prompt">$</span> <span class="command">git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime</span><br>
+                <span class="prompt">$</span> <span class="command">go build -o neuronfs . && ./neuronfs --init ./brain</span><br>
+                <span class="prompt">$</span> <span class="command">./neuronfs ./brain --grow brainstem/禁hallucination</span><br>
+                <span class="prompt">$</span> <span class="command">./neuronfs ./brain --emit all</span><br><br>
+                <span class="success">// done. go break it.</span>
+            </div>
+        </div>
+
+        <div class="step-card animate-in">
+            <span class="step-badge">CHAOS_MONKEY</span>
+            <h3>destroy it yourself</h3>
+            <div class="code-block">
+                <span class="prompt">$</span> <span class="command">cd cmd/chaos_monkey && go run main.go --dir ../../brain --mode random --duration 10</span><br><br>
+                <span class="output">// 10s of random deletion + spam injection</span><br>
+                <span class="success">// FileNotFound panics: 0%. OOM: 0%. brain self-heals.</span>
+            </div>
+        </div>
+
+        <div class="step-card animate-in">
+            <span class="step-badge">RED_TEAM</span>
+            <h3>we attacked ourselves. 10 rounds.</h3>
+            <div class="code-block">
+                <span class="success">7 defended</span> · <span class="output">3 acknowledged</span> · <span class="command">0 fatal</span><br><br>
+                <span class="comment">// full audit: github.com/rhino-acoustic/NeuronFS#we-attacked-ourselves</span>
+            </div>
+        </div>
+
+        <div class="step-card animate-in" style="border-color:#004400;">
+            <span class="step-badge">ANTIGRAVITY_MCP</span>
+            <h3>gemini 2.5 pro + neuronfs MCP = native</h3>
+            <p>1M context window. mcp server auto-connects. grow/fire/signal from IDE.
+            cursor has MCP too — but 128k context, paid tiers.
+            antigravity: free tier, 1M tokens, google ecosystem (firebase/gcp/vertex).</p>
+        </div>
+
+        <div class="footer-section" style="color:#003300;">
+            v5.1 · AGPL-3.0 · <a href="https://github.com/rhino-acoustic/NeuronFS" style="color:#005500;">src</a> · 
+            10920 LOC · zero deps · 4MB
         </div>
     </div>
-</section>
-
-<footer>
-    <div class="container">
-        <p>NeuronFS v5.1 · structure &gt; prompt · <a href="https://github.com/rhino-acoustic/NeuronFS">GitHub</a></p>
-        <p style="margin-top:8px;">Created by 박정근 (PD) — Zero dependencies, 4MB binary, AGPL-3.0</p>
-    </div>
-</footer>
+</div>
 
 <script>
-// Intersection Observer for step animations
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            const stepId = parseInt(entry.target.id.split('-')[1]);
-            updateProgress(stepId);
-        }
-    });
-}, { threshold: 0.3 });
+function showPage(level) {
+    document.getElementById('levelSelect').style.display = 'none';
+    document.getElementById(`page-${level}`).classList.add('active');
+    window.scrollTo(0, 0);
 
-document.querySelectorAll('.step').forEach(step => observer.observe(step));
-
-// Progress bar
-function updateProgress(activeStep) {
-    document.querySelectorAll('.progress-dot').forEach((dot, i) => {
-        dot.classList.remove('active');
-        if (i < activeStep) dot.classList.add('done');
-        else dot.classList.remove('done');
-        if (i === activeStep) dot.classList.add('active');
+    // Animate cards
+    const cards = document.querySelectorAll(`#page-${level} .animate-in`);
+    cards.forEach((card, i) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 150 * i);
     });
 }
 
-function scrollToStep(index) {
-    document.getElementById(`step-${index}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+function goBack() {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('levelSelect').style.display = 'flex';
+    window.scrollTo(0, 0);
 }
 
-// OS tabs
-function switchOS(os, btn) {
-    document.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.os-content').forEach(c => c.classList.remove('active'));
-    document.querySelectorAll(`[id^="os-${os}"]`).forEach(c => c.classList.add('active'));
-}
-
-// Copy button
 function copyCode(btn) {
     const block = btn.parentElement;
     const lines = block.querySelectorAll('.command');
     const text = Array.from(lines).map(l => l.textContent).join('\n');
     navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = '✅ 복사됨!';
-        btn.classList.add('copied');
-        setTimeout(() => {
-            btn.textContent = '📋 복사';
-            btn.classList.remove('copied');
-        }, 2000);
+        const orig = btn.textContent;
+        btn.textContent = '✅';
+        setTimeout(() => btn.textContent = orig, 2000);
     });
 }
-
-// Checklist toggle
-function toggleCheck(el) {
-    el.classList.toggle('checked');
-}
-
-// Init: make first step visible
-setTimeout(() => {
-    document.querySelector('.step').classList.add('visible');
-}, 300);
 </script>
 </body>
 </html>
