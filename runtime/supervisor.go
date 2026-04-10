@@ -7,7 +7,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -64,6 +67,94 @@ func svLog(msg string) {
 			f.Close()
 		}
 	}
+}
+
+// ── L2: 포트 체크 (Go 네이티브) ──
+func checkPort(port int) bool {
+	conn, err := net.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", port), 2*time.Second)
+	if err != nil {
+		return false
+	}
+	conn.Close()
+	return true
+}
+
+// ── 텔레그램 알림 (Go 네이티브, 외부 의존 0) ──
+var svTgToken, svTgChatID string
+
+func svLoadTelegram(nfsRoot string) {
+	bridgeDir := filepath.Join(nfsRoot, "telegram-bridge")
+	if data, err := os.ReadFile(filepath.Join(bridgeDir, ".token")); err == nil {
+		svTgToken = strings.TrimSpace(string(data))
+	}
+	if data, err := os.ReadFile(filepath.Join(bridgeDir, ".chat_id")); err == nil {
+		svTgChatID = strings.TrimSpace(string(data))
+	}
+}
+
+func svTgAlert(msg string) {
+	if svTgToken == "" || svTgChatID == "" {
+		return
+	}
+	body := fmt.Sprintf(`{"chat_id":"%s","text":"%s"}`, svTgChatID, strings.ReplaceAll(msg, `"`, `\"`))
+	resp, err := http.Post(
+		fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", svTgToken),
+		"application/json",
+		strings.NewReader(body),
+	)
+	if err == nil {
+		io.Copy(io.Discard, resp.Body)
+		resp.Body.Close()
+	}
+}
+
+// ── 메트릭 JSON 출력 ──
+var svBootTime = time.Now()
+var svCheckCount int
+
+func svWriteMetrics(children []*ChildSpec, nfsRoot string) {
+	type svcEntry struct {
+		Name     string `json:"name"`
+		Status   string `json:"status"`
+		Restarts int    `json:"restarts"`
+	}
+	svcs := make([]svcEntry, 0)
+	for _, c := range children {
+		c.mu.Lock()
+		st := "DOWN"
+		if c.running {
+			st = "UP"
+		}
+		svcs = append(svcs, svcEntry{Name: c.Name, Status: st, Restarts: c.restartCount})
+		c.mu.Unlock()
+	}
+	data := map[string]interface{}{
+		"ts":         time.Now().Format(time.RFC3339),
+		"bootTime":   svBootTime.Format(time.RFC3339),
+		"uptimeMs":   time.Since(svBootTime).Milliseconds(),
+		"checkCount": svCheckCount,
+		"services":   svcs,
+		"engine":     "go-supervisor",
+	}
+	jsonData, _ := json.MarshalIndent(data, "", "  ")
+	os.WriteFile(filepath.Join(nfsRoot, "logs", "watchdog_metrics.json"), jsonData, 0600)
+}
+
+func svStatusReport(children []*ChildSpec, nfsRoot string) {
+	uptime := time.Since(svBootTime).Minutes()
+	report := fmt.Sprintf("📊 [NeuronFS Supervisor]\n⏱️ 가동: %.0f분 | 체크: %d회\n", uptime, svCheckCount)
+	for _, c := range children {
+		c.mu.Lock()
+		st := "🟢 UP"
+		if !c.running {
+			st = "🔴 DOWN"
+		}
+		report += fmt.Sprintf("%s %s restarts=%d\n", st, c.Name, c.restartCount)
+		c.mu.Unlock()
+	}
+	svLog(report)
+	svTgAlert(report)
+	svWriteMetrics(children, nfsRoot)
 }
 
 func runSupervisor(brainRoot string) {
@@ -131,6 +222,9 @@ func runSupervisor(brainRoot string) {
 		svLog("🔄 NAS 동기화 활성 (5초)")
 	}
 
+	svBootTime = time.Now()
+	svLoadTelegram(nfsRoot)
+
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
 
@@ -138,10 +232,12 @@ func runSupervisor(brainRoot string) {
 	statusTk := time.NewTicker(60 * time.Second)
 	lockTk := time.NewTicker(5 * time.Second)
 	decayTk := time.NewTicker(1 * time.Hour)
+	reportTk := time.NewTicker(30 * time.Minute)
 	defer harnessTk.Stop()
 	defer statusTk.Stop()
 	defer lockTk.Stop()
 	defer decayTk.Stop()
+	defer reportTk.Stop()
 
 	// Initial decay run
 	go RunTTLDecay(brainRoot, svLog)
@@ -161,7 +257,9 @@ func runSupervisor(brainRoot string) {
 		case <-harnessTk.C:
 			go RunHarness(brainRoot, svLog)
 		case <-statusTk.C:
+			svCheckCount++
 			svStatus(children)
+			svWriteMetrics(children, nfsRoot)
 		case <-lockTk.C:
 			for _, c := range children {
 				if !c.Lockable {
@@ -178,6 +276,8 @@ func runSupervisor(brainRoot string) {
 			}
 		case <-decayTk.C:
 			go RunTTLDecay(brainRoot, svLog)
+		case <-reportTk.C:
+			svStatusReport(children, nfsRoot)
 		}
 	}
 }
