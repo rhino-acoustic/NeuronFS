@@ -157,6 +157,35 @@ func svStatusReport(children []*ChildSpec, nfsRoot string) {
 	svWriteMetrics(children, nfsRoot)
 }
 
+// ── Antigravity 자동 탐색 (어느 컴퓨터든 동작) ──
+func findAntigravity() string {
+	home, _ := os.UserHomeDir()
+	localAppData := os.Getenv("LOCALAPPDATA")
+	if localAppData == "" {
+		localAppData = filepath.Join(home, "AppData", "Local")
+	}
+
+	candidates := []string{
+		filepath.Join(localAppData, "Programs", "Antigravity", "Antigravity.exe"),
+		filepath.Join(localAppData, "Programs", "cursor", "Cursor.exe"),
+		filepath.Join(localAppData, "Programs", "Microsoft VS Code", "Code.exe"),
+	}
+
+	// PATH에서도 탐색
+	for _, name := range []string{"Antigravity", "cursor", "code"} {
+		if p, err := exec.LookPath(name); err == nil {
+			candidates = append([]string{p}, candidates...)
+		}
+	}
+
+	for _, c := range candidates {
+		if fileExists(c) {
+			return c
+		}
+	}
+	return ""
+}
+
 func runSupervisor(brainRoot string) {
 	nfsRoot := filepath.Dir(brainRoot)
 	nfsExe, _ := os.Executable()
@@ -172,7 +201,17 @@ func runSupervisor(brainRoot string) {
 	fmt.Println("╚══════════════════════════════════════════════════╝")
 	fmt.Println("")
 
+	// Antigravity 자동 탐색 (어느 컴퓨터든 동작)
+	agExe := findAntigravity()
+	agEnabled := agExe != ""
+	if agEnabled {
+		svLog(fmt.Sprintf("🔍 Antigravity 발견: %s", agExe))
+	} else {
+		svLog("⚠️ Antigravity 미설치 — CDP 기능 비활성")
+	}
+
 	children := []*ChildSpec{
+		{Name: "antigravity", Cmd: agExe, Args: []string{nfsRoot, "--remote-debugging-port=9000"}, Dir: nfsRoot, Enabled: agEnabled},
 		{Name: "neuronfs-api", Cmd: nfsExe, Args: []string{brainRoot, "--api"}, Dir: nfsRoot, Enabled: true},
 		{Name: "neuronfs-watch", Cmd: nfsExe, Args: []string{brainRoot, "--watch"}, Dir: nfsRoot, Enabled: true},
 		// 전체 Node.js 데몬 Go 네이티브 전환 완료
