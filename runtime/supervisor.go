@@ -307,7 +307,6 @@ func svStatus(children []*ChildSpec) {
 	}
 	svLog("💓 " + strings.Join(p, " | "))
 
-	// Check deadlocks and OOM for the HTTP API (NeuronFS API Server usually binds port 9090)
 	for _, c := range children {
 		if !c.Enabled {
 			continue
@@ -325,7 +324,7 @@ func svStatus(children []*ChildSpec) {
 				c.stop()
 			}
 
-			// Deadlock Check: API Server ping
+			// L3: HTTP 헬스체크 (API 서버)
 			if c.Name == "neuronfs-api" {
 				client := http.Client{Timeout: 3 * time.Second}
 				resp, err := client.Get(fmt.Sprintf("http://127.0.0.1:%d/api/health", APIPort))
@@ -334,6 +333,11 @@ func svStatus(children []*ChildSpec) {
 					c.stop()
 				} else if resp != nil {
 					resp.Body.Close()
+				}
+
+				// L2: 포트 체크
+				if !checkPort(APIPort) {
+					svLog(fmt.Sprintf("\033[33m[ZOMBIE] API port %d not listening\033[0m", APIPort))
 				}
 			}
 		}
