@@ -229,12 +229,12 @@ try { _tgMountedRoom = fs.readFileSync(MOUNT_FILE, 'utf8').trim() || 'NeuronFS';
 function tgPoll() {
     if (!TG_TOKEN) return;
     const url = `/bot${TG_TOKEN}/getUpdates?offset=${_tgOffset}&timeout=5&allowed_updates=["message"]`;
-    https.get({ hostname: 'api.telegram.org', path: url }, (res) => {
+    const req = https.get({ hostname: 'api.telegram.org', path: url, timeout: 15000 }, (res) => {
         let d = ''; res.on('data', c => d += c);
         res.on('end', () => {
             try {
                 const json = JSON.parse(d);
-                if (!json.ok) return;
+                if (!json.ok) { setTimeout(tgPoll, 2000); return; }
                 for (const u of json.result || []) {
                     _tgOffset = u.update_id + 1;
                     const msg = u.message;
@@ -294,39 +294,43 @@ function tgPoll() {
                         fs.writeFileSync(path.join(inboxDir, fname), `# from: telegram\n# priority: normal\n\n${payload}`, 'utf8');
                         tgReply(chatId, `✅ [${targetRoom}] 전달됨`);
                         tgLog(`TG→${targetRoom}: ${payload.substring(0,50)}`);
+                        tgLog(`  ↳ 📥 inbox: ${fname}`);
 
-                        // ★ CDP 실시간 인젝션 (Direct DOM Injection)
-                        const ws = domSockets.get(targetRoom.toLowerCase());
-                        if (ws && ws.readyState === 1) {
-                            const payloadEscaped = (payload || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/'/g, "\\'");
-                            const injectCode = `(() => {
-                                const el = document.querySelector('[contenteditable]');
-                                if(el) {
-                                    el.focus();
-                                    document.execCommand('insertText', false, '${payloadEscaped}');
-                                    setTimeout(() => {
-                                        const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerHTML.includes('<svg') && (b.innerHTML.includes('path') || b.innerHTML.includes('polyline')));
-                                        if(btn) btn.click();
-                                    }, 50);
-                                    return 'Injected';
-                                }
-                                return 'Not found contenteditable';
-                            })()`;
-                            ws.send(JSON.stringify({
-                                id: Date.now(),
-                                method: 'Runtime.evaluate',
-                                params: { expression: injectCode, returnByValue: true }
-                            }));
-                            tgLog(`  ↳ ⚡ CDP 인젝션 성공`);
-                        } else {
-                            tgLog(`  ↳ ⚠️ 인젝션 실패: 활성 창 없음 (${targetRoom})`);
-                        }
+                        // ★ CDP 실시간 인젝션 — 매번 fresh /json/list 연결
+                        const payloadEscaped = (payload || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/'/g, "\\'");
+                        const injectCode = '(() => { const all = Array.from(document.querySelectorAll("[contenteditable]")); const el = all.reverse().find(e => { const r = e.getBoundingClientRect(); return r.height > 0 && r.height < 300 && r.width > 100; }) || all[0]; if(el) { el.focus(); document.execCommand("insertText", false, "[telegram \\u2192 NeuronFS] ' + payloadEscaped + '"); setTimeout(() => { const btn = document.querySelector(\'button[aria-label="Send message"]\') || Array.from(document.querySelectorAll("button")).find(b => b.textContent.includes("Send")); if(btn) btn.click(); }, 50); return "Injected"; } return "NoTarget"; })()';
+                        http.get(`http://127.0.0.1:${CDP_PORT}/json/list`, (jr) => {
+                            let jd = ''; jr.on('data', c => jd += c);
+                            jr.on('end', () => {
+                                try {
+                                    const ts = JSON.parse(jd);
+                                    const pages = ts.filter(t => t.url && t.url.includes('workbench.html') && !t.url.includes('jetski'));
+                                    tgLog(`  ↳ 🔍 CDP pages: ${pages.map(p => p.title).join(' | ')} (target=${targetRoom})`);
+                                    const pg = pages.find(t => t.title && t.title.toLowerCase().includes(targetRoom.toLowerCase()));
+                                    if (pg && pg.webSocketDebuggerUrl) {
+                                        const tw = new WebSocket(pg.webSocketDebuggerUrl);
+                                        tw.on('open', () => {
+                                            tw.send(JSON.stringify({id:1, method:'Runtime.enable', params:{}}));
+                                            setTimeout(() => {
+                                                tw.send(JSON.stringify({id:2, method:'Runtime.evaluate', params:{expression: injectCode, returnByValue: true}}));
+                                                setTimeout(() => tw.close(), 1000);
+                                            }, 300);
+                                        });
+                                        tw.on('message', d => { try { const m = JSON.parse(d.toString()); if (m.id === 2) tgLog(`  ↳ 🎯 inject result: ${m.result?.result?.value}`); } catch {} });
+                                        tw.on('error', (e) => { tgLog(`  ↳ ⚠️ WS err: ${e.message}`); });
+                                        tgLog(`  ↳ ⚡ CDP inject → ${pg.title}`);
+                                    } else { tgLog(`  ↳ ⚠️ no match for '${targetRoom}' in [${pages.map(p=>p.title).join(', ')}]`); }
+                                } catch(e) { tgLog(`  ↳ ⚠️ CDP err: ${e.message}`); }
+                            });
+                        }).on('error', () => { tgLog(`  ↳ ⚠️ CDP port 연결 실패`); });
                     }
                 }
-            } catch {}
+            } catch (e) { tgLog('POLL_ERR: ' + e.message); }
             setTimeout(tgPoll, 1000);
         });
-    }).on('error', () => setTimeout(tgPoll, 3000));
+    });
+    req.on('error', () => setTimeout(tgPoll, 3000));
+    req.on('timeout', () => { req.destroy(); setTimeout(tgPoll, 2000); });
 }
 
 function tgReply(chatId, text) {
