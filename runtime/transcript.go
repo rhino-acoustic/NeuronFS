@@ -236,6 +236,72 @@ func runIdleLoop(brainRoot string) {
 		lastEvolveTime = time.Now()
 		idleEvolveRunning = false
 		fmt.Printf("[IDLE] ✅ Autonomous cycle complete at %s\n\n", lastEvolveTime.Format("15:04:05"))
+
+		// 10. CDP 인젝션 — 허트비트 결과를 AI 입력에 주입 (자가발전 트리거)
+		growth := result.TotalNeurons - 0 // heartbeat에서 실제 delta 계산됨
+		if hbData, err := os.ReadFile(filepath.Join(brainRoot, "_heartbeat.json")); err == nil {
+			var hb map[string]interface{}
+			if json.Unmarshal(hbData, &hb) == nil {
+				if delta, ok := hb["growth_delta"].(float64); ok {
+					growth = int(delta)
+				}
+			}
+		}
+
+		summary := fmt.Sprintf("[HEARTBEAT] Idle cycle 완료: %d neurons, act:%d, Δ%d",
+			result.TotalNeurons, result.TotalCounter, growth)
+
+		// CDP inject — auto-accept agents에게 브로드캐스트
+		injectIdleResult(summary)
+	}
+}
+
+// injectIdleResult injects heartbeat summary into AI input via CDP.
+// Uses the same aaAgents registry from auto_accept.go.
+func injectIdleResult(summary string) {
+	escaped := strings.ReplaceAll(summary, `"`, `\"`)
+	escaped = strings.ReplaceAll(escaped, "\n", "\\n")
+
+	script := fmt.Sprintf(`(() => {
+		const all = Array.from(document.querySelectorAll("[contenteditable]"));
+		const el = all.reverse().find(e => {
+			const r = e.getBoundingClientRect();
+			return r.height > 0 && r.height < 300 && r.width > 100;
+		}) || all[0];
+		if (el) {
+			el.focus();
+			document.execCommand("insertText", false, "%s");
+			el.dispatchEvent(new KeyboardEvent("keydown", {key:"Enter",code:"Enter",keyCode:13,which:13,bubbles:true}));
+			return "Injected";
+		}
+		return "NoTarget";
+	})()`, escaped)
+
+	injected := false
+	aaAgents.Range(func(k, v interface{}) bool {
+		a := v.(*aaAgent)
+		result, err := a.client.Call("Runtime.evaluate", map[string]interface{}{
+			"expression":    script,
+			"returnByValue": true,
+		})
+		if err != nil {
+			return true
+		}
+		var evalRes struct {
+			Result struct {
+				Value string `json:"value"`
+			} `json:"result"`
+		}
+		json.Unmarshal(result, &evalRes)
+		if evalRes.Result.Value == "Injected" {
+			fmt.Printf("[IDLE] 🧬 허트비트 CDP 인젝션 완료 → [%s]\n", a.name)
+			injected = true
+			return false
+		}
+		return true
+	})
+	if !injected {
+		fmt.Println("[IDLE] ⚠️ CDP 인젝션 실패 — 활성 에이전트 없음")
 	}
 }
 

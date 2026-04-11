@@ -9,7 +9,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"os"
@@ -93,19 +92,7 @@ func svLoadTelegram(nfsRoot string) {
 }
 
 func svTgAlert(msg string) {
-	if svTgToken == "" || svTgChatID == "" {
-		return
-	}
-	body := fmt.Sprintf(`{"chat_id":"%s","text":"%s"}`, svTgChatID, strings.ReplaceAll(msg, `"`, `\"`))
-	resp, err := http.Post(
-		fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", svTgToken),
-		"application/json",
-		strings.NewReader(body),
-	)
-	if err == nil {
-		io.Copy(io.Discard, resp.Body)
-		resp.Body.Close()
-	}
+	sendTelegramSafe(svTgToken, svTgChatID, msg)
 }
 
 // ── 메트릭 JSON 출력 ──

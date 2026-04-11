@@ -174,46 +174,67 @@ func actionIcon(actionType string) string {
 	}
 }
 
-// sendTelegramEvolve sends a push notification about brain evolution
-func sendTelegramEvolve(brainRoot string, action evoAction) {
-	tgToken := os.Getenv("TELEGRAM_BOT_TOKEN")
-	if tgToken == "" {
-		b, err := os.ReadFile(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".token"))
-		if err == nil {
-			tgToken = strings.TrimSpace(string(b))
-		}
-	}
-	if tgToken == "" {
+// sendTelegramSafe sends a text message via Telegram with automatic 4000-char splitting.
+// This is the SSOT for all Telegram sends — no other function should call sendMessage directly.
+func sendTelegramSafe(token, chatID, text string) {
+	if token == "" || chatID == "" {
 		return
 	}
-
-	chatIdBytes, err := os.ReadFile(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".chat_id"))
-	if err != nil || len(chatIdBytes) == 0 {
-		return
-	}
-	chatId := strings.TrimSpace(string(chatIdBytes))
-
-	icon := actionIcon(action.Type)
-	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("🧬 [NEURON EVOLVED] %s\n\n", action.Path))
-	sb.WriteString(fmt.Sprintf("액션: %s %s\n", icon, strings.ToUpper(action.Type)))
-	sb.WriteString(fmt.Sprintf("사유: %s", action.Reason))
-
-	// 멀티바이트(한글) 깨짐 방지를 위해 rune 단위 4000자 분할 전송
-	runes := []rune(sb.String())
-	chunkSize := 4000
+	runes := []rune(text)
+	const chunkSize = 4000
 
 	for i := 0; i < len(runes); i += chunkSize {
 		end := i + chunkSize
 		if end > len(runes) {
 			end = len(runes)
 		}
-
+		chunk := string(runes[i:end])
+		if len(runes) > chunkSize && i > 0 {
+			chunk = fmt.Sprintf("(%d/%d) %s", (i/chunkSize)+1, (len(runes)+chunkSize-1)/chunkSize, chunk)
+		}
 		payload := map[string]string{
-			"chat_id": chatId,
-			"text":    string(runes[i:end]),
+			"chat_id": chatID,
+			"text":    chunk,
 		}
 		data, _ := json.Marshal(payload)
-		http.Post("https://api.telegram.org/bot"+tgToken+"/sendMessage", "application/json", bytes.NewReader(data))
+		resp, err := http.Post(
+			"https://api.telegram.org/bot"+token+"/sendMessage",
+			"application/json",
+			bytes.NewReader(data),
+		)
+		if err == nil {
+			resp.Body.Close()
+		}
 	}
+}
+
+// loadTelegramCreds reads token and chat_id from telegram-bridge directory.
+func loadTelegramCreds(brainRoot string) (token, chatID string) {
+	bridgeDir := filepath.Join(filepath.Dir(brainRoot), "telegram-bridge")
+	if b, err := os.ReadFile(filepath.Join(bridgeDir, ".token")); err == nil {
+		token = strings.TrimSpace(string(b))
+	}
+	if token == "" {
+		token = os.Getenv("TELEGRAM_BOT_TOKEN")
+	}
+	if b, err := os.ReadFile(filepath.Join(bridgeDir, ".chat_id")); err == nil {
+		chatID = strings.TrimSpace(string(b))
+	}
+	if chatID == "" {
+		chatID = os.Getenv("TELEGRAM_CHAT_ID")
+	}
+	return
+}
+
+// sendTelegramEvolve sends a push notification about brain evolution
+func sendTelegramEvolve(brainRoot string, action evoAction) {
+	token, chatID := loadTelegramCreds(brainRoot)
+	if token == "" || chatID == "" {
+		return
+	}
+
+	icon := actionIcon(action.Type)
+	msg := fmt.Sprintf("🧬 [NEURON EVOLVED] %s\n\n액션: %s %s\n사유: %s",
+		action.Path, icon, strings.ToUpper(action.Type), action.Reason)
+	sendTelegramSafe(token, chatID, msg)
 }
