@@ -1,0 +1,12 @@
+# 최근 대화 콘텍스트 주입 (실시간 동기화)
+
+이전 대화 맥락을 파악하고 대답을 연계할 것:
+
+[15:17:28] AI: brainRoot: c:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4 — 메인 brain_v4로 전환됨! MCP도 확인:
+[15:17:34] AI: MCP 세션이 stale. 포트는 열렸는지:
+[15:17:43] AI: MCP 포트 열려있다 (PID 19072). Antigravity의 MCP 클라이언트가 이전 세션ID를 재사용하려 하다 실패. 다시 시도:
+[15:17:49] AI: MCP 클라이언트가 stale session을 계속 재사용. 이건 Antigravity 재시작(또는 MCP 재연결)이 필요한 이슈다. 서버는 살아있으니 API로 직접 확인:
+[15:18:01] AI: /api/brain이 3초 타임아웃. 이전에 해결했던 문제와 같다 — heavy scan. /api/health는 되지만 /api/brain은 느리다.
+[15:18:13] AI: 메인 brain_v4 확인: 388 뉴런, activation 8458, 7개 영역 정상. 슈퍼바이저가 올바른 brain을 사용한다.
+[15:18:22] AI: _rules.md는 자동 생성 파일이라 직접 수정 불필요. 자가발전 계속 — harness에 MCP health 체크 추가 (C1 → 7체크):
+[15:18:40] AI: import에 \"net\" 추가:
