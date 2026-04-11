@@ -136,7 +136,7 @@ Switch AI tools freely. Your rules never evaporate. One brain governs all.
 
 | # | | `.cursorrules` | Mem0 / Letta | RAG (Vector DB) | **NeuronFS** |
 |---|---|---|---|---|---|
-| 1 | **Rule injection** | Text = easily ignored | Probabilistic | ~95% | **100% deterministic injection** |
+| 1 | **Rule accuracy** | Text = easily ignored | Probabilistic | ~95% | **100% deterministic** † |
 | 2 | **Behavioral compliance** | ~60% (text advisory) | ~60% | ~60% | **~100% (vorq harness)** |
 | 3 | **Multi-AI support** | ❌ Cursor-only | API-dependent | ✅ | **✅ `--emit all` → every IDE** |
 | 4 | **Priority system** | ❌ Flat text | ❌ | ❌ | **✅ 7-layer Subsumption (P0→P6)** |
@@ -146,6 +146,8 @@ Switch AI tools freely. Your rules never evaporate. One brain governs all.
 | 8 | **Encrypted distribution** | ❌ | Cloud-dependent | Cloud-dependent | **✅ Jloot VFS cartridges** |
 | 9 | **Infrastructure cost** | Free | $50+/mo | $70+/mo GPU | **$0 (local OS)** |
 | 10 | **Dependencies** | IDE-locked | Python+Redis+DB | Python+GPU+API | **Zero runtime (single ~19MB binary)** |
+
+> † **Rule accuracy** measures different layers: Mem0/RAG ~95% = "LLM follows retrieved rules" (IFEval). NeuronFS 100% = "rules are faithfully generated into system prompt" (BM-1 fidelity). Complementary, not competing.
 
 ---
 
@@ -271,7 +273,7 @@ Cosine similarity → "89% probability answer"
 [OS Folder Search (NeuronFS)]
 Question → tokenize → B-Tree path traversal →
 Load .neuron → "This path has 禁 — BLOCKED"
-⏱️ 0.001ms | 💰 $0 (CPU only) | ✅ 100% deterministic injection
+⏱️ 0.001ms | 💰 $0 (CPU only) | ✅ 100% deterministic
 ```
 
 ### N-Dimensional OS Metadata as Embedding
