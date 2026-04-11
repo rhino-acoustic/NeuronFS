@@ -174,6 +174,22 @@ func collectEpisodes(brainRoot string) []string {
 		}
 	}
 
+	// 3. Growth trajectory (최근 10개 — 궤적 학습)
+	growthFile := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
+	if data, err := os.ReadFile(growthFile); err == nil {
+		lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+		start := 0
+		if len(lines) > 10 {
+			start = len(lines) - 10
+		}
+		for _, line := range lines[start:] {
+			line = strings.TrimSpace(line)
+			if line != "" {
+				result = append(result, "[TRAJECTORY] "+line)
+			}
+		}
+	}
+
 	return result
 }
 
@@ -276,6 +292,17 @@ func buildEvolvePrompt(episodes []string, brainSummary string, _ SubsumptionResu
 		}
 		sb.WriteString("```\n\n")
 	}
+
+	// Trajectory Dataset — growth.log 궤적을 episodes에서 추출
+	sb.WriteString("## Growth Trajectory (Brain Evolution History)\n")
+	sb.WriteString("Use this to understand trends: corrections↓ = evolution working, corrections↑ = regression.\n")
+	sb.WriteString("```\n")
+	for _, ep := range episodes {
+		if strings.Contains(ep, "TRAJECTORY") || strings.Contains(ep, "META_EVOLVE_FAIL") {
+			sb.WriteString(fmt.Sprintf("- %s\n", ep))
+		}
+	}
+	sb.WriteString("```\n\n")
 
 	sb.WriteString("## Output Format (valid JSON)\n")
 	sb.WriteString("{\n")
