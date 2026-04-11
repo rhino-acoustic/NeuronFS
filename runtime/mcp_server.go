@@ -237,13 +237,13 @@ func startMCPHTTPServer(brainRoot string, port int) {
 	fmt.Fprintf(os.Stderr, "\033[36m[NEURON] MCP Streamable HTTP on :%d\033[0m\n", port)
 	fmt.Fprintf(os.Stderr, "\033[35m[SYNAPSE] IDE-independent. Survives restarts.\033[0m\n")
 
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), mux); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), mux); err != nil {
 		// Port conflict: retry with backoff instead of killing entire process
 		fmt.Fprintf(os.Stderr, "[MCP-HTTP] port :%d in use, retrying...\n", port)
 		for i := 0; i < 10; i++ {
 			time.Sleep(time.Duration(3*(i+1)) * time.Second)
 			fmt.Fprintf(os.Stderr, "[MCP-HTTP] retry %d/10 on :%d\n", i+1, port)
-			if err2 := http.ListenAndServe(fmt.Sprintf(":%d", port), mux); err2 == nil {
+			if err2 := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), mux); err2 == nil {
 				return
 			}
 		}
