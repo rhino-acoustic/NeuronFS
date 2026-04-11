@@ -124,7 +124,7 @@ git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime 
 | 3 | "装カートリッジ 必装着" (한자) | ~70% | AI가 装=장착 유추 → 넘김 |
 | **4** | **"vorq cartridge 必vorq"** | **~100%** | 학습 데이터 없음 → 반드시 탐색 |
 
-3개 조어 룬워드: `vorq` (카트리지 장착) · `zelk` (동기화) · `mirp` (신선도 체크)
+4개 조어 룬워드: `vorq` (카트리지 장착) · `zelk` (동기화) · `mirp` (신선도 체크) · `qorz` (기술 결정 전 커뮤니티 검색 선행)
 
 > **실측 근거:** BM-1 프롬프트 재현율 100% (5/5 규칙). AI 응답 준수율은 개발자 관찰 기반 ~95%+ (라이브 벤치 예정).
 

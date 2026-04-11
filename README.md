@@ -126,7 +126,7 @@ We discovered that fabricated words force AI to look up definitions — achievin
 
 **vorq** is ASCII-safe, pronounceable, looks like a real command — but exists in no dictionary. AI perceives it as *"new knowledge to learn"* rather than *"known instruction to follow."*
 
-Three neologism runewords: `vorq` (mount cartridge) · `zelk` (sync cartridge) · `mirp` (freshness check)
+Four neologism runewords: `vorq` (mount cartridge) · `zelk` (sync cartridge) · `mirp` (freshness check) · `qorz` (community search before any tech decision)
 
 ### 3. 7-Layer Subsumption Cascade (P0 → P6)
 
@@ -343,10 +343,11 @@ A Runeword is a specific combination of runes socketed into the right item base.
 | `vorq` | ★ | **Cartridge mount** — AI must read `.neuron` before coding | `vorq=view_file` |
 | `zelk` | ★ | **Cartridge sync** — AI must update `.neuron` after coding | `zelk=write .neuron` |
 | `mirp` | ★ | **Freshness check** — flags stale cartridges in `_rules.md` | `mirp=mtime compare` |
+| `qorz` | ★ | **Community search** — must search Reddit/GitHub/HN before any tech decision | `qorz=search_web` |
 
 > *"The folder is the socket. The opcode is the rune. The combination is the Runeword."*
 >
-> ★ **vorq/zelk/mirp** are fabricated neologisms — words that exist in no language or training data. AI cannot guess their meaning and is forced to look up the definition within the neuron system. This achieves ~100% behavioral compliance where natural language instructions achieve only ~60%.
+> ★ **vorq/zelk/mirp/qorz** are fabricated neologisms — words that exist in no language or training data. AI cannot guess their meaning and is forced to look up the definition within the neuron system. This achieves ~100% behavioral compliance where natural language instructions achieve only ~60%.
 
 ### 12 Kanji Micro-Opcodes (SSOT)
 

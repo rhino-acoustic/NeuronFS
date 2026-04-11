@@ -650,11 +650,15 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 			} else if strings.ContainsAny(n.Path, "必") || strings.Contains(n.Path, "qorz") || strings.Contains(n.Path, "索") || strings.ContainsAny(n.Path, "推") {
 				// 必/qorz/索 → 조건 확인 후 WHEN 또는 ALWAYS
 				// 推 → 조건부 추천 → WHEN (조건 없으면 기본 조건 적용)
+				// 세션시작 키워드 → 강제 ALWAYS (WHEN 아님)
 				condition := ""
-				for keyword, cond := range whenConditions {
-					if strings.Contains(leaf, keyword) || strings.Contains(n.Path, keyword) {
-						condition = cond
-						break
+				forceAlways := strings.Contains(leaf, "세션시작") || strings.Contains(n.Path, "세션시작")
+				if !forceAlways {
+					for keyword, cond := range whenConditions {
+						if strings.Contains(leaf, keyword) || strings.Contains(n.Path, keyword) {
+							condition = cond
+							break
+						}
 					}
 				}
 				wh := lookupWhyHow(leaf, n.Path, n.Description)
