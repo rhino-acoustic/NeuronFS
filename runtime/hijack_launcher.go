@@ -65,19 +65,7 @@ func hlLoadTelegram(nfsRoot string) {
 }
 
 func hlTgSend(chatID, text string) {
-	if hlTgToken == "" || chatID == "" {
-		return
-	}
-	body, _ := json.Marshal(map[string]string{"chat_id": chatID, "text": text})
-	resp, err := http.Post(
-		fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", hlTgToken),
-		"application/json",
-		strings.NewReader(string(body)),
-	)
-	if err == nil {
-		io.Copy(io.Discard, resp.Body)
-		resp.Body.Close()
-	}
+	sendTelegramSafe(hlTgToken, chatID, text)
 }
 
 // hlTgAPI — Telegram Bot API 호출 (JSON 응답 반환)

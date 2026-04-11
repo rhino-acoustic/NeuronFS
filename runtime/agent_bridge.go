@@ -267,14 +267,8 @@ func abCheckOutboxToTelegram(agentsDir, logFile string, outProcessed map[string]
 			continue
 		}
 
-		// 4000자 제한 (텔레그램 메시지 최대 길이)
-		runes := []rune(body)
-		if len(runes) > 4000 {
-			runes = runes[:4000]
-			body = string(runes) + "..."
-		}
-
-		hlTgSend(hlTgChatID, fmt.Sprintf("🤖 [NeuronFS]\n%s", body))
+		// sendTelegramSafe로 분할 전송 (글자 제한 자동 처리)
+		sendTelegramSafe(hlTgToken, hlTgChatID, fmt.Sprintf("🤖 [NeuronFS]\n%s", body))
 		os.Rename(fp, filepath.Join(outbox, "_"+name))
 		abLog(logFile, fmt.Sprintf("📤 NeuronFS/outbox/%s → Telegram", name))
 	}
