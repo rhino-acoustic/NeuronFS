@@ -814,7 +814,7 @@ func aaDetectEvolveRequest(text string, brainRoot string) {
 			}) || all[0];
 			if (el) {
 				el.focus();
-				document.execCommand("insertText", false, "진행");
+				document.execCommand("insertText", false, "[NeuronFS 자율진화 트리거] 전사 패턴 분석 후 커뮤니티 검색해서 자가진화 실행. growth.log 확인하고 다음 action 자동 결정.");
 				// Enter 키 전송
 				el.dispatchEvent(new KeyboardEvent("keydown", {key:"Enter",code:"Enter",keyCode:13,which:13,bubbles:true}));
 				return "Injected";
