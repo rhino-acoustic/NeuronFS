@@ -347,7 +347,7 @@ func TestBM_LifecycleRoundtrip(t *testing.T) {
 	}
 
 	// ── Phase 2: Age 推 neurons for prune ──
-	oldTime := time.Now().AddDate(0, 0, -5) // 5 days ago > PruneDays(3)
+	oldTime := time.Now().AddDate(0, 0, -8) // 8 days ago > PruneGraceDays(7)
 	for i := 0; i < 20; i++ {
 		nf := filepath.Join(dir, "cortex", fmt.Sprintf("推test_reco_%d", i), "1.neuron")
 		os.Chtimes(nf, oldTime, oldTime)

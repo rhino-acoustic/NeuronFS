@@ -816,10 +816,10 @@ func TestDCI_Constants(t *testing.T) {
 		}
 	})
 
-	// DCI-01c: PruneDays const
-	t.Run("DCI-01c: PruneDays=3", func(t *testing.T) {
-		if PruneDays != 3 {
-			t.Errorf("PruneDays changed to %d — update this test if intentional", PruneDays)
+	// DCI-01c: PruneGraceDays const
+	t.Run("DCI-01c: PruneGraceDays=7", func(t *testing.T) {
+		if PruneGraceDays != 7 {
+			t.Errorf("PruneGraceDays changed to %d — update this test if intentional", PruneGraceDays)
 		}
 	})
 

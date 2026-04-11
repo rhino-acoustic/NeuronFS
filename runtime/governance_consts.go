@@ -22,8 +22,9 @@ const (
 	// MaxEpisodes: hippocampus/session_log의 최대 memory 파일 수 (circular buffer)
 	MaxEpisodes = 10
 
-	// PruneDays: 推 뉴런이 비활성 상태로 유지되면 dormant 처리되는 일수
-	PruneDays = 3
+	// PruneGraceDays: 推 뉴런 유아 면역 기간 (Infant Immunity)
+	// 생성 후 이 기간 내에는 prune 면제. counter≥2이면 졸업(permanent).
+	PruneGraceDays = 7
 
 	// SessionLogCap: 동일 session_log에 허용되는 최대 .neuron 파일 수
 	SessionLogCap = 3

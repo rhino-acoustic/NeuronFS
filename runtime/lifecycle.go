@@ -26,11 +26,13 @@ import (
 	"time"
 )
 
-// pruneWeakNeurons marks 推-prefix neurons with activation ≤1 and 3+ days inactive as dormant.
-// 추천 뉴런은 우선순위가 낮다 — fire되지 않으면 자연 도태.
+// pruneWeakNeurons marks 推-prefix neurons with activation ≤1 and 7+ days inactive as dormant.
+// 신규 뉴런 보호(Infant Immunity): 생성 후 7일은 prune 면제.
+// 7일 내 counter≥2 → 졸업(permanent). counter=1 + 7일 경과 → dormant.
 func pruneWeakNeurons(brainRoot string) {
-	cutoff := time.Now().AddDate(0, 0, -PruneDays)
+	cutoff := time.Now().AddDate(0, 0, -PruneGraceDays) // 7일 유예
 	pruned := 0
+	graduated := 0
 
 	for _, regionName := range RegionOrder[1:] { // brainstem(P0) 제외
 		regionPath := filepath.Join(brainRoot, regionName)
@@ -60,7 +62,7 @@ func pruneWeakNeurons(brainRoot string) {
 				return nil
 			}
 
-			// 카운터 확인
+			// 카운터 + 최신 수정 시간 확인
 			maxCounter := 0
 			var newestMod time.Time
 			for _, nf := range neuronFiles {
@@ -77,26 +79,36 @@ func pruneWeakNeurons(brainRoot string) {
 				}
 			}
 
-			// 활성 ≤1 AND 3일+ 미사용 → dormant
-			if maxCounter <= 1 && !newestMod.IsZero() && newestMod.Before(cutoff) {
-				df := filepath.Join(path, "prune.dormant")
-				os.WriteFile(df, []byte(fmt.Sprintf("Pruned: %s\nReason: 推 prefix, activation=%d, inactive %d days\n",
-					time.Now().Format("2006-01-02"),
-					maxCounter,
-					int(time.Since(newestMod).Hours()/24))), 0600)
-
-				relPath, _ := filepath.Rel(brainRoot, path)
-				fmt.Printf("[PRUNE] 🪦 %s (activation=%d, %d days idle)\n", relPath, maxCounter,
-					int(time.Since(newestMod).Hours()/24))
-				pruned++
+			// 7일 보호 기간 내: 스킵 (Infant Immunity)
+			if newestMod.After(cutoff) {
+				return nil
 			}
+
+			// 7일 경과 후 counter≥2 → 졸업 (로그만)
+			if maxCounter >= 2 {
+				graduated++
+				return nil
+			}
+
+			// 활성 ≤1 AND 7일+ 미사용 → dormant
+			df := filepath.Join(path, "prune.dormant")
+			os.WriteFile(df, []byte(fmt.Sprintf("Pruned: %s\nReason: 推 prefix, activation=%d, inactive %d days (grace: %dd)\n",
+				time.Now().Format("2006-01-02"),
+				maxCounter,
+				int(time.Since(newestMod).Hours()/24),
+				PruneGraceDays)), 0600)
+
+			relPath, _ := filepath.Rel(brainRoot, path)
+			fmt.Printf("[PRUNE] 🪦 %s (activation=%d, %d days idle)\n", relPath, maxCounter,
+				int(time.Since(newestMod).Hours()/24))
+			pruned++
 			return nil
 		})
 	}
 
-	if pruned > 0 {
-		fmt.Printf("[PRUNE] ✅ %d 건 推 뉴런 dormant 처리\n", pruned)
-		logEpisode(brainRoot, "PRUNE", fmt.Sprintf("%d weak 推 neurons dormant", pruned))
+	if pruned > 0 || graduated > 0 {
+		fmt.Printf("[PRUNE] ✅ %d 건 dormant, %d 건 졸업 (counter≥2)\n", pruned, graduated)
+		logEpisode(brainRoot, "PRUNE", fmt.Sprintf("%d weak 推 dormant, %d graduated", pruned, graduated))
 	} else {
 		fmt.Println("[PRUNE] ✓ 도태 대상 없음")
 	}
