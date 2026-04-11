@@ -151,15 +151,9 @@ func hlSendToTelegram(entry, proj string) {
 	// 워밍업 60초 — 재시작 시 DOM에 남아있는 기존 메시지를 dedup에 사전 등록
 	if time.Since(hlTgStartTime) < 60*time.Second {
 		// 전송은 안 하지만 해시는 등록 → 워밍업 후에도 중복으로 인식
-		roleRe := regexp.MustCompile(`(?s)\] (\w+)(?:@[^:]*)?: (.*)`)
-		m := roleRe.FindStringSubmatch(entry)
-		if len(m) >= 3 {
-			hash := m[2]
-			if len(hash) > 150 {
-				hash = hash[:150]
-			}
-			hlTgSentHashes.Store(hash, true)
-		}
+		// SHA256 전체 해시 사용 (text[:150]은 다른 메시지와 충돌 가능)
+		h := sha256.Sum256([]byte(entry))
+		hlTgSentHashes.Store(hex.EncodeToString(h[:12]), true)
 		return
 	}
 
@@ -193,12 +187,10 @@ func hlSendToTelegram(entry, proj string) {
 		return
 	}
 
-	// 중복 해시
-	hash := text
-	if len(hash) > 150 {
-		hash = hash[:150]
-	}
-	if _, loaded := hlTgSentHashes.LoadOrStore(hash, true); loaded {
+	// 중복 해시 (SHA256 — 전체 entry 기반, text[:150]은 false positive 발생)
+	dedupH := sha256.Sum256([]byte(entry))
+	dedupKey := hex.EncodeToString(dedupH[:12])
+	if _, loaded := hlTgSentHashes.LoadOrStore(dedupKey, true); loaded {
 		return
 	}
 
