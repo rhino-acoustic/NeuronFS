@@ -452,7 +452,9 @@ cd runtime && go test -v -run "TestBM_" -count=1 .
 
 전부 새로운 건 아니다. 솔직한 분류:
 
-**기존 기술 적용 (~60%):** Cosine 유사도, Levenshtein, RBAC, AES-256-GCM, Merkle 체인, Subsumption (Brooks 1986)
+**기존 기술 적용 (~60%):** Cosine 유사도(dedup 병합 전용, 핵심 검색 아님), Levenshtein, RBAC, AES-256-GCM, Merkle 체인, Subsumption (Brooks 1986)
+
+> **핵심 검색은 경로 기반** — 역경로 토큰화 + OS 메타데이터(카운터, mtime, depth). 벡터DB 없음. 쿼리 시점에 코사인 없음.
 
 **독자 시스템 (~40%) — 선행 연구 없음:**
 

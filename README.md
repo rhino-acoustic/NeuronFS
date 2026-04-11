@@ -557,14 +557,16 @@ Not all of NeuronFS is new. Here's an honest breakdown.
 
 ### Existing techniques applied (~60%)
 
-| Component | Origin | NeuronFS twist |
+| Component | Origin | NeuronFS usage |
 |-----------|--------|---------------|
-| Cosine similarity | IR textbook | Bigram + Korean 2-gram tokenizer |
-| Levenshtein distance | String algorithms | 40% weight in hybrid formula |
+| Cosine similarity | IR textbook | Dedup merge only (not core search) |
+| Levenshtein distance | String algorithms | Dedup merge, 40% weight in hybrid |
 | RBAC | Security standard | region→action mapping on folders |
 | AES-256-GCM | Crypto standard | Cartridge encryption to RAM only |
 | Merkle chain | Blockchain/Git | Neuron tampering detection |
 | Subsumption architecture | Brooks (1986 robotics) | 7-layer cognitive cascade |
+
+> **Core search is path-based** — reverse path tokenization + OS metadata (counter, mtime, depth). No vector DB. No cosine at query time.
 
 ### Novel systems — no prior art (~40%)
 
