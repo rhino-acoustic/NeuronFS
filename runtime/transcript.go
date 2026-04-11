@@ -298,7 +298,7 @@ func runIdleLoop(brainRoot string) {
 }
 
 // injectIdleResult injects heartbeat summary into AI input via CDP.
-// Uses the same aaAgents registry from auto_accept.go.
+// 자가수복 포함: 실패 시 원인 진단 + aaAgents 재스캔 + 3회 재시도
 func injectIdleResult(summary string) {
 	escaped := strings.ReplaceAll(summary, `"`, `\"`)
 	escaped = strings.ReplaceAll(escaped, "\n", "\\n")
@@ -318,6 +318,7 @@ func injectIdleResult(summary string) {
 		return "NoTarget";
 	})()`, escaped)
 
+	// 1차: aaAgents (auto-accept 연결)
 	injected := false
 	aaAgents.Range(func(k, v interface{}) bool {
 		a := v.(*aaAgent)
@@ -326,6 +327,9 @@ func injectIdleResult(summary string) {
 			"returnByValue": true,
 		})
 		if err != nil {
+			// 자가수복: 죽은 연결 정리
+			fmt.Printf("[IDLE] 🔧 aaAgent %s 연결 끊김 — 정리\n", a.name)
+			aaAgents.Delete(k)
 			return true
 		}
 		var evalRes struct {
@@ -335,51 +339,86 @@ func injectIdleResult(summary string) {
 		}
 		json.Unmarshal(result, &evalRes)
 		if evalRes.Result.Value == "Injected" {
-			fmt.Printf("[IDLE] 🧬 허트비트 CDP 인젝션 완료 → [%s]\n", a.name)
+			fmt.Printf("[IDLE] 🧬 CDP 인젝션 성공 → [%s]\n", a.name)
 			injected = true
 			return false
 		}
 		return true
 	})
+	if injected {
+		return
+	}
 
-	// 폴백: aaAgents 실패 시 직접 CDP 연결
-	if !injected {
-		fmt.Println("[IDLE] ⚠️ aaAgents 비활성 — 직접 CDP 인젝션 시도")
+	// 2차: 자가수복 — aaAgents 재스캔 + 직접 CDP (3회 재시도)
+	for retry := 0; retry < 3; retry++ {
+		if retry > 0 {
+			fmt.Printf("[IDLE] 🔧 자가수복 재시도 %d/3 (5초 대기)...\n", retry+1)
+			time.Sleep(5 * time.Second)
+		}
+
+		// 자가수복: aaScanTargets 강제 실행으로 새 탭 감지
+		aaScanTargets()
+
+		// 직접 CDP 연결
 		targets, err := cdpListTargets(9000)
-		if err == nil {
-			for _, t := range targets {
-				if !strings.Contains(t.URL, "workbench.html") || t.WebSocketDebuggerURL == "" {
-					continue
+		if err != nil {
+			fmt.Printf("[IDLE] 🔧 진단: CDP 포트 9000 연결 불가 — %v\n", err)
+			continue
+		}
+
+		workbenchFound := false
+		for _, t := range targets {
+			if !strings.Contains(t.URL, "workbench.html") {
+				continue
+			}
+			workbenchFound = true
+			if t.WebSocketDebuggerURL == "" {
+				fmt.Printf("[IDLE] 🔧 진단: workbench 찾았으나 wsURL 없음 (title=%s)\n", t.Title)
+				continue
+			}
+
+			client, cErr := NewCDPClient(t.WebSocketDebuggerURL)
+			if cErr != nil {
+				fmt.Printf("[IDLE] 🔧 진단: WS 연결 실패 — %v\n", cErr)
+				continue
+			}
+			client.Call("Runtime.enable", map[string]interface{}{})
+			time.Sleep(300 * time.Millisecond)
+			r, rErr := client.Call("Runtime.evaluate", map[string]interface{}{
+				"expression":    script,
+				"returnByValue": true,
+			})
+			client.Close()
+
+			if rErr != nil {
+				fmt.Printf("[IDLE] 🔧 진단: evaluate 실패 — %v\n", rErr)
+				continue
+			}
+			if r != nil {
+				var er struct {
+					Result struct {
+						Value string `json:"value"`
+					} `json:"result"`
 				}
-				client, cErr := NewCDPClient(t.WebSocketDebuggerURL)
-				if cErr != nil {
-					continue
+				json.Unmarshal(r, &er)
+				if er.Result.Value == "Injected" {
+					fmt.Printf("[IDLE] ✅ 자가수복 성공 (시도 %d)\n", retry+1)
+					return
 				}
-				client.Call("Runtime.enable", map[string]interface{}{})
-				time.Sleep(300 * time.Millisecond)
-				r, _ := client.Call("Runtime.evaluate", map[string]interface{}{
-					"expression":    script,
-					"returnByValue": true,
-				})
-				client.Close()
-				if r != nil {
-					var er struct {
-						Result struct {
-							Value string `json:"value"`
-						} `json:"result"`
-					}
-					json.Unmarshal(r, &er)
-					if er.Result.Value == "Injected" {
-						fmt.Println("[IDLE] ✅ 직접 CDP 인젝션 성공")
-						injected = true
-						break
-					}
+				if er.Result.Value == "NoTarget" {
+					fmt.Println("[IDLE] 🔧 진단: contenteditable 없음 — AI 대화창 미활성")
 				}
 			}
 		}
-		if !injected {
-			fmt.Println("[IDLE] ❌ CDP 인젝션 완전 실패 — 활성 IDE 없음")
+		if !workbenchFound {
+			fmt.Println("[IDLE] 🔧 진단: workbench.html 탭 없음 — IDE 미기동")
 		}
+	}
+
+	// 3회 실패: 텔레그램으로 폴백 알림
+	fmt.Println("[IDLE] ❌ CDP 인젝션 3회 실패 — 텔레그램 알림 전송")
+	if hlTgToken != "" && hlTgChatID != "" {
+		hlTgSend(hlTgChatID, fmt.Sprintf("⚠️ [자가수복 실패] CDP 인젝션 3회 실패\n%s\nIDE 확인 필요", summary))
 	}
 }
 
