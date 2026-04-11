@@ -193,6 +193,10 @@ func runIdleLoop(brainRoot string) {
 		fmt.Println("[IDLE] 🔀 Running consolidate (hybrid similarity + counter merge)...")
 		deduplicateNeurons(brainRoot)
 
+		// 4b. Sleep-Time Consolidation — co-activation 패턴 기반 axon 자동 생성
+		fmt.Println("[IDLE] 🧬 Sleep-time consolidation (Hebbian → axon)...")
+		sleepConsolidate(brainRoot)
+
 		// 4. Growth tracking + 피드백 루프 (뇌 성장 + 교정 빈도 추적)
 		brain := scanBrain(brainRoot)
 		result := runSubsumption(brain)
