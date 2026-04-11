@@ -289,10 +289,10 @@ func runIdleLoop(brainRoot string) {
 			}
 		}
 
-		summary := fmt.Sprintf("[HEARTBEAT] Idle cycle 완료: %d neurons, act:%d, Δ%d",
+		summary := fmt.Sprintf("[NeuronFS IDLE] %d neurons, act:%d, Δ%d — 전사 패턴 분석 후 커뮤니티 검색해서 자가진화 실행. growth.log 확인하고 다음 action 자동 결정.",
 			result.TotalNeurons, result.TotalCounter, growth)
 
-		// CDP inject — auto-accept agents에게 브로드캐스트
+		// CDP inject — 자동 인젝션으로 대화 계속 진행
 		injectIdleResult(summary)
 	}
 }
@@ -341,8 +341,45 @@ func injectIdleResult(summary string) {
 		}
 		return true
 	})
+
+	// 폴백: aaAgents 실패 시 직접 CDP 연결
 	if !injected {
-		fmt.Println("[IDLE] ⚠️ CDP 인젝션 실패 — 활성 에이전트 없음")
+		fmt.Println("[IDLE] ⚠️ aaAgents 비활성 — 직접 CDP 인젝션 시도")
+		targets, err := cdpListTargets(9000)
+		if err == nil {
+			for _, t := range targets {
+				if !strings.Contains(t.URL, "workbench.html") || t.WebSocketDebuggerURL == "" {
+					continue
+				}
+				client, cErr := NewCDPClient(t.WebSocketDebuggerURL)
+				if cErr != nil {
+					continue
+				}
+				client.Call("Runtime.enable", map[string]interface{}{})
+				time.Sleep(300 * time.Millisecond)
+				r, _ := client.Call("Runtime.evaluate", map[string]interface{}{
+					"expression":    script,
+					"returnByValue": true,
+				})
+				client.Close()
+				if r != nil {
+					var er struct {
+						Result struct {
+							Value string `json:"value"`
+						} `json:"result"`
+					}
+					json.Unmarshal(r, &er)
+					if er.Result.Value == "Injected" {
+						fmt.Println("[IDLE] ✅ 직접 CDP 인젝션 성공")
+						injected = true
+						break
+					}
+				}
+			}
+		}
+		if !injected {
+			fmt.Println("[IDLE] ❌ CDP 인젝션 완전 실패 — 활성 IDE 없음")
+		}
 	}
 }
 
