@@ -189,6 +189,10 @@ func runIdleLoop(brainRoot string) {
 		fmt.Println("[IDLE] 🪦 Running prune (推 low-value cleanup)...")
 		pruneWeakNeurons(brainRoot)
 
+		// 3b. Spaced Repetition — 14일+ 미사용 고활성 뉴런 재발화
+		fmt.Println("[IDLE] ♻️ Spaced repetition (reinforce high-value neurons)...")
+		spacedRepetitionFire(brainRoot)
+
 		// 4. Consolidate (merge semantically similar neurons, hybrid >= 0.4, counter 합산)
 		fmt.Println("[IDLE] 🔀 Running consolidate (hybrid similarity + counter merge)...")
 		deduplicateNeurons(brainRoot)
