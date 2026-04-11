@@ -156,18 +156,24 @@ func buildBrainJSONResponse(brainRoot string) BrainJSON {
 		TotalCounter: result.TotalCounter,
 	}
 
-	// Scan Jloot Cartridges
+	// Scan Jloot Cartridges (flat scan only — avoid walking 7K+ files)
 	searchPaths := []string{
-		filepath.Join(brainRoot, "..", "runtime"),
+		filepath.Join(brainRoot, ".."),
 		filepath.Join(brainRoot, "..", "tools", "jloot"),
 	}
 	for _, p := range searchPaths {
-		filepath.Walk(p, func(path string, info os.FileInfo, err error) error {
-			if err == nil && !info.IsDir() && strings.HasSuffix(info.Name(), ".jloot") {
-				data.Cartridges = append(data.Cartridges, CartridgeJSON{Name: info.Name(), Size: info.Size()})
+		entries, err := os.ReadDir(p)
+		if err != nil {
+			continue
+		}
+		for _, e := range entries {
+			if !e.IsDir() && strings.HasSuffix(e.Name(), ".jloot") {
+				info, _ := e.Info()
+				if info != nil {
+					data.Cartridges = append(data.Cartridges, CartridgeJSON{Name: info.Name(), Size: info.Size()})
+				}
 			}
-			return nil
-		})
+		}
 	}
 
 	for _, region := range brain.Regions {
