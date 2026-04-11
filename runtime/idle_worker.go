@@ -30,9 +30,11 @@ func runIdleCoreWorker(brainRoot string) {
 		}
 	}
 
+	cfg := LoadConfig(brainRoot)
+	
 	failedEvolutions := detectFailedEvolutions(brainRoot)
 	if len(failedEvolutions) > 0 {
-		growthLogFile := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
+		growthLogFile := cfg.GrowthLogPath()
 		f, _ := os.OpenFile(growthLogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if f != nil {
 			for _, fe := range failedEvolutions {
@@ -66,12 +68,12 @@ func runIdleCoreWorker(brainRoot string) {
 
 	brain := scanBrain(brainRoot)
 	result := runSubsumption(brain)
-	growthLogDir := filepath.Join(brainRoot, "hippocampus", "session_log")
+	growthLogDir := filepath.Join(cfg.HippocampusPath(), "session_log")
 	os.MkdirAll(growthLogDir, 0750)
 	growthLogFile := filepath.Join(growthLogDir, "growth.log")
 
 	correctionsToday := 0
-	historyPath := filepath.Join(brainRoot, "_inbox", "corrections_history.jsonl")
+	historyPath := cfg.CorrectionsHistoryPath()
 	if data, err := os.ReadFile(historyPath); err == nil {
 		today := time.Now().Format("2006-01-02")
 		for _, line := range strings.Split(string(data), "\n") {
@@ -97,21 +99,24 @@ func runIdleCoreWorker(brainRoot string) {
 	fmt.Println("[IDLE-WORKER] 📸 Git snapshot...")
 	gitSnapshot(brainRoot)
 
-	nasTarget := `Z:\VOL1\VGVR\BRAIN\LW\system\neurons\brain_v4`
-	if _, err := os.Stat(nasTarget); err == nil {
-		fmt.Println("[IDLE-WORKER] 📡 NAS sync...")
-		out, err := SafeCombinedOutput(ExecTimeoutSync, "robocopy", brainRoot, nasTarget, "/MIR", "/XD", ".git", "/XF", "*.dormant", "/NFL", "/NDL", "/NP", "/NJH", "/NJS")
-		if err != nil {
-			if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() >= 8 {
-				fmt.Printf("[IDLE-WORKER] ❌ NAS sync error (exit %d): %s\n", exitErr.ExitCode(), string(out))
+	if cfg.NASSyncTarget != "" {
+		if _, err := os.Stat(cfg.NASSyncTarget); err == nil {
+			fmt.Println("[IDLE-WORKER] 📡 NAS sync...")
+			out, err := SafeCombinedOutput(ExecTimeoutSync, "robocopy", brainRoot, cfg.NASSyncTarget, "/MIR", "/XD", ".git", "/XF", "*.dormant", "/NFL", "/NDL", "/NP", "/NJH", "/NJS")
+			if err != nil {
+				if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() >= 8 {
+					fmt.Printf("[IDLE-WORKER] ❌ NAS sync error (exit %d): %s\n", exitErr.ExitCode(), string(out))
+				} else {
+					fmt.Printf("[IDLE-WORKER] ✅ NAS synced\n")
+				}
 			} else {
-				fmt.Printf("[IDLE-WORKER] ✅ NAS synced\n")
+				fmt.Println("[IDLE-WORKER] ✅ NAS synced (no changes)")
 			}
 		} else {
-			fmt.Println("[IDLE-WORKER] ✅ NAS synced (no changes)")
+			fmt.Println("[IDLE-WORKER] ⚠️ NAS Z: not available — skipping sync")
 		}
 	} else {
-		fmt.Println("[IDLE-WORKER] ⚠️ NAS Z: not available — skipping sync")
+		fmt.Println("[IDLE-WORKER] ⚠️ NAS Sync disabled in config — skipping sync")
 	}
 
 	writeHeartbeat(brainRoot, result)
