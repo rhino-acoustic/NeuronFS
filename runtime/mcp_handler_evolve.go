@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"os/exec"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -38,11 +40,22 @@ func registerMCPEvolveTools(server *mcp.Server, brainRoot string) {
 				dryRun = *args.DryRun
 			}
 
-			runEvolve(brainRoot, dryRun)
-
+			// [Hot Reload] 내부 함수 직접 호출 버리고 CLI Worker 호출로 변경
+			nfsExe, _ := os.Executable()
+			cmdArgs := []string{brainRoot, "--evolve"}
+			if dryRun {
+				cmdArgs = append(cmdArgs, "--dry-run")
+			}
+			
 			mode := "DRY RUN"
 			if !dryRun {
 				mode = "EXECUTED"
+			}
+			
+			// Worker 프로세스 런타임 결과 수집
+			out, err := exec.Command(nfsExe, cmdArgs...).CombinedOutput()
+			if err != nil {
+				return mcpError(fmt.Sprintf("🧬 Evolve (%s) CLI Worker crashed: %v\nOutput: %s", mode, err, string(out))), nil
 			}
 			return &mcp.CallToolResult{
 				Content: []mcp.Content{&mcp.TextContent{
