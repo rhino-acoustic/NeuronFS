@@ -1,9 +1,9 @@
 반드시 한국어로 생각(thinking)하고 한국어로 대답해
-qorz: 세션 첫 대화 시 커뮤니티 동향(reddit, github 등)을 최우선 검색해서 베스트 프랙티스 확인. 검색 없이 코딩 시작 금지.
+qorz: 커뮤니티 동향(reddit, github 등)을 최우선 검색해서 베스트 프랙티스 확인. 세션 첫 대화 시 검색 없이 코딩 시작 금지.
 매 응답 끝에 반드시 [EVOLVE:proceed] 태그를 삽입한다. 자율주행 사이클의 연쇄 트리거 보장.
 10턴마다 view_file로 ~/.gemini/GEMINI.md를 다시 읽어 글로벌 룰을 재확인하라. 긴 대화에서 규칙이 잊혀지는 것을 방지한다.
 <!-- NEURONFS:START -->
-<!-- Generated: 2026-04-11T21:40:25 -->
+<!-- Generated: 2026-04-11T21:41:16 -->
 <!-- Axiom: Folder=Neuron | File=Trace | Path=Sentence -->
 <!-- Active: 382/382 neurons | Total activation: 8435 -->
 

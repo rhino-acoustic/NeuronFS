@@ -4,7 +4,9 @@ set "NEURONFS_AG_WORKSPACE=%~dp0."
 if exist "%NFSDIR%\.secrets\groq_api_key" set /p GROQ_API_KEY=<"%NFSDIR%\.secrets\groq_api_key"
 if exist "%NFSDIR%\.secrets\anthropic_api_key" set /p ANTHROPIC_API_KEY=<"%NFSDIR%\.secrets\anthropic_api_key"
 
-REM Kill previous neuronfs instances
+REM Kill ALL previous neuronfs instances (clean slate)
+taskkill /F /IM neuronfs.exe >nul 2>&1
+timeout /t 2 /nobreak >nul
 taskkill /F /IM neuronfs.exe >nul 2>&1
 
 REM Auto-upgrade binary if new version exists
