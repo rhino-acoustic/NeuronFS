@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,27 +12,28 @@ import (
 )
 
 func runIdleCoreWorker(brainRoot string) {
+	SetupLogger()
 	// Community Best Practice: Panic Recovery in Stateless Workers
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Printf("[IDLE-WORKER] 🚨 워커 패닉 발생 (Recovered): %v\n", r)
+			slog.Error("워커 패닉 발생 (Recovered)", "error", r)
 			fmt.Printf("[SUMMARY] [NeuronFS IDLE] ⚠️ 시스템 에러 감지. 유휴 워커 패닉 발생: %v\n", r)
 		}
 	}()
 
-	fmt.Println("[IDLE-WORKER] 💤 stateless idle core execution started...")
+	slog.Info("stateless idle core execution started", "component", "idle_worker")
 
 	apiKey := os.Getenv("GROQ_API_KEY")
 	if apiKey != "" {
 		pendingTurns := digestTranscripts(brainRoot)
 		if pendingTurns >= 10 {
-			fmt.Printf("[IDLE-WORKER] 🧬 전사 청크 %d턴 누적 — Auto-Neuronize 실행...\n", pendingTurns)
+			slog.Info("전사 청크 누적 확인", "pending_turns", pendingTurns, "action", "Auto-Neuronize 실행")
 			runNeuronize(brainRoot, false)
 		}
 	}
 
 	cfg := LoadConfig(brainRoot)
-	
+
 	failedEvolutions := detectFailedEvolutions(brainRoot)
 	if len(failedEvolutions) > 0 {
 		growthLogFile := cfg.GrowthLogPath()
@@ -43,27 +45,27 @@ func runIdleCoreWorker(brainRoot string) {
 			}
 			f.Close()
 		}
-		fmt.Printf("[IDLE-WORKER] 🧬 메타진화: %d개 실패한 진화 감지\n", len(failedEvolutions))
+		slog.Warn("메타진화 실패 항목 감지됨", "failed_count", len(failedEvolutions))
 	}
 
 	if apiKey != "" {
-		fmt.Println("[IDLE-WORKER] 🧬 Evolve 실행 (region 분류 AI 판단 모델 탑재)...")
+		slog.Info("Evolve 실행", "model", "region 분류 AI 판단 모델 탑재 완료")
 		runEvolve(brainRoot, false)
 	}
 
-	fmt.Println("[IDLE-WORKER] 💤 Running auto-decay (7 days)...")
+	slog.Info("Running auto-decay", "days", 7)
 	runDecay(brainRoot, 7)
 
-	fmt.Println("[IDLE-WORKER] 🪦 Running prune (推 low-value cleanup)...")
+	slog.Info("Running prune", "target", "推 low-value cleanup")
 	pruneWeakNeurons(brainRoot)
 
-	fmt.Println("[IDLE-WORKER] ♻️ Spaced repetition (reinforce high-value neurons)...")
+	slog.Info("Spaced repetition", "desc", "reinforce high-value neurons")
 	spacedRepetitionFire(brainRoot)
 
-	fmt.Println("[IDLE-WORKER] 🔀 Running consolidate (hybrid similarity + counter merge)...")
+	slog.Info("Running consolidate", "desc", "hybrid similarity + counter merge")
 	deduplicateNeurons(brainRoot)
 
-	fmt.Println("[IDLE-WORKER] 🧬 Sleep-time consolidation (Hebbian → axon)...")
+	slog.Info("Sleep-time consolidation", "desc", "Hebbian → axon")
 	sleepConsolidate(brainRoot)
 
 	brain := scanBrain(brainRoot)
@@ -93,30 +95,30 @@ func runIdleCoreWorker(brainRoot string) {
 	fmt.Printf("[IDLE-WORKER-GROWTH] %s", entry)
 
 	if correctionsToday > 20 {
-		fmt.Printf("[IDLE-WORKER] ⚠️ 교정 빈도 높음 (%d건/일) — neuronize 우선 권장\n", correctionsToday)
+		slog.Warn("교정 빈도 높음", "corrections_today", correctionsToday, "recommend", "neuronize 우선 권장")
 	}
 
-	fmt.Println("[IDLE-WORKER] 📸 Git snapshot...")
+	slog.Info("Git snapshot 시작")
 	gitSnapshot(brainRoot)
 
 	if cfg.NASSyncTarget != "" {
 		if _, err := os.Stat(cfg.NASSyncTarget); err == nil {
-			fmt.Println("[IDLE-WORKER] 📡 NAS sync...")
+			slog.Info("NAS sync 시작", "target", cfg.NASSyncTarget)
 			out, err := SafeCombinedOutput(ExecTimeoutSync, "robocopy", brainRoot, cfg.NASSyncTarget, "/MIR", "/XD", ".git", "/XF", "*.dormant", "/NFL", "/NDL", "/NP", "/NJH", "/NJS")
 			if err != nil {
 				if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() >= 8 {
-					fmt.Printf("[IDLE-WORKER] ❌ NAS sync error (exit %d): %s\n", exitErr.ExitCode(), string(out))
+					slog.Error("NAS sync error", "exit_code", exitErr.ExitCode(), "output", string(out))
 				} else {
-					fmt.Printf("[IDLE-WORKER] ✅ NAS synced\n")
+					slog.Info("NAS synced successfully")
 				}
 			} else {
-				fmt.Println("[IDLE-WORKER] ✅ NAS synced (no changes)")
+				slog.Info("NAS synced", "status", "no changes")
 			}
 		} else {
-			fmt.Println("[IDLE-WORKER] ⚠️ NAS Z: not available — skipping sync")
+			slog.Warn("NAS Z: not available", "status", "skipping sync")
 		}
 	} else {
-		fmt.Println("[IDLE-WORKER] ⚠️ NAS Sync disabled in config — skipping sync")
+		slog.Info("NAS Sync disabled in config", "status", "skipping sync")
 	}
 
 	writeHeartbeat(brainRoot, result)
@@ -125,10 +127,10 @@ func runIdleCoreWorker(brainRoot string) {
 	runtimeDir := filepath.Join(filepath.Dir(brainRoot), "runtime")
 	if _, err := os.Stat(runtimeDir); err == nil {
 		if vetOut, err := SafeCombinedOutputDir(ExecTimeoutGit, runtimeDir, "go", "vet", "./..."); err != nil {
-			fmt.Printf("[IDLE-WORKER] ⚠️ go vet 이상 감지: %s\n", strings.TrimSpace(string(vetOut)))
+			slog.Warn("go vet 이상 감지", "output", strings.TrimSpace(string(vetOut)))
 			logEpisode(brainRoot, "VET_FAIL", string(vetOut))
 		} else {
-			fmt.Println("[IDLE-WORKER] ✅ go vet 통과")
+			slog.Info("go vet 통과")
 		}
 	}
 

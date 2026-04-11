@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
@@ -62,4 +63,14 @@ func (c *NeuronConfig) GrowthLogPath() string {
 
 func (c *NeuronConfig) CorrectionsHistoryPath() string {
 	return filepath.Join(c.InboxPath(), "corrections_history.jsonl")
+}
+
+// SetupLogger initializes the standard slog environment tailored for NeuronFS operations.
+func SetupLogger() {
+	opts := &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}
+	handler := slog.NewTextHandler(os.Stdout, opts)
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
 }

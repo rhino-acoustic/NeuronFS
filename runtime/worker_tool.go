@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
@@ -15,6 +16,7 @@ func runWorkerTool(brainRoot string, toolName string, argsJson string) {
 	// Community Best Practice: Panic Recovery in Worker Pool
 	defer func() {
 		if r := recover(); r != nil {
+			slog.Error("worker logic panicked", "tool", toolName, "details", r)
 			fmt.Printf(`{"error": "worker logic panicked", "details": "%v"}`+"\n", r)
 			os.Exit(1)
 		}
