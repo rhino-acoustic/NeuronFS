@@ -95,6 +95,8 @@ func main() {
 			forceAwakening = true
 		case "--harness":
 			mode = "harness"
+		case "--tool":
+			mode = "tool"
 		}
 	}
 
@@ -248,6 +250,21 @@ func main() {
 		startMCPHTTPServer(brainRoot, MCPStreamPort) // blocking: HTTP server
 	case "supervisor":
 		runSupervisor(brainRoot)
+	case "tool":
+		toolName := ""
+		argsJson := ""
+		for i, arg := range os.Args {
+			if arg == "--tool" && i+2 < len(os.Args) {
+				toolName = os.Args[i+1]
+				argsJson = os.Args[i+2]
+				break
+			}
+		}
+		if toolName == "" {
+			fmt.Println("[FATAL] Usage: neuronfs <brain> --tool <toolname> <args_json>")
+			os.Exit(1)
+		}
+		runWorkerTool(brainRoot, toolName, argsJson)
 	case "neuronize":
 		runNeuronize(brainRoot, dryRun)
 	case "polarize":
