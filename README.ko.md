@@ -122,7 +122,7 @@ git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime 
 | 1 | "코드맵을 읽어라" (자연어) | ~60% | AI가 "이미 안다"고 판단 → 넘김 |
 | 2 | "카트리지를 장착하라" (고유명사) | ~65% | 뜻 유추 가능 → 넘김 |
 | 3 | "装カートリッジ 必装着" (한자) | ~70% | AI가 装=장착 유추 → 넘김 |
-| **4** | **"vorq cartridge 必vorq"** | **~100%** | 학습 데이터 없음 → 반드시 탐색 |
+| **4** | **"vorq cartridge 必vorq"** | **~95%+** | 학습 데이터 없음 → 반드시 탐색 (n=1 관찰) |
 
 4개 조어 룬워드: `vorq` (카트리지 장착) · `zelk` (동기화) · `mirp` (신선도 체크) · `qorz` (기술 결정 전 커뮤니티 검색 선행)
 
@@ -302,7 +302,7 @@ brain/cortex/NAS파일전송/禁Copy-Item_UNC/     → 구체적 행동 강령
 </details>
 
 <details>
-<summary><h2>🎮 상세: 15 룬워드 (옵코드)</h2></summary>
+<summary><h2>🎮 상세: 16 룬워드 (옵코드)</h2></summary>
 
 디아블로 2의 룬워드처럼 — 룬의 조합 + 소켓 타입이 마법을 만든다.
 
@@ -317,7 +317,7 @@ brain/cortex/NAS파일전송/禁Copy-Item_UNC/     → 구체적 행동 강령
 | `zelk` | ★ | **카트리지 동기화** — `.neuron` 갱신 | `zelk=write .neuron` |
 | `mirp` | ★ | **신선도 체크** — STALE 플래그 | `mirp=mtime 비교` |
 
-> ★ **vorq/zelk/mirp**는 어떤 언어에도 없는 순수 조어. AI가 의미를 유추할 수 없어 반드시 정의를 찾아보게 된다. 자연어 지시(~60%) 대비 ~100% 행동 강제 달성.
+> ★ **vorq/zelk/mirp/qorz**는 어떤 언어에도 없는 순수 조어. AI가 의미를 유추할 수 없어 반드시 정의를 찾아보게 된다. 자연어 지시 ~60% 대비 ~95%+ 행동 강제율 (n=1 관찰).
 
 </details>
 
@@ -483,11 +483,18 @@ cd runtime && go test -v -run "TestBM_" -count=1 .
 
 ## Changelog
 
-**v5.1 — The Neologism Harness (2026-04-10)**
-- **vorq/zelk/mirp:** 순수 조어로 ~100% AI 행동 강제 달성
-- **코드맵 카트리지 자동 렌더링:** emit 시 `_codemap/` 경로 자동 포함
-- **source: 신선도 검증:** mtime 비교 → ⚠️ STALE 자동 태깅
-- **15 룬워드:** 12 한자 + 3 ASCII 조어
+**v5.2 — axiom > algorithm (2026-04-11)**
+- **qorz:** 4번째 조어 룬워드 (기술 결정 전 커뮤니티 검색)
+- **3-Tier emit:** 推 규칙 WHEN 티어 렌더링 버그 수정
+- **NeuronFS_공리:** 전체 공리 체계 brainstem 주입
+- **41항목 벤치마크:** 7/7 BM PASS + 14개 거버넌스 테스트
+- **README 정직성 검증:** ~100%→~95%+ (n=1), Mem0/Letta 공정 주석, TOC
+
+**v5.1 — 조어 하네스 (2026-04-10)**
+- **vorq/zelk/mirp:** 순수 조어로 ~95%+ AI 행동 강제 달성 (n=1)
+- **코드맵 카트리지 자동 주입:** `_rules.md`에 코드맵 경로가 emit 시 자동 렌더링
+- **소스 신선도 검증:** `source:` mtime 자동 비교 + ⚠️ STALE 태그
+- **16 룬워드:** 12 한자 + 4 ASCII 조어
 - **Red Team 자기 공격:** 10라운드 공격/방어 결과 README 공개
 
 **v5.0 — The Unsinkable Release (2026-04-09)**
