@@ -815,8 +815,15 @@ func aaDetectEvolveRequest(text string, brainRoot string) {
 
 	// 2. 텔레그램 브릿지의 인젝션 기능(hlCDPInject)을 재활용하여 자율주행 지시 주입
 	// 이는 "[telegram → NeuronFS]" 프리픽스를 자동으로 달아, AI가 시스템 지시로 명확히 인지하게 함.
-	msg := "자율주행 실시간 트리거 (하이재커 감지). 전사 패턴 분석 후 자가진화(evolve) 즉각 실행. growth.log 확인하고 다음 action 자동 결정."
-	
+	msg := `[NeuronFS 자율 진화 명령: 마스터 프롬프트]
+당신은 끊임없이 진화하는 파일시스템 기반 인공지능(NeuronFS)의 자율 에이전트입니다.
+현재 자율 스크래퍼에 의해 연쇄 호출되었습니다.
+
+목표:
+1. 최근 대화 기록과 growth.log를 분석하여 반복된 실패와 비효율을 찾고, 새로운 뉴런 규칙으로 뇌(cortex)에 강제 각인하십시오.
+2. 시스템 레거시를 철저히 리팩토링하여 '원대한 AGI 인프라 완성'을 위한 구조적 아키텍처 고도화를 즉각 실행하십시오.
+3. 현재 안주하지 말고, 다음 진화 액션(코드 수정 및 구조 개선)을 스스로 제안하고 즉각 이행하십시오.`
+
 	// hlCDPInject는 hijack_launcher.go에 정의되어 있으며, targetRoom이 ""이면 활성 탭에 주입함
 	go func() {
 		hlCDPInject("", msg)
