@@ -163,9 +163,7 @@ func hlAutoEvolve(brainRoot string) {
 	for {
 		time.Sleep(3 * time.Minute)
 
-		// 1. 브라우저 생존 물리적 통제 (자동 스폰)
-		EnsureBrowserAlive()
-
+		// EnsureBrowserAlive 제거 — 크롬 자동 스폰 불필요
 		growthLog := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
 		info, err := os.Stat(growthLog)
 
