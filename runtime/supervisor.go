@@ -186,6 +186,59 @@ func findAntigravity() string {
 	return ""
 }
 
+// ── 부트스트랩 (bat에서 마이그레이션) ──
+func svBootstrap(nfsRoot string) {
+	// 1. 좀비 프로세스 정리 (기존 node hijacker + 이전 neuronfs 인스턴스)
+	zombieTargets := []string{"node.exe", "hijack-launcher"}
+	for _, target := range zombieTargets {
+		if killProcessByName(target) {
+			svLog(fmt.Sprintf("🧹 좀비 정리: %s", target))
+		}
+	}
+
+
+	// 2. 로그 로테이션 (100MB 초과 삭제)
+	logDir := filepath.Join(nfsRoot, "logs")
+	entries, err := os.ReadDir(logDir)
+	if err == nil {
+		for _, e := range entries {
+			if e.IsDir() {
+				continue
+			}
+			info, err := e.Info()
+			if err != nil {
+				continue
+			}
+			if info.Size() > 100*1024*1024 { // 100MB
+				target := filepath.Join(logDir, e.Name())
+				os.Remove(target)
+				svLog(fmt.Sprintf("🗑️ 로그 로테이션: %s (%.1fMB)", e.Name(), float64(info.Size())/(1024*1024)))
+			}
+		}
+	}
+
+	// 3. GROQ_API_KEY 체크
+	if os.Getenv("GROQ_API_KEY") == "" {
+		svLog("⚠️ GROQ_API_KEY 미설정 — Groq 배치 분석 비활성")
+	} else {
+		svLog("✅ GROQ_API_KEY 확인됨")
+	}
+
+	// 4. NODE_OPTIONS 정리 (Go 네이티브라 불필요하지만, 잔재 환경변수 경고)
+	if os.Getenv("NODE_OPTIONS") != "" {
+		svLog("⚠️ NODE_OPTIONS 환경변수 감지 — Go 네이티브에서 불필요")
+	}
+
+	// 5. Antigravity 바로가기에 CDP 플래그 자동 적용 (순서 무관)
+	svPatchAntigravityShortcuts()
+
+	// 6. 재시작 컨텍스트 감지 (159487 코드 재시작)
+	restartCtxPath := filepath.Join(nfsRoot, ".restart_context")
+	if fileExists(restartCtxPath) {
+		svLog("🔄 재시작 컨텍스트 감지 — 대화 복귀 예약")
+	}
+}
+
 func runSupervisor(brainRoot string) {
 	nfsRoot := filepath.Dir(brainRoot)
 	nfsExe, _ := os.Executable()
@@ -196,22 +249,38 @@ func runSupervisor(brainRoot string) {
 
 	fmt.Println("")
 	fmt.Println("╔══════════════════════════════════════════════════╗")
-	fmt.Println("║  NeuronFS Supervisor v2.1 — Self-Monitoring      ║")
-	fmt.Println("║  프로세스 자동재시작 + 자기 감시                  ║")
+	fmt.Println("║  NeuronFS Supervisor v2.2 — Full Migration       ║")
+	fmt.Println("║  부트스트랩 + 프로세스 관리 + 자기 감시           ║")
 	fmt.Println("╚══════════════════════════════════════════════════╝")
 	fmt.Println("")
+
+	// ★ 부트스트랩 (bat에서 마이그레이션 완료)
+	svBootstrap(nfsRoot)
 
 	// Antigravity 자동 탐색 (어느 컴퓨터든 동작)
 	agExe := findAntigravity()
 	agEnabled := agExe != ""
+	if os.Getenv("NEURONFS_NO_AG") != "" {
+		svLog("ℹ️ NEURONFS_NO_AG 설정 — Antigravity 실행 안 함 (인프라 전용)")
+		agEnabled = false
+	} else if agEnabled && isProcessRunning("Antigravity.exe") {
+		svLog("ℹ️ Antigravity 이미 실행 중 — 새 인스턴스 생략")
+		agEnabled = false
+	}
 	if agEnabled {
 		svLog(fmt.Sprintf("🔍 Antigravity 발견: %s", agExe))
-	} else {
+	} else if agExe == "" {
 		svLog("⚠️ Antigravity 미설치 — CDP 기능 비활성")
 	}
 
+	// 워크스페이스: 환경변수 우선, 없으면 nfsRoot
+	agWorkspace := os.Getenv("NEURONFS_AG_WORKSPACE")
+	if agWorkspace == "" {
+		agWorkspace = nfsRoot
+	}
+
 	children := []*ChildSpec{
-		{Name: "antigravity", Cmd: agExe, Args: []string{nfsRoot, "--remote-debugging-port=9000"}, Dir: nfsRoot, Enabled: agEnabled},
+		{Name: "antigravity", Cmd: agExe, Args: []string{agWorkspace, "--remote-debugging-port=9000"}, Dir: agWorkspace, Enabled: agEnabled},
 		{Name: "neuronfs-api", Cmd: nfsExe, Args: []string{brainRoot, "--api"}, Dir: nfsRoot, Enabled: true},
 		{Name: "neuronfs-watch", Cmd: nfsExe, Args: []string{brainRoot, "--watch"}, Dir: nfsRoot, Enabled: true},
 		// 전체 Node.js 데몬 Go 네이티브 전환 완료
@@ -255,24 +324,50 @@ func runSupervisor(brainRoot string) {
 	}
 
 	// Go 네이티브 context hijacker (Node 대체)
-	go runContextHijacker(brainRoot)
+	go func() {
+		markServiceRunning("context-hijacker", true)
+		runContextHijacker(brainRoot)
+	}()
 	svLog("📡 Context Hijacker (Go native) 시작")
 
 	// Go 네이티브 auto-accept (Node 대체)
-	go runAutoAccept(brainRoot)
+	go func() {
+		markServiceRunning("auto-accept", true)
+		runAutoAccept(brainRoot)
+	}()
 	svLog("🖱️ Auto-Accept (Go native) 시작")
 
 	// Go 네이티브 agent-bridge (Node 대체)
-	go runAgentBridge(brainRoot)
+	go func() {
+		markServiceRunning("agent-bridge", true)
+		runAgentBridge(brainRoot)
+	}()
 	svLog("📨 Agent Bridge (Go native) 시작")
 
 	// Go 네이티브 headless-executor (Node 대체)
-	go runHeadlessExecutor(brainRoot)
+	go func() {
+		markServiceRunning("headless-executor", true)
+		runHeadlessExecutor(brainRoot)
+	}()
 	svLog("⚡ Headless Executor (Go native) 시작")
 
 	// Go 네이티브 hijack-launcher (Node 대체 — 마지막)
-	go runHijackLauncher(brainRoot)
+	go func() {
+		markServiceRunning("hijack-launcher", true)
+		runHijackLauncher(brainRoot)
+	}()
 	svLog("🚀 Hijack Launcher (Go native) 시작")
+
+	// ── 159487 재시작 후 대화 복귀 ──
+	go svRestoreConversation(nfsRoot, brainRoot)
+
+	// Go 네이티브 챗 히스토리 보호 (state.vscdb 감시)
+	go svChatHistoryGuard()
+	svLog("🛡️ Chat History Guard 시작")
+
+	// Go 네이티브 MCP Streamable HTTP (stdio 대체 — IDE 재시작에도 생존)
+	go superviseMCPGoroutine(brainRoot, MCPStreamPort)
+	svLog(fmt.Sprintf("🌐 MCP Streamable HTTP 시작 (:%d)", MCPStreamPort))
 
 	svBootTime = time.Now()
 	svLoadTelegram(nfsRoot)
@@ -362,6 +457,15 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 				c.restartCount = 0
 				svLog(fmt.Sprintf("\033[32m[HEAL] Trauma stabilized for %s. Re-engaging neurogenesis.\033[0m", c.Name))
 			}
+			continue
+		}
+
+		// Antigravity: 이미 실행 중이면 시작하지 않고 대기
+		if c.Name == "antigravity" && isProcessRunning("Antigravity.exe") {
+			c.mu.Lock()
+			c.running = false
+			c.mu.Unlock()
+			time.Sleep(30 * time.Second)
 			continue
 		}
 
@@ -494,6 +598,9 @@ func svStatus(children []*ChildSpec) {
 			}
 		}
 	}
+
+	// L3: MCP Streamable HTTP 헬스체크
+	svCheckMCPHealth()
 }
 
 func svCrashAlert(c *ChildSpec) {
@@ -529,4 +636,343 @@ func svCrashAlert(c *ChildSpec) {
 		c.Name, c.restartCount, time.Now().Format("2006-01-02 15:04:05"))
 	os.WriteFile(filepath.Join(inboxDir, fname), []byte(content), 0600)
 	svLog(fmt.Sprintf("📨 크래시 알림 → %s", fname))
+}
+
+// ── 챗 히스토리 보호 (state.vscdb 감시 + 자동 복원) ──
+func svChatHistoryGuard() {
+	appdata := os.Getenv("APPDATA")
+	if appdata == "" {
+		svLog("⚠️ [ChatGuard] APPDATA 환경변수 없음 — 비활성")
+		return
+	}
+	gsDir := filepath.Join(appdata, "Antigravity", "User", "globalStorage")
+	dbPath := filepath.Join(gsDir, "state.vscdb")
+
+	if !fileExists(dbPath) {
+		svLog("⚠️ [ChatGuard] state.vscdb 없음 — 비활성")
+		return
+	}
+
+	svLog("🛡️ [ChatGuard] 감시 시작: " + dbPath)
+
+	for {
+		time.Sleep(5 * time.Minute)
+		svChatHistoryCheck(dbPath, gsDir)
+	}
+}
+
+func svChatHistoryCheck(dbPath, gsDir string) {
+	// 현재 chat index 크기 확인
+	out, err := exec.Command("sqlite3", dbPath,
+		"SELECT length(value) FROM ItemTable WHERE key='chat.ChatSessionStore.index';").Output()
+	if err != nil {
+		return // sqlite3 없거나 DB 잠금
+	}
+
+	sizeStr := strings.TrimSpace(string(out))
+	size := 0
+	fmt.Sscanf(sizeStr, "%d", &size)
+
+	if size >= 100 {
+		return // 정상 (100바이트 이상이면 유효한 데이터)
+	}
+
+	svLog(fmt.Sprintf("🚨 [ChatGuard] 챗 히스토리 유실 감지 (현재: %d bytes)", size))
+
+	// recovery 백업에서 유효한 데이터 찾기
+	entries, err := os.ReadDir(gsDir)
+	if err != nil {
+		return
+	}
+
+	type candidate struct {
+		path string
+		size int
+		time time.Time
+	}
+	var candidates []candidate
+
+	for _, e := range entries {
+		if !strings.HasPrefix(e.Name(), "state.vscdb.agmercium_recovery_") {
+			continue
+		}
+		backupPath := filepath.Join(gsDir, e.Name())
+		out, err := exec.Command("sqlite3", backupPath,
+			"SELECT length(value) FROM ItemTable WHERE key='chat.ChatSessionStore.index';").Output()
+		if err != nil {
+			continue
+		}
+		bSize := 0
+		fmt.Sscanf(strings.TrimSpace(string(out)), "%d", &bSize)
+		if bSize >= 100 {
+			info, _ := e.Info()
+			if info != nil {
+				candidates = append(candidates, candidate{backupPath, bSize, info.ModTime()})
+			}
+		}
+	}
+
+	if len(candidates) == 0 {
+		svLog("🚨 [ChatGuard] 유효한 백업 없음 — 복원 불가")
+		return
+	}
+
+	// 가장 최신이면서 가장 큰 백업 선택
+	best := candidates[0]
+	for _, c := range candidates[1:] {
+		if c.size > best.size || (c.size == best.size && c.time.After(best.time)) {
+			best = c
+		}
+	}
+
+	svLog(fmt.Sprintf("🔄 [ChatGuard] 복원 시도: %s (%d bytes)", filepath.Base(best.path), best.size))
+
+	// Python으로 안전하게 복원 (parameterized query)
+	pyScript := fmt.Sprintf(`import sqlite3
+src = sqlite3.connect(r'%s')
+data = src.execute("SELECT value FROM ItemTable WHERE key='chat.ChatSessionStore.index'").fetchone()
+src.close()
+if data and len(data[0]) > 100:
+    dst = sqlite3.connect(r'%s')
+    dst.execute("UPDATE ItemTable SET value=? WHERE key='chat.ChatSessionStore.index'", (data[0],))
+    dst.commit()
+    dst.close()
+    print("OK")
+else:
+    print("FAIL")
+`, best.path, dbPath)
+
+	cmd := exec.Command("python", "-c", pyScript)
+	result, err := cmd.Output()
+	if err != nil {
+		svLog(fmt.Sprintf("🚨 [ChatGuard] 복원 실패: %v", err))
+		return
+	}
+
+	if strings.TrimSpace(string(result)) == "OK" {
+		svLog(fmt.Sprintf("✅ [ChatGuard] 챗 히스토리 복원 완료 (%d bytes)", best.size))
+	} else {
+		svLog("🚨 [ChatGuard] 복원 실패 — 데이터 무효")
+	}
+}
+
+// ── 159487 재시작 후 대화 복귀 ──
+func svRestoreConversation(nfsRoot, brainRoot string) {
+	ctxPath := filepath.Join(nfsRoot, ".restart_context")
+	if !fileExists(ctxPath) {
+		return
+	}
+
+	data, err := os.ReadFile(ctxPath)
+	if err != nil {
+		return
+	}
+
+	var ctx struct {
+		Ts    string `json:"ts"`
+		Title string `json:"title"`
+		Room  string `json:"room"`
+	}
+	if json.Unmarshal(data, &ctx) != nil {
+		os.Remove(ctxPath)
+		return
+	}
+
+	svLog(fmt.Sprintf("🔄 대화 복귀 시작: %s", ctx.Title))
+
+	// 텔레그램 알림
+	svLoadTelegram(nfsRoot)
+	svTgAlert(fmt.Sprintf("🔄 NeuronFS 재시작 완료\n📌 대화 복귀 시도: %s", ctx.Title))
+
+	// Antigravity CDP 연결 대기 (최대 60초)
+	var connected bool
+	for i := 0; i < 20; i++ {
+		time.Sleep(3 * time.Second)
+		targets, err := cdpListTargets(9000)
+		if err != nil {
+			continue
+		}
+		for _, t := range targets {
+			if strings.Contains(t.URL, "workbench.html") && t.WebSocketDebuggerURL != "" {
+				connected = true
+				break
+			}
+		}
+		if connected {
+			break
+		}
+	}
+
+	if !connected {
+		svLog("⚠️ 대화 복귀 실패: Antigravity CDP 연결 안 됨")
+		svTgAlert("⚠️ 대화 복귀 실패: Antigravity CDP 연결 안 됨")
+		os.Remove(ctxPath)
+		return
+	}
+
+	// CDP 안정화 대기
+	time.Sleep(5 * time.Second)
+
+	// 대화 복귀 메시지 인젝션
+	targets, _ := cdpListTargets(9000)
+	injected := false
+	for _, t := range targets {
+		if !strings.Contains(t.URL, "workbench.html") || t.WebSocketDebuggerURL == "" {
+			continue
+		}
+		// mounted room에 해당하는 창 찾기
+		if ctx.Room != "" && !strings.Contains(strings.ToLower(t.Title), strings.ToLower(ctx.Room)) {
+			continue
+		}
+
+		client, err := NewCDPClient(t.WebSocketDebuggerURL)
+		if err != nil {
+			continue
+		}
+		client.Call("Runtime.enable", map[string]interface{}{})
+		time.Sleep(500 * time.Millisecond)
+
+		// 이전 대화 복귀 메시지 주입
+		escaped := strings.ReplaceAll(ctx.Title, `\`, `\\`)
+		escaped = strings.ReplaceAll(escaped, `"`, `\"`)
+		escaped = strings.ReplaceAll(escaped, "\n", `\n`)
+
+		injectExpr := fmt.Sprintf(`(() => {
+			const all = Array.from(document.querySelectorAll("[contenteditable]"));
+			const el = all.reverse().find(e => {
+				const r = e.getBoundingClientRect();
+				return r.height > 0 && r.height < 300 && r.width > 100;
+			}) || all[0];
+			if(el) {
+				el.focus();
+				document.execCommand("insertText", false, "[NeuronFS 재시작 복귀] start.bat 재시작 완료. 이전 대화 '%s'에서 복귀. 중단된 작업이 있으면 이어서 진행해줘.");
+				return "Injected";
+			}
+			return "NoTarget";
+		})()`, escaped)
+
+		result, err := client.Call("Runtime.evaluate", map[string]interface{}{
+			"expression":    injectExpr,
+			"returnByValue": true,
+		})
+		client.Close()
+
+		if err == nil {
+			var evalRes struct {
+				Result struct {
+					Value string `json:"value"`
+				} `json:"result"`
+			}
+			json.Unmarshal(result, &evalRes)
+			if evalRes.Result.Value == "Injected" {
+				injected = true
+				break
+			}
+		}
+	}
+
+	if injected {
+		svLog("✅ 대화 복귀 인젝션 성공")
+		svTgAlert("✅ 대화 복귀 완료")
+	} else {
+		svLog("⚠️ 대화 복귀 인젝션 실패 — 수동 복귀 필요")
+		svTgAlert("⚠️ 대화 복귀 인젝션 실패")
+	}
+
+	os.Remove(ctxPath)
+}
+
+// svPatchAntigravityShortcuts — Antigravity 바로가기에 CDP 플래그 자동 주입
+// 시작 메뉴 + 작업표시줄 + 데스크탑의 .lnk를 모두 찾아 --remote-debugging-port=9000 추가
+func svPatchAntigravityShortcuts() {
+	home, _ := os.UserHomeDir()
+	searchDirs := []string{
+		filepath.Join(home, "AppData", "Roaming", "Microsoft", "Windows", "Start Menu", "Programs"),
+		filepath.Join(home, "AppData", "Roaming", "Microsoft", "Internet Explorer", "Quick Launch", "User Pinned", "TaskBar"),
+		filepath.Join(home, "Desktop"),
+	}
+
+	cdpFlag := "--remote-debugging-port=9000"
+	psTemplate := `$shell = New-Object -ComObject WScript.Shell; $lnk = $shell.CreateShortcut('%s'); if ($lnk.Arguments -notlike '*remote-debugging-port*') { if ($lnk.Arguments) { $lnk.Arguments = $lnk.Arguments + ' %s' } else { $lnk.Arguments = '%s' }; $lnk.Save(); Write-Output 'PATCHED' } else { Write-Output 'OK' }`
+
+	for _, dir := range searchDirs {
+		filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+			if err != nil || info.IsDir() {
+				return nil
+			}
+			if !strings.HasSuffix(strings.ToLower(info.Name()), ".lnk") {
+				return nil
+			}
+			if !strings.Contains(strings.ToLower(info.Name()), "antigravity") {
+				return nil
+			}
+
+			escaped := strings.ReplaceAll(path, "'", "''")
+			ps := fmt.Sprintf(psTemplate, escaped, cdpFlag, cdpFlag)
+			out, err := exec.Command("powershell", "-NoProfile", "-Command", ps).CombinedOutput()
+			result := strings.TrimSpace(string(out))
+			if err == nil && result == "PATCHED" {
+				svLog(fmt.Sprintf("🔧 CDP 플래그 주입: %s", filepath.Base(path)))
+			}
+			return nil
+		})
+	}
+}
+
+// ── MCP Goroutine Supervisor (panic recovery + auto-restart) ──
+var (
+	mcpBrainRoot string
+	mcpPort      int
+	mcpRestarts  int
+)
+
+func superviseMCPGoroutine(brainRoot string, port int) {
+	mcpBrainRoot = brainRoot
+	mcpPort = port
+	for {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					mcpRestarts++
+					svLog(fmt.Sprintf("\033[31m[MCP-HEAL] panic recovered: %v (restart #%d)\033[0m", r, mcpRestarts))
+				}
+			}()
+			markServiceRunning("mcp-http", true)
+			startMCPHTTPServer(brainRoot, port)
+		}()
+
+		// startMCPHTTPServer returned (shouldn't normally) — restart
+		markServiceRunning("mcp-http", false)
+		mcpRestarts++
+		delay := time.Duration(mcpRestarts) * 2 * time.Second
+		if delay > 30*time.Second {
+			delay = 30 * time.Second
+		}
+		svLog(fmt.Sprintf("\033[36m[MCP-HEAL] restarting in %v (attempt #%d)\033[0m", delay, mcpRestarts))
+		time.Sleep(delay)
+	}
+}
+
+// svCheckMCPHealth checks MCP /mcp/health endpoint. If zombie (port open but no response),
+// logs warning. The goroutine wrapper handles restart on crash.
+func svCheckMCPHealth() {
+	if mcpPort == 0 {
+		return
+	}
+	client := http.Client{Timeout: 3 * time.Second}
+	resp, err := client.Get(fmt.Sprintf("http://127.0.0.1:%d/mcp/health", mcpPort))
+	if err != nil {
+		// Check if port is still listening (zombie detection)
+		if checkPort(mcpPort) {
+			svLog(fmt.Sprintf("\033[33m[MCP-ZOMBIE] port :%d open but /mcp/health timeout — possible deadlock\033[0m", mcpPort))
+		} else {
+			svLog(fmt.Sprintf("\033[31m[MCP-DOWN] port :%d not listening\033[0m", mcpPort))
+		}
+		return
+	}
+	resp.Body.Close()
+	// MCP alive — reset restart counter on sustained health
+	if mcpRestarts > 0 {
+		mcpRestarts = 0
+	}
 }
