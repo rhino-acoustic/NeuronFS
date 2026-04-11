@@ -316,7 +316,7 @@ func injectIdleResult(summary string) {
 
 	// 최후 수단: hlCDPInject로 디버그 결과 인젝션 (대화 진행용)
 	debugMsg := fmt.Sprintf("[NeuronFS 자가수복 실패] %s | 진단: %s — 원인 분석 후 수정 실행", summary, diagStr)
-	go hlCDPInject("", debugMsg)
+	go hlCDPInject(hlTgMountedRoom, debugMsg)
 }
 
 // detectFailedEvolutions scans for neurons inactive 30+ days.

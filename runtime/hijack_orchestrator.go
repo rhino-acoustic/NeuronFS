@@ -175,7 +175,7 @@ func hlAutoEvolve(brainRoot string) {
 
 			// 텔레그램과 브라우저 양방향 타격!
 			hlTgSend(hlTgChatID, masterPrompt)
-			go hlCDPInject("global", masterPrompt)
+			go hlCDPInject(hlTgMountedRoom, masterPrompt)
 
 			// 무한 루프 회피 터치
 			os.Chtimes(growthLog, time.Now(), time.Now())
