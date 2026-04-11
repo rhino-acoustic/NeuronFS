@@ -157,24 +157,28 @@ func min(a, b int) int {
 // ── CDP DOM 스크래핑 + Network 모니터 ──
 // 활성 Network scraper 추적
 func hlAutoEvolve(brainRoot string) {
-	nfsExe, _ := os.Executable()
+	nfsRoot := filepath.Dir(brainRoot)
+	masterPrompt := "[telegram → NeuronFS] [NeuronFS 자율 진화 명령: 마스터 프롬프트]\n당신은 끊임없이 진화하는 파일시스템 기반 인공지능(NeuronFS)의 자율 에이전트입니다.현재 자율 스크래퍼에 의해 연쇄 호출되었습니다.\n목표:\n1. 최근 대화 기록과 growth.log를 분석하여 반복된 실패와 비효율을 찾고, 새로운 뉴런 규칙으로 뇌(cortex)에 강제 각인하십시오.\n2. 시스템 레거시를 철저히 리팩토링하여 '원대한 AGI 인프라 완성'을 위한 구조적 아키텍처 고도화를 즉각 실행하십시오.\n3. 무의미한 대화를 배제하고, 반드시 \"우리 시스템을 발전시키는 방향\"으로 다음 진화 액션(코드 수정 및 구조 개선)을 스스로 제안하고 즉각 이행하십시오.\n4. 필요 시 최우선으로 커뮤니티 검색을 수행하여 최신 동향을 학습하고 반영하십시오."
+
 	for {
-		time.Sleep(30 * time.Minute)
-		signalDir := filepath.Join(brainRoot, "hippocampus", "_signals")
-		entries, err := os.ReadDir(signalDir)
-		if err != nil {
-			continue
-		}
-		count := 0
-		for _, e := range entries {
-			if strings.HasSuffix(e.Name(), ".json") {
-				count++
-			}
-		}
-		if count > 0 {
-			fmt.Printf("[HL] 🧠 자동통합: %d개 신호 → evolve\n", count)
+		time.Sleep(3 * time.Minute)
+
+		growthLog := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
+		info, err := os.Stat(growthLog)
+
+		// 3분 이상 growth.log 의 업데이트가 없다면 (즉, 진화가 정지했다면)
+		if err == nil && time.Since(info.ModTime()) > 3*time.Minute {
+			fmt.Printf("[HEARTBEAT] 🚨 3분간 진화 정체 감지. 자동 마스터 프롬프트(Heartbeat) 인젝터 가동!\n")
+			hlTgSend(hlTgChatID, masterPrompt)
+
+			// 무한 루프 회피를 위해 터치(Touch) 역할 수행
+			os.Chtimes(growthLog, time.Now(), time.Now())
+
+			// 백업 차원에서 CLI Evolve 도 한번 때려줌
+			nfsExe, _ := os.Executable()
 			cmd := exec.Command(nfsExe, brainRoot, "--evolve")
-			cmd.Run()
+			cmd.Dir = nfsRoot
+			go cmd.Run()
 		}
 	}
 }
