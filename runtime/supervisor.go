@@ -916,6 +916,12 @@ var (
 func superviseMCPGoroutine(brainRoot string, port int) {
 	mcpBrainRoot = brainRoot
 	mcpPort = port
+	workerPort := port + 1 // e.g. 9248
+
+	// 1. 역방향 프록시 계층 구동 (클라이언트 연결 쉴드)
+	go runMCPProxy(port, workerPort)
+
+	// 2. 실제 MCP Worker 엔진 구동
 	for {
 		func() {
 			defer func() {
@@ -925,7 +931,7 @@ func superviseMCPGoroutine(brainRoot string, port int) {
 				}
 			}()
 			markServiceRunning("mcp-http", true)
-			startMCPHTTPServer(brainRoot, port)
+			startMCPHTTPServer(brainRoot, workerPort)
 		}()
 
 		// startMCPHTTPServer returned (shouldn't normally) — restart
