@@ -782,8 +782,15 @@ func aaLoadBrainRules(brainRoot string) []string {
 var aaEvolveProcRe = regexp.MustCompile(`\[EVOLVE:proceed\]`)
 var aaEvolveProcessed sync.Map
 
+var aaEvolveLastTrigger time.Time
+
 func aaDetectEvolveRequest(text string, brainRoot string) {
 	if !aaEvolveProcRe.MatchString(text) {
+		return
+	}
+
+	// 1분 쿨타임 (DOM 미세 변동으로 인한 연쇄 중복 인젝션 방지)
+	if time.Since(aaEvolveLastTrigger) < 60*time.Second {
 		return
 	}
 
@@ -793,6 +800,8 @@ func aaDetectEvolveRequest(text string, brainRoot string) {
 	if _, loaded := aaEvolveProcessed.LoadOrStore(key, true); loaded {
 		return
 	}
+
+	aaEvolveLastTrigger = time.Now()
 
 	aaLog("🧬 [EVOLVE] proceed 요청 감지 — 선 git snapshot")
 
