@@ -86,7 +86,7 @@ func hlAppendTranscript(entry, projectLabel, brainRoot string) {
 	}
 
 	// ── [EVOLVE:proceed] 감지 → 자율주행 연쇄 트리거 ──
-	// 조건: AI 응답에 태그 포함 + 자율주행 활성 + startup 3분 경과 + 사용자 비활성 + 3분 debounce
+	// 조건: AI 응답에 태그 포함 + 자율주행 활성 + startup 3분 경과 + 3분 debounce
 	if strings.Contains(entry, "[EVOLVE:proceed]") && strings.Contains(entry, "AI") {
 		evolveDebounce.Lock()
 		elapsed := time.Since(lastEvolveTime)
@@ -102,8 +102,6 @@ func hlAppendTranscript(entry, projectLabel, brainRoot string) {
 			nfsRoot := filepath.Dir(brainRoot)
 			if fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled")) {
 				// 자율주행 비활성 상태
-			} else if isUserActive(brainRoot) {
-				// 사용자가 대화 중 — 인젝션 금지
 			} else {
 				evolveDebounce.Lock()
 				lastEvolveTime = time.Now()
