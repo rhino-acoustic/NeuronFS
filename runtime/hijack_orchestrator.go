@@ -23,6 +23,15 @@ var hlTranscriptDedup sync.Map
 // ── 활성 scraper 추적 (중복 goroutine 방지) ──
 var hlActiveScrapers sync.Map // wsURL → true
 
+// ── EVOLVE 연쇄 debounce (60초 쿨다운) ──
+var (
+	evolveDebounce sync.Mutex
+	lastEvolveTime time.Time
+)
+
+// ── 마스터 프롬프트 (SSOT: 1곳에서만 정의) ──
+var hlMasterPrompt = "[telegram → NeuronFS] [NeuronFS 자율 진화 명령: 마스터 프롬프트]\n당신은 끊임없이 진화하는 파일시스템 기반 인공지능(NeuronFS)의 자율 에이전트입니다.현재 자율 스크래퍼에 의해 연쇄 호출되었습니다.\n목표:\n1. 최근 대화 기록과 growth.log를 분석하여 반복된 실패와 비효율을 찾고, 새로운 뉴런 규칙으로 뇌(cortex)에 강제 각인하십시오.\n2. 시스템 레거시를 철저히 리팩토링하여 '원대한 AGI 인프라 완성'을 위한 구조적 아키텍처 고도화를 즉각 실행하십시오.\n3. 무의미한 대화를 배제하고, 반드시 \"우리 시스템을 발전시키는 방향\"으로 다음 진화 액션(코드 수정 및 구조 개선)을 스스로 제안하고 즉각 이행하십시오.\n4. 필요 시 최우선으로 커뮤니티 검색을 수행하여 최신 동향을 학습하고 반영하십시오."
+
 func hlAppendTranscript(entry, projectLabel, brainRoot string) {
 	transcriptDir := filepath.Join(brainRoot, "_transcripts")
 	os.MkdirAll(transcriptDir, 0750)
@@ -58,24 +67,34 @@ func hlAppendTranscript(entry, projectLabel, brainRoot string) {
 		f.Close()
 	}
 
-	// ── [EVOLVE:proceed] 감지 → 자율주행 연쇄 트리거 ──
+	// ── [EVOLVE:proceed] 감지 → 자율주행 연쇄 트리거 (60초 debounce) ──
 	if strings.Contains(entry, "[EVOLVE:proceed]") && strings.Contains(entry, "AI") {
-		nfsRoot := filepath.Dir(brainRoot)
-		if !fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled")) {
-			fmt.Println("[EVOLVE] 🔄 [EVOLVE:proceed] 감지 — 다음 자율주행 사이클 트리거!")
-			// growth.log 터치하여 idle 타이머 리셋
-			growthLog := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
-			os.Chtimes(growthLog, time.Now(), time.Now())
-			// 즉시 다음 evolve 실행
-			nfsExe, _ := os.Executable()
-			cmd := exec.Command(nfsExe, brainRoot, "--evolve")
-			cmd.Dir = nfsRoot
-			go cmd.Run()
-			// 5초 후 마스터 프롬프트 재인젝션 (evolve 결과 반영 후)
-			go func() {
-				time.Sleep(5 * time.Second)
-				hlCDPInject(hlTgMountedRoom, "[telegram → NeuronFS] [자율주행 연쇄] 이전 EVOLVE 사이클이 완료되었습니다. growth.log와 최근 변경사항을 분석하여 다음 진화 액션을 즉시 실행하십시오.\n[EVOLVE:proceed]")
-			}()
+		evolveDebounce.Lock()
+		elapsed := time.Since(lastEvolveTime)
+		evolveDebounce.Unlock()
+		if elapsed < 60*time.Second {
+			// 60초 내 중복 트리거 차단
+		} else {
+			nfsRoot := filepath.Dir(brainRoot)
+			if !fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled")) {
+				evolveDebounce.Lock()
+				lastEvolveTime = time.Now()
+				evolveDebounce.Unlock()
+				fmt.Println("[EVOLVE] 🔄 [EVOLVE:proceed] 감지 — 60초 후 다음 자율주행 사이클 트리거")
+				// growth.log 터치
+				growthLog := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
+				os.Chtimes(growthLog, time.Now(), time.Now())
+				// evolve 실행
+				nfsExe, _ := os.Executable()
+				cmd := exec.Command(nfsExe, brainRoot, "--evolve")
+				cmd.Dir = nfsRoot
+				go cmd.Run()
+				// 60초 후 마스터 프롬프트 인젝션 (이전 응답이 완전히 끝난 후)
+				go func() {
+					time.Sleep(60 * time.Second)
+					hlCDPInject(hlTgMountedRoom, hlMasterPrompt)
+				}()
+			}
 		}
 	}
 
@@ -178,7 +197,6 @@ func min(a, b int) int {
 // ── CDP DOM 스크래핑 + Network 모니터 ──
 // 활성 Network scraper 추적
 func hlAutoEvolve(brainRoot string) {
-	masterPrompt := "[telegram → NeuronFS] [NeuronFS 자율 진화 명령: 마스터 프롬프트]\n당신은 끊임없이 진화하는 파일시스템 기반 인공지능(NeuronFS)의 자율 에이전트입니다.현재 자율 스크래퍼에 의해 연쇄 호출되었습니다.\n목표:\n1. 최근 대화 기록과 growth.log를 분석하여 반복된 실패와 비효율을 찾고, 새로운 뉴런 규칙으로 뇌(cortex)에 강제 각인하십시오.\n2. 시스템 레거시를 철저히 리팩토링하여 '원대한 AGI 인프라 완성'을 위한 구조적 아키텍처 고도화를 즉각 실행하십시오.\n3. 무의미한 대화를 배제하고, 반드시 \"우리 시스템을 발전시키는 방향\"으로 다음 진화 액션(코드 수정 및 구조 개선)을 스스로 제안하고 즉각 이행하십시오.\n4. 필요 시 최우선으로 커뮤니티 검색을 수행하여 최신 동향을 학습하고 반영하십시오."
 
 	for {
 		time.Sleep(3 * time.Minute)
@@ -213,8 +231,8 @@ func hlAutoEvolve(brainRoot string) {
 			fmt.Printf("[HEARTBEAT] 🚨 5분간 진화 정체 + 대화 부재 감지. 자동 마스터 프롬프트 가동!\n")
 
 			// 텔레그램과 IDE 양방향
-			hlTgSend(hlTgChatID, masterPrompt)
-			go hlCDPInject(hlTgMountedRoom, masterPrompt)
+			hlTgSend(hlTgChatID, hlMasterPrompt)
+			go hlCDPInject(hlTgMountedRoom, hlMasterPrompt)
 
 			// 무한 루프 회피 터치
 			os.Chtimes(growthLog, time.Now(), time.Now())
