@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Neurons-367-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Neurons-388-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/Runewords-16-purple?style=flat-square" />
   <img src="https://img.shields.io/badge/Zero_Runtime_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/AGPL--3.0-green?style=flat-square" />
