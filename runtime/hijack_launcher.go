@@ -148,8 +148,8 @@ func hlSendToTelegram(entry, proj string) {
 	if hlTgToken == "" || hlTgChatID == "" {
 		return
 	}
-	// 워밍업 15초
-	if time.Since(hlTgStartTime) < 15*time.Second {
+	// 워밍업 60초 — 재시작 시 DOM에 남아있는 기존 메시지 재전송 방지
+	if time.Since(hlTgStartTime) < 60*time.Second {
 		return
 	}
 
