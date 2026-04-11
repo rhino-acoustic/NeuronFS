@@ -3,7 +3,7 @@
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
   <img src="https://img.shields.io/badge/Neurons-3400+-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/Runewords-15-purple?style=flat-square" />
-  <img src="https://img.shields.io/badge/Zero_Dependencies-black?style=flat-square" />
+  <img src="https://img.shields.io/badge/Zero_Runtime_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/AGPL--3.0-green?style=flat-square" />
 </p>
 
@@ -65,7 +65,7 @@ git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime 
 [EMIT] ✅ Claude → CLAUDE.md
 [EMIT] ✅ Gemini → ~/.gemini/GEMINI.md
 [EMIT] ✅ Copilot → .github/copilot-instructions.md
-✅ 4 targets written. One brain. Every AI. Zero dependencies. 4MB binary.
+✅ 4 targets written. One brain. Every AI. Zero runtime dependencies. ~19MB binary.
 ```
 
 ---
@@ -136,7 +136,7 @@ Switch AI tools freely. Your rules never evaporate. One brain governs all.
 
 | # | | `.cursorrules` | Mem0 / Letta | RAG (Vector DB) | **NeuronFS** |
 |---|---|---|---|---|---|
-| 1 | **Rule accuracy** | Text = easily ignored | Probabilistic | ~95% | **100% deterministic** |
+| 1 | **Rule injection** | Text = easily ignored | Probabilistic | ~95% | **100% deterministic injection** |
 | 2 | **Behavioral compliance** | ~60% (text advisory) | ~60% | ~60% | **~100% (vorq harness)** |
 | 3 | **Multi-AI support** | ❌ Cursor-only | API-dependent | ✅ | **✅ `--emit all` → every IDE** |
 | 4 | **Priority system** | ❌ Flat text | ❌ | ❌ | **✅ 7-layer Subsumption (P0→P6)** |
@@ -145,7 +145,7 @@ Switch AI tools freely. Your rules never evaporate. One brain governs all.
 | 7 | **Cartridge freshness** | ❌ Manual | ❌ | ❌ | **✅ `source:` mtime auto-check** |
 | 8 | **Encrypted distribution** | ❌ | Cloud-dependent | Cloud-dependent | **✅ Jloot VFS cartridges** |
 | 9 | **Infrastructure cost** | Free | $50+/mo | $70+/mo GPU | **$0 (local OS)** |
-| 10 | **Dependencies** | IDE-locked | Python+Redis+DB | Python+GPU+API | **Zero (single 4MB binary)** |
+| 10 | **Dependencies** | IDE-locked | Python+Redis+DB | Python+GPU+API | **Zero runtime (single ~19MB binary)** |
 
 ---
 
@@ -166,7 +166,7 @@ git clone https://github.com/rhino-acoustic/NeuronFS.git; cd NeuronFS/runtime; g
 # 1. Clone & build
 git clone https://github.com/rhino-acoustic/NeuronFS.git
 cd NeuronFS/runtime
-go build -o neuronfs .          # → ~4MB binary, zero dependencies
+go build -o neuronfs .          # → ~19MB binary, zero runtime dependencies
 
 # 2. Create a rule — just a CLI command
 ./neuronfs --grow cortex/react/禁console_log  # "禁" = absolute prohibition
@@ -271,7 +271,7 @@ Cosine similarity → "89% probability answer"
 [OS Folder Search (NeuronFS)]
 Question → tokenize → B-Tree path traversal →
 Load .neuron → "This path has 禁 — BLOCKED"
-⏱️ 0.001ms | 💰 $0 (CPU only) | ✅ 100% deterministic
+⏱️ 0.001ms | 💰 $0 (CPU only) | ✅ 100% deterministic injection
 ```
 
 ### N-Dimensional OS Metadata as Embedding
@@ -577,7 +577,7 @@ This project is licensed under **AGPL-3.0** with additional commercial terms. Se
 ---
 > *A non-developer flipped the direction of an industry. Programming became philosophy once AI arrived.*
 > *Created by 박정근 (PD) — rubisesJO777*
-> *Architecture: 30 Go files, ~10,920 lines. Single binary. Zero dependencies.*
+> *Architecture: 83 Go files, ~18,600 lines. Single binary. Zero runtime dependencies.*
 
 <!--
 Easter Egg for the code divers:

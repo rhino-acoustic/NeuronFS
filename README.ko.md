@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
+  <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
   <img src="https://img.shields.io/badge/Neurons-3400+-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/Runewords-15-purple?style=flat-square" />
-  <img src="https://img.shields.io/badge/Zero_Dependencies-black?style=flat-square" />
+  <img src="https://img.shields.io/badge/Zero_Runtime_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/AGPL--3.0-green?style=flat-square" />
 </p>
 
@@ -65,7 +65,7 @@ git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime 
 [EMIT] ✅ Claude → CLAUDE.md
 [EMIT] ✅ Gemini → ~/.gemini/GEMINI.md
 [EMIT] ✅ Copilot → .github/copilot-instructions.md
-✅ 4타겟 기록 완료. 하나의 뇌. 모든 AI. 의존성 제로. 4MB 바이너리.
+✅ 4타겟 기록 완료. 하나의 뇌. 모든 AI. 의존성 제로. 18MB 바이너리.
 ```
 
 ---
@@ -95,7 +95,7 @@ git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime 
 
 ## 3가지 킬러 피처
 
-### 1. vorq — 조어 하네스 (~100% 행동 강제)
+### 1. vorq — 조어 하네스
 
 학습 데이터에 없는 단어를 만들면 AI가 반드시 정의를 찾아본다 — 자연어로는 불가능한 행동 강제.
 
@@ -107,6 +107,8 @@ git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime 
 | **4** | **"vorq cartridge 必vorq"** | **~100%** | 학습 데이터 없음 → 반드시 탐색 |
 
 3개 조어 룬워드: `vorq` (카트리지 장착) · `zelk` (동기화) · `mirp` (신선도 체크)
+
+> **실측 근거:** BM-1 프롬프트 재현율 100% (5/5 규칙). AI 응답 준수율은 개발자 관찰 기반 ~95%+ (라이브 벤치 예정).
 
 ### 2. 7계층 포섭 (P0 → P6)
 
@@ -132,7 +134,7 @@ AI를 자유롭게 전환해라. 규칙은 절대 증발하지 않는다.
 
 | # | | `.cursorrules` | Mem0 / Letta | RAG (벡터 DB) | **NeuronFS** |
 |---|---|---|---|---|---|
-| 1 | **규칙 정확도** | 텍스트 = 쉽게 무시 | 확률적 | ~95% | **100% 결정론적** |
+| 1 | **규칙 주입** | 텍스트 = 쉽게 무시 | 확률적 | ~95% | **100% 결정론적 주입** |
 | 2 | **행동 강제율** | ~60% (텍스트 부탁) | ~60% | ~60% | **~100% (vorq 하네스)** |
 | 3 | **멀티 AI** | ❌ Cursor 전용 | API 의존 | ✅ | **✅ `--emit all` → 모든 IDE** |
 | 4 | **우선순위 체계** | ❌ 평면 텍스트 | ❌ | ❌ | **✅ 7계층 포섭 (P0→P6)** |
@@ -141,7 +143,7 @@ AI를 자유롭게 전환해라. 규칙은 절대 증발하지 않는다.
 | 7 | **카트리지 신선도** | ❌ 수동 | ❌ | ❌ | **✅ `source:` mtime 자동 검증** |
 | 8 | **암호화 배포** | ❌ | 클라우드 의존 | 클라우드 의존 | **✅ Jloot VFS 카트리지** |
 | 9 | **인프라 비용** | 무료 | $50+/월 | $70+/월 GPU | **₩0 (로컬 OS)** |
-| 10 | **의존성** | IDE 종속 | Python+Redis+DB | Python+GPU+API | **제로 (4MB 단일 바이너리)** |
+| 10 | **의존성** | IDE 종속 | Python+Redis+DB | Python+GPU+API | **런타임 제로 (~19MB 단일 바이너리)** |
 
 ---
 
@@ -249,7 +251,7 @@ brain/cortex/NAS파일전송/禁Copy-Item_UNC/     → 구체적 행동 강령
 ⏱️ 200~2000ms | 💰 GPU 필요 | 정확도: 확률적
 
 [NeuronFS] 질문 → B-Tree 경로 탐색 → "禁 — 차단됨"
-⏱️ 0.001ms | 💰 $0 | ✅ 100% 결정론적
+⏱️ 0.001ms | 💰 $0 | ✅ 100% 결정론적 주입
 ```
 
 </details>
@@ -325,6 +327,15 @@ graph TD
 | **VTR (스팸 OOM 방어)** | 1000+ 자동 정리 | 100% | ✅ PASS |
 
 **Governance V2 Score: 100.0%**
+
+### 확장 벤치마크 (v5.2)
+
+| 지표 | 수치 | 상태 |
+|---|---|---|
+| **BM-1: vorq 규칙 재현** | 100% (5/5 Tier1+Tier3) | ✅ PASS |
+| **BM-2: 5000뉴런 스케일** | 3.0초 (선형 스케일링) | ✅ PASS |
+| **BM-3: 극성 보호 정확도** | 100% (禁/推 병합 0건) | ✅ PASS |
+| **BM-4: 라이프사이클 E2E** | 禁 30/30 보호, prune 20/20, decay 15/15 | ✅ PASS |
 
 </details>
 
@@ -407,4 +418,4 @@ AGPL-3.0 License · Copyright (c) 2026
 
 > *비개발자가 산업의 방향을 뒤집었다. AI가 오자 프로그래밍은 철학이 되었다.*
 > *Created by 박정근 (PD) — rubisesJO777*
-> *30 Go files, ~10,920 lines. Single binary. Zero dependencies.*
+> *83 Go files, ~18,600 lines. Single binary. Zero runtime dependencies.*
