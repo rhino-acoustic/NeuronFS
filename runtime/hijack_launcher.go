@@ -447,6 +447,10 @@ func hlCDPInject(targetRoom, payload string) {
 		escaped = strings.ReplaceAll(escaped, "\n", `\n`)
 		injectCode := fmt.Sprintf(`(() => { const all = Array.from(document.querySelectorAll("[contenteditable]")); const el = all.reverse().find(e => { const r = e.getBoundingClientRect(); return r.height > 0 && r.height < 300 && r.width > 100; }) || all[0]; if(el) { el.focus(); document.execCommand("insertText", false, "[telegram → NeuronFS] %s"); return "Injected"; } return "NoTarget"; })()`, escaped)
 		client.Call("Runtime.evaluate", map[string]interface{}{"expression": injectCode, "returnByValue": true})
+		time.Sleep(500 * time.Millisecond)
+		// Enter 키 dispatch → 자동 submit
+		enterScript := `(() => { const el = document.activeElement; if(el) { el.dispatchEvent(new KeyboardEvent("keydown", {key:"Enter",code:"Enter",keyCode:13,which:13,bubbles:true})); } return "Enter"; })()`
+		client.Call("Runtime.evaluate", map[string]interface{}{"expression": enterScript, "returnByValue": true})
 		time.Sleep(100 * time.Millisecond)
 		client.Close()
 		break
