@@ -163,18 +163,23 @@ func hlAutoEvolve(brainRoot string) {
 	for {
 		time.Sleep(3 * time.Minute)
 
+		// 1. 브라우저 생존 물리적 통제 (자동 스폰)
+		EnsureBrowserAlive()
+
 		growthLog := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
 		info, err := os.Stat(growthLog)
 
 		// 3분 이상 growth.log 의 업데이트가 없다면 (즉, 진화가 정지했다면)
 		if err == nil && time.Since(info.ModTime()) > 3*time.Minute {
 			fmt.Printf("[HEARTBEAT] 🚨 3분간 진화 정체 감지. 자동 마스터 프롬프트(Heartbeat) 인젝터 가동!\n")
-			hlTgSend(hlTgChatID, masterPrompt)
 
-			// 무한 루프 회피를 위해 터치(Touch) 역할 수행
+			// 텔레그램과 브라우저 양방향 타격!
+			hlTgSend(hlTgChatID, masterPrompt)
+			go hlCDPInject("global", masterPrompt)
+
+			// 무한 루프 회피 터치
 			os.Chtimes(growthLog, time.Now(), time.Now())
 
-			// 백업 차원에서 CLI Evolve 도 한번 때려줌
 			nfsExe, _ := os.Executable()
 			cmd := exec.Command(nfsExe, brainRoot, "--evolve")
 			cmd.Dir = nfsRoot
