@@ -651,6 +651,62 @@ WordPress is free. Themes and plugins are paid. Similarly:
 
 ---
 
+<details>
+<summary><h2>⚙️ Deep Dive: Automation Architecture (20 Subsystems)</h2></summary>
+
+### A-Series: Always-On (Real-time)
+
+| ID | Name | Function | Interval |
+|----|------|----------|----------|
+| A1 | Process Guard | `svSupervise` — crash detect + exponential backoff restart | Instant |
+| A2 | MCP Recovery | `superviseMCPGoroutine` — panic recovery + zombie detection | Instant |
+| A3 | Button Click | `runAutoAccept` — CDP-based Run/Accept/Retry auto-click | 1s |
+| A4 | Neuron Command | `aaDetectNeuronCommands` — `[NEURON:{grow/fire}]` pattern → CLI | 10s |
+| A5 | Self-Evolution | `aaDetectEvolveRequest` — `[EVOLVE:proceed]` → git snapshot → auto-proceed | 10s |
+| A6 | Telegram→IDE | `runHijackLauncher` — inbox → CDP text injection | 2s |
+| A7 | IDE→Telegram | `runAgentBridge` — outbox → `sendTelegramSafe` (4000-char split) | 5s |
+
+### B-Series: Idle Cycle (Autonomous — triggered after 5min idle)
+
+```
+Trigger: API idle 5min + 30min cooldown
+→ B2 Digest → B4 Neuronize → B3 Evolve → B5 Decay → B6 Prune
+→ B7 Dedup → B8 Git Snapshot → B9 Heartbeat → B10 CDP Inject
+```
+
+| ID | Name | Function | Stage |
+|----|------|----------|-------|
+| B1 | Idle Engine | `runIdleLoop` — orchestrator for 10-stage cycle | — |
+| B2 | Transcript Digest | `digestTranscripts` — correction/emotion keyword extraction | #0 |
+| B3 | Autonomous Evolve | `runEvolve` — Groq LLM → grow/fire/prune/signal | #1 |
+| B4 | Immune Generation | `runNeuronize` — corrections → Groq → contra neurons | #0b |
+| B5 | Decay | `runDecay` — 7 days untouched → dormant | #2 |
+| B6 | Pruning | `pruneWeakNeurons` — 推 activation≤1 + 3d inactive → delete | #3 |
+| B7 | Consolidation | `deduplicateNeurons` — similarity ≥0.4 → merge (禁/必 immune) | #4 |
+| B8 | Regression Guard | `gitSnapshot` — deletions > insertions×2 → auto-revert | #5 |
+| B9 | Heartbeat | `writeHeartbeat` — +20 neurons → dedup directive injection | #7 |
+| B10 | CDP Injection | `injectIdleResult` — heartbeat summary → AI input field | #10 |
+
+### C-Series: Periodic Verification (Ticker)
+
+| ID | Name | Function | Interval |
+|----|------|----------|----------|
+| C1 | Harness | `RunHarness` — 7 structural integrity checks | 10min |
+| C2 | Health Check | `svStatus` — process/memory/port/MCP health | 60s |
+| C3 | Batch Analysis | `aaBatchAnalyze` — Groq correction/violation/reinforcement | 5min idle |
+
+### Feedback Loop (new in v5.3)
+
+```
+corrections/day tracked in growth.log
+  → corrections↓ = evolution working (verde)
+  → corrections↑ = regression → auto-alert + prioritize neuronize
+```
+
+</details>
+
+---
+
 ## Changelog
 
 **v5.2 — axiom > algorithm (2026-04-11)**
