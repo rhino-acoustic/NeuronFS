@@ -8,6 +8,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -193,8 +194,8 @@ func aaScrapeAIScript() string {
             const parent = el.parentElement;
             if (parent && (parent.className||'').toString().includes('max-h-')) {
                 const text = (el.innerText||'').trim();
-                if (text && text.length > 2 && text.length < 5000) {
-                    msgs.push({role:'PD', text: text.slice(0, 2000)});
+                if (text && text.length > 2 && text.length < 50000) {
+                    msgs.push({role:'PD', text: text.slice(0, 20000)});
                 }
             }
         }
@@ -206,7 +207,7 @@ func aaScrapeAIScript() string {
             const text = (el.innerText||'').trim();
             if (text && text.length > 20 && text.length < 50000) {
                 const role = op < 0.9 ? 'THINK' : 'AI';
-                msgs.push({role, text: text.slice(0, 2000)});
+                msgs.push({role, text: text.slice(0, 20000)});
             }
         }
     });
@@ -786,8 +787,9 @@ func aaDetectEvolveRequest(text string, brainRoot string) {
 		return
 	}
 
-	// 중복 방지 (같은 텍스트 해시)
-	key := "evolve:" + text[:aaMin(80, len(text))]
+	// 중복 방지 (전체 텍스트 해시)
+	hash := sha256.Sum256([]byte(text))
+	key := "evolve:" + fmt.Sprintf("%x", hash)
 	if _, loaded := aaEvolveProcessed.LoadOrStore(key, true); loaded {
 		return
 	}
