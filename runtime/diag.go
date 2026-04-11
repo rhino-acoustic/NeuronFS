@@ -181,19 +181,23 @@ func generateBrainJSON(brainRoot string, _ Brain, result SubsumptionResult) {
 // getNonFlagArg returns the Nth non-flag argument (0-indexed)
 func getNonFlagArg(n int) string {
 	idx := 0
-	skipNext := false
-	for _, arg := range os.Args[1:] { // Start from the first argument after the program name
-		if skipNext {
-			skipNext = false
+	skipCount := 0
+	for _, arg := range os.Args[1:] {
+		if skipCount > 0 {
+			skipCount--
 			continue
 		}
-		// These flags consume the next argument as their value
+		
+		if arg == "--tool" {
+			skipCount = 2
+			continue
+		}
 		if arg == "--signal" || arg == "--decay" {
-			skipNext = true
+			skipCount = 1
 			continue
 		}
 		if strings.HasPrefix(arg, "--") {
-			continue // Skip other flags
+			continue // Skip other zero-arity flags
 		}
 		if idx == n {
 			return arg

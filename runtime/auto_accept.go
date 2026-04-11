@@ -779,13 +779,14 @@ func aaLoadBrainRules(brainRoot string) []string {
 // ── 자가발전 인젝션: [EVOLVE:proceed] 감지 → git snapshot → "진행" 자동 입력 ──
 // AI가 "진행할까?"성 질문을 할 때 [EVOLVE:proceed]를 출력하면,
 // auto-accept가 이를 감지하여 git snapshot 후 "진행"을 자동 입력한다.
-var aaEvolveProcRe = regexp.MustCompile(`\[EVOLVE:proceed\]`)
+
+const HarnessTriggerTag = "[EVOLVE:proceed]"
 var aaEvolveProcessed sync.Map
 
 var aaEvolveLastTrigger time.Time
 
 func aaDetectEvolveRequest(text string, brainRoot string) {
-	if !aaEvolveProcRe.MatchString(text) {
+	if !strings.Contains(text, HarnessTriggerTag) {
 		return
 	}
 
