@@ -350,9 +350,10 @@ func injectIdleResult(summary string) {
 	}
 
 	// 2차: 자가수복 — aaAgents 재스캔 + 직접 CDP (3회 재시도)
+	var diagLog []string
 	for retry := 0; retry < 3; retry++ {
 		if retry > 0 {
-			fmt.Printf("[IDLE] 🔧 자가수복 재시도 %d/3 (5초 대기)...\n", retry+1)
+			diagLog = append(diagLog, fmt.Sprintf("재시도 %d/3 (5초 대기)", retry+1))
 			time.Sleep(5 * time.Second)
 		}
 
@@ -362,7 +363,7 @@ func injectIdleResult(summary string) {
 		// 직접 CDP 연결
 		targets, err := cdpListTargets(9000)
 		if err != nil {
-			fmt.Printf("[IDLE] 🔧 진단: CDP 포트 9000 연결 불가 — %v\n", err)
+			diagLog = append(diagLog, fmt.Sprintf("CDP:9000 불가 — %v", err))
 			continue
 		}
 
@@ -373,13 +374,13 @@ func injectIdleResult(summary string) {
 			}
 			workbenchFound = true
 			if t.WebSocketDebuggerURL == "" {
-				fmt.Printf("[IDLE] 🔧 진단: workbench 찾았으나 wsURL 없음 (title=%s)\n", t.Title)
+				diagLog = append(diagLog, fmt.Sprintf("wsURL 없음 (title=%s)", t.Title))
 				continue
 			}
 
 			client, cErr := NewCDPClient(t.WebSocketDebuggerURL)
 			if cErr != nil {
-				fmt.Printf("[IDLE] 🔧 진단: WS 연결 실패 — %v\n", cErr)
+				diagLog = append(diagLog, fmt.Sprintf("WS 실패 — %v", cErr))
 				continue
 			}
 			client.Call("Runtime.enable", map[string]interface{}{})
@@ -391,7 +392,7 @@ func injectIdleResult(summary string) {
 			client.Close()
 
 			if rErr != nil {
-				fmt.Printf("[IDLE] 🔧 진단: evaluate 실패 — %v\n", rErr)
+				diagLog = append(diagLog, fmt.Sprintf("evaluate 실패 — %v", rErr))
 				continue
 			}
 			if r != nil {
@@ -406,20 +407,27 @@ func injectIdleResult(summary string) {
 					return
 				}
 				if er.Result.Value == "NoTarget" {
-					fmt.Println("[IDLE] 🔧 진단: contenteditable 없음 — AI 대화창 미활성")
+					diagLog = append(diagLog, "contenteditable 없음 — 대화창 미활성")
 				}
 			}
 		}
 		if !workbenchFound {
-			fmt.Println("[IDLE] 🔧 진단: workbench.html 탭 없음 — IDE 미기동")
+			diagLog = append(diagLog, "workbench.html 없음 — IDE 미기동")
 		}
 	}
 
-	// 3회 실패: 텔레그램으로 폴백 알림
-	fmt.Println("[IDLE] ❌ CDP 인젝션 3회 실패 — 텔레그램 알림 전송")
+	// 3회 실패: 진단 로그를 텔레그램으로 전송 + IDE에 인젝션 시도
+	diagStr := strings.Join(diagLog, " | ")
+	fmt.Printf("[IDLE] ❌ CDP 3회 실패: %s\n", diagStr)
+
+	// 텔레그램 알림
 	if hlTgToken != "" && hlTgChatID != "" {
-		hlTgSend(hlTgChatID, fmt.Sprintf("⚠️ [자가수복 실패] CDP 인젝션 3회 실패\n%s\nIDE 확인 필요", summary))
+		hlTgSend(hlTgChatID, fmt.Sprintf("⚠️ [자가수복 실패] %s\n디버그: %s", summary, diagStr))
 	}
+
+	// 최후 수단: hlCDPInject로 디버그 결과 인젝션 (대화 진행용)
+	debugMsg := fmt.Sprintf("[NeuronFS 자가수복 실패] %s | 진단: %s — 원인 분석 후 수정 실행", summary, diagStr)
+	go hlCDPInject("", debugMsg)
 }
 
 // detectFailedEvolutions scans for neurons inactive 30+ days.
