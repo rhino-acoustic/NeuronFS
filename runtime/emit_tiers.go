@@ -181,6 +181,7 @@ var emitTargetMap = map[string]EmitTarget{
 	"cursor":  {Name: "Cursor", FileName: ".cursorrules"},
 	"claude":  {Name: "Claude", FileName: "CLAUDE.md"},
 	"copilot": {Name: "Copilot", FileName: "copilot-instructions.md", SubDir: ".github"},
+	"agents":  {Name: "Agents (Universal)", FileName: "AGENTS.md"},
 	"generic": {Name: "Generic", FileName: ".neuronrc"},
 }
 
@@ -249,6 +250,7 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 			"claude":  {filepath.Join(projectRoot, "CLAUDE.md")},
 			"gemini":  {filepath.Join(homeDir(), ".gemini")},
 			"copilot": {filepath.Join(projectRoot, ".github", "copilot-instructions.md"), filepath.Join(projectRoot, ".github")},
+			"agents":  {filepath.Join(projectRoot, "AGENTS.md")},
 			"generic": {filepath.Join(projectRoot, ".neuronrc")},
 		}
 		for key, paths := range autoDetectMap {

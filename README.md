@@ -64,11 +64,12 @@ git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime 
 
 **Result:**
 ```
+[EMIT] ✅ Agents (Universal) → AGENTS.md
 [EMIT] ✅ Cursor → .cursorrules
 [EMIT] ✅ Claude → CLAUDE.md
 [EMIT] ✅ Gemini → ~/.gemini/GEMINI.md
 [EMIT] ✅ Copilot → .github/copilot-instructions.md
-✅ 4 targets written. One brain. Every AI. Zero runtime dependencies.
+✅ 5 targets written. One brain. Every AI. Zero runtime dependencies.
 ```
 
 ---
@@ -161,10 +162,10 @@ brainstem(P0) > limbic(P1) > hippocampus(P2) > sensors(P3) > cortex(P4) > ego(P5
 
 ```bash
 neuronfs --emit all
-→ .cursorrules + CLAUDE.md + GEMINI.md + copilot-instructions.md
+→ .cursorrules + CLAUDE.md + GEMINI.md + copilot-instructions.md + AGENTS.md
 ```
 
-Switch AI tools freely. Your rules never evaporate. One brain governs all.
+`AGENTS.md` is the [2026 universal standard](https://agents.md) — and NeuronFS **compiles** it, not just writes it. Switch AI tools freely. Your rules never evaporate. One brain governs all.
 
 ---
 
@@ -250,10 +251,10 @@ go run main.go --dir ../../my_brain --mode random --duration 10
 ## 3 Use Cases
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│ 1. SOLO DEV — One Brain, All AIs                                │
-│    neuronfs --emit all  →  .cursorrules + CLAUDE.md + GEMINI.md │
-│    Switch AI tools freely. Your rules never evaporate.          │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. SOLO DEV — One Brain, All AIs                                            │
+│    neuronfs --emit all → .cursorrules + CLAUDE.md + GEMINI.md + AGENTS.md   │
+│    Switch AI tools freely. Your rules never evaporate.                      │
 ├──────────────────────────────────────────────────────────────────┤
 │ 2. MULTI-AGENT — Swarm Orchestration                            │
 │    supervisor.go → 3-process supervisor (bot1, bot2, bot3)      │

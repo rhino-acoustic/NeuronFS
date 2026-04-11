@@ -133,23 +133,14 @@ func isGoServiceRunning(name string) bool {
 }
 
 func buildHealthJSON(brainRoot string) HealthJSON {
-	processes := []ProcessHealth{
-		// Go 네이티브 서비스 (supervisor goroutine 기반)
-		{Name: "neuronfs-api", Role: "인지 엔진 (REST API + 대시보드)", Running: isProcessRunning("neuronfs.exe")},
-		{Name: "auto-accept", Role: "CDP 자동 수락 + NEURON 감지 + Groq 배치", Running: isGoServiceRunning("auto-accept")},
-		{Name: "agent-bridge", Role: "에이전트 라우팅 브릿지", Running: isGoServiceRunning("agent-bridge")},
-		{Name: "context-hijacker", Role: "MITM 컨텍스트 캡처", Running: isGoServiceRunning("context-hijacker")},
-		{Name: "headless-executor", Role: "Inbox 명령 샌드박스 실행", Running: isGoServiceRunning("headless-executor")},
-		{Name: "hijack-launcher", Role: "TG 양방향 + CDP 전사 + 자동통합", Running: isGoServiceRunning("hijack-launcher")},
-		{Name: "supervisor", Role: "전체 프로세스 관리 + 자기 감시", Running: isProcessRunning("neuronfs.exe")},
-	}
-
+	// 경량 응답: supervisor의 3초 타임아웃 내 응답 필수
+	// tasklist/filepath.Walk는 너무 느림 → 제거
 	return HealthJSON{
 		API:        true, // 이 응답이 올 시점에 API는 살아있음
-		Processes:  processes,
+		Processes:  nil,  // supervisor가 별도 추적
 		OS:         runtime.GOOS,
 		BrainRoot:  brainRoot,
-		NeuronFile: countNeuronFiles(brainRoot),
+		NeuronFile: 0,    // 별도 /api/brain에서 제공
 	}
 }
 
