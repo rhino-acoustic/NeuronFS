@@ -14,9 +14,12 @@ if exist "%NFSDIR%\neuronfs_new.exe" (
     move /Y "%NFSDIR%\neuronfs_new.exe" "%NFSDIR%\neuronfs.exe" >nul 2>&1
 )
 
+REM Use main NeuronFS brain, not dist copy
+set "BRAIN=%~dp0brain_v4"
+
 :loop
 echo [NeuronFS] Starting...
-"%NFSDIR%\neuronfs.exe" "%NFSDIR%\brain_v4" --supervisor
+"%NFSDIR%\neuronfs.exe" "%BRAIN%" --supervisor
 
 REM If _reboot_request exists, auto-restart (telegram 159487 code)
 if exist "%NFSDIR%\_reboot_request" (
