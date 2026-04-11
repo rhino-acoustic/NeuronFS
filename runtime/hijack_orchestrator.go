@@ -85,7 +85,7 @@ func hlAppendTranscript(entry, projectLabel, brainRoot string) {
 	}
 
 	// ── [EVOLVE:proceed] 감지 → 자율주행 연쇄 트리거 ──
-	if strings.Contains(entry, "[EVOLVE:proceed]") && strings.Contains(entry, "AI") {
+	if strings.Contains(entry, "[EVOLVE:proceed]") && !strings.Contains(entry, "USER:") {
 		evolveDebounce.Lock()
 		elapsed := time.Since(lastEvolveTime)
 		evolveDebounce.Unlock()
