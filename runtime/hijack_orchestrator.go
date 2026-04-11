@@ -86,27 +86,20 @@ func hlAppendTranscript(entry, projectLabel, brainRoot string) {
 	}
 
 	// ── [EVOLVE:proceed] 감지 → 자율주행 연쇄 트리거 ──
-	// 조건: AI 응답에 태그 포함 + 자율주행 활성 + startup 3분 경과 + 3분 debounce
 	if strings.Contains(entry, "[EVOLVE:proceed]") && strings.Contains(entry, "AI") {
 		evolveDebounce.Lock()
 		elapsed := time.Since(lastEvolveTime)
-		startupElapsed := time.Since(processStartTime)
 		evolveDebounce.Unlock()
 
-		// startup 3분 silence — 재시작 직후 화면 잔존 태그 캡처 방지
-		if startupElapsed < 3*time.Minute {
-			// 프로세스 시작 후 3분간 무시
-		} else if elapsed < 3*time.Minute {
-			// 3분 debounce — 연속 트리거 차단
+		if elapsed < 60*time.Second {
+			// 60초 debounce
 		} else {
 			nfsRoot := filepath.Dir(brainRoot)
-			if fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled")) {
-				// 자율주행 비활성 상태
-			} else {
+			if !fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled")) {
 				evolveDebounce.Lock()
 				lastEvolveTime = time.Now()
 				evolveDebounce.Unlock()
-				fmt.Println("[EVOLVE] 🔄 [EVOLVE:proceed] 감지 — 3분 후 다음 자율주행 사이클 트리거")
+				fmt.Println("[EVOLVE] 🔄 [EVOLVE:proceed] 감지 — 60초 후 다음 사이클")
 				growthLog := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
 				os.Chtimes(growthLog, time.Now(), time.Now())
 				nfsExe, _ := os.Executable()
@@ -114,9 +107,8 @@ func hlAppendTranscript(entry, projectLabel, brainRoot string) {
 				cmd.Dir = nfsRoot
 				go cmd.Run()
 				go func() {
-					time.Sleep(3 * time.Minute)
-					// 인젝션 직전에 다시 확인
-					if !isUserActive(brainRoot) && !fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled")) {
+					time.Sleep(60 * time.Second)
+					if !fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled")) {
 						hlCDPInject(hlTgMountedRoom, hlMasterPrompt)
 					}
 				}()
