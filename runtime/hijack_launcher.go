@@ -190,8 +190,12 @@ func hlSendToTelegram(entry, proj string) {
 		return
 	}
 
-	// 중복 해시 (SHA256 — 전체 entry 기반, text[:150]은 false positive 발생)
-	dedupH := sha256.Sum256([]byte(entry))
+	// 중복 해시 — timestamp 제거한 본문 기반 (고도화)
+	tgBodyForHash := entry
+	if idx := strings.Index(entry, "] "); idx > 0 && idx < 20 {
+		tgBodyForHash = entry[idx+2:]
+	}
+	dedupH := sha256.Sum256([]byte(tgBodyForHash))
 	dedupKey := hex.EncodeToString(dedupH[:12])
 	if _, loaded := hlTgSentHashes.LoadOrStore(dedupKey, true); loaded {
 		appendDebugLog(hlTgNfsRoot, fmt.Sprintf("dedup hit: role=%s len=%d", role, len(text)))
@@ -480,9 +484,14 @@ func hlAppendTranscript(entry, projectLabel, brainRoot string) {
 	}
 	file := filepath.Join(transcriptDir, fmt.Sprintf("%s_%s.txt", proj, timeKey))
 
-	// Dedup
-	h := sha256.Sum256([]byte(entry[:min(len(entry), 200)]))
-	hashKey := file + "|" + hex.EncodeToString(h[:8])
+	// Dedup — timestamp 제거한 본문 기반 (고도화)
+	// entry format: "[HH:MM:SS] ROLE: text" → ROLE+text로 해시
+	bodyForHash := entry
+	if idx := strings.Index(entry, "] "); idx > 0 && idx < 20 {
+		bodyForHash = entry[idx+2:] // timestamp 제거
+	}
+	h := sha256.Sum256([]byte(bodyForHash))
+	hashKey := hex.EncodeToString(h[:12])
 	if _, loaded := hlTranscriptDedup.LoadOrStore(hashKey, true); loaded {
 		return
 	}
@@ -691,25 +700,24 @@ func hlAttachDOMScraper(wsURL, title, brainRoot string) {
 			}
 		}
 
-		// 안정화 판단 (4초)
+		// 안정화 판단 (4초 무변경 → 확정 기록)
 		for id, t := range tracked {
 			if t.text != t.logged && now.Sub(t.ts) > 4*time.Second {
-				if len(t.text) > len(t.logged) {
-					kst := now.UTC().Add(9 * time.Hour).Format("15:04:05")
-					// tracked에서 role 가져오기
-					role := "AI"
-					for _, m := range evalRes.Result.Value {
-						if m.ID == id {
-							role = m.Role
-							break
-						}
+				// role 확인
+				role := "AI"
+				for _, m := range evalRes.Result.Value {
+					if m.ID == id {
+						role = m.Role
+						break
 					}
-					hlAppendTranscript(fmt.Sprintf("[%s] %s: %s", kst, role, t.text), proj, brainRoot)
 				}
+				kst := now.UTC().Add(9 * time.Hour).Format("15:04:05")
+				hlAppendTranscript(fmt.Sprintf("[%s] %s: %s", kst, role, t.text), proj, brainRoot)
 				t.logged = t.text
 				tracked[id] = t
 			}
-			if now.Sub(t.ts) > 3*time.Minute {
+			// 10분 eviction (3분→10분 확장 — 재캡처 중복 방지)
+			if now.Sub(t.ts) > 10*time.Minute {
 				delete(tracked, id)
 			}
 		}
