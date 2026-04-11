@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -40,20 +41,14 @@ func registerMCPCRUDTools(server *mcp.Server, brainRoot string) {
 				return mcpError("path required"), nil
 			}
 
-			signalPath := filepath.Join(brainRoot, "hippocampus", "_signals")
-			os.MkdirAll(signalPath, 0750)
-			ts := fmt.Sprintf("%d", time.Now().UnixMilli())
-			sigFile := filepath.Join(signalPath, fmt.Sprintf("signal_%s.json", ts))
-
-			payload := map[string]string{
-				"type": "GROW_INTENT",
-				"path": args.Path,
-				"ts":   time.Now().Format("2006-01-02T15:04:05"),
+			// [Hot Reload] Universal Worker (CLI) Delegate
+			nfsExe, _ := os.Executable()
+			argsBytes, _ := json.Marshal(args)
+			out, err := exec.Command(nfsExe, brainRoot, "--tool", "grow", string(argsBytes)).CombinedOutput()
+			if err != nil {
+				return mcpError(fmt.Sprintf("Worker crashed (grow): %v\nOutput: %s", err, string(out))), nil
 			}
-			data, _ := json.Marshal(payload)
-			os.WriteFile(sigFile, data, 0600)
-
-			return mcpWithRules(brainRoot, fmt.Sprintf("🌱 신호 기록됨 (수면(REM) 통합 대기): %s", args.Path)), nil
+			return mcpWithRules(brainRoot, strings.TrimSpace(string(out))), nil
 		},
 	)
 
@@ -84,8 +79,14 @@ func registerMCPCRUDTools(server *mcp.Server, brainRoot string) {
 				return mcpError("path required"), nil
 			}
 
-			fireNeuron(brainRoot, args.Path)
-			return mcpWithRules(brainRoot, fmt.Sprintf("🔥 fired: %s", args.Path)), nil
+			// [Hot Reload] Universal Worker (CLI) Delegate
+			nfsExe, _ := os.Executable()
+			argsBytes, _ := json.Marshal(args)
+			out, err := exec.Command(nfsExe, brainRoot, "--tool", "fire", string(argsBytes)).CombinedOutput()
+			if err != nil {
+				return mcpError(fmt.Sprintf("Worker crashed (fire): %v\nOutput: %s", err, string(out))), nil
+			}
+			return mcpWithRules(brainRoot, strings.TrimSpace(string(out))), nil
 		},
 	)
 
@@ -122,15 +123,16 @@ func registerMCPCRUDTools(server *mcp.Server, brainRoot string) {
 				return mcpError("path and type required"), nil
 			}
 
-			if err := signalNeuron(brainRoot, args.Path, args.Type); err != nil {
-				return mcpError(err.Error()), nil
+			// [Hot Reload] Universal Worker (CLI) Delegate
+			nfsExe, _ := os.Executable()
+			argsBytes, _ := json.Marshal(args)
+			out, err := exec.Command(nfsExe, brainRoot, "--tool", "signal", string(argsBytes)).CombinedOutput()
+			if err != nil {
+				return mcpError(fmt.Sprintf("Worker crashed (signal): %v\nOutput: %s", err, string(out))), nil
 			}
-
-			icons := map[string]string{"dopamine": "🟢", "bomb": "💣", "memory": "📝"}
-			icon := icons[args.Type]
 			return &mcp.CallToolResult{
 				Content: []mcp.Content{&mcp.TextContent{
-					Text: fmt.Sprintf("%s %s → %s", icon, args.Type, args.Path),
+					Text: strings.TrimSpace(string(out)),
 				}},
 			}, nil
 		},
@@ -249,11 +251,15 @@ func registerMCPCRUDTools(server *mcp.Server, brainRoot string) {
 				return mcpError("path required"), nil
 			}
 
-			if err := rollbackNeuron(brainRoot, args.Path); err != nil {
-				return mcpError(err.Error()), nil
+			// [Hot Reload] Universal Worker (CLI) Delegate
+			nfsExe, _ := os.Executable()
+			argsBytes, _ := json.Marshal(args)
+			out, err := exec.Command(nfsExe, brainRoot, "--tool", "rollback", string(argsBytes)).CombinedOutput()
+			if err != nil {
+				return mcpError(fmt.Sprintf("Worker crashed (rollback): %v\nOutput: %s", err, string(out))), nil
 			}
 			return &mcp.CallToolResult{
-				Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("⏪ rolled back: %s", args.Path)}},
+				Content: []mcp.Content{&mcp.TextContent{Text: strings.TrimSpace(string(out))}},
 			}, nil
 		},
 	)
