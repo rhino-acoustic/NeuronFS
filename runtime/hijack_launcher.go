@@ -114,9 +114,6 @@ func hlFormatTgMsg(role, label, rawText string) string {
 	// HTML escape
 	esc := strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;")
 	truncated := rawText
-	if len([]rune(truncated)) > 3900 {
-		truncated = string([]rune(truncated)[:3900]) + "\n[...]"
-	}
 
 	// Markdown → HTML 변환
 	escaped := esc.Replace(truncated)
@@ -234,8 +231,27 @@ func hlSendToTelegram(entry, proj string) {
 		return
 	}
 
-	// 새 메시지
+	// 새 메시지 — 4000자 초과 시 sendTelegramSafe로 분할 전송
 	msg := hlFormatTgMsg(role, label, text)
+	if len([]rune(msg)) > 4000 {
+		// 분할 전송 (plaintext — HTML 태그 분할 시 깨짐 방지)
+		plain := fmt.Sprintf("%s %s%s", func() string {
+			switch role {
+			case "USER": return "👤"
+			case "THINK": return "🧠"
+			case "CMD": return "⚡"
+			case "NEURON": return "🧬"
+			default: return "💬"
+			}
+		}(), label, text)
+		sendTelegramSafe(hlTgToken, hlTgChatID, plain)
+		hlTgLastMsgID = 0 // 분할 전송 후 edit 불가
+		hlTgLastRole = role
+		hlTgLastRaw = text
+		hlTgLastLabel = label
+		hlTgLastTs = now
+		return
+	}
 	resp, err := hlTgSafeSend("sendMessage", map[string]string{
 		"chat_id":    hlTgChatID,
 		"text":       msg,
