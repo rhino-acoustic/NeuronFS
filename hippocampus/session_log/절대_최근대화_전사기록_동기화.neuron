@@ -2,5 +2,7 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[15:22:12] AI: 이건 editMessageText 병합 시 사용되므로 3900으로 유지해도 된다 (editMessage는 분할 불가). sendTelegramSafe SSOT가 send 시 자동 분할하니까.
-[15:22:24] AI: 🐤 텔레그램 잘림 수정 완료 + 재시작 완료.
+[15:26:45] AI: 원인 파악 완료. AI 응답이 전사 파일에 캡처될 때 이미 1줄로 압축되어 최대 146자다. 이건 hlAttachDOMScraper에서 DOM 스크래핑할 때 text.slice(0, 10000)으로 가져와서 hlAppendTranscript에 넘기지만, 텔레그램에 보낼 때 hlFormatTgMsg가 3900자로 자르고 단발 전송.
+[15:27:00] AI: 잘림 원인 확인: L207-210에서 병합 한도가 3900자. 3900자 초과 시 병합 대신 새 메시지로 전송되지만, hlFormatTgMsg에서도 3900자로 잘린다.
+[15:27:14] USER: [telegram → NeuronFS] ?[telegram → NeuronFS] ?
+[15:27:18] AI: 🐤 텔레그램 전송 확인됨. message_id 7824~7826 전송 성공. 분할도 정상.

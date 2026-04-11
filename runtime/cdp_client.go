@@ -156,10 +156,10 @@ func (w *wsConn) close() {
 // ── CDP 클라이언트 ──
 
 type CDPClient struct {
-	ws       *wsConn
-	id       int64
-	pending  sync.Map // id → chan json.RawMessage
-	onEvent  func(method string, params json.RawMessage)
+	ws      *wsConn
+	id      int64
+	pending sync.Map // id → chan json.RawMessage
+	onEvent func(method string, params json.RawMessage)
 }
 
 func NewCDPClient(wsURL string) (*CDPClient, error) {

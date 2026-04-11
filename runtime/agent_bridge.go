@@ -213,7 +213,7 @@ func abInjectToAgent(agentID, message string) bool {
 	})()`, escaped)
 
 	result, err := client.Call("Runtime.evaluate", map[string]interface{}{
-		"expression":   injectExpr,
+		"expression":    injectExpr,
 		"returnByValue": true,
 	})
 	if err != nil {

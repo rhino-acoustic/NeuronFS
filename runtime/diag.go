@@ -187,7 +187,7 @@ func getNonFlagArg(n int) string {
 			skipCount--
 			continue
 		}
-		
+
 		if arg == "--tool" {
 			skipCount = 2
 			continue

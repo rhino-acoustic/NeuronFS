@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -205,6 +206,59 @@ func sendTelegramSafe(token, chatID, text string) {
 		if err == nil {
 			resp.Body.Close()
 		}
+	}
+}
+
+// sendTelegramFileSafe sends a file (document or photo) to Telegram using multipart/form-data.
+func sendTelegramFileSafe(token, chatID, filePath, label string) {
+	if token == "" || chatID == "" {
+		return
+	}
+
+	fileData, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[TG] file read error: %v\n", err)
+		return
+	}
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	writer.WriteField("chat_id", chatID)
+
+	baseName := filepath.Base(filePath)
+	caption := fmt.Sprintf("📎 %s%s", label, baseName)
+	writer.WriteField("caption", caption)
+
+	part, err := writer.CreateFormFile("document", baseName)
+	if err == nil {
+		part.Write(fileData)
+	}
+	writer.Close()
+
+	apiURL := "https://api.telegram.org/bot" + token
+	// 간단히 이미지 확장자인 경우 sendPhoto로 분기
+	ext := strings.ToLower(filepath.Ext(baseName))
+	if ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" {
+		apiURL += "/sendPhoto"
+		// Change 'document' field to 'photo' in multipart if using sendPhoto
+		// However, it's safer and easier to just send everything as sendDocument to preserve original files
+		// So we will just use sendDocument for everything to keep Go code robust
+	} else {
+		apiURL += "/sendDocument"
+	}
+
+	apiURL = "https://api.telegram.org/bot" + token + "/sendDocument"
+
+	req, _ := http.NewRequest("POST", apiURL, body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err == nil {
+		resp.Body.Close()
+	} else {
+		fmt.Fprintf(os.Stderr, "[TG] file upload failed: %v\n", err)
 	}
 }
 

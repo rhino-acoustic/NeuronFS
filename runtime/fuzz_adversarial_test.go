@@ -27,7 +27,7 @@ func FuzzNeuronCrud(f *testing.F) {
 	f.Fuzz(func(t *testing.T, randomPath string, sigType string) {
 		// No matter what the fuzzer throws at us, these functions must NOT panic.
 		// They can return an error, but panic = fail.
-		
+
 		// Randomly test Grow
 		_ = growNeuron(tempDir, randomPath)
 
@@ -39,7 +39,7 @@ func FuzzNeuronCrud(f *testing.F) {
 
 		// Randomly test Signal
 		_ = signalNeuron(tempDir, randomPath, sigType)
-		
+
 		// If we reach here without panic, NeuronFS survived this iteration
 	})
 }
@@ -61,7 +61,7 @@ func FuzzSubsumptionGraph(f *testing.F) {
 
 	tempDir := filepath.Join(os.TempDir(), fmt.Sprintf("fuzz_brain_sub_%d", rand.Int()))
 	setupFuzzBrain(tempDir)
-	defer os.RemoveAll(tempDir) 
+	defer os.RemoveAll(tempDir)
 
 	f.Fuzz(func(t *testing.T, payload1 []byte, payload2 []byte) {
 		// Randomly generate axon targeting loop
@@ -73,7 +73,7 @@ func FuzzSubsumptionGraph(f *testing.F) {
 
 		brain := scanBrain(tempDir)
 		_ = runSubsumption(brain)
-		
+
 		// If neither scanBrain nor runSubsumption panics from the random payload, we pass.
 	})
 }

@@ -148,7 +148,7 @@ func growNeuron(brainRoot string, neuronPath string) error {
 // Usage: neuronfs brain_v4 --fire cortex/frontend/coding/no_console_log
 func fireNeuron(brainRoot string, neuronPath string) {
 	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
-	
+
 	mu := lockNeuronPath(neuronPath)
 	mu.Lock()
 	defer mu.Unlock()
@@ -210,7 +210,7 @@ func fireNeuron(brainRoot string, neuronPath string) {
 // Usage: neuronfs brain_v4 --rollback cortex/frontend/coding/no_console_log
 func rollbackNeuron(brainRoot string, neuronPath string) error {
 	neuronPath = strings.Trim(strings.ReplaceAll(neuronPath, "\\", "/"), "/")
-	
+
 	mu := lockNeuronPath(neuronPath)
 	mu.Lock()
 	defer mu.Unlock()
@@ -273,7 +273,7 @@ func rollbackNeuron(brainRoot string, neuronPath string) error {
 // Returns error instead of os.Exit so REST API won't crash
 func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
-	
+
 	mu := lockNeuronPath(neuronPath)
 	mu.Lock()
 	defer mu.Unlock()

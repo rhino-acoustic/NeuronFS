@@ -608,7 +608,6 @@ func TestBM_MultiHopPlanning(t *testing.T) {
 		fireNeuron(dir, "cortex/notification_service")
 	}
 
-
 	// ── Step 3: Dedup (should merge api_handler+api_handlers, database_query+database_queries) ──
 	deduplicateNeurons(dir)
 

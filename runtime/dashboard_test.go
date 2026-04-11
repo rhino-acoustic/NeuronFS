@@ -128,8 +128,6 @@ func TestEmitTarget_AllOutput(t *testing.T) {
 	// Write to all targets
 	writeAllTiersForTargets(dir, "all")
 
-
-
 	// Check each target file exists
 	checks := map[string]string{
 		"cursor":  filepath.Join(projectRoot, ".cursorrules"),

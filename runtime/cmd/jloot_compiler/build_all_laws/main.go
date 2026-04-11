@@ -68,13 +68,19 @@ func main() {
 			}
 
 			if strings.HasPrefix(line, "# ") {
-				if currentArticle != "" { flush() }
+				if currentArticle != "" {
+					flush()
+				}
 				// # 근로기준법 -> 무시 (파일명으로 대체)
 			} else if strings.HasPrefix(line, "## ") {
-				if currentArticle != "" { flush() }
+				if currentArticle != "" {
+					flush()
+				}
 				currentChapter = strings.ReplaceAll(strings.TrimPrefix(line, "## "), " ", "_")
 			} else if strings.HasPrefix(line, "### ") {
-				if currentArticle != "" { flush() }
+				if currentArticle != "" {
+					flush()
+				}
 				art := strings.TrimPrefix(line, "### ")
 				art = strings.ReplaceAll(art, "(", "_")
 				art = strings.ReplaceAll(art, ")", "")
@@ -85,7 +91,7 @@ func main() {
 		}
 		flush()
 		filesProcessed++
-		
+
 		if filesProcessed%500 == 0 {
 			fmt.Printf("⏳ 처리 중... (%d개 법령, %d개 조문)\n", filesProcessed, articlesProcessed)
 		}
@@ -98,7 +104,7 @@ func main() {
 
 	fmt.Printf("\n✅ [통합 완료] 총 %d개 법령, %d개 조항 압축 완료!\n", filesProcessed, articlesProcessed)
 	fmt.Printf("⏱️ 소요 시간: %v\n", time.Since(start))
-	
+
 	vStat, _ := zipFile.Stat()
 	fmt.Printf("📦 최종 카트리지 크기: %.2f MB (%s)\n", float64(vStat.Size())/1024/1024, outZip)
 }

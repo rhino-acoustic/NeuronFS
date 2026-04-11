@@ -41,7 +41,7 @@ var hlTgEditMu sync.Mutex
 var hlTgEditPending bool
 var hlTgEditTimer *time.Timer
 
-var hlTgSkipRoles = map[string]bool{"TOOL": true, "ATTACH": true, "HIJACK_START": true, "AI_RESP": true}
+var hlTgSkipRoles = map[string]bool{"TOOL": true, "HIJACK_START": true, "AI_RESP": true}
 
 func hlLoadTelegram(nfsRoot string) {
 	hlTgNfsRoot = nfsRoot
@@ -206,6 +206,18 @@ func hlSendToTelegram(entry, proj string) {
 	if proj != "" && proj != "global" {
 		label = fmt.Sprintf("[%s] ", proj)
 	}
+
+	if role == "ATTACH" {
+		filePath := strings.TrimSpace(text)
+		if fileExists(filePath) {
+			sendTelegramFileSafe(hlTgToken, hlTgChatID, filePath, label)
+			appendDebugLog(hlTgNfsRoot, fmt.Sprintf("ATTACH sent: %s", filePath))
+		} else {
+			appendDebugLog(hlTgNfsRoot, fmt.Sprintf("ATTACH skip (not found): %s", filePath))
+		}
+		return
+	}
+
 	now := time.Now()
 
 	hlTgEditMu.Lock()
@@ -377,6 +389,70 @@ func hlTgPoll(brainRoot string) {
 					hlTgSend(chatID, fmt.Sprintf("✅ 방 전환: 📌 %s", room))
 				} else {
 					hlTgSend(chatID, fmt.Sprintf("현재 방: 📌 %s", hlTgMountedRoom))
+				}
+				continue
+			}
+
+			// ── 기능 누락 복구: 기존 MJS 기능 재이식 ──
+			if text == "/brain" || text == "/neurons" {
+				resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/api/brain", hlCDPPort+90)) // api port: 9090 (hlCDPPort=9000)
+				if err == nil {
+					var bJSON struct {
+						TotalNeurons int `json:"totalNeurons"`
+						TotalCounter int `json:"totalCounter"`
+						Regions      []struct {
+							Name    string        `json:"name"`
+							Neurons []interface{} `json:"neurons"`
+						} `json:"regions"`
+					}
+					json.NewDecoder(resp.Body).Decode(&bJSON)
+					resp.Body.Close()
+
+					msgText := fmt.Sprintf("🧠 <b>Brain State</b>\n뉴런: %d | 활성: %d\n\n", bJSON.TotalNeurons, bJSON.TotalCounter)
+					for _, r := range bJSON.Regions {
+						msgText += fmt.Sprintf("  %s: %d\n", r.Name, len(r.Neurons))
+					}
+					hlTgSafeSend("sendMessage", map[string]string{
+						"chat_id": chatID, "text": msgText, "parse_mode": "HTML",
+					})
+				} else {
+					hlTgSend(chatID, "❌ API 연결 실패")
+				}
+				continue
+			}
+
+			if text == "/inject" {
+				http.Post(fmt.Sprintf("http://127.0.0.1:%d/api/inject", hlCDPPort+90), "application/json", nil)
+				hlTgSend(chatID, "🔄 Inject 트리거 완료")
+				continue
+			}
+
+			if text == "/rooms" {
+				resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/json/list", hlCDPPort))
+				if err == nil {
+					var targets []struct {
+						Type  string `json:"type"`
+						URL   string `json:"url"`
+						Title string `json:"title"`
+					}
+					json.NewDecoder(resp.Body).Decode(&targets)
+					resp.Body.Close()
+
+					list := ""
+					for _, t := range targets {
+						if t.Type == "page" && strings.Contains(t.URL, "workbench.html") {
+							name := strings.Split(t.Title, " - ")[0]
+							name = strings.TrimSpace(name)
+							prefix := "  "
+							if name == hlTgMountedRoom {
+								prefix = "📌"
+							}
+							list += fmt.Sprintf("%s %s\n", prefix, name)
+						}
+					}
+					hlTgSend(chatID, fmt.Sprintf("🏠 열린 창:\n\n%s\n\n/mount [이름] 으로 전환", list))
+				} else {
+					hlTgSend(chatID, "❌ CDP 연결 안 됨")
 				}
 				continue
 			}

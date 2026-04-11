@@ -232,7 +232,7 @@ func runSupervisor(brainRoot string) {
 	// Go 네이티브 auto-accept (Node 대체)
 	go func() {
 		markServiceRunning("auto-accept", true)
-		runAutoAccept(brainRoot)
+		runMacroWorker(brainRoot)
 	}()
 	svLog("🖱️ Auto-Accept (Go native) 시작")
 

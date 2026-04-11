@@ -61,7 +61,7 @@ func RegisterTemporalAndEpisodicTools(s *mcp.Server, brainRoot string) {
 					if err != nil {
 						continue
 					}
-					
+
 					modTime := info.ModTime()
 					if durationFilter > 0 && now.Sub(modTime) > durationFilter {
 						continue

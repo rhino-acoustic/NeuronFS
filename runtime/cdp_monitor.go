@@ -17,6 +17,27 @@ func hlCDPInject(targetRoom, payload string) {
 	if err != nil {
 		return
 	}
+
+	escaped := strings.ReplaceAll(payload, `\`, `\\`)
+	escaped = strings.ReplaceAll(escaped, `"`, `\"`)
+	escaped = strings.ReplaceAll(escaped, "\n", `\n`)
+
+	// 채팅 입력창 감지 + 인젝션 스크립트 (아티팩트/미리보기 탭에는 채팅창이 없으므로 NoTarget 반환)
+	injectCode := fmt.Sprintf(`(() => {
+		const all = Array.from(document.querySelectorAll("[contenteditable]"));
+		const el = all.reverse().find(e => {
+			const r = e.getBoundingClientRect();
+			const tag = (e.getAttribute("role")||"").toLowerCase();
+			return r.height > 0 && r.height < 300 && r.width > 100
+				&& (tag === "textbox" || e.closest("[class*='chat']") || e.closest("[class*='input']") || e.closest("[class*='editor-input']"));
+		}) || all.reverse().find(e => {
+			const r = e.getBoundingClientRect();
+			return r.height > 0 && r.height < 300 && r.width > 100;
+		});
+		if(el) { el.focus(); document.execCommand("insertText", false, "[telegram → NeuronFS] %s"); return "Injected"; }
+		return "NoTarget";
+	})()`, escaped)
+
 	for _, t := range targets {
 		if !strings.Contains(t.URL, "workbench.html") {
 			continue
@@ -34,18 +55,26 @@ func hlCDPInject(targetRoom, payload string) {
 		client.Call("Runtime.enable", map[string]interface{}{})
 		time.Sleep(300 * time.Millisecond)
 
-		escaped := strings.ReplaceAll(payload, `\`, `\\`)
-		escaped = strings.ReplaceAll(escaped, `"`, `\"`)
-		escaped = strings.ReplaceAll(escaped, "\n", `\n`)
-		injectCode := fmt.Sprintf(`(() => { const all = Array.from(document.querySelectorAll("[contenteditable]")); const el = all.reverse().find(e => { const r = e.getBoundingClientRect(); return r.height > 0 && r.height < 300 && r.width > 100; }) || all[0]; if(el) { el.focus(); document.execCommand("insertText", false, "[telegram → NeuronFS] %s"); return "Injected"; } return "NoTarget"; })()`, escaped)
-		client.Call("Runtime.evaluate", map[string]interface{}{"expression": injectCode, "returnByValue": true})
+		result, err := client.Call("Runtime.evaluate", map[string]interface{}{"expression": injectCode, "returnByValue": true})
+		if err != nil {
+			client.Close()
+			continue
+		}
+
+		// 결과 확인: "Injected"면 성공 → Enter 전송 후 종료. "NoTarget"이면 다음 탭 시도.
+		resultStr := string(result)
+		if strings.Contains(resultStr, "NoTarget") {
+			client.Close()
+			continue // 이 탭에는 채팅 입력창이 없음 (아티팩트 미리보기 등)
+		}
+
 		time.Sleep(500 * time.Millisecond)
 		// Enter 키 dispatch → 자동 submit
 		enterScript := `(() => { const el = document.activeElement; if(el) { el.dispatchEvent(new KeyboardEvent("keydown", {key:"Enter",code:"Enter",keyCode:13,which:13,bubbles:true})); } return "Enter"; })()`
 		client.Call("Runtime.evaluate", map[string]interface{}{"expression": enterScript, "returnByValue": true})
 		time.Sleep(100 * time.Millisecond)
 		client.Close()
-		break
+		return // 성공적으로 인젝션됨
 	}
 }
 

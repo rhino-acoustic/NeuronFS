@@ -57,7 +57,7 @@ func main() {
 			regions := []string{"brainstem", "limbic", "hippocampus", "sensors", "cortex", "ego", "prefrontal"}
 			r := regions[rand.Intn(len(regions))]
 			rp := filepath.Join(targetDir, r)
-			
+
 			entries, err := os.ReadDir(rp)
 			if err == nil && len(entries) > 0 {
 				e := entries[rand.Intn(len(entries))]

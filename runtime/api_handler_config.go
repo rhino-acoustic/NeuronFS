@@ -349,4 +349,3 @@ func registerConfigRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // System Routes: integrity, evolution, community, reports, codemap
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-

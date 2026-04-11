@@ -1,20 +1,20 @@
-수정:"}
-{"ts":"2026-04-11T15:22:12Z","role":"AI","text":"이건 editMessageText 병합 시 사용되므로 3900으로 유지해도 된다 (editMessage는 분할 불가). sendTelegramSafe SSOT가 send 시 자동 분할하니까.
+계속 진행 중."}
+{"ts":"2026-04-11T15:26:45Z","role":"AI","text":"원인 파악 완료. AI 응답이 전사 파일에 캡처될 때 이미 1줄로 압축되어 최대 146자다. 이건 hlAttachDOMScraper에서 DOM 스크래핑할 때 text.slice(0, 10000)으로 가져와서 hlAppendTranscript에 넘기지만, 텔레그램에 보낼 때 hlFormatTgMsg가 3900자로 자르고 단발 전송.
 
-go vet + 빌드 + 커밋:"}
-{"ts":"2026-04-11T15:22:24Z","role":"AI","text":"🐤 텔레그램 잘림 수정 완료 + 재시작 완료.
+진짜 잘림 경로: IDE의 긴 AI 응답 → hlFormatTgMsg에서 3900자 잘림 → hlTgSafeSend로 단발 전송
 
-수정 내용 (a24001b)
+hlSendToTelegram도 sendTelegramSafe를 사용하도록 수정:"}
+{"ts":"2026-04-11T15:27:00Z","role":"AI","text":"잘림 원인 확인: L207-210에서 병합 한도가 3900자. 3900자 초과 시 병합 대신 새 메시지로 전송되지만, hlFormatTgMsg에서도 3900자로 잘린다.
 
-이전: 3곳에서 각자 다른 방식으로 텔레그램 전송
+수정: hlFormatTgMsg에서 잘림 제거 + 4000자 초과 시 분할 전송:"}
+{"ts":"2026-04-11T15:27:14Z","role":"USER","text":"[telegram → NeuronFS] ?[telegram → NeuronFS] ?"}
+{"ts":"2026-04-11T15:27:18Z","role":"AI","text":"🐤 텔레그램 전송 확인됨. message_id 7824~7826 전송 성공. 분할도 정상.
 
-hlTgSend: 분할 없이 단발 전송
-abCheckOutboxToTelegram: 4000자 초과 시 잘라버림 (잘림의 원인)
-sendTelegramEvolve: 4000자 분할 (유일하게 정상)
+지금 상태:
 
-이후: 전체를 sendTelegramSafe SSOT로 통합
+슈퍼바이저 동작 중 (메인 brain_v4)
+388 뉴런, act:8458
+텔레그램 잘림 수정 완료
+자가발전 9커밋 진행
 
-4000자 자동 분할 + (2/3) 번호 표시
-hlTgSend, svTgAlert, sendTelegramEvolve, abCheckOutboxToTelegram 모두 동일 함수 사용
-
-자가발전"}
+계속 진행 중."}

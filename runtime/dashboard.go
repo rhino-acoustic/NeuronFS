@@ -65,7 +65,6 @@ type BrainJSON struct {
 	TotalCounter int             `json:"totalCounter"`
 }
 
-
 type AddNeuronReq struct {
 	Region string `json:"region"`
 	Path   string `json:"path"`
@@ -140,7 +139,7 @@ func buildHealthJSON(brainRoot string) HealthJSON {
 		Processes:  nil,  // supervisor가 별도 추적
 		OS:         runtime.GOOS,
 		BrainRoot:  brainRoot,
-		NeuronFile: 0,    // 별도 /api/brain에서 제공
+		NeuronFile: 0, // 별도 /api/brain에서 제공
 	}
 }
 
@@ -170,7 +169,6 @@ func buildBrainJSONResponse(brainRoot string) BrainJSON {
 			return nil
 		})
 	}
-
 
 	for _, region := range brain.Regions {
 		rj := RegionJSON{

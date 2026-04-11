@@ -389,8 +389,8 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		}
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"ts":              time.Now().Format(time.RFC3339),
-			"watchdog":        watchdogData,
+			"ts":       time.Now().Format(time.RFC3339),
+			"watchdog": watchdogData,
 			"brain": map[string]interface{}{
 				"totalNeurons":    totalNeurons,
 				"totalActivation": totalActivation,

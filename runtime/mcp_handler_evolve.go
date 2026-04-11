@@ -46,12 +46,12 @@ func registerMCPEvolveTools(server *mcp.Server, brainRoot string) {
 			if dryRun {
 				cmdArgs = append(cmdArgs, "--dry-run")
 			}
-			
+
 			mode := "DRY RUN"
 			if !dryRun {
 				mode = "EXECUTED"
 			}
-			
+
 			// Worker 프로세스 런타임 결과 수집
 			out, err := exec.Command(nfsExe, cmdArgs...).CombinedOutput()
 			if err != nil {
