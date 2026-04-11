@@ -114,6 +114,13 @@ func RegisterNativeTools(s *mcp.Server, brainRoot string) {
 			fullPath := filepath.Join(brainRoot, strings.ReplaceAll(args.Path, "/", string(filepath.Separator)))
 			os.WriteFile(filepath.Join(fullPath, "payload.json"), []byte(args.RuleData), 0600)
 
+			// Write author to rule.md frontmatter (Data Lineage)
+			if args.Author != "" {
+				rulePath := filepath.Join(fullPath, "rule.md")
+				ruleContent := fmt.Sprintf("---\nauthor: %s\n---\n%s\n", args.Author, args.RuleData)
+				os.WriteFile(rulePath, []byte(ruleContent), 0600)
+			}
+
 			// 기계적 칭찬 방지 (Dopamine Inflation Fix)
 			praiseRegex := regexp.MustCompile(`(?i)(칭찬|잘\s*쓰셨습니다|좋아|훌륭|완벽|최고)`)
 
