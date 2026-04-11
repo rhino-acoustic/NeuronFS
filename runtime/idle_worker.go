@@ -11,6 +11,14 @@ import (
 )
 
 func runIdleCoreWorker(brainRoot string) {
+	// Community Best Practice: Panic Recovery in Stateless Workers
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("[IDLE-WORKER] 🚨 워커 패닉 발생 (Recovered): %v\n", r)
+			fmt.Printf("[SUMMARY] [NeuronFS IDLE] ⚠️ 시스템 에러 감지. 유휴 워커 패닉 발생: %v\n", r)
+		}
+	}()
+
 	fmt.Println("[IDLE-WORKER] 💤 stateless idle core execution started...")
 
 	apiKey := os.Getenv("GROQ_API_KEY")

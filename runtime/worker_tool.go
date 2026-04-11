@@ -12,6 +12,14 @@ import (
 // and outputs the result to stdout for the MCP Supervisor proxy to consume.
 // This allows true stateless Hot-Swap execution of logic without dropping the supervisor.
 func runWorkerTool(brainRoot string, toolName string, argsJson string) {
+	// Community Best Practice: Panic Recovery in Worker Pool
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf(`{"error": "worker logic panicked", "details": "%v"}`+"\n", r)
+			os.Exit(1)
+		}
+	}()
+
 	switch toolName {
 	case "idle_core":
 		runIdleCoreWorker(brainRoot)
