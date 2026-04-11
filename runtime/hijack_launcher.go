@@ -346,8 +346,22 @@ func hlTgPoll(brainRoot string) {
 			text := msg.Text
 
 			// 명령어
-			if text == "/start" || text == "/status" {
-				hlTgSend(chatID, fmt.Sprintf("🧠 NeuronFS Bridge (Go native)\n현재 방: 📌 %s", hlTgMountedRoom))
+			if text == "/start" || text == "/status" || text == "/system" {
+				autoState := "✅ ON"
+				if fileExists(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".auto_evolve_disabled")) {
+					autoState = "❌ OFF"
+				}
+				hlTgSend(chatID, fmt.Sprintf("🧠 NeuronFS Bridge (Go native)\n현재 방: 📌 %s\n자율진화 봇: %s", hlTgMountedRoom, autoState))
+				continue
+			}
+			if text == "/auto off" {
+				os.WriteFile(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".auto_evolve_disabled"), []byte("1"), 0600)
+				hlTgSend(chatID, "⏸️ 자율진화(Idle Loop)를 껐습니다. 사용자의 명시적 명령에만 반응합니다.")
+				continue
+			}
+			if text == "/auto on" {
+				os.Remove(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".auto_evolve_disabled"))
+				hlTgSend(chatID, "▶️ 자율진화(Idle Loop)를 켰습니다. (5분 무활동 시 전사분석 + 자율 트리거 실행)")
 				continue
 			}
 			if strings.HasPrefix(text, "/mount") {

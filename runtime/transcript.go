@@ -147,6 +147,12 @@ func runIdleLoop(brainRoot string) {
 			continue
 		}
 
+		// 사용자가 자율진화를 끈 경우 (킬 스위치 감지)
+		if fileExists(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".auto_evolve_disabled")) {
+			// 진화 실행하지 않고 타이머만 업데이트하거나 단순 통과
+			continue
+		}
+
 		idleEvolveRunning = true
 		fmt.Printf("\n[IDLE] 💤 %s idle detected — starting autonomous cycle...\n", idleDuration.Round(time.Second))
 
