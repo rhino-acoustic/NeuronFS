@@ -446,6 +446,7 @@ func aaPollAIOutput(scrapeScript string, brainRoot string) {
 			// AI 응답에서만 NEURON 명령 감지
 			if m.Role == "AI" {
 				go aaDetectNeuronCommands(m.Text, brainRoot)
+				go aaDetectEvolveRequest(m.Text, brainRoot)
 			}
 		}
 		if len(aaAIBuffer) > 5000 {
@@ -772,4 +773,79 @@ func aaLoadBrainRules(brainRoot string) []string {
 		}
 	}
 	return rules
+}
+
+// ── 자가발전 인젝션: [EVOLVE:proceed] 감지 → git snapshot → "진행" 자동 입력 ──
+// AI가 "진행할까?"성 질문을 할 때 [EVOLVE:proceed]를 출력하면,
+// auto-accept가 이를 감지하여 git snapshot 후 "진행"을 자동 입력한다.
+var aaEvolveProcRe = regexp.MustCompile(`\[EVOLVE:proceed\]`)
+var aaEvolveProcessed sync.Map
+
+func aaDetectEvolveRequest(text string, brainRoot string) {
+	if !aaEvolveProcRe.MatchString(text) {
+		return
+	}
+
+	// 중복 방지 (같은 텍스트 해시)
+	key := "evolve:" + text[:aaMin(80, len(text))]
+	if _, loaded := aaEvolveProcessed.LoadOrStore(key, true); loaded {
+		return
+	}
+
+	aaLog("🧬 [EVOLVE] proceed 요청 감지 — 선 git snapshot")
+
+	// 1. 선 git snapshot (안전장치)
+	nfsExe, _ := os.Executable()
+	if out, err := exec.Command(nfsExe, brainRoot, "--snapshot").CombinedOutput(); err == nil {
+		aaLog("🧬 [EVOLVE] 📸 Git snapshot 완료")
+	} else {
+		aaLog("🧬 [EVOLVE] ⚠️ Git snapshot 실패: %s", string(out))
+	}
+
+	// 2. CDP로 "진행" 텍스트 주입
+	injected := false
+	aaAgents.Range(func(k, v interface{}) bool {
+		a := v.(*aaAgent)
+		injectScript := `(() => {
+			const all = Array.from(document.querySelectorAll("[contenteditable]"));
+			const el = all.reverse().find(e => {
+				const r = e.getBoundingClientRect();
+				return r.height > 0 && r.height < 300 && r.width > 100;
+			}) || all[0];
+			if (el) {
+				el.focus();
+				document.execCommand("insertText", false, "진행");
+				// Enter 키 전송
+				el.dispatchEvent(new KeyboardEvent("keydown", {key:"Enter",code:"Enter",keyCode:13,which:13,bubbles:true}));
+				return "Injected";
+			}
+			return "NoTarget";
+		})()`
+
+		result, err := a.client.Call("Runtime.evaluate", map[string]interface{}{
+			"expression":    injectScript,
+			"returnByValue": true,
+		})
+		if err != nil {
+			return true // continue to next agent
+		}
+
+		var evalRes struct {
+			Result struct {
+				Value string `json:"value"`
+			} `json:"result"`
+		}
+		json.Unmarshal(result, &evalRes)
+
+		if evalRes.Result.Value == "Injected" {
+			aaLog("🧬 [EVOLVE] ✅ '진행' 자동 주입 완료 → [%s]", a.name)
+			injected = true
+			return false // stop iteration
+		}
+		return true
+	})
+
+	if !injected {
+		aaLog("🧬 [EVOLVE] ⚠️ 주입 실패 — CDP 타겟 없음")
+	}
 }
