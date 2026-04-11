@@ -804,50 +804,13 @@ func aaDetectEvolveRequest(text string, brainRoot string) {
 		aaLog("🧬 [EVOLVE] ⚠️ Git snapshot 실패: %s", string(out))
 	}
 
-	// 2. CDP로 "진행" 텍스트 주입
-	injected := false
-	aaAgents.Range(func(k, v interface{}) bool {
-		a := v.(*aaAgent)
-		injectScript := `(() => {
-			const all = Array.from(document.querySelectorAll("[contenteditable]"));
-			const el = all.reverse().find(e => {
-				const r = e.getBoundingClientRect();
-				return r.height > 0 && r.height < 300 && r.width > 100;
-			}) || all[0];
-			if (el) {
-				el.focus();
-				document.execCommand("insertText", false, "[NeuronFS 자율진화 트리거] 전사 패턴 분석 후 커뮤니티 검색해서 자가진화 실행. growth.log 확인하고 다음 action 자동 결정.");
-				// Enter 키 전송
-				el.dispatchEvent(new KeyboardEvent("keydown", {key:"Enter",code:"Enter",keyCode:13,which:13,bubbles:true}));
-				return "Injected";
-			}
-			return "NoTarget";
-		})()`
-
-		result, err := a.client.Call("Runtime.evaluate", map[string]interface{}{
-			"expression":    injectScript,
-			"returnByValue": true,
-		})
-		if err != nil {
-			return true // continue to next agent
-		}
-
-		var evalRes struct {
-			Result struct {
-				Value string `json:"value"`
-			} `json:"result"`
-		}
-		json.Unmarshal(result, &evalRes)
-
-		if evalRes.Result.Value == "Injected" {
-			aaLog("🧬 [EVOLVE] ✅ '진행' 자동 주입 완료 → [%s]", a.name)
-			injected = true
-			return false // stop iteration
-		}
-		return true
-	})
-
-	if !injected {
-		aaLog("🧬 [EVOLVE] ⚠️ 주입 실패 — CDP 타겟 없음")
-	}
+	// 2. 텔레그램 브릿지의 인젝션 기능(hlCDPInject)을 재활용하여 자율주행 지시 주입
+	// 이는 "[telegram → NeuronFS]" 프리픽스를 자동으로 달아, AI가 시스템 지시로 명확히 인지하게 함.
+	msg := "자율주행 실시간 트리거 (하이재커 감지). 전사 패턴 분석 후 자가진화(evolve) 즉각 실행. growth.log 확인하고 다음 action 자동 결정."
+	
+	// hlCDPInject는 hijack_launcher.go에 정의되어 있으며, targetRoom이 ""이면 활성 탭에 주입함
+	go func() {
+		hlCDPInject("", msg)
+		aaLog("🧬 [EVOLVE] ✅ 텔레그램 인젝션(hlCDPInject)으로 자율주행 트리거 주입 완료")
+	}()
 }
