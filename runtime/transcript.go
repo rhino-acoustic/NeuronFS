@@ -154,151 +154,34 @@ func runIdleLoop(brainRoot string) {
 		}
 
 		idleEvolveRunning = true
-		fmt.Printf("\n[IDLE] 💤 %s idle detected — starting autonomous cycle...\n", idleDuration.Round(time.Second))
+		fmt.Printf("\n[IDLE] 💤 %s idle detected — calling stateless core worker...\n", idleDuration.Round(time.Second))
 
-		// 0. Transcript Digestion — 전사 파일에서 교정 턴 추출 후 neuronize
-		apiKey := os.Getenv("GROQ_API_KEY")
-		if apiKey != "" {
-			pendingTurns := digestTranscripts(brainRoot)
-			if pendingTurns >= 10 {
-				fmt.Printf("[IDLE] 🧬 전사 청크 %d턴 누적 — Auto-Neuronize 실행...\n", pendingTurns)
-				runNeuronize(brainRoot, false)
-			}
+		nfsExe := filepath.Join(filepath.Dir(brainRoot), "neuronfs.exe")
+		out, err := exec.Command(nfsExe, brainRoot, "--tool", "idle_core", "{}").CombinedOutput()
+		if err != nil {
+			fmt.Printf("[IDLE-WORKER] Error: %v\nOutput: %s\n", err, string(out))
+			lastEvolveTime = time.Now()
+			idleEvolveRunning = false
+			continue
 		}
 
-		// 0c. 메타진화 — 실패한 진화 감지 (30일 비활성 뉴런)
-		failedEvolutions := detectFailedEvolutions(brainRoot)
-		if len(failedEvolutions) > 0 {
-			growthLogFile := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
-			f, _ := os.OpenFile(growthLogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
-			if f != nil {
-				for _, fe := range failedEvolutions {
-					f.WriteString(fmt.Sprintf("%s: META_EVOLVE_FAIL path=%s (30d+ inactive)\n",
-						time.Now().Format("2006-01-02_15:04"), fe))
-				}
-				f.Close()
-			}
-			fmt.Printf("[IDLE] 🧬 메타진화: %d개 실패한 진화 감지\n", len(failedEvolutions))
-		}
-
-		// 1. Evolve — 재활성화 (brainstem/limbic 하드가드 + region 분류 AI 모델 탑재 완료)
-		if apiKey != "" {
-			fmt.Println("[IDLE] 🧬 Evolve 실행 (region 분류 AI 판단 모델 탑재)...")
-			runEvolve(brainRoot, false)
-		}
-
-		// 2. Auto-decay (mark neurons untouched for 7+ days as dormant)
-		fmt.Println("[IDLE] 💤 Running auto-decay (7 days)...")
-		runDecay(brainRoot, 7)
-
-		// 3. Prune: 推-prefix neurons with activation ≤1 and inactive 3+ days → delete
-		fmt.Println("[IDLE] 🪦 Running prune (推 low-value cleanup)...")
-		pruneWeakNeurons(brainRoot)
-
-		// 3b. Spaced Repetition — 14일+ 미사용 고활성 뉴런 재발화
-		fmt.Println("[IDLE] ♻️ Spaced repetition (reinforce high-value neurons)...")
-		spacedRepetitionFire(brainRoot)
-
-		// 4. Consolidate (merge semantically similar neurons, hybrid >= 0.4, counter 합산)
-		fmt.Println("[IDLE] 🔀 Running consolidate (hybrid similarity + counter merge)...")
-		deduplicateNeurons(brainRoot)
-
-		// 4b. Sleep-Time Consolidation — co-activation 패턴 기반 axon 자동 생성
-		fmt.Println("[IDLE] 🧬 Sleep-time consolidation (Hebbian → axon)...")
-		sleepConsolidate(brainRoot)
-
-		// 4. Growth tracking + 피드백 루프 (뇌 성장 + 교정 빈도 추적)
-		brain := scanBrain(brainRoot)
-		result := runSubsumption(brain)
-		growthLogDir := filepath.Join(brainRoot, "hippocampus", "session_log")
-		os.MkdirAll(growthLogDir, 0750)
-		growthLogFile := filepath.Join(growthLogDir, "growth.log")
-
-		// 교정 빈도 측정 (피드백 루프 핵심)
-		correctionsToday := 0
-		historyPath := filepath.Join(brainRoot, "_inbox", "corrections_history.jsonl")
-		if data, err := os.ReadFile(historyPath); err == nil {
-			today := time.Now().Format("2006-01-02")
-			for _, line := range strings.Split(string(data), "\n") {
-				if strings.Contains(line, today) {
-					correctionsToday++
-				}
-			}
-		}
-
-		entry := fmt.Sprintf("%s: neurons=%d, activation=%d, regions=%d, corrections=%d\n",
-			time.Now().Format("2006-01-02_15:04"), result.TotalNeurons, result.TotalCounter, len(result.ActiveRegions), correctionsToday)
-		f, _ := os.OpenFile(growthLogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
-		if f != nil {
-			f.WriteString(entry)
-			f.Close()
-		}
-		fmt.Printf("[GROWTH] 📈 %s", entry)
-
-		// 피드백 경고: 교정 빈도 증가 감지
-		if correctionsToday > 20 {
-			fmt.Printf("[GROWTH] ⚠️ 교정 빈도 높음 (%d건/일) — neuronize 우선 권장\n", correctionsToday)
-		}
-
-		// 5. Git snapshot
-		fmt.Println("[IDLE] 📸 Git snapshot...")
-		gitSnapshot(brainRoot)
-
-		// 6. NAS sync (if Z: available)
-		nasTarget := `Z:\VOL1\VGVR\BRAIN\LW\system\neurons\brain_v4`
-		if _, err := os.Stat(nasTarget); err == nil {
-			fmt.Println("[IDLE] 📡 NAS sync...")
-			out, err := SafeCombinedOutput(ExecTimeoutSync, "robocopy", brainRoot, nasTarget, "/MIR", "/XD", ".git", "/XF", "*.dormant", "/NFL", "/NDL", "/NP", "/NJH", "/NJS")
-			if err != nil {
-				// robocopy exit code 1 = files copied (success), only >=8 is error
-				if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() >= 8 {
-					fmt.Printf("[IDLE] ❌ NAS sync error (exit %d): %s\n", exitErr.ExitCode(), string(out))
-				} else {
-					fmt.Printf("[IDLE] ✅ NAS synced\n")
-				}
+		lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+		summary := ""
+		for _, line := range lines {
+			if strings.HasPrefix(line, "[SUMMARY]") {
+				summary = strings.TrimPrefix(line, "[SUMMARY] ")
 			} else {
-				fmt.Println("[IDLE] ✅ NAS synced (no changes)")
+				fmt.Println(line)
 			}
-		} else {
-			fmt.Println("[IDLE] ⚠️  NAS Z: not available — skipping sync")
 		}
-
-		// 7. Heartbeat 기록
-		writeHeartbeat(brainRoot, result)
-
-		// 8. CODE_MAP 자동 갱신 (파일 줄 수 업데이트)
-		refreshCodeMap(brainRoot)
-
-		// 9. go vet 자동 검증 (import 동기화 체크)
-		runtimeDir := filepath.Join(filepath.Dir(brainRoot), "runtime")
-		if _, err := os.Stat(runtimeDir); err == nil {
-			if vetOut, err := SafeCombinedOutputDir(ExecTimeoutGit, runtimeDir, "go", "vet", "./..."); err != nil {
-				fmt.Printf("[IDLE] ⚠️ go vet 이상 감지: %s\n", strings.TrimSpace(string(vetOut)))
-				logEpisode(brainRoot, "VET_FAIL", string(vetOut))
-			} else {
-				fmt.Println("[IDLE] ✅ go vet 통과")
-			}
+		if summary == "" {
+			summary = "[NeuronFS IDLE] 진화 워커 완료 (전사 파싱 및 휴면 처리 완료)"
 		}
 
 		lastEvolveTime = time.Now()
 		idleEvolveRunning = false
-		fmt.Printf("[IDLE] ✅ Autonomous cycle complete at %s\n\n", lastEvolveTime.Format("15:04:05"))
 
-		// 10. CDP 인젝션 — 허트비트 결과를 AI 입력에 주입 (자가발전 트리거)
-		growth := result.TotalNeurons - 0 // heartbeat에서 실제 delta 계산됨
-		if hbData, err := os.ReadFile(filepath.Join(brainRoot, "_heartbeat.json")); err == nil {
-			var hb map[string]interface{}
-			if json.Unmarshal(hbData, &hb) == nil {
-				if delta, ok := hb["growth_delta"].(float64); ok {
-					growth = int(delta)
-				}
-			}
-		}
-
-		summary := fmt.Sprintf("[NeuronFS IDLE] %d neurons, act:%d, Δ%d — 전사 패턴 분석 후 커뮤니티 검색해서 자가진화 실행. growth.log 확인하고 다음 action 자동 결정.",
-			result.TotalNeurons, result.TotalCounter, growth)
-
-		// CDP inject — 자동 인젝션으로 대화 계속 진행
+		// CDP inject — 연결된 탭을 통해 AI 루프 트리거
 		injectIdleResult(summary)
 	}
 }

@@ -13,6 +13,8 @@ import (
 // This allows true stateless Hot-Swap execution of logic without dropping the supervisor.
 func runWorkerTool(brainRoot string, toolName string, argsJson string) {
 	switch toolName {
+	case "idle_core":
+		runIdleCoreWorker(brainRoot)
 	case "grow":
 		var args struct {
 			Path string `json:"path"`
