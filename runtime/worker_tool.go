@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
+	"time"
 )
 
 // runWorkerTool parses the MCP tool name and JSON arguments, calls the appropriate internal function,
@@ -19,11 +21,19 @@ func runWorkerTool(brainRoot string, toolName string, argsJson string) {
 			fmt.Println(`{"error":"invalid grow arguments"}`)
 			os.Exit(1)
 		}
-		// In actual Hot Swap, we don't output pure text. We output a proper mcp.CallToolResult struct
-		// or standard text that the supervisor will wrap into a tool result.
-		// For simplicity, we just output the message. The supervisor will catch it.
-		// NOTE: Currently grow just writes signal or fires.
-		growNeuron(brainRoot, args.Path) // We modify growNeuron to be callable here, but wait, grow is inside mcp_handler_crud normally.
+		// grow는 즉시 생성이 아니라 hippocampus signal을 생성하여 REM 수면 시 백그라운드 병합되게 함.
+		signalPath := filepath.Join(brainRoot, "hippocampus", "_signals")
+		os.MkdirAll(signalPath, 0750)
+		ts := fmt.Sprintf("%d", time.Now().UnixMilli())
+		sigFile := filepath.Join(signalPath, fmt.Sprintf("signal_%s.json", ts))
+
+		payload := map[string]string{
+			"type": "GROW_INTENT",
+			"path": args.Path,
+			"ts":   time.Now().Format("2006-01-02T15:04:05"),
+		}
+		data, _ := json.Marshal(payload)
+		os.WriteFile(sigFile, data, 0600)
 		fmt.Printf("🌱 신호 기록됨 (수면(REM) 통합 대기): %s\n", args.Path)
 
 	case "fire":
@@ -64,6 +74,13 @@ func runWorkerTool(brainRoot string, toolName string, argsJson string) {
 			os.Exit(1)
 		}
 		fmt.Printf("⏪ rolled back: %s\n", args.Path)
+
+	case "inject_tick":
+		// Called statelessly by the supervisor when fsnotify triggers for _inbox
+		processInbox(brainRoot)
+		if consumeDirty() {
+			autoReinject(brainRoot)
+		}
 
 	default:
 		fmt.Printf("error: unknown tool action %s\n", toolName)

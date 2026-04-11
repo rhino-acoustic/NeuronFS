@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -246,9 +247,17 @@ func runInjectionLoop(brainRoot string) {
 	var timer *time.Timer
 
 	executeUpdate := func() {
-		processInbox(brainRoot)
-		if consumeDirty() {
-			autoReinject(brainRoot)
+		// [Hot Reload] Background Delegate (Delegate Logic to Worker)
+		nfsExe, _ := os.Executable()
+		// _inbox changes detect -> Spawn stateless worker to process them.
+		cmd := exec.Command(nfsExe, brainRoot, "--tool", "inject_tick", "{}")
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[ERROR] worker 'inject_tick' crashed: %v\nOutput: %s\n", err, string(out))
+		} else {
+			if len(strings.TrimSpace(string(out))) > 0 {
+				fmt.Print(string(out))
+			}
 		}
 	}
 
