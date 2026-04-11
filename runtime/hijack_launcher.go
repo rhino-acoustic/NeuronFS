@@ -148,8 +148,18 @@ func hlSendToTelegram(entry, proj string) {
 	if hlTgToken == "" || hlTgChatID == "" {
 		return
 	}
-	// 워밍업 60초 — 재시작 시 DOM에 남아있는 기존 메시지 재전송 방지
+	// 워밍업 60초 — 재시작 시 DOM에 남아있는 기존 메시지를 dedup에 사전 등록
 	if time.Since(hlTgStartTime) < 60*time.Second {
+		// 전송은 안 하지만 해시는 등록 → 워밍업 후에도 중복으로 인식
+		roleRe := regexp.MustCompile(`(?s)\] (\w+)(?:@[^:]*)?: (.*)`)
+		m := roleRe.FindStringSubmatch(entry)
+		if len(m) >= 3 {
+			hash := m[2]
+			if len(hash) > 150 {
+				hash = hash[:150]
+			}
+			hlTgSentHashes.Store(hash, true)
+		}
 		return
 	}
 
