@@ -9,7 +9,9 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
+	"unsafe"
 )
 
 func hlCDPInject(targetRoom, payload string) {
@@ -69,39 +71,51 @@ func hlCDPInject(targetRoom, payload string) {
 		}
 
 		time.Sleep(500 * time.Millisecond)
-
-		// 제출 전략 1: submit 버튼 직접 클릭 (Antigravity 채팅 UI의 전송 버튼)
-		submitScript := `(() => {
-			const btn = document.querySelector('button[aria-label*="Send"], button[aria-label*="send"], button[class*="submit"], button[class*="send"]')
-				|| Array.from(document.querySelectorAll('button')).find(b => b.querySelector('svg') && b.closest('[class*="chat"], [class*="input"]'));
-			if(btn) { btn.click(); return "Clicked"; }
-			return "NoButton";
-		})()`
-		submitResult, _ := client.Call("Runtime.evaluate", map[string]interface{}{"expression": submitScript, "returnByValue": true})
-		submitStr := string(submitResult)
-
-		if strings.Contains(submitStr, "NoButton") {
-			// 제출 전략 2: CDP 네이티브 Input.dispatchKeyEvent
-			client.Call("Input.dispatchKeyEvent", map[string]interface{}{
-				"type": "rawKeyDown", "key": "Enter", "code": "Enter",
-				"windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13,
-			})
-			time.Sleep(30 * time.Millisecond)
-			client.Call("Input.dispatchKeyEvent", map[string]interface{}{
-				"type": "char", "text": "\r",
-				"windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13,
-			})
-			time.Sleep(30 * time.Millisecond)
-			client.Call("Input.dispatchKeyEvent", map[string]interface{}{
-				"type": "keyUp", "key": "Enter", "code": "Enter",
-				"windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13,
-			})
-		}
-
-		time.Sleep(100 * time.Millisecond)
 		client.Close()
-		return // 성공적으로 인젝션됨
+
+		// OS 레벨 Enter 전송 — user32.dll SendInput (CDP 키 이벤트는 Electron이 무시)
+		sendEnterKey()
+		return
 	}
+}
+
+// sendEnterKey — Windows user32.dll SendInput으로 물리 Enter 키 전송
+// VS Code/Electron 기반 앱은 CDP Input.dispatchKeyEvent를 무시하므로 OS 레벨 필수
+func sendEnterKey() {
+	user32 := syscall.NewLazyDLL("user32.dll")
+	sendInput := user32.NewProc("SendInput")
+
+	const (
+		inputKeyboard = 1
+		keyEventKeyUp = 0x0002
+		vkReturn      = 0x0D
+	)
+
+	type keyboardInput struct {
+		wVk         uint16
+		wScan       uint16
+		dwFlags     uint32
+		time        uint32
+		dwExtraInfo uintptr
+	}
+
+	type input struct {
+		inputType uint32
+		ki        keyboardInput
+		padding   [8]byte
+	}
+
+	inputs := [2]input{
+		{inputType: inputKeyboard, ki: keyboardInput{wVk: vkReturn}},                            // key down
+		{inputType: inputKeyboard, ki: keyboardInput{wVk: vkReturn, dwFlags: keyEventKeyUp}}, // key up
+	}
+
+	sendInput.Call(
+		uintptr(len(inputs)),
+		uintptr(unsafe.Pointer(&inputs[0])),
+		uintptr(unsafe.Sizeof(inputs[0])),
+	)
+	time.Sleep(100 * time.Millisecond)
 }
 
 // ── 전사 기록 ──

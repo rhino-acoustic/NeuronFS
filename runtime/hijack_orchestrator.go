@@ -58,6 +58,27 @@ func hlAppendTranscript(entry, projectLabel, brainRoot string) {
 		f.Close()
 	}
 
+	// ── [EVOLVE:proceed] 감지 → 자율주행 연쇄 트리거 ──
+	if strings.Contains(entry, "[EVOLVE:proceed]") && strings.Contains(entry, "AI") {
+		nfsRoot := filepath.Dir(brainRoot)
+		if !fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled")) {
+			fmt.Println("[EVOLVE] 🔄 [EVOLVE:proceed] 감지 — 다음 자율주행 사이클 트리거!")
+			// growth.log 터치하여 idle 타이머 리셋
+			growthLog := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
+			os.Chtimes(growthLog, time.Now(), time.Now())
+			// 즉시 다음 evolve 실행
+			nfsExe, _ := os.Executable()
+			cmd := exec.Command(nfsExe, brainRoot, "--evolve")
+			cmd.Dir = nfsRoot
+			go cmd.Run()
+			// 5초 후 마스터 프롬프트 재인젝션 (evolve 결과 반영 후)
+			go func() {
+				time.Sleep(5 * time.Second)
+				hlCDPInject(hlTgMountedRoom, "[telegram → NeuronFS] [자율주행 연쇄] 이전 EVOLVE 사이클이 완료되었습니다. growth.log와 최근 변경사항을 분석하여 다음 진화 액션을 즉시 실행하십시오.\n[EVOLVE:proceed]")
+			}()
+		}
+	}
+
 	// ── 텔레그램 전송 (원본 mjs _sendToTelegramInner 충실 포팅) ──
 	hlSendToTelegram(entry, proj)
 
