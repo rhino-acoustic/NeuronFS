@@ -139,6 +139,8 @@ brainstem(P0) > limbic(P1) > hippocampus(P2) > sensors(P3) > cortex(P4) > ego(P5
 
 ### 4. 3-Tier 거버넌스 (ALWAYS / WHEN→THEN / NEVER)
 
+**누구를 위해:** 코딩 에이전트 — Cursor, Claude Code, Gemini Code Assist, GitHub Copilot. 시스템 프롬프트를 읽는 모든 AI.
+
 **왜:** 평면 규칙 목록은 규모에서 실패한다. 300개 이상의 규칙 → AI가 대부분 무시. 규칙에는 *우선순위*와 *조건*이 필요하다 — "항상 X 하라"와 "코딩할 때만 X 하라"는 다르다.
 
 **어떻게:** 폴더 접두어가 `emit` 시점에 3단계로 자동 분류:

@@ -141,6 +141,8 @@ brainstem(P0) > limbic(P1) > hippocampus(P2) > sensors(P3) > cortex(P4) > ego(P5
 
 ### 4. 3-Tier Governance (ALWAYS / WHEN → THEN / NEVER)
 
+**Who:** Coding agents — Cursor, Claude Code, Gemini Code Assist, GitHub Copilot. Any AI that reads a system prompt.
+
 **Why:** Flat rule lists fail at scale. 300+ rules in one prompt → AI ignores most. Rules need *priority* and *conditionality* — "always do X" is different from "do X only when coding."
 
 **How:** Folder prefixes auto-classify into three enforcement tiers at `emit` time:
