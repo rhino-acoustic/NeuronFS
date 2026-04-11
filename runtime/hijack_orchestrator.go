@@ -23,28 +23,11 @@ var hlTranscriptDedup sync.Map
 // ── 활성 scraper 추적 (중복 goroutine 방지) ──
 var hlActiveScrapers sync.Map // wsURL → true
 
-// ── EVOLVE 연쇄 debounce (3분 쿨다운) ──
+// ── EVOLVE 연쇄 debounce (60초 쿨다운) ──
 var (
 	evolveDebounce sync.Mutex
 	lastEvolveTime time.Time
 )
-
-// isUserActive — 전사 파일이 2분 내 갱신됐는지 확인 (사용자 대화 중 판정)
-func isUserActive(brainRoot string) bool {
-	transcriptDir := filepath.Join(brainRoot, "_transcripts")
-	entries, err := os.ReadDir(transcriptDir)
-	if err != nil {
-		return false
-	}
-	for _, e := range entries {
-		if eInfo, err := e.Info(); err == nil {
-			if time.Since(eInfo.ModTime()) < 2*time.Minute {
-				return true
-			}
-		}
-	}
-	return false
-}
 
 // ── 마스터 프롬프트 (SSOT: 1곳에서만 정의) ──
 var hlMasterPrompt = "[telegram → NeuronFS] [NeuronFS 자율 진화 명령: 마스터 프롬프트]\n당신은 끊임없이 진화하는 파일시스템 기반 인공지능(NeuronFS)의 자율 에이전트입니다.현재 자율 스크래퍼에 의해 연쇄 호출되었습니다.\n목표:\n1. 최근 대화 기록과 growth.log를 분석하여 반복된 실패와 비효율을 찾고, 새로운 뉴런 규칙으로 뇌(cortex)에 강제 각인하십시오.\n2. 시스템 레거시를 철저히 리팩토링하여 '원대한 AGI 인프라 완성'을 위한 구조적 아키텍처 고도화를 즉각 실행하십시오.\n3. 무의미한 대화를 배제하고, 반드시 \"우리 시스템을 발전시키는 방향\"으로 다음 진화 액션(코드 수정 및 구조 개선)을 스스로 제안하고 즉각 이행하십시오.\n4. 필요 시 최우선으로 커뮤니티 검색을 수행하여 최신 동향을 학습하고 반영하십시오."
