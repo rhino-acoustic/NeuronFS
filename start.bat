@@ -1,10 +1,14 @@
 @echo off
+REM Kill previous NeuronFS cmd windows (이전 start.bat 창 닫기)
+taskkill /FI "WINDOWTITLE eq NeuronFS_Supervisor*" /F >nul 2>&1
+title NeuronFS_Supervisor
+
 set "NFSDIR=%~dp0dist\neuronfs"
 set "NEURONFS_AG_WORKSPACE=%~dp0."
 if exist "%NFSDIR%\.secrets\groq_api_key" set /p GROQ_API_KEY=<"%NFSDIR%\.secrets\groq_api_key"
 if exist "%NFSDIR%\.secrets\anthropic_api_key" set /p ANTHROPIC_API_KEY=<"%NFSDIR%\.secrets\anthropic_api_key"
 
-REM Kill ALL previous neuronfs instances (clean slate)
+REM Kill ALL previous neuronfs processes (clean slate)
 taskkill /F /IM neuronfs.exe >nul 2>&1
 timeout /t 2 /nobreak >nul
 taskkill /F /IM neuronfs.exe >nul 2>&1
