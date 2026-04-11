@@ -236,14 +236,8 @@ func main() {
 	case "evolve":
 		runEvolve(brainRoot, dryRun)
 	case "mcp":
-		// MCP stdio server + background loops
-		// CRITICAL: MCP stdio protocol requires stdout to be JSON-RPC only.
-		// Redirect os.Stdout → os.Stderr so all fmt.Print* goes to stderr.
-		// Preserve the real stdout for the MCP transport.
-		realStdout := os.Stdout
-		os.Stdout = os.Stderr
-
-		// REST API on fallback port (MCPPort) to avoid conflict with existing --api on APIPort
+		// MCP Streamable HTTP server + background loops
+		// HTTP transport: IDE 재시작에도 연결 유지
 		go func() {
 			mcpAPIPort := MCPPort
 			fmt.Fprintf(os.Stderr, "[MCP] REST API on :%d (fallback)\n", mcpAPIPort)
@@ -251,7 +245,7 @@ func main() {
 		}()
 		go runInjectionLoop(brainRoot)
 		go runIdleLoop(brainRoot)
-		startMCPServerWithStdout(brainRoot, realStdout) // blocking: stdio loop
+		startMCPHTTPServer(brainRoot, MCPStreamPort) // blocking: HTTP server
 	case "supervisor":
 		runSupervisor(brainRoot)
 	case "neuronize":

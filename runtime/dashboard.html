@@ -423,6 +423,51 @@ const dashboardHTML = `<!DOCTYPE html>
       <div style="margin-top:8px;font-size:9px;color:#444" id="codeMeta"></div>
     </div>
 
+    <div class="code-section" id="intSection">
+      <div class="add-label" style="margin-bottom:12px;display:flex;align-items:center;gap:6px">
+        ⚙️ INTEGRATIONS
+        <span id="int-status" style="font-size:9px;padding:2px 8px;border-radius:10px;background:#064e3b;color:#34d399;font-weight:700">LOADING</span>
+      </div>
+      <div id="intPanel" style="font-size:11px">
+        <div style="margin-bottom:12px">
+          <div style="color:#fff;font-weight:700;margin-bottom:6px">📱 Telegram</div>
+          <div id="tg-status" style="color:#888;margin-bottom:6px"></div>
+          <div style="display:flex;gap:6px;margin-bottom:4px">
+            <input type="text" id="tgToken" placeholder="Bot Token" style="flex:1;background:#111;border:1px solid #222;border-radius:6px;padding:6px 10px;color:#fff;font-size:10px;outline:none;font-family:monospace">
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:4px">
+            <input type="text" id="tgChatId" placeholder="Chat ID" style="flex:1;background:#111;border:1px solid #222;border-radius:6px;padding:6px 10px;color:#fff;font-size:10px;outline:none">
+            <input type="text" id="tgMount" placeholder="Mount Room" style="width:100px;background:#111;border:1px solid #222;border-radius:6px;padding:6px 10px;color:#fff;font-size:10px;outline:none">
+          </div>
+          <button onclick="saveIntegrations('tg')" style="background:#1d4ed8;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:10px;cursor:pointer;font-weight:600">저장</button>
+        </div>
+        <div style="border-top:1px solid #222;padding-top:12px">
+          <div style="color:#fff;font-weight:700;margin-bottom:6px">🧠 Groq API</div>
+          <div id="groq-status" style="color:#888;margin-bottom:6px"></div>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="groqKey" placeholder="gsk_..." style="flex:1;background:#111;border:1px solid #222;border-radius:6px;padding:6px 10px;color:#fff;font-size:10px;outline:none;font-family:monospace">
+            <button onclick="saveIntegrations('groq')" style="background:#059669;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:10px;cursor:pointer;font-weight:600">저장</button>
+          </div>
+        </div>
+        <div style="border-top:1px solid #222;padding-top:12px;margin-top:12px">
+          <div style="color:#fff;font-weight:700;margin-bottom:6px">🤖 Claude API</div>
+          <div id="claude-status" style="color:#888;margin-bottom:6px"></div>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="claudeKey" placeholder="sk-ant-..." style="flex:1;background:#111;border:1px solid #222;border-radius:6px;padding:6px 10px;color:#fff;font-size:10px;outline:none;font-family:monospace">
+            <button onclick="saveIntegrations('claude')" style="background:#7c3aed;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:10px;cursor:pointer;font-weight:600">저장</button>
+          </div>
+        </div>
+        <div style="border-top:1px solid #222;padding-top:12px;margin-top:12px">
+          <div style="color:#fff;font-weight:700;margin-bottom:6px">📁 NAS Brain Sync</div>
+          <div id="nas-status" style="color:#888;margin-bottom:6px"></div>
+        </div>
+        <div style="border-top:1px solid #222;padding-top:12px;margin-top:12px">
+          <div style="color:#fff;font-weight:700;margin-bottom:6px">🔌 Go Native Services</div>
+          <div id="svc-status" style="font-size:10px;color:#888"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="controls">
       <button class="btn btn-primary" onclick="doInject()">⚡ INJECT</button>
       <button class="btn btn-add" onclick="toggleAdd()">+ 뉴런</button>
@@ -430,6 +475,7 @@ const dashboardHTML = `<!DOCTYPE html>
       <button class="btn btn-ghost" onclick="toggleArch()" style="font-size:10px">🗺️ TOP</button>
       <button class="btn btn-ghost" onclick="toggleCode()" style="font-size:10px">📋 CODE</button>
       <button class="btn btn-ghost" onclick="toggleSandbox()" style="font-size:10px">🧪</button>
+      <button class="btn btn-ghost" onclick="toggleIntegrations()" style="font-size:10px">⚙️</button>
       <select id="bombRegion" style="background:#1a1a2e;color:#fca5a5;border:1px solid #7f1d1d;border-radius:6px;padding:6px 8px;font-size:10px;cursor:pointer;"><option value="">💀 영역 선택</option></select>
       <button class="btn btn-danger" onclick="doBomb()">💀 BOMB</button>
     </div>
@@ -1177,13 +1223,110 @@ async function fetchCodeMap() {
   } catch(e) { /* silent */ }
 }
 
+// ── Integrations ──
+function toggleIntegrations() {
+  const section = document.getElementById('intSection');
+  section.classList.toggle('visible');
+  if (section.classList.contains('visible')) loadIntegrations();
+}
+
+async function loadIntegrations() {
+  try {
+    const res = await fetch('/api/integrations');
+    const data = await res.json();
+    const badge = document.getElementById('int-status');
+
+    // Telegram
+    const tg = data.telegram || {};
+    const tgEl = document.getElementById('tg-status');
+    if (tg.configured) {
+      tgEl.innerHTML = '✅ 연결됨 — Token: <code>' + tg.token + '</code> | ChatID: ' + tg.chatId + ' | Room: ' + tg.mount;
+    } else {
+      tgEl.innerHTML = '❌ 미설정';
+    }
+
+    // Groq
+    const groq = data.groq || {};
+    const groqEl = document.getElementById('groq-status');
+    groqEl.innerHTML = groq.configured ? '✅ <code>' + groq.key + '</code>' : '❌ 미설정';
+
+    // Claude
+    const claude = data.claude || {};
+    const claudeEl = document.getElementById('claude-status');
+    if (claudeEl) claudeEl.innerHTML = claude.configured ? '✅ <code>' + claude.key + '</code>' : '❌ 미설정';
+
+    // NAS
+    const nasEl = document.getElementById('nas-status');
+    if (nasEl) {
+      // health API에서 NAS 정보 가져옴
+      try {
+        const hRes = await fetch('/api/health');
+        const hData = await hRes.json();
+        nasEl.innerHTML = hData.brainRoot ? '📂 ' + hData.brainRoot : '❌ 미설정';
+      } catch { nasEl.innerHTML = '⏳ 확인 중...'; }
+    }
+
+    // Services
+    const svc = data.services || {};
+    const svcEl = document.getElementById('svc-status');
+    let svcHtml = '';
+    const svcNames = {autoAccept:'Auto-Accept',hijackLauncher:'Hijack Launcher',contextHijacker:'Context Hijacker',agentBridge:'Agent Bridge'};
+    for (const [k,name] of Object.entries(svcNames)) {
+      const on = svc[k];
+      svcHtml += '<div style="display:flex;align-items:center;gap:6px;padding:3px 0">' +
+        '<div style="width:6px;height:6px;border-radius:50%;background:' + (on ? '#22c55e' : '#ef4444') + ';box-shadow:0 0 4px ' + (on ? '#22c55e' : '#ef4444') + '"></div>' +
+        '<span style="color:' + (on ? '#e0e0e0' : '#666') + '">' + name + '</span></div>';
+    }
+    svcEl.innerHTML = svcHtml;
+
+    // Badge
+    const allOk = tg.configured && groq.configured;
+    badge.textContent = allOk ? 'ALL OK' : 'PARTIAL';
+    badge.style.background = allOk ? '#064e3b' : '#451a03';
+    badge.style.color = allOk ? '#34d399' : '#fbbf24';
+  } catch(e) {
+    document.getElementById('int-status').textContent = 'ERROR';
+  }
+}
+
+async function saveIntegrations(type) {
+  const body = {};
+  if (type === 'tg') {
+    const token = document.getElementById('tgToken').value.trim();
+    const chatId = document.getElementById('tgChatId').value.trim();
+    const mount = document.getElementById('tgMount').value.trim();
+    if (token) body.telegramToken = token;
+    if (chatId) body.telegramChatId = chatId;
+    if (mount) body.telegramMount = mount;
+  } else if (type === 'groq') {
+    const key = document.getElementById('groqKey').value.trim();
+    if (key) body.groqKey = key;
+  } else if (type === 'claude') {
+    const key = document.getElementById('claudeKey').value.trim();
+    if (key) body.claudeKey = key;
+  }
+  try {
+    const res = await fetch('/api/integrations', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    showToast('✅ 저장됨: ' + (data.updated||[]).join(', '));
+    // Clear inputs
+    document.querySelectorAll('#intSection input').forEach(i => i.value = '');
+    loadIntegrations();
+  } catch(e) { showToast('❌ 저장 실패', true); }
+}
+
 // ── Init ──
 loadBrain();
 loadHealth();
 fetchCodeMap();
+loadIntegrations();
 setInterval(loadBrain, 10000);
 setInterval(loadHealth, 15000);
 setInterval(fetchCodeMap, 30000);
+setInterval(loadIntegrations, 30000);
 
 // ── Keyboard shortcuts ──
 document.addEventListener('keydown', (e) => {

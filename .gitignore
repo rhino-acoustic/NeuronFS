@@ -242,3 +242,9 @@ telegram-bridge/.env
 # Quarantine (dead experiments)
 _quarantine/
 telegram-bridge/.offsets
+telegram-bridge/.token
+telegram-bridge/.mount
+
+# Secrets (API keys — NEVER commit)
+.secrets/
+dist/neuronfs/.secrets/

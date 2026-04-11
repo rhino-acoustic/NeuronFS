@@ -997,22 +997,31 @@ func TestDCI_NoHardcodedMagicNumbers(t *testing.T) {
 
 func TestDCI_RuneSSoT(t *testing.T) {
 	// 1. RuneToKorean은 정확히 12개
-	t.Run("DCI-09a: 12 runes defined", func(t *testing.T) {
-		if len(RuneToKorean) != 12 {
-			t.Errorf("RuneToKorean has %d entries, expected 12", len(RuneToKorean))
+	t.Run("DCI-09a: 16 runes defined (12 hanja + 4 neologisms)", func(t *testing.T) {
+		if len(RuneToKorean) != 16 {
+			t.Errorf("RuneToKorean has %d entries, expected 16 (12 hanja + vorq/zelk/mirp/qorz)", len(RuneToKorean))
 		}
 	})
 
 	// 2. RuneChars와 RuneToKorean 일치
-	t.Run("DCI-09b: RuneChars matches RuneToKorean", func(t *testing.T) {
+	t.Run("DCI-09b: RuneChars covers all hanja in RuneToKorean", func(t *testing.T) {
+		// RuneChars contains only hanja (12 chars)
+		// RuneToKorean also has ASCII neologisms (vorq, zelk, mirp)
 		for _, r := range RuneChars {
 			if _, ok := RuneToKorean[string(r)]; !ok {
 				t.Errorf("RuneChars contains '%c' but RuneToKorean does not", r)
 			}
 		}
-		if len([]rune(RuneChars)) != len(RuneToKorean) {
-			t.Errorf("RuneChars length %d != RuneToKorean length %d",
-				len([]rune(RuneChars)), len(RuneToKorean))
+		hanjaCount := len([]rune(RuneChars))
+		neoCount := 0
+		for k := range RuneToKorean {
+			if len([]rune(k)) > 1 { // multi-char key = neologism
+				neoCount++
+			}
+		}
+		if hanjaCount+neoCount != len(RuneToKorean) {
+			t.Errorf("hanja(%d) + neologisms(%d) = %d, but RuneToKorean has %d",
+				hanjaCount, neoCount, hanjaCount+neoCount, len(RuneToKorean))
 		}
 	})
 
@@ -1125,6 +1134,68 @@ func TestDCI_FullSSoT(t *testing.T) {
 		}
 		if spotlightDays != SpotlightDays {
 			t.Errorf("spotlightDays=%d != SpotlightDays=%d", spotlightDays, SpotlightDays)
+		}
+	})
+}
+
+// ─── DCI-11: Dedup 거버넌스 보호 (禁/必 경로 불가침) ───
+// 禁/必 경로 하위 뉴런이 dedup에서 절대 병합되지 않는 것을 검증.
+// 회귀 방지: lifecycle.go에서 relPath 기반 거버넌스 체크 누락 시 즉시 잡힘.
+
+func TestDCI_DedupGovernanceProtection(t *testing.T) {
+	t.Run("DCI-11a: 禁 neurons immune to dedup", func(t *testing.T) {
+		dir := setupTestBrain(t)
+		// 禁 하위에 유사한 이름의 뉴런 2개 생성
+		ban1 := filepath.Join(dir, "cortex", "禁", "test_rule_alpha")
+		ban2 := filepath.Join(dir, "cortex", "禁", "test_rule_beta")
+		os.MkdirAll(ban1, 0750)
+		os.MkdirAll(ban2, 0750)
+		os.WriteFile(filepath.Join(ban1, "5.neuron"), []byte{}, 0600)
+		os.WriteFile(filepath.Join(ban2, "5.neuron"), []byte{}, 0600)
+
+		deduplicateNeurons(dir)
+
+		// 둘 다 살아있어야 함
+		_, err1 := os.Stat(ban1)
+		_, err2 := os.Stat(ban2)
+		if os.IsNotExist(err1) || os.IsNotExist(err2) {
+			t.Error("DCI-11a FAIL: 禁 neurons must NEVER be merged by dedup")
+		}
+	})
+
+	t.Run("DCI-11b: 必 neurons immune to dedup", func(t *testing.T) {
+		dir := setupTestBrain(t)
+		must1 := filepath.Join(dir, "brainstem", "必", "check_alpha")
+		must2 := filepath.Join(dir, "brainstem", "必", "check_beta")
+		os.MkdirAll(must1, 0750)
+		os.MkdirAll(must2, 0750)
+		os.WriteFile(filepath.Join(must1, "3.neuron"), []byte{}, 0600)
+		os.WriteFile(filepath.Join(must2, "3.neuron"), []byte{}, 0600)
+
+		deduplicateNeurons(dir)
+
+		_, err1 := os.Stat(must1)
+		_, err2 := os.Stat(must2)
+		if os.IsNotExist(err1) || os.IsNotExist(err2) {
+			t.Error("DCI-11b FAIL: 必 neurons must NEVER be merged by dedup")
+		}
+	})
+
+	t.Run("DCI-11c: 禁 vs non-禁 same name no merge", func(t *testing.T) {
+		dir := setupTestBrain(t)
+		// 같은 이름인데 하나는 禁 경로, 하나는 일반 경로
+		banPath := filepath.Join(dir, "cortex", "禁", "dedup_immunity")
+		plainPath := filepath.Join(dir, "cortex", "dedup_immunity")
+		os.MkdirAll(banPath, 0750)
+		os.MkdirAll(plainPath, 0750)
+		os.WriteFile(filepath.Join(banPath, "5.neuron"), []byte{}, 0600)
+		os.WriteFile(filepath.Join(plainPath, "5.neuron"), []byte{}, 0600)
+
+		deduplicateNeurons(dir)
+
+		// 禁 쪽은 절대 삭제 안 됨
+		if _, err := os.Stat(banPath); os.IsNotExist(err) {
+			t.Error("DCI-11c FAIL: 禁 neuron was removed during dedup with same-name plain neuron")
 		}
 	})
 }

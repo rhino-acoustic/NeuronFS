@@ -36,8 +36,8 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 	formatPersona(&sb, result)
 	formatSubsumption(&sb)
 
-	now := time.Now()
-	top5Sentences := formatTop5CoreRules(&sb, result, now)
+	// ━━━ 3-TIER RULES (AgentIF 벤치마크 기반 개선) ━━━
+	formatTieredRules(&sb, result)
 
 	formatCortexBans(&sb, result)
 	formatGrowthAndLimbic(&sb, result, brainRoot)
@@ -55,8 +55,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		absTranscript, _ := filepath.Abs(transcriptDir)
 		sb.WriteString(fmt.Sprintf("### 📜 전사 기록\n전사물 경로: `%s`\n\n", absTranscript))
 	}
-
-	formatAbsoluteRules(&sb, result, top5Sentences)
 
 	sb.WriteString("<!-- NEURONFS:END -->\n")
 	return sb.String()
@@ -512,6 +510,178 @@ func formatAbsoluteRules(sb *strings.Builder, result SubsumptionResult, top5Sent
 		banReminders = banReminders[:5]
 	}
 	sb.WriteString(renderSection("section_absolute_rules.tmpl", BootstrapSection{AbsoluteRules: banReminders}))
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 3-TIER RULES: ALWAYS / WHEN / NEVER
+// AgentIF 벤치마크 결과 기반 — 조건부 규칙에 트리거 조건 명시
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// whenConditions: 必 규칙 중 조건부 트리거가 필요한 키워드 → 트리거 조건 매핑
+// 이 맵에 없는 必 규칙은 ALWAYS로 분류된다
+var whenConditions = map[string]string{
+	"qorz":        "코딩/기술 결정 시",
+	"커뮤니티검색": "코딩/기술 결정 시",
+	"코드맵":      "코드 수정 시",
+	"적층해결":    "문제/에러 발생 시",
+	"bat재시작":   "시스템 재시작 시",
+	"go vet":      "Go 코드 수정 후",
+}
+
+// ruleWhyHow: 알려진 규칙의 WHY(이유) + HOW(방법) 매핑
+// Description이 있으면 Description 우선, 없으면 이 맵에서 조회
+type whyHow struct {
+	Why string
+	How string
+}
+
+var ruleWhyHow = map[string]whyHow{
+	// WHEN rules
+	"qorz":        {How: "커뮤니티검색필수"},
+	"커뮤니티검색": {How: "커뮤니티검색필수"},
+	"코드맵":      {How: "코드맵 참조생성갱신"},
+	"적층해결":    {How: "기존 코드 교체 말고 위에 적층"},
+	"bat재시작":   {How: "bat재시작"},
+
+	// NEVER rules
+	"중복작업":   {Why: "토큰 낭비 + 기존 결과 덮어쓰기 위험"},
+	"땜질코딩":   {Why: "근본 원인 미해결 → 반복 에러"},
+	"무계획":     {Why: "영향 범위 미파악 → 연쇄 장애"},
+	"하드코딩":   {Why: "환경 변경 시 즉시 장애"},
+	"curl사용":   {Why: "PowerShell 환경. curl=Invoke-WebRequest 별칭 충돌"},
+	"무한대기":   {Why: "프로세스 행 → 사용자 답답함"},
+	"무한작업":   {Why: "범위 없는 작업 → 토큰 고갈"},
+	"불필요한코드": {Why: "유지보수 부담 증가"},
+}
+
+// lookupWhyHow: Description 우선 → ruleWhyHow 맵 fallback
+func lookupWhyHow(leaf, path, description string) whyHow {
+	// 1) ruleWhyHow 맵에서 키워드 매칭
+	for keyword, wh := range ruleWhyHow {
+		if strings.Contains(leaf, keyword) || strings.Contains(path, keyword) {
+			return wh
+		}
+	}
+	// 2) Description이 있으면 WHY로 사용
+	if description != "" {
+		return whyHow{Why: description}
+	}
+	return whyHow{}
+}
+
+func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
+	var alwaysRules []TieredRule
+	var whenRules []TieredRule
+	var neverRules []TieredRule
+
+	seenLabel := make(map[string]bool)
+
+	for _, region := range result.ActiveRegions {
+		for _, n := range region.Neurons {
+			if n.IsDormant || (n.Counter+n.Dopamine) < 3 {
+				continue
+			}
+
+			// 최하위 리프만 (자식 있으면 스킵)
+			hasChild := false
+			for _, other := range region.Neurons {
+				if other.Depth > n.Depth && (strings.HasPrefix(other.Path, n.Path+string(filepath.Separator)) || strings.HasPrefix(other.Path, n.Path+"/")) {
+					hasChild = true
+					break
+				}
+			}
+			if hasChild {
+				continue
+			}
+
+			parts := splitNeuronPath(n.Path)
+			leaf := parts[len(parts)-1]
+			for hanja, ko := range RuneToKorean {
+				leaf = strings.ReplaceAll(leaf, hanja, ko)
+			}
+			leaf = strings.TrimSpace(strings.ReplaceAll(leaf, "_", " "))
+			// 룬 변환 후 중복 제거: "커뮤니티검색필수: 커뮤니티검색필수" → "커뮤니티검색필수"
+			if colonIdx := strings.Index(leaf, ": "); colonIdx >= 0 {
+				prefix := strings.TrimSpace(leaf[:colonIdx])
+				suffix := strings.TrimSpace(leaf[colonIdx+2:])
+				if prefix == suffix {
+					leaf = prefix
+				}
+			}
+			if leaf == "" || len([]rune(leaf)) < 2 || seenLabel[leaf] {
+				continue
+			}
+
+			// 자기참조/메타 규칙 스킵
+			sentence := pathToSentence(n.Path)
+			if strings.Contains(sentence, "한국어로") && strings.Contains(sentence, "대답") {
+				continue
+			}
+
+			score := n.Counter + n.Dopamine
+			seenLabel[leaf] = true
+
+			// ━━━ 분류 로직 + WHY/HOW 첨부 ━━━
+			if strings.ContainsAny(n.Path, "禁") {
+				// 禁 접두어 → NEVER
+				desc := leaf
+				if n.Description != "" {
+					desc = n.Description
+				}
+				why := lookupWhyHow(leaf, n.Path, n.Description).Why
+				neverRules = append(neverRules, TieredRule{
+					Label: desc,
+					Why:   why,
+					Score: score,
+				})
+			} else if strings.ContainsAny(n.Path, "必") || strings.Contains(n.Path, "qorz") || strings.Contains(n.Path, "索") {
+				// 必/qorz/索 → 조건 확인 후 WHEN 또는 ALWAYS
+				condition := ""
+				for keyword, cond := range whenConditions {
+					if strings.Contains(leaf, keyword) || strings.Contains(n.Path, keyword) {
+						condition = cond
+						break
+					}
+				}
+				wh := lookupWhyHow(leaf, n.Path, n.Description)
+				if condition != "" {
+					whenRules = append(whenRules, TieredRule{
+						Label:     leaf,
+						Condition: condition,
+						How:       wh.How,
+						Score:     score,
+					})
+				} else {
+					alwaysRules = append(alwaysRules, TieredRule{
+						Label: leaf,
+						Score: score,
+					})
+				}
+			}
+		}
+	}
+
+	// 점수순 정렬 (높은 것 먼저)
+	sort.Slice(alwaysRules, func(i, j int) bool { return alwaysRules[i].Score > alwaysRules[j].Score })
+	sort.Slice(whenRules, func(i, j int) bool { return whenRules[i].Score > whenRules[j].Score })
+	sort.Slice(neverRules, func(i, j int) bool { return neverRules[i].Score > neverRules[j].Score })
+
+	// 각 티어 최대 제한 (AgentIF 권장: 10-15개 총합)
+	if len(alwaysRules) > 5 {
+		alwaysRules = alwaysRules[:5]
+	}
+	if len(whenRules) > 5 {
+		whenRules = whenRules[:5]
+	}
+	if len(neverRules) > 8 {
+		neverRules = neverRules[:8]
+	}
+
+	sb.WriteString(renderSection("section_tiered_rules.tmpl", BootstrapSection{
+		AlwaysRules: alwaysRules,
+		WhenRules:   whenRules,
+		NeverRules:  neverRules,
+	}))
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

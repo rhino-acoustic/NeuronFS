@@ -22,7 +22,8 @@
 <p align="center"><a href="README.ko.md">🇰🇷 한국어</a> · <a href="README.md">🇺🇸 English</a></p>
 
 # NeuronFS
-### *structure > prompt*
+### *axiom > algorithm*
+### Folder **is** a neuron. Everything else derives.
 
 > AI disobeyed "don't use console.log" 9 times.
 > On the 10th, `mkdir 禁console_log` was born.
@@ -93,9 +94,26 @@ Before you trust us, watch us try to destroy ourselves.
 
 ---
 
-## 3 Killer Features
+## 4 Killer Features
 
-### 1. vorq — Neologism Harness (~100% behavioral compliance)
+### 1. The Axiom — `Folder = Neuron`
+
+One design decision generates the entire system:
+
+```
+Axiom: "A folder IS a neuron."
+  → File path IS a natural language rule
+  → Filename IS activation count (5.neuron = fired 5×)
+  → Folder prefix IS governance type (禁=NEVER, 必=ALWAYS, 推=WHEN)
+  → Depth IS specificity
+  → OS metadata IS the embedding
+  → mkdir IS learning
+  → rm IS forgetting
+```
+
+Without this axiom, there's no reason to combine Merkle chains, RBAC, cosine similarity, and circuit breakers on folders. **The axiom is what makes NeuronFS NeuronFS — not the algorithms.**
+
+### 2. vorq — Neologism Harness (~100% behavioral compliance)
 
 We discovered that fabricated words force AI to look up definitions — achieving behavioral compliance that natural language cannot.
 
@@ -110,7 +128,7 @@ We discovered that fabricated words force AI to look up definitions — achievin
 
 Three neologism runewords: `vorq` (mount cartridge) · `zelk` (sync cartridge) · `mirp` (freshness check)
 
-### 2. 7-Layer Subsumption Cascade (P0 → P6)
+### 3. 7-Layer Subsumption Cascade (P0 → P6)
 
 Seven brain regions. Lower priority **always** overrides higher. Physically.
 
@@ -121,7 +139,19 @@ brainstem(P0) > limbic(P1) > hippocampus(P2) > sensors(P3) > cortex(P4) > ego(P5
 
 **P0's `禁` rules always beat P4's dev rules.** When `bomb.neuron` fires, the entire region's prompt rendering stops. Not "please don't" — **physically silenced.**
 
-### 3. One Brain, Every AI
+### 4. 3-Tier Governance (ALWAYS / WHEN → THEN / NEVER)
+
+Folder prefixes auto-classify into three enforcement tiers:
+
+```
+禁hardcoding       → 🔴 NEVER   (absolute prohibition, immune to decay/prune/dedup)
+必go_vet실행        → 🟢 ALWAYS  (mandatory on every response)
+推community_search → 🟡 WHEN coding/tech decision → THEN search community first
+```
+
+The `emit` pipeline reads folder structure and **auto-generates** tiered system prompts. No manual classification. No forgotten rules. `applyOOMProtection()` auto-truncates when tokens exceed the LLM context window.
+
+### 5. One Brain, Every AI
 
 ```bash
 neuronfs --emit all
@@ -146,6 +176,9 @@ Switch AI tools freely. Your rules never evaporate. One brain governs all.
 | 8 | **Encrypted distribution** | ❌ | Cloud-dependent | Cloud-dependent | **✅ Jloot VFS cartridges** |
 | 9 | **Infrastructure cost** | Free | $50+/mo | $70+/mo GPU | **$0 (local OS)** |
 | 10 | **Dependencies** | IDE-locked | Python+Redis+DB | Python+GPU+API | **Zero runtime (single binary)** |
+| 11 | **3-Tier governance** | ❌ | ❌ | ❌ | **✅ ALWAYS/WHEN/NEVER auto-classify** |
+| 12 | **OOM protection** | ❌ | ❌ | ❌ | **✅ Auto-truncate on context overflow** |
+| 13 | **Industry benchmark coverage** | 0/41 | ~8/41 | ~6/41 | **35/41 (85%)** |
 
 > † **Rule accuracy** measures different layers: Mem0/RAG ~95% = "LLM follows retrieved rules" (IFEval). NeuronFS 100% = "rules are faithfully generated into system prompt" (BM-1 fidelity). Complementary, not competing.
 
@@ -262,7 +295,7 @@ brain_v4/
 └── prefrontal/    (P6 — Goals, planning)
 ```
 
-### Why mkdir Beats Vector
+### Why mkdir Complements Vector
 
 ```
 [Vector DB Search]
@@ -469,17 +502,82 @@ Embedded into `_rules.md` via `collectCodemapPaths()` at emit time with automati
 </details>
 
 <details>
-<summary><h2>📊 Deep Dive: Benchmarks</h2></summary>
+<summary><h2>📊 Deep Dive: Benchmarks (41 Industry Items)</h2></summary>
 
-| Metric | Value | Target | Status |
-|---|---|---|---|
-| **SCC (Circuit Breaker Cascade)** | 13 / 13 passed | ≥ 95% | ✅ **PASS** |
-| **MLA (Memory Lifecycle Protection)** | 15 / 15 passed | ≥ 80% | ✅ **PASS** |
-| **CCT (Concurrency Chaos Test)** | 100-thread lock | 100% Zero panics | ✅ **PASS** |
-| **CAD (Circular Axon Defense)** | Infinite loop broken | 100% Zero panics | ✅ **PASS** |
-| **VTR (Volume Tolerance Recovery)** | 1,000+ spam tokens pruned | 100% Zero OOM | ✅ **PASS** |
+### Run it yourself
 
-**Total Governance V2 Score: 100.0%**
+```bash
+cd runtime && go test -v -run "TestBM_" -count=1 .
+```
+
+### BM-1 through BM-7
+
+| Test | What | Result | Industry Standard |
+|------|------|--------|-------------------|
+| **BM-1** | Rule Fidelity (AgentIF CSR) | **100%** (5/5) | IFEval SOTA: 95% |
+| **BM-2** | Scale Profile (5K neurons) | **2.5s** best-of-3 | Mem0: 125ms (RAM index) |
+| **BM-3** | Similarity Accuracy | **P=1.0** F1=0.74 | Vector DB: P≈0.85 |
+| **BM-4** | Lifecycle (禁 protection) | **30/30 100%** | N/A (NeuronFS only) |
+| **BM-5** | Adversarial QA (LOCOMO) | **5/5 rejected** | SQuAD 2.0 style |
+| **BM-6** | Production Latency | **p50=202ms p95=268ms** | Mem0 p50: 75ms |
+| **BM-7** | Multi-hop Planning (MCPBench) | **grow→fire→dedup→emit ✅** | Tool chaining |
+
+### Governance Suite (14 tests)
+
+| Test | Score |
+|------|-------|
+| DCI Constants (SSOT) | 16/16 runes ✅ |
+| DCI Dedup Governance | 3/3 (禁 immune) ✅ |
+| SCC Circuit Breaker | 13/13 ✅ |
+| MLA Lifecycle | 15/15 ✅ |
+| Fuzz Adversarial | 100-thread zero panics ✅ |
+
+### Coverage: 5 Industry Benchmarks × NeuronFS
+
+| Benchmark | Items | ✅ Covered | Source |
+|-----------|-------|-----------|--------|
+| MemoryAgentBench (ICLR 2026) | 4 | **4** | Retrieval, TTL, LRU, Conflict |
+| LOCOMO | 7 | **4** + 2 N/A | Single/Multi-hop QA, Temporal, Episode |
+| AgentIF | 6 | **6** | Formatting, Semantic, Tool constraints |
+| MCPBench | 6 | **5** + 1 partial | Latency, Token, Tool Selection |
+| Mem0/Letta | 8 | **6** + 1 N/A | CRUD, Retrieval, Governance, Search |
+| **NeuronFS-only** | **10** | **10** | 3-Tier, Subsumption, bomb, VFS, RBAC... |
+| **Total** | **41** | **35 (85%)** | 3 N/A · 2 partial · 1 gap |
+
+> The single gap (Adversarial "unanswerable" QA) is outside NeuronFS design scope — NeuronFS is a governance system, not a QA chatbot.
+
+</details>
+
+<details>
+<summary><h2>🧬 Deep Dive: What's Actually Novel</h2></summary>
+
+Not all of NeuronFS is new. Here's an honest breakdown.
+
+### Existing techniques applied (~60%)
+
+| Component | Origin | NeuronFS twist |
+|-----------|--------|---------------|
+| Cosine similarity | IR textbook | Bigram + Korean 2-gram tokenizer |
+| Levenshtein distance | String algorithms | 40% weight in hybrid formula |
+| RBAC | Security standard | region→action mapping on folders |
+| AES-256-GCM | Crypto standard | Cartridge encryption to RAM only |
+| Merkle chain | Blockchain/Git | Neuron tampering detection |
+| Subsumption architecture | Brooks (1986 robotics) | 7-layer cognitive cascade |
+
+### Novel systems — no prior art (~40%)
+
+| System | What it does | Why it's new |
+|--------|-------------|-------------|
+| **Folder=Neuron paradigm** | `mkdir` = neuron creation. File path = natural language rule. | No system uses OS folders as the cognitive unit. |
+| **vorq rune system** | 16 runes (12 kanji + 4 neologisms) encode governance meaning. | A constructed micro-language for AI behavioral control. |
+| **3-Tier emit pipeline** | Folder prefixes (禁/必/推) → NEVER/ALWAYS/WHEN → auto-injected into system prompts for any AI. | Rules are "installed" into LLMs, not "suggested." |
+| **Filename=Counter** | `5.neuron` = 5 activations. No database. | Metadata IS the filename. Zero-query state. |
+| **bomb circuit breaker** | 3 failures → P0 halts entire cognitive region. | Cognitive-level circuit breaker with physical prompt silencing. |
+| **Hebbian File Score** | `(Activation × 1.5) + Weight` over file counters. | Synapse-weighted retrieval from a filesystem. |
+| **emit → multi-IDE** | One brain → `.cursorrules` + `CLAUDE.md` + `GEMINI.md` + `copilot-instructions.md`. | Single governance source controls every AI simultaneously. |
+| **OOM Protection** | `applyOOMProtection()` auto-truncates when tokens exceed LLM context window. | No other system prevents its own context overflow. |
+
+> **The novel part IS the paradigm.** "Folder is a neuron" is the axiom. Everything else derives from it. The existing techniques wouldn't combine without this axiom — there's no reason to put Merkle chains on folders unless folders ARE the data.
 
 </details>
 
@@ -579,7 +677,7 @@ This project is licensed under **AGPL-3.0** with additional commercial terms. Se
 ---
 > *A non-developer flipped the direction of an industry. Programming became philosophy once AI arrived.*
 > *Created by 박정근 (PD) — rubisesJO777*
-> *Architecture: 83 Go files, ~18,600 lines. Single binary. Zero runtime dependencies.*
+> *Architecture: 63 Go source files, 297 functions, 190 tests, ~22,000 lines. Single binary. Zero runtime dependencies.*
 
 <!--
 Easter Egg for the code divers:

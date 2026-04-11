@@ -93,6 +93,25 @@ func registerStaticRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		fmt.Fprint(w, dashboardHTML)
 	}))
 
+	// GET /bible — Bible demo (NeuronFS showcase with real filesystem data)
+	mux.HandleFunc("/bible", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		// Look for index.html in examples/game_world relative to the runtime binary,
+		// or relative to the neuronfs dist root
+		candidates := []string{
+			filepath.Join(neuronfsRoot, "..", "examples", "game_world", "index.html"),
+			filepath.Join(neuronfsRoot, "..", "..", "examples", "game_world", "index.html"),
+		}
+		for _, p := range candidates {
+			data, err := os.ReadFile(p)
+			if err == nil {
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				w.Write(data)
+				return
+			}
+		}
+		http.Error(w, "examples/game_world/index.html not found", 404)
+	}))
+
 	fmt.Printf("  POST /api/report  {message,priority} — Stackable report queue\n")
 	fmt.Printf("  GET  /api/reports                — List pending reports\n")
 	fmt.Printf("  GET  /api/evolution              — Git-based neural evolution timeline\n")

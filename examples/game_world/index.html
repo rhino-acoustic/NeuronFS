@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuronFS Bible — Live Filesystem Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Serif+KR:wght@300;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#d4d4e0;font-family:'Noto Serif KR','Inter',serif;overflow-x:hidden;height:100vh;display:flex;flex-direction:column}
+
+#topbar{height:44px;background:rgba(10,10,15,0.95);border-bottom:1px solid #1a1a2a;display:flex;align-items:center;padding:0 20px;gap:16px;z-index:100;backdrop-filter:blur(12px)}
+#topbar h1{font-family:'Orbitron';font-size:12px;color:#c9a84c;letter-spacing:3px}
+.status{font-size:11px;margin-left:auto}
+.status.on{color:#4ade80}
+.status.off{color:#ff4060}
+
+#app{display:flex;flex:1;overflow:hidden}
+#tree{width:280px;background:#0d0d14;border-right:1px solid #1a1a2a;overflow-y:auto;flex-shrink:0}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#viewer{flex:1;overflow-y:auto;padding:32px 40px}
+#inspector{width:280px;background:#0d0d14;border-left:1px solid #1a1a2a;overflow-y:auto;padding:16px;flex-shrink:0}
+
+/* Tree */
+.tree-item{padding:6px 12px;font-size:12px;cursor:pointer;transition:0.15s;display:flex;align-items:center;gap:6px;border-left:2px solid transparent}
+.tree-item:hover{background:rgba(201,168,76,0.05);border-left-color:#c9a84c}
+.tree-item.active{background:rgba(201,168,76,0.08);border-left-color:#c9a84c;color:#c9a84c}
+.tree-item.depth-0{font-family:'Orbitron';font-size:10px;color:#555;letter-spacing:1px;padding:10px 12px}
+.tree-item.depth-1{padding-left:20px;font-weight:600}
+.tree-item.depth-2{padding-left:32px;color:#888}
+.tree-item.depth-3{padding-left:44px;color:#666;font-size:11px}
+.tree-item .counter{margin-left:auto;font-family:'Orbitron';font-size:9px;color:#4ade80;min-width:20px;text-align:right}
+.tree-item.ban{color:#ff4060}
+.tree-item.ban .counter{color:#ff4060}
+
+/* Viewer */
+.breadcrumb{font-family:monospace;font-size:11px;color:#444;margin-bottom:20px}
+.breadcrumb span{color:#c9a84c}
+.viewer-title{font-family:'Orbitron';font-size:20px;color:#c9a84c;letter-spacing:2px;margin-bottom:24px}
+.neuron-card{padding:16px;margin:8px 0;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:6px;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;gap:4px}
+.neuron-card:hover{background:rgba(201,168,76,0.04);border-color:rgba(201,168,76,0.2);transform:translateX(4px)}
+.neuron-card.selected{border-color:#c9a84c;background:rgba(201,168,76,0.06)}
+.neuron-card.ban{border-left:3px solid #ff4060}
+.neuron-card .n-name{font-size:14px;color:#ddd}
+.neuron-card .n-path{font-family:monospace;font-size:10px;color:#555}
+.neuron-card .n-counter{font-family:'Orbitron';font-size:11px;color:#4ade80}
+.neuron-card .n-rule{font-size:13px;color:#999;line-height:1.7;margin-top:4px}
+.neuron-card.ban .n-name::before{content:'🛡️ 禁 ';color:#ff4060}
+
+/* Inspector */
+#inspector h4{font-family:'Orbitron';font-size:10px;color:#7c5cfc;letter-spacing:2px;margin:16px 0 6px}
+.field{font-size:12px;color:#888;margin:3px 0;display:flex;justify-content:space-between}
+.field .val{color:#d4d4e0}
+.act-btn{display:block;width:100%;padding:8px;margin:4px 0;border:1px solid #222;background:none;color:#888;font-size:11px;font-family:'Orbitron';letter-spacing:1px;border-radius:3px;cursor:pointer;transition:0.2s;text-align:left}
+.act-btn:hover{color:#c9a84c;border-color:#c9a84c}
+.act-btn.fire{border-color:#4ade8040;color:#4ade80}
+.act-btn.fire:hover{background:rgba(74,222,128,0.1)}
+
+/* Stats */
+#statsbar{height:28px;background:#08080d;border-top:1px solid #151520;display:flex;align-items:center;padding:0 16px;font-size:10px;color:#444;gap:20px;font-family:'Orbitron';letter-spacing:1px}
+#statsbar .v{color:#4ade80}
+
+.empty{color:#555;font-size:13px;text-align:center;padding:40px}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <h1>✝ NEURONFS BIBLE</h1>
+  <span style="font-size:11px;color:#555">— 실제 파일시스템에서 읽는 중</span>
+  <span class="status off" id="status">● connecting...</span>
+</div>
+
+<div id="app">
+  <div id="tree"></div>
+  <div id="main">
+    <div id="viewer"><div class="empty">Loading from localhost:9090/api/brain ...</div></div>
+    <div id="statsbar">
+      <span>BIBLE NEURONS: <span class="v" id="st-n">-</span></span>
+      <span>禁: <span class="v" style="color:#ff4060" id="st-ban">-</span></span>
+      <span>TOTAL ACTIVATION: <span class="v" id="st-act">-</span></span>
+    </div>
+  </div>
+  <div id="inspector">
+    <h4>NEURON INSPECTOR</h4>
+    <div id="insp">Click a neuron to inspect</div>
+  </div>
+</div>
+
+<script>
+const API = window.location.origin; // same origin — served by neuronfs
+
+let brainData = null;
+let bibleNeurons = [];
+let selectedNeuron = null;
+let expandedPaths = new Set();
+
+// ── API ──
+async function loadBrain() {
+  try {
+    const r = await fetch(`${API}/api/brain`);
+    if (!r.ok) throw new Error('offline');
+    brainData = await r.json();
+    document.getElementById('status').textContent = '● LIVE from filesystem';
+    document.getElementById('status').className = 'status on';
+
+    // Extract bible neurons
+    bibleNeurons = [];
+    for (const region of (brainData.regions || [])) {
+      for (const n of (region.neurons || [])) {
+        if (n.path && n.path.startsWith('bible')) {
+          bibleNeurons.push({ ...n, region: region.name });
+        }
+      }
+    }
+
+    renderTree();
+    renderViewer();
+    renderStats();
+  } catch(e) {
+    document.getElementById('status').textContent = '● OFFLINE — neuronfs --api를 실행하세요';
+    document.getElementById('status').className = 'status off';
+  }
+}
+
+async function fireNeuron(path) {
+  await fetch(`${API}/api/fire?path=${encodeURIComponent(path)}`, { method: 'POST' });
+  setTimeout(loadBrain, 300);
+}
+
+async function rollbackNeuron(path) {
+  await fetch(`${API}/api/rollback?path=${encodeURIComponent(path)}`, { method: 'POST' });
+  setTimeout(loadBrain, 300);
+}
+
+async function signalDopamine(path) {
+  await fetch(`${API}/api/signal?path=${encodeURIComponent(path)}&type=dopamine`, { method: 'POST' });
+  setTimeout(loadBrain, 300);
+}
+
+// ── Tree: build from actual paths ──
+function renderTree() {
+  const el = document.getElementById('tree');
+
+  // Build tree structure from flat paths
+  const tree = {};
+  for (const n of bibleNeurons) {
+    const parts = n.path.split('/');
+    let node = tree;
+    for (const p of parts) {
+      if (!node[p]) node[p] = { _children: {}, _neurons: [] };
+      node = node[p]._children;
+    }
+    // Attach neuron to its leaf
+    let leaf = tree;
+    for (const p of parts) leaf = leaf[p]._children;
+    // Store at parent level
+    let parent = tree;
+    for (let i = 0; i < parts.length - 1; i++) parent = parent[parts[i]]._children;
+    if (parent[parts[parts.length-1]]) parent[parts[parts.length-1]]._neuron = n;
+  }
+
+  // Render recursively
+  let html = '';
+  function renderNode(node, depth, pathSoFar) {
+    for (const [name, child] of Object.entries(node)) {
+      if (name.startsWith('_')) continue;
+      const fullPath = pathSoFar ? `${pathSoFar}/${name}` : name;
+      const n = child._neuron;
+      const hasChildren = Object.keys(child._children).filter(k => !k.startsWith('_')).length > 0;
+      const isBan = fullPath.includes('禁');
+      const isExpanded = expandedPaths.has(fullPath);
+
+      html += `<div class="tree-item depth-${Math.min(depth, 3)} ${n && selectedNeuron?.path === n.path ? 'active' : ''} ${isBan ? 'ban' : ''}"
+        onclick="${hasChildren ? `toggleExpand('${fullPath}')` : ''}; ${n ? `selectNeuron(${JSON.stringify(n).replace(/'/g, "\\'")},'${fullPath}')` : ''}"
+      >`;
+      html += hasChildren ? (isExpanded ? '📂' : '📁') : '📄';
+      html += ` ${name}`;
+      if (n) html += `<span class="counter">${n.counter}</span>`;
+      html += '</div>';
+
+      if (hasChildren && isExpanded) {
+        renderNode(child._children, depth + 1, fullPath);
+      }
+    }
+  }
+
+  renderNode(tree, 0, '');
+  el.innerHTML = html || '<div class="empty">No bible neurons found.<br>Create folders in brain_v4/cortex/bible/</div>';
+}
+
+function toggleExpand(path) {
+  if (expandedPaths.has(path)) expandedPaths.delete(path);
+  else expandedPaths.add(path);
+  renderTree();
+}
+
+// ── Viewer ──
+function renderViewer() {
+  const el = document.getElementById('viewer');
+  // Show all leaf neurons with their rule text
+  const leaves = bibleNeurons.filter(n => n.counter > 0 || n.path.includes('禁') || n.path.includes('必'));
+
+  if (leaves.length === 0) {
+    el.innerHTML = '<div class="empty">No bible neurons found in filesystem.<br>Run the folder creation script first.</div>';
+    return;
+  }
+
+  let html = '<div class="viewer-title">실제 파일시스템의 성경 뉴런</div>';
+  html += '<div class="breadcrumb">📁 <span>brain_v4</span> / <span>cortex</span> / <span>bible</span> / ...</div>';
+
+  // Group by testament > book > chapter
+  const grouped = {};
+  for (const n of leaves) {
+    const parts = n.path.split('/');
+    if (parts.length < 3) continue;
+    const testament = parts[1] || '';
+    const book = parts[2] || '';
+    const key = `${testament}/${book}`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(n);
+  }
+
+  for (const [group, neurons] of Object.entries(grouped).sort()) {
+    const [testament, book] = group.split('/');
+    html += `<div style="font-family:Orbitron;font-size:10px;color:#555;margin:24px 0 8px;letter-spacing:2px">${testament === 'old_testament' ? '📜 구약' : '✝️ 신약'} › ${book}</div>`;
+
+    for (const n of neurons.sort((a,b) => b.counter - a.counter)) {
+      const isBan = n.path.includes('禁');
+      const leaf = n.path.split('/').pop();
+      const isSelected = selectedNeuron?.path === n.path;
+
+      html += `<div class="neuron-card ${isBan?'ban':''} ${isSelected?'selected':''}" onclick='selectNeuron(${JSON.stringify(n)})'>`;
+      html += `<div class="n-name">${leaf.replace(/_/g, ' ')}</div>`;
+      html += `<div class="n-path">📁 ${n.path}/${n.counter}.neuron</div>`;
+      html += `<div class="n-counter">counter: ${n.counter} ${isBan ? '· 禁 IMMUTABLE' : ''}</div>`;
+      html += '</div>';
+    }
+  }
+
+  el.innerHTML = html;
+}
+
+// ── Inspector ──
+function selectNeuron(n, path) {
+  selectedNeuron = n;
+  renderTree();
+  renderViewer();
+
+  const isBan = (n.path || '').includes('禁');
+  const isMust = (n.path || '').includes('必');
+
+  document.getElementById('insp').innerHTML = `
+    <div style="color:#c9a84c;font-size:14px;font-weight:700;margin-bottom:12px">${(n.path || '').split('/').pop()?.replace(/_/g, ' ')}</div>
+
+    <h4>📁 FILESYSTEM PATH</h4>
+    <div style="font-family:monospace;font-size:10px;color:#4ade80;background:#0a0a14;padding:8px;border-radius:3px;margin-bottom:8px;word-break:break-all">
+      brain_v4/cortex/${n.path}/${n.counter}.neuron
+    </div>
+
+    <h4>PROPERTIES</h4>
+    <div class="field"><span>counter</span><span class="val" style="color:#c9a84c">${n.counter}</span></div>
+    <div class="field"><span>dopamine</span><span class="val">${n.dopamine || 0}</span></div>
+    <div class="field"><span>contra</span><span class="val">${n.contra || 0}</span></div>
+    <div class="field"><span>depth</span><span class="val">${n.depth || 0}</span></div>
+    <div class="field"><span>hasBomb</span><span class="val">${n.hasBomb ? '💥 YES' : 'no'}</span></div>
+    <div class="field"><span>isDormant</span><span class="val">${n.isDormant ? 'yes' : 'no'}</span></div>
+    <div class="field"><span>region</span><span class="val">${n.region || 'cortex'}</span></div>
+    ${isBan ? '<div class="field"><span style="color:#ff4060">🛡️ 禁</span><span class="val" style="color:#ff4060">IMMUTABLE</span></div>' : ''}
+    ${isMust ? '<div class="field"><span style="color:#4ade80">✓ 必</span><span class="val" style="color:#4ade80">REQUIRED</span></div>' : ''}
+
+    <h4>ACTIONS (실제 API 호출)</h4>
+    <button class="act-btn fire" onclick="fireNeuron('${n.path}')">🔥 FIRE — 카운터 +1 (읽음)</button>
+    <button class="act-btn" onclick="rollbackNeuron('${n.path}')">↩ ROLLBACK — 카운터 -1</button>
+    <button class="act-btn" onclick="signalDopamine('${n.path}')">💛 DOPAMINE — 칭찬 시그널</button>
+
+    <h4>NeuronFS 해설</h4>
+    <div style="font-size:11px;color:#555;line-height:1.8">
+      이 뉴런은 <strong style="color:#4ade80">실제 디스크</strong>에 존재하는 폴더입니다.<br><br>
+      <code style="color:#c9a84c">dir brain_v4\\cortex\\${n.path.replace(/\//g, '\\')}</code><br>
+      로 직접 확인 가능합니다.<br><br>
+      🔥 FIRE를 누르면 실제 .neuron 파일의 이름이 변경됩니다 (${n.counter}.neuron → ${n.counter+1}.neuron).
+      ${isBan ? '<br><br>🛡️ <span style="color:#ff4060">禁 뉴런</span>은 dedup/decay/삭제가 불가능합니다.' : ''}
+    </div>
+  `;
+}
+
+function renderStats() {
+  document.getElementById('st-n').textContent = bibleNeurons.length;
+  document.getElementById('st-ban').textContent = bibleNeurons.filter(n => n.path.includes('禁')).length;
+  document.getElementById('st-act').textContent = bibleNeurons.reduce((s,n) => s + (n.counter||0), 0);
+}
+
+// ── Init ──
+// Auto-expand bible root
+expandedPaths.add('bible');
+expandedPaths.add('bible/old_testament');
+expandedPaths.add('bible/new_testament');
+
+loadBrain();
+setInterval(loadBrain, 5000);
+</script>
+</body>
+</html>

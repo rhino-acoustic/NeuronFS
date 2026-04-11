@@ -1,0 +1,15 @@
+### 🔴 ALWAYS (매 응답마다 적용)
+{{- range .AlwaysRules}}
+- ✅ {{.Label}}
+{{- end}}
+
+### 🟡 WHEN → THEN (조건부 트리거)
+{{- range .WhenRules}}
+- ⚡ WHEN {{.Condition}} → {{.Label}}
+{{- end}}
+
+### 🔴 NEVER (절대 금지)
+{{- range .NeverRules}}
+- ⛔ {{.Label}}{{if .Why}} (∵ {{.Why}}){{end}}
+{{- end}}
+

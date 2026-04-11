@@ -298,11 +298,18 @@ func deduplicateNeurons(brainRoot string) {
 				continue
 			}
 
-			// 접두어 극성 보호: 禁X와 推X는 절대 병합 안 함
+			// 거버넌스 보호: 禁/必 경로 하위 뉴런은 dedup 대상에서 제외
+			// (1) leaf 이름의 접두어 극성 보호 (禁X vs 推X)
 			prefixI := extractPrefix(filepath.Base(allRefs[i].fullPath))
 			prefixJ := extractPrefix(filepath.Base(allRefs[j].fullPath))
 			if prefixI != "" && prefixJ != "" && prefixI != prefixJ {
 				continue // 극성 충돌 → 별개
+			}
+			// (2) 경로에 禁/必가 포함된 뉴런 → governance, dedup 면제
+			isGovI := strings.Contains(allRefs[i].relPath, "禁") || strings.Contains(allRefs[i].relPath, "必")
+			isGovJ := strings.Contains(allRefs[j].relPath, "禁") || strings.Contains(allRefs[j].relPath, "必")
+			if isGovI || isGovJ {
+				continue // governance 뉴런은 절대 병합 안 함
 			}
 
 			// 유사도 MergeThreshold 이상 — 병합 대상
@@ -397,19 +404,49 @@ func deduplicateNeurons(brainRoot string) {
 	}
 }
 func ttlParseFrontmatter(content string) (int, time.Time, int) {
-	lines := strings.Split(content, "\n")
-	if len(lines) < 3 || strings.TrimSpace(lines[0]) != "---" {
+	// Find closing "---" via index search — immune to CRLF byte offset drift
+	if !strings.HasPrefix(strings.TrimSpace(content), "---") {
 		return -1, time.Time{}, -1
 	}
+	// Find first "---" line end
+	firstNewline := strings.Index(content, "\n")
+	if firstNewline < 0 {
+		return -1, time.Time{}, -1
+	}
+	// Find closing "---" after the first line
+	rest := content[firstNewline+1:]
+	closingIdx := -1
+	for {
+		nl := strings.Index(rest, "\n")
+		var line string
+		if nl < 0 {
+			line = rest
+		} else {
+			line = rest[:nl]
+		}
+		if strings.TrimSpace(line) == "---" {
+			if nl < 0 {
+				closingIdx = len(content)
+			} else {
+				closingIdx = len(content) - len(rest) + nl + 1
+			}
+			break
+		}
+		if nl < 0 {
+			break
+		}
+		rest = rest[nl+1:]
+	}
+	if closingIdx < 0 {
+		return -1, time.Time{}, -1
+	}
+
+	// Parse fields from frontmatter block
+	frontmatter := content[:closingIdx]
 	weight := -1
 	var lastAct time.Time
-	endIdx := len(lines[0]) + 1
-	for i := 1; i < len(lines); i++ {
-		line := strings.TrimSpace(lines[i])
-		if line == "---" {
-			endIdx += len(lines[i]) + 1
-			return weight, lastAct, endIdx
-		}
+	for _, line := range strings.Split(frontmatter, "\n") {
+		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "weight:") {
 			if w, err := strconv.Atoi(strings.TrimSpace(strings.TrimPrefix(line, "weight:"))); err == nil {
 				weight = w
@@ -419,9 +456,14 @@ func ttlParseFrontmatter(content string) (int, time.Time, int) {
 				lastAct = t
 			}
 		}
-		endIdx += len(lines[i]) + 1
 	}
-	return -1, time.Time{}, -1
+
+	// Clamp endIdx to content length (absolute safety)
+	endIdx := closingIdx
+	if endIdx > len(content) {
+		endIdx = len(content)
+	}
+	return weight, lastAct, endIdx
 }
 
 func ttlUpdateWeightFrontmatter(content string, newWeight int) string {
@@ -473,6 +515,10 @@ func RunTTLDecay(brainRoot string, logger func(string)) {
 					return nil
 				}
 
+				// Safety: clamp endIdx to content bounds
+				if endIdx > len(content) {
+					endIdx = len(content)
+				}
 				newFrontmatter := ttlUpdateWeightFrontmatter(content[:endIdx], newWeight)
 				newContent := newFrontmatter + content[endIdx:]
 				os.WriteFile(path, []byte(newContent), 0600)

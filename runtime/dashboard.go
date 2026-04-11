@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 )
 
 // ─── Health check models ───
@@ -117,13 +118,30 @@ func countNeuronFiles(brainRoot string) int {
 }
 
 // ─── Build health JSON ───
+// Go 네이티브: supervisor goroutine 상태 추적
+var goNativeServices sync.Map // name → bool (running)
+
+func markServiceRunning(name string, running bool) {
+	goNativeServices.Store(name, running)
+}
+
+func isGoServiceRunning(name string) bool {
+	if v, ok := goNativeServices.Load(name); ok {
+		return v.(bool)
+	}
+	return false
+}
+
 func buildHealthJSON(brainRoot string) HealthJSON {
 	processes := []ProcessHealth{
-		// 인프라 데몬
-		{Name: "neuronfs", Role: "인지 엔진 (API 서버 + 대시보드)", Running: isProcessRunning("neuronfs.exe")},
-		{Name: "agent-bridge", Role: "CDP 에이전트 통신 브릿지", Running: isNodeScriptRunning("agent-bridge")},
-		{Name: "auto-accept", Role: "CDP 자동 수락 + 교정 감지", Running: isNodeScriptRunning("auto-accept")},
-		{Name: "watchdog", Role: "전체 프로세스 생존 감시 + harness 주기 실행", Running: isNodeScriptRunning("watchdog") || isProcessRunning("powershell.exe")},
+		// Go 네이티브 서비스 (supervisor goroutine 기반)
+		{Name: "neuronfs-api", Role: "인지 엔진 (REST API + 대시보드)", Running: isProcessRunning("neuronfs.exe")},
+		{Name: "auto-accept", Role: "CDP 자동 수락 + NEURON 감지 + Groq 배치", Running: isGoServiceRunning("auto-accept")},
+		{Name: "agent-bridge", Role: "에이전트 라우팅 브릿지", Running: isGoServiceRunning("agent-bridge")},
+		{Name: "context-hijacker", Role: "MITM 컨텍스트 캡처", Running: isGoServiceRunning("context-hijacker")},
+		{Name: "headless-executor", Role: "Inbox 명령 샌드박스 실행", Running: isGoServiceRunning("headless-executor")},
+		{Name: "hijack-launcher", Role: "TG 양방향 + CDP 전사 + 자동통합", Running: isGoServiceRunning("hijack-launcher")},
+		{Name: "supervisor", Role: "전체 프로세스 관리 + 자기 감시", Running: isProcessRunning("neuronfs.exe")},
 	}
 
 	return HealthJSON{

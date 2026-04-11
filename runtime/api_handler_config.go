@@ -216,8 +216,137 @@ func registerConfigRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 			"paths":   createdPaths,
 		})
 	}))
+
+	// GET/POST /api/integrations — 텔레그램 + Groq + Claude 설정 관리
+	mux.HandleFunc("/api/integrations", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		nfsRoot := filepath.Dir(brainRoot)
+		tgDir := filepath.Join(nfsRoot, "telegram-bridge")
+		secretsDir := filepath.Join(nfsRoot, ".secrets") // ★ brain_v4 외부, 로컬 전용
+
+		if r.Method == "GET" {
+			result := map[string]interface{}{}
+
+			// 텔레그램 상태
+			tgToken := ""
+			tgChatID := ""
+			tgMount := ""
+			if d, err := os.ReadFile(filepath.Join(tgDir, ".token")); err == nil {
+				tgToken = strings.TrimSpace(string(d))
+			}
+			if d, err := os.ReadFile(filepath.Join(tgDir, ".chat_id")); err == nil {
+				tgChatID = strings.TrimSpace(string(d))
+			}
+			if d, err := os.ReadFile(filepath.Join(tgDir, ".mount")); err == nil {
+				tgMount = strings.TrimSpace(string(d))
+			}
+
+			maskedToken := ""
+			if len(tgToken) > 10 {
+				maskedToken = tgToken[:6] + "..." + tgToken[len(tgToken)-4:]
+			}
+
+			result["telegram"] = map[string]interface{}{
+				"configured": tgToken != "",
+				"token":      maskedToken,
+				"chatId":     tgChatID,
+				"mount":      tgMount,
+			}
+
+			// Groq 상태 (환경변수 + .secrets 파일)
+			groqKey := os.Getenv("GROQ_API_KEY")
+			if groqKey == "" {
+				if d, err := os.ReadFile(filepath.Join(secretsDir, "groq_api_key")); err == nil {
+					groqKey = strings.TrimSpace(string(d))
+				}
+			}
+			maskedGroq := ""
+			if len(groqKey) > 10 {
+				maskedGroq = groqKey[:8] + "..." + groqKey[len(groqKey)-4:]
+			}
+			result["groq"] = map[string]interface{}{
+				"configured": groqKey != "",
+				"key":        maskedGroq,
+			}
+
+			// Claude 상태 (환경변수 + .secrets 파일)
+			claudeKey := os.Getenv("ANTHROPIC_API_KEY")
+			if claudeKey == "" {
+				if d, err := os.ReadFile(filepath.Join(secretsDir, "anthropic_api_key")); err == nil {
+					claudeKey = strings.TrimSpace(string(d))
+				}
+			}
+			maskedClaude := ""
+			if len(claudeKey) > 10 {
+				maskedClaude = claudeKey[:8] + "..." + claudeKey[len(claudeKey)-4:]
+			}
+			result["claude"] = map[string]interface{}{
+				"configured": claudeKey != "",
+				"key":        maskedClaude,
+			}
+
+			// 서비스 상태
+			result["services"] = map[string]interface{}{
+				"autoAccept":      isGoServiceRunning("auto-accept"),
+				"hijackLauncher":  isGoServiceRunning("hijack-launcher"),
+				"contextHijacker": isGoServiceRunning("context-hijacker"),
+				"agentBridge":     isGoServiceRunning("agent-bridge"),
+			}
+
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			json.NewEncoder(w).Encode(result)
+			return
+		}
+
+		if r.Method != "POST" {
+			http.Error(w, "GET or POST only", 405)
+			return
+		}
+
+		var req struct {
+			TelegramToken  *string `json:"telegramToken"`
+			TelegramChatID *string `json:"telegramChatId"`
+			TelegramMount  *string `json:"telegramMount"`
+			GroqKey        *string `json:"groqKey"`
+			ClaudeKey      *string `json:"claudeKey"`
+		}
+		json.NewDecoder(r.Body).Decode(&req)
+
+		os.MkdirAll(tgDir, 0750)
+		os.MkdirAll(secretsDir, 0700) // ★ 비밀키 로컬 전용
+		updated := []string{}
+
+		if req.TelegramToken != nil && *req.TelegramToken != "" {
+			os.WriteFile(filepath.Join(tgDir, ".token"), []byte(*req.TelegramToken), 0600)
+			updated = append(updated, "telegram.token")
+		}
+		if req.TelegramChatID != nil {
+			os.WriteFile(filepath.Join(tgDir, ".chat_id"), []byte(*req.TelegramChatID), 0600)
+			updated = append(updated, "telegram.chatId")
+		}
+		if req.TelegramMount != nil && *req.TelegramMount != "" {
+			os.WriteFile(filepath.Join(tgDir, ".mount"), []byte(*req.TelegramMount), 0600)
+			updated = append(updated, "telegram.mount")
+		}
+		if req.GroqKey != nil && *req.GroqKey != "" {
+			os.WriteFile(filepath.Join(secretsDir, "groq_api_key"), []byte(*req.GroqKey), 0600)
+			os.Setenv("GROQ_API_KEY", *req.GroqKey)
+			updated = append(updated, "groq.key")
+		}
+		if req.ClaudeKey != nil && *req.ClaudeKey != "" {
+			os.WriteFile(filepath.Join(secretsDir, "anthropic_api_key"), []byte(*req.ClaudeKey), 0600)
+			os.Setenv("ANTHROPIC_API_KEY", *req.ClaudeKey)
+			updated = append(updated, "claude.key")
+		}
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  "updated",
+			"updated": updated,
+		})
+	}))
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // System Routes: integrity, evolution, community, reports, codemap
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+

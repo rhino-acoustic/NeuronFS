@@ -11,6 +11,7 @@ Day 1 (2026-03-26)  │  main.go 1,200줄 — 하나의 파일에 모든 것
 Day 5 (2026-03-30)  │  main.go 2,800줄 — 성장통. 함수를 찾으려면 Ctrl+F
 Day 8 (2026-04-02)  │  main.go 3,538줄 — 한계. AI가 맥락을 잃기 시작
 Day 10 (2026-04-05) │  30개 파일, 10,920줄 — 파일명 = 문서. AI가 즉시 복귀
+Day 17 (2026-04-11) │  83개 파일, 18,597줄 — Go/Node 완전 통합, 단일 바이너리
 ```
 
 ### 왜 분리했나?
@@ -50,7 +51,7 @@ transcript.go    → 대화를 기록한다
 
 ---
 
-## 30 Files — The Complete Map
+## 83 Files — The Complete Map
 
 > 실시간 데이터: `GET http://localhost:9090/api/codemap`
 
@@ -58,46 +59,49 @@ transcript.go    → 대화를 기록한다
 
 | 파일 | 줄 | 무엇을 하는가 |
 |------|-----|-------------|
-| `main.go` | 396 | CLI 디스패처. 오직 진입점만. |
-| `brain.go` | 439 | 뇌 스캔, 구조체, Subsumption 실행 |
-| `init.go` | 251 | 뇌 초기화 (`--init`) |
-| `awakening.go` | 346 | 부팅 시퀀스 |
+| `main.go` | ~400 | CLI 디스패처. 오직 진입점만. |
+| `brain.go` | 498 | 뇌 스캔, 구조체, Subsumption 실행 |
+| `init.go` | ~380 | 뇌 초기화 (`--init`) |
+| `awakening.go` | ~280 | 부팅 시퀀스 |
 
 ### 🧠 Intelligence (지능)
 
 | 파일 | 줄 | 무엇을 하는가 |
 |------|-----|-------------|
-| `emit.go` | 858 | _rules.md 생성 — Tier 0/1/2 규칙 컴파일 |
-| `emit_helpers.go` | 581 | 인덱스, 트리 렌더링, 경로 유틸 |
-| `emit_tiers.go` | 273 | `--emit auto/all` + 자동 백업 + 에디터 감지 |
-| `neuronize.go` | 760 | Groq LLaMA 기반 자율 뉴런 생성 |
-| `evolve.go` | 644 | 자율 진화 엔진 |
-| `similarity.go` | 261 | 토큰화, 유사도 계산 (순수 리프) |
-| `lifecycle.go` | 378 | 프루닝, 디케이, 중복 제거 |
+| `emit_bootstrap.go` | 733 | Tier 1 GEMINI.md 부트스트랩 생성 |
+| `emit_helpers.go` | 706 | 인덱스, 트리 렌더링, Attention Residuals, 코드맵 |
+| `emit_tiers.go` | ~400 | `--emit auto/all` + 자동 백업 + 에디터 감지 |
+| `cli_llm.go` | ~560 | Groq LLaMA 기반 자율 뉴런 생성/진화 |
+| `similarity.go` | 263 | 하이브리드 유사도 (Cosine+Levenshtein), 한글 2-gram |
+| `lifecycle.go` | 526 | 프루닝, 디케이, 중복 제거, TTL 감쇠 |
 
 ### 🔌 Interface (외부 연결)
 
 | 파일 | 줄 | 무엇을 하는가 |
 |------|-----|-------------|
-| `api_server.go` | 967 | REST API + `/api/codemap` |
-| `mcp_server.go` | 828 | MCP stdio 서버 (AI IDE 통합) |
-| `mcp_tools_native.go` | 155 | MCP 도구 등록 |
-| `dashboard.go` | 486 | 대시보드 HTTP 서버 |
-| `dashboard_html.go` | 11 | `go:embed dashboard.html` (1,156줄 → 11줄) |
-| `adapter.go` | 114 | 멀티-IDE 어댑터 |
+| `api_server.go` | ~80 | REST API 라우터 (핸들러는 별도 파일로 분리됨) |
+| `api_handler_*.go` | ~1000+ | CRUD/System/Config/LLM 핸들러 (4개 파일) |
+| `mcp_server.go` | ~250 | MCP Streamable HTTP 서버 (stdio 대체) |
+| `mcp_handler_*.go` | ~800+ | MCP CRUD/Evolve/Read/Sys/Temporal (5개 파일) |
+| `dashboard.go` | ~200 | 대시보드 HTTP 서버 |
+| `dashboard_html.go` | 11 | `go:embed dashboard.html` (1,170줄 → 11줄) |
+| `adapter.go` | ~100 | 멀티-IDE 어댑터 |
 
 ### ⚡ Operations (운영)
 
 | 파일 | 줄 | 무엇을 하는가 |
 |------|-----|-------------|
-| `neuron_crud.go` | 277 | grow, fire, rollback, signal |
-| `inject.go` | 287 | 더티 플래그, 인박스, 인젝션 루프 |
-| `watch.go` | 135 | fsnotify 제로폴링 감시 |
-| `supervisor.go` | 577 | 3-프로세스 감독자 |
-| `transcript.go` | 405 | Git 스냅샷, IDLE 엔진, 전사 |
-| `diag.go` | 261 | 진단, CODE_MAP 자동 갱신 |
-| `cli_commands.go` | 66 | --stats, --vacuum |
-| `exec_safe.go` | 31 | 30초 타임아웃 안전 exec |
+| `neuron_crud.go` | ~360 | grow, fire, rollback, signal |
+| `inject.go` | ~300 | 더티 플래그, 인박스, 인젝션 루프 |
+| `watch.go` | ~140 | fsnotify 제로폴링 감시 |
+| `supervisor.go` | 925 | N-프로세스 감독자 + 부트스트랩 + 챗 보호 |
+| `auto_accept.go` | ~750 | Go 네이티브 자동 승인 (Node 대체) |
+| `hijack_launcher.go` | ~800 | Go 네이티브 컨텍스트 하이재커 (Node 대체) |
+| `agent_bridge.go` | ~230 | 에이전트 간 비동기 메시징 |
+| `transcript.go` | ~500 | Git 스냅샷, IDLE 엔진, 전사 |
+| `diag.go` | ~360 | 진단, CODE_MAP 자동 갱신 |
+| `cli_commands.go` | ~65 | --stats, --vacuum |
+| `exec_safe.go` | ~90 | 30초 타임아웃 안전 exec |
 
 ### 🔒 Security (보안)
 

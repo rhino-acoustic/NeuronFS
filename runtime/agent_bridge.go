@@ -44,9 +44,12 @@ func runAgentBridge(brainRoot string) {
 	abLog(logFile, "Agents: bot1, entp, enfp, NeuronFS")
 
 	processed := make(map[string]bool)
+	retryCounts := make(map[string]int)
+	outProcessed := make(map[string]bool)
 
 	for {
-		abCheckInboxes(agentsDir, nasAgentsDir, logFile, processed)
+		abCheckInboxes(agentsDir, nasAgentsDir, logFile, processed, retryCounts)
+		abCheckOutboxToTelegram(agentsDir, logFile, outProcessed)
 		time.Sleep(time.Duration(abPollMs) * time.Millisecond)
 	}
 }
@@ -64,7 +67,7 @@ func abLog(logFile, msg string) {
 	}
 }
 
-func abCheckInboxes(agentsDir, nasAgentsDir, logFile string, processed map[string]bool) {
+func abCheckInboxes(agentsDir, nasAgentsDir, logFile string, processed map[string]bool, retryCounts map[string]int) {
 	sources := []string{agentsDir}
 	if nasAgentsDir != "" {
 		if _, err := os.Stat(nasAgentsDir); err == nil {
@@ -88,12 +91,10 @@ func abCheckInboxes(agentsDir, nasAgentsDir, logFile string, processed map[strin
 				if processed[name] {
 					continue
 				}
-				processed[name] = true
 
 				fp := filepath.Join(inbox, name)
 				data, err := os.ReadFile(fp)
 				if err != nil {
-					delete(processed, name)
 					continue
 				}
 
@@ -129,6 +130,7 @@ func abCheckInboxes(agentsDir, nasAgentsDir, logFile string, processed map[strin
 
 				ok := abInjectToAgent(agentID, injection)
 				if ok {
+					processed[name] = true
 					os.Rename(fp, filepath.Join(inbox, "_"+name))
 					abLog(logFile, fmt.Sprintf("✅ %s → %s injected%s", name, agentID, func() string {
 						if isNas {
@@ -137,7 +139,15 @@ func abCheckInboxes(agentsDir, nasAgentsDir, logFile string, processed map[strin
 						return ""
 					}()))
 				} else {
-					delete(processed, name)
+					// 재시도 카운터
+					retryKey := agentID + "/" + name
+					retryCounts[retryKey]++
+					if retryCounts[retryKey] >= 3 {
+						processed[name] = true
+						os.Rename(fp, filepath.Join(inbox, "_"+name))
+						abLog(logFile, fmt.Sprintf("⚠️ %s → %s 3회 실패 포기", name, agentID))
+						delete(retryCounts, retryKey)
+					}
 				}
 			}
 		}
@@ -177,19 +187,35 @@ func abInjectToAgent(agentID, message string) bool {
 	client.Call("Runtime.enable", map[string]interface{}{})
 	time.Sleep(300 * time.Millisecond)
 
-	// Focus chat input
-	focusExpr := `(() => {
-		function collectAll(root) {
-			const found = [];
-			const walk = n => { if(!n)return; if(n.shadowRoot)walk(n.shadowRoot); if(n.matches&&n.matches('[aria-label="Message input"][role="textbox"]'))found.push(n); for(const c of(n.children||[]))walk(c); };
-			walk(root); return found;
-		}
-		const inputs = collectAll(document);
-		if (inputs.length > 0) { inputs[0].textContent=''; inputs[0].focus(); return 'ok'; }
-		return 'not_found';
-	})()`
+	// Runtime.evaluate로 DOM 직접 조작 (비활성 탭에서도 동작)
+	escaped := strings.ReplaceAll(message, `\`, `\\`)
+	escaped = strings.ReplaceAll(escaped, `"`, `\"`)
+	escaped = strings.ReplaceAll(escaped, "\n", `\n`)
+	escaped = strings.ReplaceAll(escaped, "'", `\'`)
 
-	result, err := client.Call("Runtime.evaluate", map[string]interface{}{"expression": focusExpr, "returnByValue": true})
+	injectExpr := fmt.Sprintf(`(() => {
+		const all = Array.from(document.querySelectorAll("[contenteditable]"));
+		const el = all.reverse().find(e => {
+			const r = e.getBoundingClientRect();
+			return r.height > 0 && r.height < 300 && r.width > 100;
+		}) || all[0];
+		if(el) {
+			el.focus();
+			document.execCommand("insertText", false, "%s");
+			setTimeout(() => {
+				const btn = document.querySelector('button[aria-label="Send message"]') ||
+					Array.from(document.querySelectorAll("button")).find(b => b.textContent.includes("Send"));
+				if(btn) btn.click();
+			}, 50);
+			return "Injected";
+		}
+		return "NoTarget";
+	})()`, escaped)
+
+	result, err := client.Call("Runtime.evaluate", map[string]interface{}{
+		"expression":   injectExpr,
+		"returnByValue": true,
+	})
 	if err != nil {
 		return false
 	}
@@ -200,15 +226,56 @@ func abInjectToAgent(agentID, message string) bool {
 		} `json:"result"`
 	}
 	json.Unmarshal(result, &evalRes)
-	if evalRes.Result.Value != "ok" {
-		return false
+	return evalRes.Result.Value == "Injected"
+}
+
+// ── outbox → Telegram 전송 ──
+func abCheckOutboxToTelegram(agentsDir, logFile string, outProcessed map[string]bool) {
+	if hlTgToken == "" || hlTgChatID == "" {
+		return
 	}
 
-	time.Sleep(200 * time.Millisecond)
-	client.Call("Input.insertText", map[string]interface{}{"text": message})
-	time.Sleep(200 * time.Millisecond)
-	client.Call("Input.dispatchKeyEvent", map[string]interface{}{"type": "keyDown", "key": "Enter", "code": "Enter", "windowsVirtualKeyCode": 13})
-	client.Call("Input.dispatchKeyEvent", map[string]interface{}{"type": "keyUp", "key": "Enter", "code": "Enter", "windowsVirtualKeyCode": 13})
+	// NeuronFS 에이전트의 outbox만 감시
+	outbox := filepath.Join(agentsDir, "NeuronFS", "outbox")
+	entries, err := os.ReadDir(outbox)
+	if err != nil {
+		return
+	}
 
-	return true
+	for _, e := range entries {
+		name := e.Name()
+		if e.IsDir() || !strings.HasSuffix(name, ".md") || strings.HasPrefix(name, "_") {
+			continue
+		}
+		if outProcessed[name] {
+			continue
+		}
+		outProcessed[name] = true
+
+		fp := filepath.Join(outbox, name)
+		data, err := os.ReadFile(fp)
+		if err != nil {
+			delete(outProcessed, name)
+			continue
+		}
+
+		content := string(data)
+		// 헤더 제거
+		headerRe := regexp.MustCompile(`(?m)^#.*$`)
+		body := strings.TrimSpace(headerRe.ReplaceAllString(content, ""))
+		if body == "" {
+			continue
+		}
+
+		// 4000자 제한 (텔레그램 메시지 최대 길이)
+		runes := []rune(body)
+		if len(runes) > 4000 {
+			runes = runes[:4000]
+			body = string(runes) + "..."
+		}
+
+		hlTgSend(hlTgChatID, fmt.Sprintf("🤖 [NeuronFS]\n%s", body))
+		os.Rename(fp, filepath.Join(outbox, "_"+name))
+		abLog(logFile, fmt.Sprintf("📤 NeuronFS/outbox/%s → Telegram", name))
+	}
 }

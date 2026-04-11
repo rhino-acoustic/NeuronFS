@@ -62,6 +62,10 @@ const (
 
 	// MCPPort: NeuronFS MCP 서버의 Fallback 모드 REST API 포트
 	MCPPort = 9091
+
+	// MCPStreamPort: Streamable HTTP MCP 서버 포트
+	// IDE 재시작 시에도 MCP 연결 유지 (stdio 대체)
+	MCPStreamPort = 9247
 )
 
 // ━━━ Emotion Mapping (SSOT) ━━━
@@ -112,9 +116,9 @@ var EmotionBehaviors = map[string]EmotionTier{
 	},
 }
 
-// ━━━ Rune System (한자 마이크로옵코드) ━━━
-// 12개 룬 = NeuronFS의 의미 압축 체계
-// 디스크에는 한자 1글자, AI 주입 시 한국어로 펼침
+// ━━━ Rune System (한자 마이크로옵코드 + 신조어) ━━━
+// 16개 룬 = 12 한자 + 4 신조어(vorq/zelk/mirp/qorz)
+// 디스크에는 한자 1글자(또는 ASCII 신조어), AI 주입 시 한국어로 펼침
 // 이 map이 유일한 정의 (SSOT) — 다른 곳에서 정의 금지
 
 // RuneToKorean: 룬 → 한국어 번역 (SSOT)
@@ -131,9 +135,10 @@ var RuneToKorean = map[string]string{
 	"參": "참조: ",    // 타 뉴런/문서 링크
 	"結": "결론: ",    // 요약/결론만 도출
 	"警": "경고: ",    // 주의 — ~하면 위험
-	"vorq": "장착: ",   // 코드맵 카트리지 view_file 로드. NeuronFS 조어. 학습데이터 부재.
-	"zelk": "갱신: ",   // 코드맵 카트리지 sync. NeuronFS 조어. 학습데이터 부재.
-	"mirp": "신선도: ", // STALE mtime 비교. NeuronFS 조어. 학습데이터 부재.
+	"vorq": "장착: ",           // 코드맵 카트리지 view_file 로드. NeuronFS 조어. 학습데이터 부재.
+	"zelk": "갱신: ",           // 코드맵 카트리지 sync. NeuronFS 조어. 학습데이터 부재.
+	"mirp": "신선도: ",         // STALE mtime 비교. NeuronFS 조어. 학습데이터 부재.
+	"qorz": "커뮤니티검색필수: ", // 기술 결정 전 Reddit/GitHub/HN 검색 선행. NeuronFS 조어. 학습데이터 부재.
 }
 
 // RuneChars: ContainsAny용 문자열 (한자 12 + ASCII neologisms는 별도 처리)

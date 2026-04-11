@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -183,4 +184,69 @@ func boolPtr(b bool) *bool {
 // logWriter returns stderr for MCP mode (stdout is reserved for JSON-RPC)
 func logWriter() *os.File {
 	return os.Stderr
+}
+
+// startMCPHTTPServer bootstraps the MCP server over Streamable HTTP transport.
+// Unlike stdio, this survives IDE restarts — the server runs independently.
+// Clients connect via HTTP POST/GET to http://localhost:MCPStreamPort/mcp
+func startMCPHTTPServer(brainRoot string, port int) {
+	server := mcp.NewServer(
+		&mcp.Implementation{
+			Name:    "neuronfs",
+			Version: "1.0.0",
+		},
+		nil,
+	)
+
+	registerMCPTools(server, brainRoot)
+
+	// Resource: 현재 규칙 (캐시 바이패스)
+	server.AddResource(
+		&mcp.Resource{
+			URI:         "neuronfs://rules/current",
+			Name:        "current_rules",
+			Description: "현재 활성 뉴런 규칙. 매 호출 시 실시간 생성.",
+			MIMEType:    "text/markdown",
+		},
+		func(_ context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+			brain := scanBrain(brainRoot)
+			result := runSubsumption(brain)
+			content := emitBootstrap(result, brainRoot)
+			return &mcp.ReadResourceResult{
+				Contents: []*mcp.ResourceContents{
+					{URI: "neuronfs://rules/current", Text: content},
+				},
+			}, nil
+		},
+	)
+
+	handler := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
+		return server
+	}, &mcp.StreamableHTTPOptions{})
+
+	mux := http.NewServeMux()
+	mux.Handle("/mcp", handler)
+
+	// Health check endpoint for supervisor
+	mux.HandleFunc("/mcp/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, `{"status":"ok","transport":"streamable-http","port":%d}`, port)
+	})
+
+	fmt.Fprintf(os.Stderr, "\033[36m[NEURON] MCP Streamable HTTP on :%d\033[0m\n", port)
+	fmt.Fprintf(os.Stderr, "\033[35m[SYNAPSE] IDE-independent. Survives restarts.\033[0m\n")
+
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), mux); err != nil {
+		// Port conflict: retry with backoff instead of killing entire process
+		fmt.Fprintf(os.Stderr, "[MCP-HTTP] port :%d in use, retrying...\n", port)
+		for i := 0; i < 10; i++ {
+			time.Sleep(time.Duration(3*(i+1)) * time.Second)
+			fmt.Fprintf(os.Stderr, "[MCP-HTTP] retry %d/10 on :%d\n", i+1, port)
+			if err2 := http.ListenAndServe(fmt.Sprintf(":%d", port), mux); err2 == nil {
+				return
+			}
+		}
+		fmt.Fprintf(os.Stderr, "[MCP-HTTP] gave up after 10 retries on :%d\n", port)
+	}
 }
