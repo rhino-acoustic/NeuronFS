@@ -141,7 +141,9 @@ brainstem(P0) > limbic(P1) > hippocampus(P2) > sensors(P3) > cortex(P4) > ego(P5
 
 ### 4. 3-Tier Governance (ALWAYS / WHEN → THEN / NEVER)
 
-Folder prefixes auto-classify into three enforcement tiers:
+**Why:** Flat rule lists fail at scale. 300+ rules in one prompt → AI ignores most. Rules need *priority* and *conditionality* — "always do X" is different from "do X only when coding."
+
+**How:** Folder prefixes auto-classify into three enforcement tiers at `emit` time:
 
 ```
 禁hardcoding       → 🔴 NEVER   (absolute prohibition, immune to decay/prune/dedup)
@@ -149,7 +151,7 @@ Folder prefixes auto-classify into three enforcement tiers:
 推community_search → 🟡 WHEN coding/tech decision → THEN search community first
 ```
 
-The `emit` pipeline reads folder structure and **auto-generates** tiered system prompts. No manual classification. No forgotten rules. `applyOOMProtection()` auto-truncates when tokens exceed the LLM context window.
+`formatTieredRules()` scans the brain, reads the prefix of each neuron folder, and auto-generates structured `### 🔴 NEVER` / `### 🟢 ALWAYS` / `### 🟡 WHEN → THEN` sections in the system prompt. No manual tagging. `applyOOMProtection()` auto-truncates when total tokens exceed the LLM context window — NEVER rules are preserved first, WHEN rules are trimmed first.
 
 ### 5. One Brain, Every AI
 

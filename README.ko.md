@@ -34,10 +34,10 @@
 
 ## 아무도 말 안 하는 진짜 문제
 
-**2026년 현실: 쿠터 제한 때문에 모든 개발자가 여러 AI를 섞어 쓴다.**
+**2026년 현실: 쿼터 제한 때문에 모든 개발자가 여러 AI를 섞어 쓴다.**
 
 ```
-오전: Claude (Opus 쿠터 소진) → 오후: Gemini로 전환 → 저녁: GPT로 전환
+오전: Claude (Opus 쿼터 소진) → 오후: Gemini로 전환 → 저녁: GPT로 전환
 Claude가 학습한 "禁console.log" → Gemini는 모름 → 다시 위반 → 고통
 ```
 
@@ -139,7 +139,9 @@ brainstem(P0) > limbic(P1) > hippocampus(P2) > sensors(P3) > cortex(P4) > ego(P5
 
 ### 4. 3-Tier 거버넌스 (ALWAYS / WHEN→THEN / NEVER)
 
-폴더 접두어가 3단계 강제 티어로 자동 분류:
+**왜:** 평면 규칙 목록은 규모에서 실패한다. 300개 이상의 규칙 → AI가 대부분 무시. 규칙에는 *우선순위*와 *조건*이 필요하다 — "항상 X 하라"와 "코딩할 때만 X 하라"는 다르다.
+
+**어떻게:** 폴더 접두어가 `emit` 시점에 3단계로 자동 분류:
 
 ```
 禁hardcoding       → 🔴 NEVER   (절대 금지, decay/prune/dedup 면역)
@@ -147,7 +149,7 @@ brainstem(P0) > limbic(P1) > hippocampus(P2) > sensors(P3) > cortex(P4) > ego(P5
 推community_search → 🟡 WHEN 코딩/기술 결정 시 → THEN 커뮤니티 검색 우선
 ```
 
-`emit` 파이프라인이 폴더 구조를 읽고 **자동으로** 계층화된 시스템 프롬프트를 생성. `applyOOMProtection()`이 LLM 컨텍스트 초과 시 자동 축소.
+`formatTieredRules()`가 뇌를 스캔하고, 각 뉴런 폴더 접두어를 읽어 `### 🔴 NEVER` / `### 🟢 ALWAYS` / `### 🟡 WHEN → THEN` 구조의 시스템 프롬프트를 자동 생성. 수동 태깅 없음. `applyOOMProtection()`이 토큰 초과 시 자동 축소 — NEVER 규칙 우선 보존, WHEN 규칙 우선 축소.
 
 ### 5. 하나의 뇌, 모든 AI
 
