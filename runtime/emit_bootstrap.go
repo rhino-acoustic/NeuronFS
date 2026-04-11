@@ -690,7 +690,19 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 	// 점수순 정렬 (높은 것 먼저)
 	sort.Slice(alwaysRules, func(i, j int) bool { return alwaysRules[i].Score > alwaysRules[j].Score })
 	sort.Slice(whenRules, func(i, j int) bool { return whenRules[i].Score > whenRules[j].Score })
-	sort.Slice(neverRules, func(i, j int) bool { return neverRules[i].Score > neverRules[j].Score })
+	// NEVER: P0(brainstem) 뉴런을 항상 상위에 배치 — Score와 무관하게 governance 보장
+	sort.SliceStable(neverRules, func(i, j int) bool {
+		iPrio := neverRules[i].Score
+		jPrio := neverRules[j].Score
+		// brainstem 禁 뉴런은 +10000 부스트
+		if strings.Contains(neverRules[i].Label, "절대 금지") || neverRules[i].Score >= 100 {
+			iPrio += 10000
+		}
+		if strings.Contains(neverRules[j].Label, "절대 금지") || neverRules[j].Score >= 100 {
+			jPrio += 10000
+		}
+		return iPrio > jPrio
+	})
 
 	// 각 티어 최대 제한 (AgentIF 권장: 10-15개 총합)
 	if len(alwaysRules) > 5 {
@@ -699,8 +711,8 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 	if len(whenRules) > 8 {
 		whenRules = whenRules[:8]
 	}
-	if len(neverRules) > 8 {
-		neverRules = neverRules[:8]
+	if len(neverRules) > 10 {
+		neverRules = neverRules[:10]
 	}
 
 	sb.WriteString(renderSection("section_tiered_rules.tmpl", BootstrapSection{

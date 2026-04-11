@@ -178,20 +178,38 @@ func runIdleLoop(brainRoot string) {
 		fmt.Println("[IDLE] 🔀 Running consolidate (hybrid similarity + counter merge)...")
 		deduplicateNeurons(brainRoot)
 
-		// 4. Growth tracking (뇌 성장 이력 추적)
+		// 4. Growth tracking + 피드백 루프 (뇌 성장 + 교정 빈도 추적)
 		brain := scanBrain(brainRoot)
 		result := runSubsumption(brain)
 		growthLogDir := filepath.Join(brainRoot, "hippocampus", "session_log")
 		os.MkdirAll(growthLogDir, 0750)
 		growthLogFile := filepath.Join(growthLogDir, "growth.log")
-		entry := fmt.Sprintf("%s: neurons=%d, activation=%d, regions=%d\n",
-			time.Now().Format("2006-01-02_15:04"), result.TotalNeurons, result.TotalCounter, len(result.ActiveRegions))
+
+		// 교정 빈도 측정 (피드백 루프 핵심)
+		correctionsToday := 0
+		historyPath := filepath.Join(brainRoot, "_inbox", "corrections_history.jsonl")
+		if data, err := os.ReadFile(historyPath); err == nil {
+			today := time.Now().Format("2006-01-02")
+			for _, line := range strings.Split(string(data), "\n") {
+				if strings.Contains(line, today) {
+					correctionsToday++
+				}
+			}
+		}
+
+		entry := fmt.Sprintf("%s: neurons=%d, activation=%d, regions=%d, corrections=%d\n",
+			time.Now().Format("2006-01-02_15:04"), result.TotalNeurons, result.TotalCounter, len(result.ActiveRegions), correctionsToday)
 		f, _ := os.OpenFile(growthLogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 		if f != nil {
 			f.WriteString(entry)
 			f.Close()
 		}
 		fmt.Printf("[GROWTH] 📈 %s", entry)
+
+		// 피드백 경고: 교정 빈도 증가 감지
+		if correctionsToday > 20 {
+			fmt.Printf("[GROWTH] ⚠️ 교정 빈도 높음 (%d건/일) — neuronize 우선 권장\n", correctionsToday)
+		}
 
 		// 5. Git snapshot
 		fmt.Println("[IDLE] 📸 Git snapshot...")
