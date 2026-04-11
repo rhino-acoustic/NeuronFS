@@ -39,8 +39,12 @@ func startAPI(brainRoot string, port int) {
 				w.WriteHeader(200)
 				return
 			}
-			// Track activity (skip dashboard polling to avoid resetting idle timer)
-			if r.URL.Path != "/api/brain" && r.URL.Path != "/api/state" && r.URL.Path != "/favicon.ico" {
+			// Track activity (skip dashboard/monitoring polling to avoid resetting idle timer)
+			// 대시보드 자동 폴링: /api/brain(3s), /api/health(heartbeat), /api/state, GET 요청
+			skipTouch := r.URL.Path == "/api/brain" || r.URL.Path == "/api/state" ||
+				r.URL.Path == "/api/health" || r.URL.Path == "/api/dashboard_state" ||
+				r.URL.Path == "/favicon.ico" || r.URL.Path == "/"
+			if !skipTouch && r.Method != "OPTIONS" {
 				touchActivity()
 			}
 			h(w, r)

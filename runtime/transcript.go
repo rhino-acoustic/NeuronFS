@@ -128,7 +128,7 @@ func getLastActivity() time.Time {
 // runIdleLoop runs in a goroutine, checking for idle state periodically.
 // When idle is detected: digest transcripts → neuronize → evolve → snapshot → NAS sync
 func runIdleLoop(brainRoot string) {
-	lastEvolveTime := time.Now()
+	lastEvolveTime := time.Now().Add(-1 * time.Hour) // 시작 즉시 첫 idle 사이클 허용
 
 	for {
 		time.Sleep(time.Duration(idleCheckInterval) * time.Second)
