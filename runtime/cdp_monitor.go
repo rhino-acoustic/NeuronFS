@@ -73,8 +73,8 @@ func hlCDPInject(targetRoom, payload string) {
 		time.Sleep(500 * time.Millisecond)
 		client.Close()
 
-		// OS 레벨 Enter 전송 — user32.dll SendInput (CDP 키 이벤트는 Electron이 무시)
-		sendEnterKey()
+		// Enter는 보내지 않음 — OS 레벨 키 입력은 활성 창을 가로챔
+		// auto-accept가 CDP로 버튼 클릭하여 처리
 		return
 	}
 }
