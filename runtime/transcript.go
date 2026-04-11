@@ -160,6 +160,21 @@ func runIdleLoop(brainRoot string) {
 			}
 		}
 
+		// 0c. 메타진화 — 실패한 진화 감지 (30일 비활성 뉴런)
+		failedEvolutions := detectFailedEvolutions(brainRoot)
+		if len(failedEvolutions) > 0 {
+			growthLogFile := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
+			f, _ := os.OpenFile(growthLogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+			if f != nil {
+				for _, fe := range failedEvolutions {
+					f.WriteString(fmt.Sprintf("%s: META_EVOLVE_FAIL path=%s (30d+ inactive)\n",
+						time.Now().Format("2006-01-02_15:04"), fe))
+				}
+				f.Close()
+			}
+			fmt.Printf("[IDLE] 🧬 메타진화: %d개 실패한 진화 감지\n", len(failedEvolutions))
+		}
+
 		// 1. Evolve — 재활성화 (brainstem/limbic 하드가드 + region 분류 AI 모델 탑재 완료)
 		if apiKey != "" {
 			fmt.Println("[IDLE] 🧬 Evolve 실행 (region 분류 AI 판단 모델 탑재)...")
@@ -321,6 +336,38 @@ func injectIdleResult(summary string) {
 	if !injected {
 		fmt.Println("[IDLE] ⚠️ CDP 인젝션 실패 — 활성 에이전트 없음")
 	}
+}
+
+// detectFailedEvolutions scans for neurons inactive 30+ days.
+// Only 推 (recommendation) neurons are checked — 禁/必 are immune.
+// Returns list of paths considered "failed evolution" attempts.
+func detectFailedEvolutions(brainRoot string) []string {
+	var failed []string
+	cutoff := time.Now().AddDate(0, 0, -30)
+
+	regions := []string{"cortex", "sensors", "ego", "prefrontal"}
+	for _, region := range regions {
+		regionDir := filepath.Join(brainRoot, region)
+		filepath.Walk(regionDir, func(path string, info os.FileInfo, err error) error {
+			if err != nil || info == nil || info.IsDir() {
+				return nil
+			}
+			if !strings.HasSuffix(info.Name(), ".neuron") {
+				return nil
+			}
+			// 禁/必 면역
+			if strings.Contains(path, "禁") || strings.Contains(path, "必") {
+				return nil
+			}
+			// 推 뉴런만 + 30일 비활성
+			if strings.Contains(path, "推") && info.ModTime().Before(cutoff) {
+				rel, _ := filepath.Rel(brainRoot, path)
+				failed = append(failed, rel)
+			}
+			return nil
+		})
+	}
+	return failed
 }
 
 // digestTranscripts는 _transcripts/ 파일에서 교정/에러 턴을 추출하여
