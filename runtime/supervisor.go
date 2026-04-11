@@ -918,6 +918,9 @@ func superviseMCPGoroutine(brainRoot string, port int) {
 	mcpPort = port
 	workerPort := port + 1 // e.g. 9248
 
+	// 0. 소스코드 감시기 가동 (Hot-Reload 자동 빌드 데몬)
+	go runGoSourceWatcher()
+
 	// 1. 역방향 프록시 계층 구동 (클라이언트 연결 쉴드)
 	go runMCPProxy(port, workerPort)
 
