@@ -616,6 +616,7 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 	if len(whenRules) > 8 {
 		whenRules = whenRules[:8]
 	}
+	fmt.Printf("[EMIT] tiered rules: ALWAYS=%d, WHEN=%d, NEVER=%d (pre-trim)\n", len(alwaysRules), len(whenRules), len(neverRules))
 	if len(neverRules) > 15 {
 		neverRules = neverRules[:15]
 	}
