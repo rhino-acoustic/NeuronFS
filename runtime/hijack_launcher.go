@@ -146,6 +146,7 @@ func hlFormatTgMsg(role, label, rawText string) string {
 // hlSendToTelegram — 원본 mjs _sendToTelegramInner 충실 포팅
 func hlSendToTelegram(entry, proj string) {
 	if hlTgToken == "" || hlTgChatID == "" {
+		appendDebugLog(hlTgNfsRoot, fmt.Sprintf("NO TOKEN/CHATID: token=%d chatid=%d", len(hlTgToken), len(hlTgChatID)))
 		return
 	}
 	// 워밍업 60초 — 재시작 시 DOM에 남아있는 기존 메시지를 dedup에 사전 등록
@@ -161,6 +162,7 @@ func hlSendToTelegram(entry, proj string) {
 	roleRe := regexp.MustCompile(`(?s)\] (\w+)(?:@[^:]*)?: (.*)`)
 	m := roleRe.FindStringSubmatch(entry)
 	if len(m) < 3 {
+		appendDebugLog(hlTgNfsRoot, fmt.Sprintf("regex fail: entry=%s", entry[:min(len(entry), 60)]))
 		return
 	}
 	role := m[1]
@@ -184,6 +186,7 @@ func hlSendToTelegram(entry, proj string) {
 
 	// 스킵 role
 	if hlTgSkipRoles[role] {
+		appendDebugLog(hlTgNfsRoot, fmt.Sprintf("skip role=%s", role))
 		return
 	}
 
@@ -191,8 +194,10 @@ func hlSendToTelegram(entry, proj string) {
 	dedupH := sha256.Sum256([]byte(entry))
 	dedupKey := hex.EncodeToString(dedupH[:12])
 	if _, loaded := hlTgSentHashes.LoadOrStore(dedupKey, true); loaded {
+		appendDebugLog(hlTgNfsRoot, fmt.Sprintf("dedup hit: role=%s len=%d", role, len(text)))
 		return
 	}
+	appendDebugLog(hlTgNfsRoot, fmt.Sprintf("PASS: role=%s len=%d → sending", role, len(text)))
 
 	label := ""
 	if proj != "" && proj != "global" {
@@ -911,4 +916,15 @@ func hlScrapeCurrentConversation() string {
 		}
 	}
 	return "(대화 정보 없음)"
+}
+
+// appendDebugLog writes TG debug entries to tg_debug.log for troubleshooting
+func appendDebugLog(nfsRoot, msg string) {
+	logPath := filepath.Join(nfsRoot, "dist", "neuronfs", "logs", "tg_debug.log")
+	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	fmt.Fprintf(f, "[%s] %s\n", time.Now().Format("15:04:05"), msg)
 }
