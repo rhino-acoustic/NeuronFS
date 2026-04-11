@@ -65,7 +65,7 @@ git clone https://github.com/rhino-acoustic/NeuronFS.git && cd NeuronFS/runtime 
 [EMIT] ✅ Claude → CLAUDE.md
 [EMIT] ✅ Gemini → ~/.gemini/GEMINI.md
 [EMIT] ✅ Copilot → .github/copilot-instructions.md
-✅ 4 targets written. One brain. Every AI. Zero runtime dependencies. ~19MB binary.
+✅ 4 targets written. One brain. Every AI. Zero runtime dependencies.
 ```
 
 ---
@@ -145,7 +145,7 @@ Switch AI tools freely. Your rules never evaporate. One brain governs all.
 | 7 | **Cartridge freshness** | ❌ Manual | ❌ | ❌ | **✅ `source:` mtime auto-check** |
 | 8 | **Encrypted distribution** | ❌ | Cloud-dependent | Cloud-dependent | **✅ Jloot VFS cartridges** |
 | 9 | **Infrastructure cost** | Free | $50+/mo | $70+/mo GPU | **$0 (local OS)** |
-| 10 | **Dependencies** | IDE-locked | Python+Redis+DB | Python+GPU+API | **Zero runtime (single ~19MB binary)** |
+| 10 | **Dependencies** | IDE-locked | Python+Redis+DB | Python+GPU+API | **Zero runtime (single binary)** |
 
 > † **Rule accuracy** measures different layers: Mem0/RAG ~95% = "LLM follows retrieved rules" (IFEval). NeuronFS 100% = "rules are faithfully generated into system prompt" (BM-1 fidelity). Complementary, not competing.
 
@@ -168,7 +168,7 @@ git clone https://github.com/rhino-acoustic/NeuronFS.git; cd NeuronFS/runtime; g
 # 1. Clone & build
 git clone https://github.com/rhino-acoustic/NeuronFS.git
 cd NeuronFS/runtime
-go build -o neuronfs .          # → ~19MB binary, zero runtime dependencies
+go build -o neuronfs .          # → single binary, zero runtime dependencies
 
 # 2. Create a rule — just a CLI command
 ./neuronfs --grow cortex/react/禁console_log  # "禁" = absolute prohibition
