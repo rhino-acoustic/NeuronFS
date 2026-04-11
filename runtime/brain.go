@@ -50,6 +50,7 @@ type Neuron struct {
 	Geofence    string    // content of .geofence file if present
 	Description string    // natural language rule from rule.md (first line or description: field)
 	Globs       string    // file pattern scope from rule.md (e.g. "*.go")
+	Author      string    // agent identity for data lineage (e.g. "gemini-2.5", "claude-3.5")
 	IsDormant   bool      // .dormant file exists
 	Depth       int       // depth within region
 	ModTime     time.Time // most recent .neuron file modification
@@ -389,6 +390,9 @@ func scanBrain(root string) Brain {
 							}
 							if strings.HasPrefix(line, "globs:") {
 								n.Globs = strings.TrimSpace(strings.TrimPrefix(line, "globs:"))
+							}
+							if strings.HasPrefix(line, "author:") {
+								n.Author = strings.TrimSpace(strings.TrimPrefix(line, "author:"))
 							}
 						}
 					}
