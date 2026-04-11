@@ -406,6 +406,30 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		w.Write([]byte(opsDashboardHTML))
 	}))
 
+	// GET/POST /api/autopilot — 자율주행 모드 온오프
+	mux.HandleFunc("/api/autopilot", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		nfsRoot := filepath.Dir(brainRoot)
+		flagFile := filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled")
+		w.Header().Set("Content-Type", "application/json")
+
+		if r.Method == "POST" {
+			var req struct {
+				Enabled bool `json:"enabled"`
+			}
+			json.NewDecoder(r.Body).Decode(&req)
+			if req.Enabled {
+				os.Remove(flagFile)
+			} else {
+				os.WriteFile(flagFile, []byte("1"), 0600)
+			}
+		}
+
+		enabled := !fileExists(flagFile)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"autopilot": enabled,
+		})
+	}))
+
 	// Expose pprof
 	mux.HandleFunc("/debug/pprof/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.DefaultServeMux.ServeHTTP(w, r)
