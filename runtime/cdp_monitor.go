@@ -71,10 +71,25 @@ func hlCDPInject(targetRoom, payload string) {
 		}
 
 		time.Sleep(500 * time.Millisecond)
-		client.Close()
 
-		// Enter는 보내지 않음 — OS 레벨 키 입력은 활성 창을 가로챔
-		// auto-accept가 CDP로 버튼 클릭하여 처리
+		// CDP 타겟 Enter — 해당 탭에만 키 전송 (활성 창 가로채기 없음)
+		client.Call("Input.dispatchKeyEvent", map[string]interface{}{
+			"type": "rawKeyDown", "key": "Enter", "code": "Enter",
+			"windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13,
+		})
+		time.Sleep(30 * time.Millisecond)
+		client.Call("Input.dispatchKeyEvent", map[string]interface{}{
+			"type": "char", "text": "\r",
+			"windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13,
+		})
+		time.Sleep(30 * time.Millisecond)
+		client.Call("Input.dispatchKeyEvent", map[string]interface{}{
+			"type": "keyUp", "key": "Enter", "code": "Enter",
+			"windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13,
+		})
+
+		time.Sleep(100 * time.Millisecond)
+		client.Close()
 		return
 	}
 }
