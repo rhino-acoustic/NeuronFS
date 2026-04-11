@@ -616,8 +616,8 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 	if len(whenRules) > 8 {
 		whenRules = whenRules[:8]
 	}
-	if len(neverRules) > 10 {
-		neverRules = neverRules[:10]
+	if len(neverRules) > 15 {
+		neverRules = neverRules[:15]
 	}
 
 	sb.WriteString(renderSection("section_tiered_rules.tmpl", BootstrapSection{
