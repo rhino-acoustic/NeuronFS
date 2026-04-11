@@ -69,22 +69,35 @@ func hlCDPInject(targetRoom, payload string) {
 		}
 
 		time.Sleep(500 * time.Millisecond)
-		// Enter 키: CDP 네이티브 Input.dispatchKeyEvent 사용 (JS KeyboardEvent만으로는 Antigravity가 인식 안 함)
-		client.Call("Input.dispatchKeyEvent", map[string]interface{}{
-			"type":                  "keyDown",
-			"key":                   "Enter",
-			"code":                  "Enter",
-			"windowsVirtualKeyCode": 13,
-			"nativeVirtualKeyCode":  13,
-		})
-		time.Sleep(50 * time.Millisecond)
-		client.Call("Input.dispatchKeyEvent", map[string]interface{}{
-			"type":                  "keyUp",
-			"key":                   "Enter",
-			"code":                  "Enter",
-			"windowsVirtualKeyCode": 13,
-			"nativeVirtualKeyCode":  13,
-		})
+
+		// 제출 전략 1: submit 버튼 직접 클릭 (Antigravity 채팅 UI의 전송 버튼)
+		submitScript := `(() => {
+			const btn = document.querySelector('button[aria-label*="Send"], button[aria-label*="send"], button[class*="submit"], button[class*="send"]')
+				|| Array.from(document.querySelectorAll('button')).find(b => b.querySelector('svg') && b.closest('[class*="chat"], [class*="input"]'));
+			if(btn) { btn.click(); return "Clicked"; }
+			return "NoButton";
+		})()`
+		submitResult, _ := client.Call("Runtime.evaluate", map[string]interface{}{"expression": submitScript, "returnByValue": true})
+		submitStr := string(submitResult)
+
+		if strings.Contains(submitStr, "NoButton") {
+			// 제출 전략 2: CDP 네이티브 Input.dispatchKeyEvent
+			client.Call("Input.dispatchKeyEvent", map[string]interface{}{
+				"type": "rawKeyDown", "key": "Enter", "code": "Enter",
+				"windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13,
+			})
+			time.Sleep(30 * time.Millisecond)
+			client.Call("Input.dispatchKeyEvent", map[string]interface{}{
+				"type": "char", "text": "\r",
+				"windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13,
+			})
+			time.Sleep(30 * time.Millisecond)
+			client.Call("Input.dispatchKeyEvent", map[string]interface{}{
+				"type": "keyUp", "key": "Enter", "code": "Enter",
+				"windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13,
+			})
+		}
+
 		time.Sleep(100 * time.Millisecond)
 		client.Close()
 		return // 성공적으로 인젝션됨
