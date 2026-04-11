@@ -1,8 +1,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Neurons-3400+-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/Runewords-15-purple?style=flat-square" />
+  <img src="https://img.shields.io/badge/Neurons-367-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Runewords-16-purple?style=flat-square" />
   <img src="https://img.shields.io/badge/Zero_Runtime_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/AGPL--3.0-green?style=flat-square" />
 </p>
@@ -169,7 +169,7 @@ AI를 자유롭게 전환해라. 규칙은 절대 증발하지 않는다.
 | # | | `.cursorrules` | Mem0 / Letta | RAG (벡터 DB) | **NeuronFS** |
 |---|---|---|---|---|---|
 | 1 | **규칙 정확도** | 텍스트 = 쉽게 무시 | 확률적 | ~95% | **100% 결정론적** † |
-| 2 | **행동 강제율** | ~60% (텍스트 부탁) | ~60% | ~60% | **~100% (vorq 하네스)** |
+| 2 | **행동 강제율** | ~60% (텍스트 부탁) | ~60% | ~60% | **~95%+ (vorq 하네스, n=1 관찰)** ‡ |
 | 3 | **멀티 AI** | ❌ Cursor 전용 | API 의존 | ✅ | **✅ `--emit all` → 모든 IDE** |
 | 4 | **우선순위 체계** | ❌ 평면 텍스트 | ❌ | ❌ | **✅ 7계층 포섭 (P0→P6)** |
 | 5 | **자율 진화** | 수동 편집 | 블랙박스 | 블랙박스 | **🧬 자율 (Groq LLM)** |
@@ -183,6 +183,12 @@ AI를 자유롭게 전환해라. 규칙은 절대 증발하지 않는다.
 | 13 | **업계 벤치마크 커버리지** | 0/41 | ~8/41 | ~6/41 | **35/41 (85%)** |
 
 > † **규칙 정확도** 측정 레이어가 다름: Mem0/RAG ~95% = "LLM이 검색된 규칙을 따르는 비율" (IFEval). NeuronFS 100% = "규칙이 시스템 프롬프트에 정확히 생성되는 비율" (BM-1). 보완 관계.
+>
+> ‡ **행동 강제율** ~95%+는 개발자 관찰 기반 (n=1). 원리는 모델 무관하지만(미지 토큰 → 강제 탐색), n≥10 독립 검증 필요.
+>
+> **Mem0/Letta 공정 주석:** 이 도구들은 대화 메모리와 사용자 프로파일링에 탁월합니다 (설계 목적). NeuronFS는 메모리 CRUD와 경쟁하지 않습니다 — 규칙 거버넌스를 합니다. ❌는 "동등 기능 없음"이지 "열등 제품"이 아닙니다.
+>
+> **₩0 인프라** Go 툴체인 설치 필요. 사전 빌드 바이너리 배포 시 이마저도 불필요.
 
 ---
 

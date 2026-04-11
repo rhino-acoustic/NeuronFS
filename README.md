@@ -1,8 +1,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Neurons-3400+-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/Runewords-15-purple?style=flat-square" />
+  <img src="https://img.shields.io/badge/Neurons-367-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Runewords-16-purple?style=flat-square" />
   <img src="https://img.shields.io/badge/Zero_Runtime_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/AGPL--3.0-green?style=flat-square" />
 </p>
@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/neuronfs_hero.jpg" alt="Folders ARE the Context — mkdir beats vector" width="600" />
+  <img src="docs/neuronfs_hero.jpg" alt="Folders ARE the Context — mkdir complements vector" width="600" />
 </p>
 
 <p align="center">
@@ -31,6 +31,8 @@
 > **It never disobeyed again.**
 
 ---
+
+**Quick Navigation:** [Problem](#the-problem-nobody-talks-about) · [30s Proof](#30-second-proof) · [5 Features](#5-killer-features) · [Comparison](#the-comparison) · [Getting Started](#getting-started) · [Benchmarks](#-deep-dive-benchmarks-41-industry-items) · [Limitations](#limitations-honestly)
 
 ## The Problem Nobody Talks About
 
@@ -94,7 +96,7 @@ Before you trust us, watch us try to destroy ourselves.
 
 ---
 
-## 4 Killer Features
+## 5 Killer Features
 
 ### 1. The Axiom — `Folder = Neuron`
 
@@ -171,7 +173,7 @@ Switch AI tools freely. Your rules never evaporate. One brain governs all.
 | # | | `.cursorrules` | Mem0 / Letta | RAG (Vector DB) | **NeuronFS** |
 |---|---|---|---|---|---|
 | 1 | **Rule accuracy** | Text = easily ignored | Probabilistic | ~95% | **100% deterministic** † |
-| 2 | **Behavioral compliance** | ~60% (text advisory) | ~60% | ~60% | **~100% (vorq harness)** |
+| 2 | **Behavioral compliance** | ~60% (text advisory) | ~60% | ~60% | **~95%+ (vorq harness, n=1 observed)** ‡ |
 | 3 | **Multi-AI support** | ❌ Cursor-only | API-dependent | ✅ | **✅ `--emit all` → every IDE** |
 | 4 | **Priority system** | ❌ Flat text | ❌ | ❌ | **✅ 7-layer Subsumption (P0→P6)** |
 | 5 | **Self-evolution** | Manual edit | Black box | Black box | **🧬 Autonomous (Groq LLM)** |
@@ -185,6 +187,12 @@ Switch AI tools freely. Your rules never evaporate. One brain governs all.
 | 13 | **Industry benchmark coverage** | 0/41 | ~8/41 | ~6/41 | **35/41 (85%)** |
 
 > † **Rule accuracy** measures different layers: Mem0/RAG ~95% = "LLM follows retrieved rules" (IFEval). NeuronFS 100% = "rules are faithfully generated into system prompt" (BM-1 fidelity). Complementary, not competing.
+>
+> ‡ **Behavioral compliance** ~95%+ is based on developer observation (n=1). Principle is model-agnostic (unknown tokens force lookup in all transformers), but independent validation with n≥10 is pending.
+>
+> **Fair note on Mem0/Letta:** These tools excel at conversation memory and user profiling (their design goal). NeuronFS does not compete on memory CRUD — it governs rules. The ❌ marks indicate "no equivalent feature," not "inferior product."
+>
+> **$0 infrastructure** assumes Go is installed for building. Pre-built binaries eliminate even this requirement.
 
 ---
 
