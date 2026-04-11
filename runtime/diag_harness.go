@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
@@ -123,6 +124,19 @@ func RunHarness(brainRoot string, logger func(string)) {
 	}
 	if mojibakeCount > 0 {
 		fails = append(fails, fmt.Sprintf("인코딩 깨짐(mojibake): %d개 뉴런", mojibakeCount))
+	} else {
+		passes++
+	}
+
+	// ── Check 7: MCP 서버 health ──
+	mcpHealthOK := false
+	conn, err := net.DialTimeout("tcp", "127.0.0.1:9247", 2*time.Second)
+	if err == nil {
+		conn.Close()
+		mcpHealthOK = true
+	}
+	if !mcpHealthOK {
+		fails = append(fails, "MCP 서버(9247) 응답 없음 — 좀비 또는 비활성")
 	} else {
 		passes++
 	}
