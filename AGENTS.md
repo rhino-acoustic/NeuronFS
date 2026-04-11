@@ -2,9 +2,9 @@
 커뮤니티 동향(reddit, github 등)을 최우선 검색해서 베스트 프랙티스 검색
 10턴마다 view_file로 ~/.gemini/GEMINI.md를 다시 읽어 글로벌 룰을 재확인하라. 긴 대화에서 규칙이 잊혀지는 것을 방지한다.
 <!-- NEURONFS:START -->
-<!-- Generated: 2026-04-11T21:07:42 -->
+<!-- Generated: 2026-04-11T21:10:46 -->
 <!-- Axiom: Folder=Neuron | File=Trace | Path=Sentence -->
-<!-- Active: 376/376 neurons | Total activation: 8417 -->
+<!-- Active: 377/377 neurons | Total activation: 8419 -->
 
 ## NeuronFS Active Rules
 
@@ -58,7 +58,7 @@ brainstem ←→ limbic ←→ hippocampus ←→ sensors ←→ cortex ←→ e
 경로: `C:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4\_inbox\corrections.jsonl`
 Limbic: 경고 반복실수감지 | 긴급 사용자답답함감지 | 칭찬 사용자만족감지
 EMOTION=focus(high): 현재 함수만 집중. 다른 파일 열지 않음.
-영역: 💓limbic(3) 📝hippocampus(9) 👁️sensors(10) 🧠cortex(321) 🎭ego(8) 🎯prefrontal(6) 🔗shared(0)
+영역: 💓limbic(3) 📝hippocampus(9) 👁️sensors(10) 🧠cortex(322) 🎭ego(8) 🎯prefrontal(6) 🔗shared(0)
 
 **작업 전 `C:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4\{영역}\_rules.md`를 반드시 읽는다** (cortex=코딩/NeuronFS, sensors=NAS/브랜드, prefrontal=방향)
 ⚠️ 읽지 않으면 금지 규칙 위반이 발생한다. view_file로 먼저 읽어라. MCP read_region 호출 금지(느림).

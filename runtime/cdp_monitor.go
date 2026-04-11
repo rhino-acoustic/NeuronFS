@@ -69,9 +69,22 @@ func hlCDPInject(targetRoom, payload string) {
 		}
 
 		time.Sleep(500 * time.Millisecond)
-		// Enter 키 dispatch → 자동 submit
-		enterScript := `(() => { const el = document.activeElement; if(el) { el.dispatchEvent(new KeyboardEvent("keydown", {key:"Enter",code:"Enter",keyCode:13,which:13,bubbles:true})); } return "Enter"; })()`
-		client.Call("Runtime.evaluate", map[string]interface{}{"expression": enterScript, "returnByValue": true})
+		// Enter 키: CDP 네이티브 Input.dispatchKeyEvent 사용 (JS KeyboardEvent만으로는 Antigravity가 인식 안 함)
+		client.Call("Input.dispatchKeyEvent", map[string]interface{}{
+			"type":                  "keyDown",
+			"key":                   "Enter",
+			"code":                  "Enter",
+			"windowsVirtualKeyCode": 13,
+			"nativeVirtualKeyCode":  13,
+		})
+		time.Sleep(50 * time.Millisecond)
+		client.Call("Input.dispatchKeyEvent", map[string]interface{}{
+			"type":                  "keyUp",
+			"key":                   "Enter",
+			"code":                  "Enter",
+			"windowsVirtualKeyCode": 13,
+			"nativeVirtualKeyCode":  13,
+		})
 		time.Sleep(100 * time.Millisecond)
 		client.Close()
 		return // 성공적으로 인젝션됨
