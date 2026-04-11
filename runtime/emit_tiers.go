@@ -50,6 +50,12 @@ func writeAllTiers(brainRoot string) {
 	bootstrap := emitBootstrap(result, brainRoot)
 	injectToGemini(brainRoot, bootstrap)
 
+	// Tier 1b: AGENTS.md (업계 표준 — 모든 AI 코딩 에이전트 호환)
+	agentsPath := filepath.Join(filepath.Dir(brainRoot), "AGENTS.md")
+	if err := os.WriteFile(agentsPath, []byte(bootstrap), 0600); err == nil {
+		// 성공 시 로그 않음 (30초마다 실행되므로 노이즈 방지)
+	}
+
 	// Tier 2: _index.md
 	indexContent := emitIndex(brain, result)
 	indexPath := filepath.Join(brainRoot, "_index.md")
