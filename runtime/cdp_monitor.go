@@ -9,9 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
-	"unsafe"
 )
 
 func hlCDPInject(targetRoom, payload string) {
@@ -92,45 +90,6 @@ func hlCDPInject(targetRoom, payload string) {
 		client.Close()
 		return
 	}
-}
-
-// sendEnterKey — Windows user32.dll SendInput으로 물리 Enter 키 전송
-// VS Code/Electron 기반 앱은 CDP Input.dispatchKeyEvent를 무시하므로 OS 레벨 필수
-func sendEnterKey() {
-	user32 := syscall.NewLazyDLL("user32.dll")
-	sendInput := user32.NewProc("SendInput")
-
-	const (
-		inputKeyboard = 1
-		keyEventKeyUp = 0x0002
-		vkReturn      = 0x0D
-	)
-
-	type keyboardInput struct {
-		wVk         uint16
-		wScan       uint16
-		dwFlags     uint32
-		time        uint32
-		dwExtraInfo uintptr
-	}
-
-	type input struct {
-		inputType uint32
-		ki        keyboardInput
-		padding   [8]byte
-	}
-
-	inputs := [2]input{
-		{inputType: inputKeyboard, ki: keyboardInput{wVk: vkReturn}},                            // key down
-		{inputType: inputKeyboard, ki: keyboardInput{wVk: vkReturn, dwFlags: keyEventKeyUp}}, // key up
-	}
-
-	sendInput.Call(
-		uintptr(len(inputs)),
-		uintptr(unsafe.Pointer(&inputs[0])),
-		uintptr(unsafe.Sizeof(inputs[0])),
-	)
-	time.Sleep(100 * time.Millisecond)
 }
 
 // ── 전사 기록 ──

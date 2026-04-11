@@ -27,7 +27,6 @@ var hlActiveScrapers sync.Map // wsURL → true
 var (
 	evolveDebounce sync.Mutex
 	lastEvolveTime time.Time
-	processStartTime = time.Now() // startup silence용
 )
 
 // isUserActive — 전사 파일이 2분 내 갱신됐는지 확인 (사용자 대화 중 판정)
