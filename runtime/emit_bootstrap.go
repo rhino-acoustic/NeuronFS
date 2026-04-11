@@ -520,12 +520,25 @@ func formatAbsoluteRules(sb *strings.Builder, result SubsumptionResult, top5Sent
 // whenConditions: 必 규칙 중 조건부 트리거가 필요한 키워드 → 트리거 조건 매핑
 // 이 맵에 없는 必 규칙은 ALWAYS로 분류된다
 var whenConditions = map[string]string{
-	"qorz":        "코딩/기술 결정 시",
-	"커뮤니티검색": "코딩/기술 결정 시",
-	"코드맵":      "코드 수정 시",
-	"적층해결":    "문제/에러 발생 시",
-	"bat재시작":   "시스템 재시작 시",
-	"go vet":      "Go 코드 수정 후",
+	"qorz":          "코딩/기술 결정 시",
+	"커뮤니티검색":  "코딩/기술 결정 시",
+	"코드맵":        "코드 수정 시",
+	"적층해결":      "문제/에러 발생 시",
+	"bat재시작":     "시스템 재시작 시",
+	"go vet":        "Go 코드 수정 후",
+	// 推 규칙용 조건
+	"grep_search":   "코드 검색 시",
+	"로컬깃":        "코드 변경 후",
+	"로컬테스트":    "코드 변경 후",
+	"테스트자동화":  "코드 변경 후",
+	"리서치":        "코딩/기술 결정 시",
+	"리포관리":      "배포/릴리스 시",
+	"브랜치":        "배포/릴리스 시",
+	"README":        "문서 변경 시",
+	"깃헙":          "배포/릴리스 시",
+	"디스코드":      "배포/릴리스 시",
+	"버전관리":      "배포/릴리스 시",
+	"검색":          "코딩/기술 결정 시",
 }
 
 // ruleWhyHow: 알려진 규칙의 WHY(이유) + HOW(방법) 매핑
@@ -634,8 +647,9 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 					Why:   why,
 					Score: score,
 				})
-			} else if strings.ContainsAny(n.Path, "必") || strings.Contains(n.Path, "qorz") || strings.Contains(n.Path, "索") {
+			} else if strings.ContainsAny(n.Path, "必") || strings.Contains(n.Path, "qorz") || strings.Contains(n.Path, "索") || strings.ContainsAny(n.Path, "推") {
 				// 必/qorz/索 → 조건 확인 후 WHEN 또는 ALWAYS
+				// 推 → 조건부 추천 → WHEN (조건 없으면 기본 조건 적용)
 				condition := ""
 				for keyword, cond := range whenConditions {
 					if strings.Contains(leaf, keyword) || strings.Contains(n.Path, keyword) {
@@ -648,6 +662,14 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 					whenRules = append(whenRules, TieredRule{
 						Label:     leaf,
 						Condition: condition,
+						How:       wh.How,
+						Score:     score,
+					})
+				} else if strings.ContainsAny(n.Path, "推") {
+					// 推 without specific condition → default WHEN
+					whenRules = append(whenRules, TieredRule{
+						Label:     leaf,
+						Condition: "해당 작업 시",
 						How:       wh.How,
 						Score:     score,
 					})
@@ -670,8 +692,8 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 	if len(alwaysRules) > 5 {
 		alwaysRules = alwaysRules[:5]
 	}
-	if len(whenRules) > 5 {
-		whenRules = whenRules[:5]
+	if len(whenRules) > 8 {
+		whenRules = whenRules[:8]
 	}
 	if len(neverRules) > 8 {
 		neverRules = neverRules[:8]
