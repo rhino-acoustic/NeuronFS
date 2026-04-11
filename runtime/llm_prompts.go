@@ -190,6 +190,22 @@ func collectEpisodes(brainRoot string) []string {
 		}
 	}
 
+	// 4. Hebbian co-activation (최근 20개 — 동시 발화 패턴)
+	coactFile := filepath.Join(brainRoot, "hippocampus", "session_log", "co-activation.jsonl")
+	if data, err := os.ReadFile(coactFile); err == nil {
+		lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+		start := 0
+		if len(lines) > 20 {
+			start = len(lines) - 20
+		}
+		for _, line := range lines[start:] {
+			line = strings.TrimSpace(line)
+			if line != "" {
+				result = append(result, "[HEBBIAN] "+line)
+			}
+		}
+	}
+
 	return result
 }
 
@@ -303,6 +319,23 @@ func buildEvolvePrompt(episodes []string, brainSummary string, _ SubsumptionResu
 		}
 	}
 	sb.WriteString("```\n\n")
+
+	// Hebbian Co-activation — 동시 발화 패턴
+	hasHebbian := false
+	for _, ep := range episodes {
+		if strings.Contains(ep, "HEBBIAN") {
+			if !hasHebbian {
+				sb.WriteString("## Hebbian Co-activation (Neurons that fire together)\n")
+				sb.WriteString("Frequently co-activated pairs may benefit from axon connections or consolidation.\n")
+				sb.WriteString("```\n")
+				hasHebbian = true
+			}
+			sb.WriteString(fmt.Sprintf("- %s\n", ep))
+		}
+	}
+	if hasHebbian {
+		sb.WriteString("```\n\n")
+	}
 
 	sb.WriteString("## Output Format (valid JSON)\n")
 	sb.WriteString("{\n")

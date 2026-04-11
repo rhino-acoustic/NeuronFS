@@ -198,6 +198,10 @@ func fireNeuron(brainRoot string, neuronPath string) {
 	fmt.Printf("[FIRE] 🔥 %s → %d → %d\n", neuronPath, currentCounter, newCounter)
 
 	logEpisode(brainRoot, "FIRE", fmt.Sprintf("%s (%d→%d)", neuronPath, currentCounter, newCounter))
+
+	// Hebbian Co-activation: 30초 내 발화된 뉴런과의 연관 기록
+	hebbianTrack(brainRoot, neuronPath)
+
 	markBrainDirty()
 }
 
