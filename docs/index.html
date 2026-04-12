@@ -5,7 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NeuronFS — mkdir이 벡터DB를 이긴다 | B-tree AI Governance</title>
   <meta name="description" content="mkdir beats vector DB. B-tree NeuronFS: Zero-Trust AI Governance via OS filesystem. Zero infrastructure. Zero hallucination. O(1) deterministic control.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <!-- Open Graph -->
+  <meta property="og:title" content="NeuronFS — mkdir beats vector DB">
+  <meta property="og:description" content="Zero-Trust AI Governance via OS filesystem. 4MB binary. O(1) deterministic control.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://neuronfs.dev">
+  <meta property="og:image" content="https://raw.githubusercontent.com/rhino-acoustic/NeuronFS/main/docs/dashboard.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="NeuronFS — mkdir beats vector DB">
+  <meta name="twitter:description" content="Zero-Trust AI Governance via OS filesystem. 4MB. O(1).">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/rhino-acoustic/NeuronFS/main/docs/dashboard.png">
+  <link rel="canonical" href="https://neuronfs.dev">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -495,7 +506,59 @@
       .rune-grid { grid-template-columns: repeat(3, 1fr); }
       h1 { font-size: 2.4rem; }
       .hero { padding: 140px 0 60px; }
+      .hamburger { display: flex; }
     }
+
+    /* Hamburger Menu */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+    }
+    .hamburger span {
+      width: 18px;
+      height: 2px;
+      background: var(--text-primary);
+      transition: all 0.3s;
+    }
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      background: rgba(10,10,15,0.95);
+      backdrop-filter: blur(20px);
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      z-index: 99;
+    }
+    .mobile-menu.open { display: block; }
+    .mobile-menu a {
+      display: block;
+      padding: 12px 0;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .mobile-menu a:hover { color: var(--text-primary); }
+
+    /* Typing animation */
+    .typing-line {
+      overflow: hidden;
+      white-space: nowrap;
+      border-right: 2px solid var(--accent-cyan);
+      animation: typing 2s steps(40) 1s forwards, blink 0.75s step-end infinite;
+      width: 0;
+    }
+    @keyframes typing { from { width: 0; } to { width: 100%; } }
+    @keyframes blink { 50% { border-color: transparent; } }
   </style>
 </head>
 <body>
@@ -516,8 +579,17 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
         Star on GitHub
       </a>
+      <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open')">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
+  <div class="mobile-menu" id="mobile-nav">
+    <a href="#features" onclick="this.parentElement.classList.remove('open')">Features</a>
+    <a href="#opcodes" onclick="this.parentElement.classList.remove('open')">Opcodes</a>
+    <a href="#benchmark" onclick="this.parentElement.classList.remove('open')">Benchmark</a>
+    <a href="https://github.com/rhino-acoustic/NeuronFS/wiki">Wiki</a>
+  </div>
 
   <!-- HERO -->
   <section class="hero">
