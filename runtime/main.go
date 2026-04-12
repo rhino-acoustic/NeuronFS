@@ -133,6 +133,9 @@ func main() {
 	router.Register(&DashboardV2Cmd{})
 	router.Register(&SignalCmd{})
 	router.Register(&DecayCmd{})
+	router.Register(&SnapshotCmd{})
+	router.Register(&RollbackCmd{})
+	router.Register(&RollbackAllCmd{})
 
 	// Check if any arguments match our new router
 	routed := false
@@ -172,28 +175,6 @@ func main() {
 		writeAllTiersForTargets(brainRoot, emitTarget)
 	case "harness":
 		// Handled by router
-	case "snapshot":
-		gitSnapshot(brainRoot)
-	case "rollback":
-		neuronPath := getNonFlagArg(1)
-		if neuronPath == "" {
-			fmt.Println("[FATAL] Usage: neuronfs <brain> --rollback <region/path/to/neuron>")
-			os.Exit(1)
-		}
-		if err := rollbackNeuron(brainRoot, neuronPath); err != nil {
-			fmt.Printf("[ERROR] %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("\033[35m[PRUNE] Toxic memories detected. Purging corrupted synapses...\033[0m\n")
-		fmt.Printf("\033[37m[RESTORE] Brainstem architecture fully re-aligned via SSOT.\033[0m\n")
-	case "rollback-all":
-		fmt.Printf("%s[PRUNE] Toxic memories detected. Purging ALL corrupted synapses...%s\n", ansiMagenta, ansiReset)
-		if err := rollbackAll(brainRoot); err != nil {
-			fmt.Printf("%s[TRAUMA] Global rollback failed: %v%s\n", ansiRed, err, ansiReset)
-			os.Exit(1)
-		}
-		fmt.Printf("%s[RESTORE] Brainstem architecture fully re-aligned via SSOT.%s\n", ansiWhite, ansiReset)
-		fmt.Printf("%s[NEURON] Cortex online. Process stabilized.%s\n", ansiGreen, ansiReset)
 	case "stats":
 		runStats(brainRoot)
 	case "vacuum":
