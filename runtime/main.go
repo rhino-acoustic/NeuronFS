@@ -22,7 +22,6 @@ func main() {
 	}
 
 	mode := "diag"
-	dryRun := false
 	quietMode := false
 	forceAwakening := false
 	emitTarget := "" // --emit target: gemini, cursor, claude, copilot, generic, all
@@ -85,8 +84,6 @@ func main() {
 			mode = "polarize"
 		case "--symlink":
 			mode = "symlink"
-		case "--dry-run":
-			dryRun = true
 		case "--quiet", "-q":
 			quietMode = true
 		case "--awakening":
@@ -141,6 +138,10 @@ func main() {
 	router.Register(&VacuumCmd{})
 	router.Register(&McpCmd{})
 	router.Register(&SupervisorCmd{})
+	router.Register(&NeuronizeCmd{})
+	router.Register(&PolarizeCmd{})
+	router.Register(&SymlinkCmd{})
+	router.Register(&ToolCmd{})
 
 	// Check if any arguments match our new router
 	routed := false
@@ -178,55 +179,8 @@ func main() {
 	case "emit-target":
 		processInbox(brainRoot)
 		writeAllTiersForTargets(brainRoot, emitTarget)
-	case "harness":
-		// Handled by router
-	case "tool":
-		toolName := ""
-		argsJson := ""
-		for i, arg := range os.Args {
-			if arg == "--tool" && i+2 < len(os.Args) {
-				toolName = os.Args[i+1]
-				argsJson = os.Args[i+2]
-				break
-			}
-		}
-		if toolName == "" {
-			fmt.Println("[FATAL] Usage: neuronfs <brain> --tool <toolname> <args_json>")
-			os.Exit(1)
-		}
-		runWorkerTool(brainRoot, toolName, argsJson)
-	case "neuronize":
-		runNeuronize(brainRoot, dryRun)
-	case "polarize":
-		runPolarize(brainRoot, dryRun)
-	case "symlink":
-		targetDir := ""
-		for i, arg := range os.Args {
-			if arg == "--symlink" && i+1 < len(os.Args) {
-				targetDir = os.Args[i+1]
-				break
-			}
-		}
-		if targetDir == "" {
-			fmt.Println("[FATAL] Usage: neuronfs <brain> --symlink <global_path>")
-			os.Exit(1)
-		}
-
-		sharedDir := filepath.Join(brainRoot, ".neuronfs", "shared")
-		os.MkdirAll(filepath.Dir(sharedDir), 0750)
-
-		absTarget, _ := filepath.Abs(targetDir)
-		err := os.Symlink(absTarget, sharedDir)
-		if err != nil {
-			out, e2 := SafeCombinedOutput(ExecTimeoutShell, "cmd", "/c", "mklink", "/J", sharedDir, absTarget)
-			if e2 != nil {
-				fmt.Printf("\033[31m[ERROR] Symlink/Junction failed: %v, out: %s\033[0m\n", e2, string(out))
-			} else {
-				fmt.Printf("\033[32m[OK] Created Junction %s -> %s\033[0m\n", sharedDir, absTarget)
-			}
-		} else {
-			fmt.Printf("\033[32m[OK] Created symlink %s -> %s\033[0m\n", sharedDir, absTarget)
-		}
+	default:
+		fmt.Printf("[FATAL] Unknown mode '%s'\n", mode)
 	}
 }
 
