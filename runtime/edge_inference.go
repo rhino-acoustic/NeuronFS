@@ -47,13 +47,18 @@ func CheckEdgeAvailability() bool {
 	}
 	return false
 }
-
 // InvokeLocalLLM sends a prompt to the local LLM instance
 func InvokeLocalLLM(model, prompt string) (string, error) {
 	if !CheckEdgeAvailability() {
 		err := fmt.Errorf("edge compute (Ollama) is not running on localhost:11434")
 		EngraveRuntimeError(findBrainRoot(), "Edge_Inference", err.Error())
 		return "", err
+	}
+
+	// Phase 39: Temporal RAG Prefix Injection
+	ragContext := BuildTemporalRAGContext(findBrainRoot(), prompt)
+	if ragContext != "" {
+		prompt = ragContext + prompt
 	}
 
 	// Phase 33: NPU HAL Fast-Path Payload Generation
