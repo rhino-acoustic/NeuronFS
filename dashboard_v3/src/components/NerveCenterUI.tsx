@@ -27,36 +27,52 @@ export default function NerveCenterUI() {
   }, [logs]);
 
   useEffect(() => {
-    const es = new EventSource('http://localhost:7350/api/stream');
+    let ws: WebSocket;
+    let reconnectTimer: NodeJS.Timeout;
 
-    es.onmessage = (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        const now = new Date();
-        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-        
-        if (data.type === 'stat') {
-          setMetrics({
-            neurons: data.totalNeurons.toLocaleString(),
-            activation: data.totalActivation.toLocaleString()
-          });
-        } else if (data.level) {
-          // It's a structured LogMessage mapped to JSON
-          setLogs(prev => [...prev, { ts: timeStr, level: data.level, msg: data.msg }].slice(-100));
-        } else if (data.type === 'fire') {
-          setLogs(prev => [...prev, { ts: timeStr, level: 'INFO', msg: `FIRE EVENT: ${data.path} (${data.old}→${data.new})` }].slice(-100));
-          window.dispatchEvent(new CustomEvent('neuron-fire', { detail: data }));
+    const connect = () => {
+      ws = new WebSocket('ws://localhost:7350/api/ws');
+
+      ws.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          const now = new Date();
+          const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+          
+          if (data.type === 'stat') {
+            setMetrics({
+              neurons: data.totalNeurons.toLocaleString(),
+              activation: data.totalActivation.toLocaleString()
+            });
+          } else if (data.level) {
+            setLogs(prev => [...prev, { ts: timeStr, level: data.level, msg: data.msg }].slice(-100));
+          } else if (data.type === 'fire') {
+            setLogs(prev => [...prev, { ts: timeStr, level: 'INFO', msg: `FIRE EVENT: ${data.path} (${data.old}→${data.new})` }].slice(-100));
+            window.dispatchEvent(new CustomEvent('neuron-fire', { detail: data }));
+          }
+        } catch (err) {
+          console.error('WS Error:', err);
         }
-      } catch (err) {
-        console.error('SSE Error:', err);
-      }
+      };
+
+      ws.onerror = () => {
+        setLogs(prev => [...prev, { ts: '---', level: 'ERROR', msg: 'WebSocket Connection Error. Retrying...' }].slice(-100));
+      };
+
+      ws.onclose = () => {
+        reconnectTimer = setTimeout(connect, 3000);
+      };
+
+      // expose for BrainScene
+      (window as any).NeuronWS = ws;
     };
 
-    es.onerror = () => {
-      setLogs(prev => [...prev, { ts: '---', level: 'ERROR', msg: 'SSE Connection Lost. Retrying...' }].slice(-100));
-    };
+    connect();
 
-    return () => es.close();
+    return () => {
+      clearTimeout(reconnectTimer);
+      if (ws) ws.close();
+    };
   }, []);
 
   return (

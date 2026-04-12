@@ -58,6 +58,11 @@ func (b *SSEBroker) BroadcastEvent(data EventMessage) {
 		default:
 		}
 	}
+	
+	// Phase 21: Broadcast to WebSocket Hub
+	if globalWSHub != nil {
+		globalWSHub.BroadcastEvent(data)
+	}
 }
 
 func (b *SSEBroker) Broadcastf(level, format string, args ...interface{}) {
@@ -443,6 +448,11 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 				flusher.Flush()
 			}
 		}
+	}))
+
+	// GET /api/ws — WebSocket Event Stream (Phase 21)
+	mux.HandleFunc("/api/ws", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		serveWs(brainRoot, w, r)
 	}))
 
 	// GET /api/ops — 통합 운영 상태 (watchdog metrics + brain state)

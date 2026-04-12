@@ -63,11 +63,39 @@ function InstancedBrain() {
     }
   }, []);
 
+  const [dragSource, setDragSource] = React.useState<number | null>(null);
+
+  const handlePointerDown = (e: any) => {
+    e.stopPropagation();
+    setDragSource(e.instanceId);
+  };
+
+  const handlePointerUp = (e: any) => {
+    e.stopPropagation();
+    if (dragSource !== null && dragSource !== e.instanceId && e.instanceId !== undefined) {
+      console.log(`Merge Drag trigger: ${dragSource} -> ${e.instanceId}`);
+      
+      const ws = (window as any).NeuronWS;
+      if (ws?.readyState === WebSocket.OPEN) {
+        // Send Bidirectional action
+        ws.send(JSON.stringify({
+          action: "merge",
+          source: `cortex/visual_node_${dragSource}`,
+          target: `cortex/visual_node_${e.instanceId}`
+        }));
+      }
+    }
+    setDragSource(null);
+  };
+
   return (
     <instancedMesh
       ref={meshRef}
       args={[undefined, undefined, NEURON_COUNT]}
       frustumCulled={false}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerMissed={() => setDragSource(null)}
     >
       <octahedronGeometry args={[0.8, 0]}>
         <instancedBufferAttribute attach="attributes-color" args={[colors, 3]} />
