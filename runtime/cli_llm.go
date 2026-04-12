@@ -624,6 +624,13 @@ func runEvolve(brainRoot string, dryRun bool) {
 		}
 
 		fmt.Printf("  ✅ [Phase 61] Evolution accepted. Brain is stable.\n")
+
+		// Phase 66: Procedural Memory Extraction
+		skills := ExtractProceduralMemory(brainRoot, 3)
+		if skills > 0 {
+			fmt.Printf("  🧬 [Phase 66] %d procedural skill(s) auto-extracted from audit trail.\n", skills)
+		}
+
 		autoReinject(brainRoot)
 	}
 }
