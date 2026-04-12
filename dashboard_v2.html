@@ -176,6 +176,7 @@ function init3D() {
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.5;
 
+  renderDemoLayer();
   fetchGraphQLBrain();
 
   scene.add(new THREE.AmbientLight(0x059669, 0.4));
@@ -187,27 +188,91 @@ function init3D() {
   window.addEventListener('resize', onWindowResize);
   animate();
 }
+// ── Demo Layer: Always-visible beautiful brain scaffold ──
+let demoMesh, demoAxonMesh;
+function renderDemoLayer() {
+  const demoCount = 500;
+  const geometry = new THREE.OctahedronGeometry(1.0, 0);
+  const material = new THREE.MeshPhongMaterial({
+    color: 0xffffff, transparent: true, opacity: 0.35,
+    shininess: 60, blending: THREE.AdditiveBlending
+  });
+  demoMesh = new THREE.InstancedMesh(geometry, material, demoCount);
+  
+  const demoPositions = [];
+  const demoRegions = [
+    { x:0, y:20, z:0, scale:55, col:0x94a3b8, count:200 },   // cortex (gray)
+    { x:0, y:-10, z:0, scale:25, col:0xbfdbfe, count:60 },    // limbic
+    { x:0, y:-40, z:-10, scale:18, col:0xfde68a, count:40 },   // brainstem
+    { x:0, y:40, z:20, scale:22, col:0xa7f3d0, count:70 },     // prefrontal
+    { x:0, y:0, z:40, scale:12, col:0xc4b5fd, count:30 },      // ego
+    { x:30, y:0, z:0, scale:30, col:0x99f6e4, count:60 },      // sensors
+    { x:-30, y:0, z:0, scale:30, col:0xcbd5e1, count:40 }      // shared
+  ];
+  
+  let idx = 0;
+  demoRegions.forEach(meta => {
+    for(let n=0; n<meta.count; n++) {
+      const u = Math.random(), v = Math.random();
+      const theta = 2*Math.PI*u, phi = Math.acos(2*v-1);
+      const r = Math.random() * meta.scale;
+      const px = meta.x + r*Math.sin(phi)*Math.cos(theta);
+      const py = meta.y + r*Math.sin(phi)*Math.sin(theta);
+      const pz = meta.z + r*Math.cos(phi);
+      demoPositions.push(new THREE.Vector3(px, py, pz));
+      dummy.position.set(px, py, pz);
+      const s = 0.3 + Math.random()*0.4;
+      dummy.scale.set(s, s, s);
+      dummy.updateMatrix();
+      demoMesh.setMatrixAt(idx, dummy.matrix);
+      demoMesh.setColorAt(idx, new THREE.Color(meta.col));
+      idx++;
+    }
+  });
+  demoMesh.instanceMatrix.needsUpdate = true;
+  if(demoMesh.instanceColor) demoMesh.instanceColor.needsUpdate = true;
+  scene.add(demoMesh);
+  
+  // Demo axons
+  const linePos = [];
+  for(let j=0; j<800; j++) {
+    const p1 = demoPositions[Math.floor(Math.random()*demoCount)];
+    for(let k=0; k<20; k++) {
+      const p2 = demoPositions[Math.floor(Math.random()*demoCount)];
+      if(p1 && p2 && p1.distanceTo(p2)<22) {
+        linePos.push(p1.x,p1.y,p1.z, p2.x,p2.y,p2.z);
+        break;
+      }
+    }
+  }
+  const axMat = new THREE.LineBasicMaterial({
+    color: 0x94a3b8, transparent:true, opacity:0.12,
+    blending: THREE.AdditiveBlending, depthWrite:false
+  });
+  const axGeo = new THREE.BufferGeometry();
+  axGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePos, 3));
+  demoAxonMesh = new THREE.LineSegments(axGeo, axMat);
+  scene.add(demoAxonMesh);
+}
 
-// Phase 57: REST API Brain Fetcher (replaces GraphQL — GraphQL server never existed)
+// Phase 57: REST API Brain Fetcher — real neurons overlay on demo layer
 async function fetchGraphQLBrain() {
   try {
     const res = await fetch('/api/brain');
     if(!res.ok) throw new Error('REST API Error');
     const json = await res.json();
-    // Transform REST response to match renderGraphQLBrain format
     const brainRegions = json.regions.map(r => ({
       name: r.name,
       count: r.neurons ? r.neurons.length : 0,
       neurons: r.neurons || []
     }));
-    // Update metrics from real data
     document.getElementById('m-neurons').innerText = (json.totalNeurons || 0).toLocaleString();
     document.getElementById('m-act').innerText = (json.totalCounter || 0).toLocaleString();
     renderGraphQLBrain(brainRegions);
     setTimeout(fetchGraphQLBrain, 5000);
   } catch(e) {
     console.error('[REST Brain]', e);
-    document.getElementById('gl-stats').innerText = 'API OFFLINE | Retrying...';
+    document.getElementById('gl-stats').innerText = 'DEMO MODE | API Offline';
     setTimeout(fetchGraphQLBrain, 5000);
   }
 }
@@ -235,13 +300,12 @@ function renderGraphQLBrain(brainRegions) {
     return;
   }
 
-  const geometry = new THREE.OctahedronGeometry(1.2, 0);
+  const geometry = new THREE.OctahedronGeometry(1.5, 1);
   const material = new THREE.MeshPhongMaterial({
     color: 0xffffff,
     transparent: true,
-    opacity: 0.8,
-    shininess: 100,
-    blending: THREE.AdditiveBlending
+    opacity: 0.95,
+    shininess: 120
   });
 
   instancedMesh = new THREE.InstancedMesh(geometry, material, totalNeurons);
