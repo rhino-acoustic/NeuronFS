@@ -40,6 +40,13 @@ func (c *ExportCartridgeCmd) Execute(brainRoot string, args []string) error {
 		}
 	}
 
+	marketplace := false
+	for _, arg := range args {
+		if arg == "--marketplace" {
+			marketplace = true
+		}
+	}
+
 	if passphrase == "" {
 		return fmt.Errorf("--pass <passphrase> is required for encryption")
 	}
@@ -50,11 +57,20 @@ func (c *ExportCartridgeCmd) Execute(brainRoot string, args []string) error {
 
 	fmt.Printf("[Cartridge] Packaging %s...\n", brainRoot)
 
-	// Step 1: Create tar.gz of brain directory
+	// Step 1: Create tar.gz of brain directory (with PII masking if marketplace)
 	tarData, err := createTarGz(brainRoot)
 	if err != nil {
 		return fmt.Errorf("tar.gz creation failed: %w", err)
 	}
+
+	// Step 1.5: PII Masking for marketplace distribution
+	if marketplace {
+		tarData, err = maskTarGzPII(tarData)
+		if err != nil {
+			fmt.Printf("[Cartridge] PII masking warning: %v (continuing)\n", err)
+		}
+	}
+
 	fmt.Printf("[Cartridge] Compressed: %d bytes\n", len(tarData))
 
 	// Step 2: Encrypt with AES-256-GCM
