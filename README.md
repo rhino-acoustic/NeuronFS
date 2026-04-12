@@ -707,7 +707,81 @@ corrections/day tracked in growth.log
 
 ---
 
+## What Folders Replace (The Simplification)
+
+> Every line below is infrastructure you DON'T need because folders handle it natively.
+
+| Traditional System | What You'd Build | NeuronFS Equivalent | Lines of Code Saved |
+|---|---|---|---|
+| **Redis/Memcached** | Message queue between agents | `_inbox/agent_messages/` folder polling | ~2,000 LOC |
+| **PostgreSQL** | Error pattern storage + dedup | `corrections.jsonl` + `error_engraver.go` | ~5,000 LOC |
+| **Vault/KMS** | Secret encryption for export | `AES-256-GCM` on `tar.gz` (cartridge_crypto.go) | ~3,000 LOC |
+| **ElasticSearch** | Full-text search across rules | `filepath.Walk` + TF-IDF on folder names | ~8,000 LOC |
+| **Kafka/RabbitMQ** | Agent-to-agent communication | Shared `brain_v4/` folder = message broker | ~10,000 LOC |
+| **S3/GCS** | Brain backup & distribution | `.cartridge` file (single encrypted binary) | ~2,000 LOC |
+| **Terraform** | Infrastructure-as-code | `mkdir` = infrastructure | ~4,000 LOC |
+| **PagerDuty** | Alert escalation (3x repeat) | `error_engraver.go` auto-escalation to P0 | ~1,500 LOC |
+| **Docker Registry** | Knowledge distribution | Cartridge marketplace with PII masking | ~3,000 LOC |
+| **CI/CD Pipeline** | Build → Test → Deploy | `git stash → go vet → commit or rollback` | ~2,000 LOC |
+
+**Total: ~40,000 lines of infrastructure replaced by folders + 1 Go binary.**
+
+---
+
+## V12 — Commercialization & Portability (Latest)
+
+### 🔐 Encrypted Cartridge Export/Import
+```bash
+# Personal backup
+neuronfs brain_v4 --export-cartridge --pass "my-secret"
+
+# Marketplace-safe (PII auto-masked)
+neuronfs brain_v4 --export-cartridge --pass "my-secret" --marketplace
+```
+- AES-256-GCM encryption (Go stdlib only)
+- Auto-masks emails, API keys, tokens, passwords, IPs, phone numbers
+- Magic header `NFSC v1` for format verification
+
+### 🧠 Self-Learning Error System
+```
+Error occurs 1x → logged
+Error occurs 3x → auto-escalated to brainstem (P0)
+Error occurs 5x → BOMB triggered (system halts, human review forced)
+```
+_"If the AI keeps making the same mistake, it's not logging — it's stupid."_
+
+### 🔧 Git-Isolated Self-Repair
+```
+1. git stash (preserve state)
+2. Apply proposed fix
+3. go vet + go build (verify)
+4. Pass → git commit (confirm)
+5. Fail → git stash pop (rollback, zero damage)
+```
+
+### 🤖 Multi-Agent Orchestrator
+```
+PM (Antigravity) ─── Task distribution + monitoring
+  ├── Agent 1 (ENTP Researcher) → Competitor analysis
+  ├── Agent 2 (INTJ Architect) → Code architecture
+  ├── Agent 3 (ISTJ Auditor) → Testing & verification
+  └── Agent 4 (ENFP Creator) → UX improvements
+```
+- Parallel Gemini CLI processes
+- MBTI-based agent personalities
+- Shared `brain_v4/` = zero-config message bus
+
+### 📊 Built-in Benchmark Suite
+```bash
+neuronfs brain_v4 --benchmark
+```
+- Measures: brain scan, TF-IDF build, similarity query, emit latency
+- Real numbers, not marketing: 3,828 neurons scanned in 2.6s
+
+---
+
 ## Changelog
+
 
 **v5.2 — axiom > algorithm (2026-04-11)**
 - **qorz:** 4th neologism runeword (community search before tech decisions)
