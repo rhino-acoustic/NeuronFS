@@ -124,6 +124,8 @@ func main() {
 	router := NewRouter()
 	router.Register(&HarnessCmd{})
 	router.Register(&InitCmd{})
+	router.Register(&InjectCmd{})
+	router.Register(&EvolveCmd{})
 
 	// Check if any arguments match our new router
 	routed := false
@@ -161,9 +163,6 @@ func main() {
 	case "emit-target":
 		processInbox(brainRoot)
 		writeAllTiersForTargets(brainRoot, emitTarget)
-	case "inject":
-		processInbox(brainRoot)
-		writeAllTiers(brainRoot)
 	case "harness":
 		// Handled by router
 	case "watch":
@@ -250,8 +249,6 @@ func main() {
 		runStats(brainRoot)
 	case "vacuum":
 		runVacuum(brainRoot)
-	case "evolve":
-		runEvolve(brainRoot, dryRun)
 	case "mcp":
 		// MCP Streamable HTTP server + background loops
 		// HTTP transport: IDE 재시작에도 연결 유지

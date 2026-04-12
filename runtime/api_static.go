@@ -1,8 +1,6 @@
 // api_static.go — 대시보드/정적 파일 서빙
 //
 // PROVIDES: registerStaticRoutes
-// DEPENDS:  dashboard_html.go (dashboardHTML embed)
-//
 // 하드코딩 경로 제거: neuronfsRoot로 통일
 
 package main
@@ -79,18 +77,11 @@ func registerStaticRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		htmlPath := filepath.Join(neuronfsRoot, "brain_dashboard.html")
 		data, err := os.ReadFile(htmlPath)
 		if err != nil {
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			fmt.Fprint(w, dashboardHTML)
+			http.Error(w, "brain_dashboard.html not found. Please ensure the UI is placed in the NeuronFS root.", http.StatusNotFound)
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(data)
-	}))
-
-	// GET /cards — Card-only dashboard (legacy embed)
-	mux.HandleFunc("/cards", withCORS(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, dashboardHTML)
 	}))
 
 	// GET /bible — Bible demo (NeuronFS showcase with real filesystem data)
