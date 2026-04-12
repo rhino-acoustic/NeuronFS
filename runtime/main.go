@@ -85,6 +85,8 @@ func main() {
 	router.Register(&EmitCmd{})
 	router.Register(&ShareDashboardCmd{})
 	router.Register(&EdgeFixCmd{})
+	router.Register(&ExportCartridgeCmd{}) // V12-D: Encrypted brain export
+	router.Register(&ImportCartridgeCmd{}) // V12-D: Encrypted brain import
 
 	// Check if any arguments match our new router
 	routed := false
