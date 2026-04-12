@@ -188,7 +188,7 @@ function init3D() {
   window.addEventListener('resize', onWindowResize);
   animate();
 }
-// ── Demo Layer: Golden-angle nautilus spiral (snail shell) ──
+// ── Demo Layer: Vertical golden-angle spiral (top-to-bottom tower) ──
 let demoMesh, demoAxonMesh;
 function renderDemoLayer() {
   const demoCount = 1200;
@@ -202,49 +202,53 @@ function renderDemoLayer() {
   const demoPositions = [];
   const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5°
   const palette = [0x10b981, 0x3b82f6, 0x8b5cf6, 0x06b6d4, 0xa78bfa, 0x14b8a6, 0x60a5fa, 0xfbbf24, 0xf472b6];
+  const totalHeight = 120; // tall vertical span
   
   for(let n=0; n<demoCount; n++) {
     const t = n / demoCount;
     const angle = n * goldenAngle;
-    const radius = Math.sqrt(n) * 3.2; // square-root spacing = nautilus curve
-    const height = (Math.random()-0.5) * 8 * (1 + t*0.5); // thin disc with slight spread
+    
+    // Y = main vertical axis (bottom to top)
+    const py = -totalHeight/2 + t * totalHeight;
+    
+    // Radius varies: wider in middle, narrow at top/bottom (organic bulge)
+    const bulge = 1 - Math.pow(2*t - 1, 2); // parabolic: 0→1→0
+    const baseRadius = 8 + bulge * 25;
+    const radius = baseRadius + (Math.random()-0.5) * 6;
     
     const px = Math.cos(angle) * radius;
-    const py = height;
     const pz = Math.sin(angle) * radius;
     
     demoPositions.push(new THREE.Vector3(px, py, pz));
     dummy.position.set(px, py, pz);
-    const s = 0.2 + (1-t)*0.6;
+    const s = 0.15 + bulge * 0.5 + Math.random()*0.15;
     dummy.scale.set(s, s, s);
     dummy.updateMatrix();
     demoMesh.setMatrixAt(n, dummy.matrix);
     
     const col = new THREE.Color(palette[n % palette.length]);
-    col.multiplyScalar(0.3 + t*0.5);
+    col.multiplyScalar(0.25 + bulge*0.5);
     demoMesh.setColorAt(n, col);
   }
   demoMesh.instanceMatrix.needsUpdate = true;
   if(demoMesh.instanceColor) demoMesh.instanceColor.needsUpdate = true;
   scene.add(demoMesh);
   
-  // Axons along the spiral
+  // Axons — vertical threads + proximity links
   const linePos = [];
   for(let i=0; i<demoCount-1; i++) {
-    // Connect sequential neighbors (creates spiral threads)
-    if(Math.random() < 0.4) {
+    if(Math.random() < 0.35) {
       const p1 = demoPositions[i], p2 = demoPositions[i+1];
       linePos.push(p1.x,p1.y,p1.z, p2.x,p2.y,p2.z);
     }
-    // Random proximity links
-    if(Math.random() < 0.15) {
+    if(Math.random() < 0.12) {
       const j = Math.floor(Math.random()*demoCount);
       const p1 = demoPositions[i], p2 = demoPositions[j];
-      if(p1.distanceTo(p2)<15) linePos.push(p1.x,p1.y,p1.z, p2.x,p2.y,p2.z);
+      if(p1.distanceTo(p2)<20) linePos.push(p1.x,p1.y,p1.z, p2.x,p2.y,p2.z);
     }
   }
   const axMat = new THREE.LineBasicMaterial({
-    color: 0x10b981, transparent:true, opacity:0.08,
+    color: 0x10b981, transparent:true, opacity:0.06,
     blending: THREE.AdditiveBlending, depthWrite:false
   });
   const axGeo = new THREE.BufferGeometry();
