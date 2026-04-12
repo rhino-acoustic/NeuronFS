@@ -72,6 +72,17 @@ func buildGraphQLSchema(brainRoot string) (graphql.Schema, error) {
 		},
 	)
 
+	// Object Type: SimilarResult (Phase 46)
+	similarResultType := graphql.NewObject(
+		graphql.ObjectConfig{
+			Name: "SimilarResult",
+			Fields: graphql.Fields{
+				"path":  &graphql.Field{Type: graphql.String},
+				"score": &graphql.Field{Type: graphql.Float},
+			},
+		},
+	)
+
 	// Root Query
 	queryType := graphql.NewObject(
 		graphql.ObjectConfig{
@@ -195,6 +206,29 @@ func buildGraphQLSchema(brainRoot string) (graphql.Schema, error) {
 							}
 						}
 						return results, nil
+					},
+				},
+				"similarNeurons": &graphql.Field{
+					Type: graphql.NewList(similarResultType),
+					Args: graphql.FieldConfigArgument{
+						"query": &graphql.ArgumentConfig{Type: graphql.NewNonNull(graphql.String)},
+						"topK":  &graphql.ArgumentConfig{Type: graphql.Int},
+					},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						q := p.Args["query"].(string)
+						topK := 5
+						if k, ok := p.Args["topK"].(int); ok && k > 0 {
+							topK = k
+						}
+						results := QuerySimilar(q, topK)
+						if results == nil {
+							return []interface{}{}, nil
+						}
+						var out []map[string]interface{}
+						for _, r := range results {
+							out = append(out, map[string]interface{}{"path": r.Path, "score": r.Score})
+						}
+						return out, nil
 					},
 				},
 			},
