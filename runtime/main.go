@@ -139,6 +139,8 @@ func main() {
 	router.Register(&ExportSvgCmd{})
 	router.Register(&StatsCmd{})
 	router.Register(&VacuumCmd{})
+	router.Register(&McpCmd{})
+	router.Register(&SupervisorCmd{})
 
 	// Check if any arguments match our new router
 	routed := false
@@ -178,19 +180,6 @@ func main() {
 		writeAllTiersForTargets(brainRoot, emitTarget)
 	case "harness":
 		// Handled by router
-	case "mcp":
-		// MCP Streamable HTTP server + background loops
-		// HTTP transport: IDE 재시작에도 연결 유지
-		go func() {
-			mcpAPIPort := MCPPort
-			fmt.Fprintf(os.Stderr, "[MCP] REST API on :%d (fallback)\n", mcpAPIPort)
-			startAPI(brainRoot, mcpAPIPort)
-		}()
-		go runInjectionLoop(brainRoot)
-		go runIdleLoop(brainRoot)
-		startMCPHTTPServer(brainRoot, MCPStreamPort) // blocking: HTTP server
-	case "supervisor":
-		runSupervisor(brainRoot)
 	case "tool":
 		toolName := ""
 		argsJson := ""
