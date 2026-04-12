@@ -66,6 +66,7 @@ func startAPI(brainRoot string, port int) {
 	// Start background loops
 	go runInjectionLoop(brainRoot)
 	go runIdleLoop(brainRoot)
+	go startFSWatcherPool(brainRoot) // <--- Phase 31: V7 OS Sensory Monitor
 
 	fmt.Printf("  🔄 IDLE ENGINE: auto evolve/snapshot/NAS every %dm idle\n", idleThresholdMinutes)
 
