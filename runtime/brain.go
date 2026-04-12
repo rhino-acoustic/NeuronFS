@@ -279,7 +279,7 @@ func scanBrain(root string) Brain {
 			}
 
 			baseName := filepath.Base(path)
-			if strings.HasPrefix(baseName, "_") || strings.HasPrefix(baseName, ".") {
+			if strings.HasPrefix(baseName, "_") || strings.HasPrefix(baseName, ".") || baseName == "working_memory" {
 				if baseName == "_sandbox" {
 					return nil
 				}
