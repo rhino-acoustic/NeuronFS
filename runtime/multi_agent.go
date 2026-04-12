@@ -68,13 +68,14 @@ func RunParallelAgents(brainRoot string, tasks []AgentTask) []AgentResult {
 	return results
 }
 
-// executeGeminiCLI runs a single Gemini CLI process
+// executeGeminiCLI runs a single Gemini CLI process using stdin pipe injection
 func executeGeminiCLI(task AgentTask) AgentResult {
 	// Check if gemini CLI exists
 	geminiPath, err := exec.LookPath("gemini")
 	if err != nil {
 		// Fallback: try common locations
 		candidates := []string{
+			filepath.Join(os.Getenv("APPDATA"), "npm", "gemini.cmd"),
 			filepath.Join(os.Getenv("LOCALAPPDATA"), "npm", "gemini.cmd"),
 			filepath.Join(os.Getenv("USERPROFILE"), ".local", "bin", "gemini"),
 			"gemini",
@@ -91,30 +92,62 @@ func executeGeminiCLI(task AgentTask) AgentResult {
 			return AgentResult{
 				Task:    task,
 				Success: false,
-				Output:  "gemini CLI를 찾을 수 없습니다. npm install -g @anthropic-ai/gemini-cli 또는 동등한 명령으로 설치하세요.",
+				Output:  "gemini CLI를 찾을 수 없습니다. npm install -g @google/gemini-cli로 설치하세요.",
 			}
 		}
 	}
 
-	cmd := exec.Command(geminiPath, "--prompt", task.Prompt)
+	// Write prompt to temp file for non-interactive injection
+	tmpDir := os.TempDir()
+	promptFile := filepath.Join(tmpDir, fmt.Sprintf("neuronfs_agent_%d.txt", time.Now().UnixNano()))
+	_ = os.WriteFile(promptFile, []byte(task.Prompt), 0644)
+	defer os.Remove(promptFile)
+
+	// Use stdin pipe injection: gemini < prompt.txt (non-interactive)
+	// Also try --yolo/--non-interactive flags if available
+	cmd := exec.Command(geminiPath, "--prompt", task.Prompt, "--yolo")
 	if task.WorkDir != "" {
 		cmd.Dir = task.WorkDir
 	}
 
+	// Setup stdin pipe as fallback injection
+	stdinPipe, pipeErr := cmd.StdinPipe()
+	if pipeErr == nil {
+		go func() {
+			defer stdinPipe.Close()
+			_, _ = stdinPipe.Write([]byte(task.Prompt + "\n"))
+		}()
+	}
+
 	// Set timeout: 5 minutes per task max
-	output, err := cmd.CombinedOutput()
-	if err != nil {
+	done := make(chan AgentResult, 1)
+	go func() {
+		output, runErr := cmd.CombinedOutput()
+		if runErr != nil {
+			done <- AgentResult{
+				Task:    task,
+				Success: false,
+				Output:  fmt.Sprintf("실행 실패: %v\n%s", runErr, string(output)),
+			}
+			return
+		}
+		done <- AgentResult{
+			Task:    task,
+			Success: true,
+			Output:  string(output),
+		}
+	}()
+
+	select {
+	case result := <-done:
+		return result
+	case <-time.After(5 * time.Minute):
+		_ = cmd.Process.Kill()
 		return AgentResult{
 			Task:    task,
 			Success: false,
-			Output:  fmt.Sprintf("실행 실패: %v\n%s", err, string(output)),
+			Output:  "타임아웃: 5분 초과로 강제 종료됨",
 		}
-	}
-
-	return AgentResult{
-		Task:    task,
-		Success: true,
-		Output:  string(output),
 	}
 }
 
