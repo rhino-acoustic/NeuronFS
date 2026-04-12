@@ -190,6 +190,7 @@ function init() {
     <button class="layout-btn" onclick="switchLayout(4, this)">5. Clifford Attractor (비단결 리본)</button>
     <button class="layout-btn" onclick="switchLayout(5, this)">6. Supernova Explosion (초신성 코어)</button>
     <button class="layout-btn" onclick="switchLayout(6, this)">7. Fibonacci Sphere (황금비 넥서스)</button>
+    <button class="layout-btn" onclick="switchLayout(7, this)">8. Chaos Gravity Well (응축 깔때기)</button>
   \`;
   
   setTimeout(() => loadLayout(0), 100);
@@ -270,6 +271,36 @@ function loadLayout(idx) {
       tArr[i*3] = Math.cos(theta) * radius * layerDist;
       tArr[i*3+1] = y * layerDist;
       tArr[i*3+2] = Math.sin(theta) * radius * layerDist;
+    }
+  } else if(idx === 7) { // Chaos Gravity Well (응축 깔때기)
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+      // tScale goes from 1.0 (top wide edge) to 0.0 (bottom singularity)
+      // Use power curve so majority of particles exist in the elegant sweeping tail
+      const tScale = Math.pow(Math.random(), 0.6); 
+      
+      // Radius drastically shrinks: wide at top, extremely tight at bottom
+      const r = 300 * Math.pow(tScale, 2.5) + 2; 
+      
+      // 7 distinct chaos ribbons wrapping around the funnel
+      const stream = i % 7;
+      const streamAngle = (stream / 7.0) * Math.PI * 2;
+      
+      // Twisting speed aggressively increases near the center
+      const spin = 25.0 * (1.0 - tScale); 
+      
+      // Surface Area vs Thinness: 
+      // Top is very thick/spread out, Core is razor thin
+      const spreadR = (Math.random() - 0.5) * 150 * tScale; 
+      const spreadAngle = (Math.random() - 0.5) * 2.0 * tScale;
+      // Y height maps from -80 (core) to +150 (top edge)
+      const finalY = tScale * 230 - 80 + (Math.random() - 0.5) * 60 * tScale;
+      
+      const finalR = r + spreadR;
+      const finalAng = streamAngle + spin + spreadAngle;
+      
+      tArr[i*3] = finalR * Math.cos(finalAng);
+      tArr[i*3+1] = finalY;
+      tArr[i*3+2] = finalR * Math.sin(finalAng);
     }
   }
 
