@@ -1,12 +1,25 @@
 package main
 
 import (
+	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
+
+// portAlive — TCP 포트 연결 가능 여부 (500ms 타임아웃)
+func portAlive(port int) bool {
+	conn, err := net.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", port), 500*time.Millisecond)
+	if err != nil {
+		return false
+	}
+	conn.Close()
+	return true
+}
 
 // ─── Health check models ───
 
@@ -17,12 +30,26 @@ type ProcessHealth struct {
 	PID     string `json:"pid,omitempty"`
 }
 
+type SubsystemStatus struct {
+	Status   string `json:"status"`
+	Detail   string `json:"detail,omitempty"`
+}
+
+type BacklogStatus struct {
+	Pending  int `json:"pending"`
+	Backlog  int `json:"backlog"`
+	Archive  int `json:"archive"`
+}
+
 type HealthJSON struct {
-	API        bool            `json:"api"`
-	Processes  []ProcessHealth `json:"processes"`
-	OS         string          `json:"os"`
-	BrainRoot  string          `json:"brainRoot"`
-	NeuronFile int             `json:"neuronFiles"`
+	API        bool                      `json:"api"`
+	Processes  []ProcessHealth           `json:"processes"`
+	Subsystems map[string]SubsystemStatus `json:"subsystems"`
+	Backlog    BacklogStatus             `json:"backlog"`
+	OS         string                    `json:"os"`
+	BrainRoot  string                    `json:"brainRoot"`
+	NeuronFile int                       `json:"neuronFiles"`
+	Uptime     string                    `json:"uptime"`
 }
 
 // ─── JSON models for API ───
@@ -132,14 +159,66 @@ func isGoServiceRunning(name string) bool {
 }
 
 func buildHealthJSON(brainRoot string) HealthJSON {
-	// 경량 응답: supervisor의 3초 타임아웃 내 응답 필수
-	// tasklist/filepath.Walk는 너무 느림 → 제거
+	subs := make(map[string]SubsystemStatus)
+
+	// MCP check (9247)
+	mcpOK := portAlive(MCPStreamPort)
+	if mcpOK {
+		subs["mcp"] = SubsystemStatus{Status: "alive", Detail: fmt.Sprintf("port %d", MCPStreamPort)}
+	} else {
+		subs["mcp"] = SubsystemStatus{Status: "dead", Detail: fmt.Sprintf("port %d unreachable", MCPStreamPort)}
+	}
+
+	// CDP check (9000)
+	cdpOK := portAlive(hlCDPPort)
+	if cdpOK {
+		subs["cdp"] = SubsystemStatus{Status: "alive", Detail: fmt.Sprintf("port %d", hlCDPPort)}
+	} else {
+		subs["cdp"] = SubsystemStatus{Status: "dead", Detail: fmt.Sprintf("port %d unreachable", hlCDPPort)}
+	}
+
+	// Telegram
+	if hlTgToken != "" {
+		subs["telegram"] = SubsystemStatus{Status: "alive", Detail: fmt.Sprintf("offset=%d", hlTgOffset)}
+	} else {
+		subs["telegram"] = SubsystemStatus{Status: "no_token"}
+	}
+
+	// Go services
+	for _, svc := range []string{"watch", "api", "supervisor"} {
+		if isGoServiceRunning(svc) {
+			subs[svc] = SubsystemStatus{Status: "alive"}
+		} else {
+			subs[svc] = SubsystemStatus{Status: "unknown"}
+		}
+	}
+
+	// Backlog counts
+	inboxDir := filepath.Join(brainRoot, "_agents", "NeuronFS", "inbox")
+	var pending, backlogCount, archiveCount int
+	if entries, err := os.ReadDir(inboxDir); err == nil {
+		for _, e := range entries {
+			if !e.IsDir() {
+				pending++
+			}
+		}
+	}
+	if entries, err := os.ReadDir(filepath.Join(inboxDir, "_backlog")); err == nil {
+		backlogCount = len(entries)
+	}
+	if entries, err := os.ReadDir(filepath.Join(inboxDir, "_archive")); err == nil {
+		archiveCount = len(entries)
+	}
+
 	return HealthJSON{
-		API:        true, // 이 응답이 올 시점에 API는 살아있음
-		Processes:  nil,  // supervisor가 별도 추적
+		API:        true,
+		Processes:  nil,
+		Subsystems: subs,
+		Backlog:    BacklogStatus{Pending: pending, Backlog: backlogCount, Archive: archiveCount},
 		OS:         runtime.GOOS,
 		BrainRoot:  brainRoot,
-		NeuronFile: 0, // 별도 /api/brain에서 제공
+		NeuronFile: 0,
+		Uptime:     time.Since(startTime).Round(time.Second).String(),
 	}
 }
 
