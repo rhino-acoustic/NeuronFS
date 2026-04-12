@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NeuronFS — 파일시스템 기반 AI 거버넌스</title>
-  <meta name="description" content="NeuronFS: 폴더로 AI 행동을 구조화합니다. 인프라 제로. O(1) 규칙 적용. 4MB 바이너리. AGPL-3.0.">
-  <meta property="og:title" content="NeuronFS — 파일시스템 기반 AI 거버넌스">
-  <meta property="og:description" content="폴더로 AI 행동을 구조화합니다. 인프라 제로. 4MB 바이너리.">
+  <title>NeuronFS — 파일시스템 기반 구조화된 AI 프롬프트 거버넌스</title>
+  <meta name="description" content="NeuronFS: 폴더로 AI 행동을 구조화합니다. 각 폴더가 규칙이고, 각 경로가 문장이고, 폴더구조 자체가 문맥입니다.">
+  <meta property="og:title" content="NeuronFS — 읽히는 동시에 실행되는 가치관">
+  <meta property="og:description" content="법률은 읽히지만 실행 불가. 코드는 실행되지만 읽기 어려움. 뇌 폴더는 둘 다.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://neuronfs.vercel.app/ko">
   <meta property="og:image" content="https://neuronfs.vercel.app/dashboard_preview.png">
-  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
@@ -24,22 +23,15 @@
     }
     html { scroll-behavior: smooth; }
     body { font-family: 'Noto Sans KR', 'Inter', sans-serif; background: var(--bg-1); color: var(--text); line-height: 1.8; }
-    a { color: var(--accent-l); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    a { color: var(--accent-l); text-decoration: none; } a:hover { text-decoration: underline; }
     code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; padding: 2px 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 4px; color: var(--accent-l); }
     nav { position: fixed; top: 0; width: 100%; z-index: 100; padding: 16px 0; background: rgba(9,9,11,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); transition: padding 0.3s; }
     nav.shrink { padding: 10px 0; }
     .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; }
-    .nav-logo { font-weight: 800; font-size: 1.15rem; color: #fff; letter-spacing: -0.5px; }
-    .nav-logo span { color: var(--accent-l); }
-    .nav-links { display: flex; gap: 28px; }
-    .nav-links a { color: var(--text-3); font-size: 0.85rem; font-weight: 500; transition: color 0.2s; }
-    .nav-links a:hover { color: #fff; text-decoration: none; }
-    .nav-cta { padding: 8px 20px; background: var(--accent); color: #fff; border-radius: 8px; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
-    .nav-cta:hover { background: var(--accent-l); text-decoration: none; }
-    .s { padding: 100px 0; }
-    .s-alt { background: var(--bg-2); }
-    .s-dark { background: var(--bg-3); }
+    .nav-logo { font-weight: 800; font-size: 1.15rem; color: #fff; } .nav-logo span { color: var(--accent-l); }
+    .nav-links { display: flex; gap: 28px; } .nav-links a { color: var(--text-3); font-size: 0.85rem; font-weight: 500; transition: color 0.2s; } .nav-links a:hover { color: #fff; text-decoration: none; }
+    .nav-cta { padding: 8px 20px; background: var(--accent); color: #fff; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+    .s { padding: 100px 0; } .s-alt { background: var(--bg-2); } .s-dark { background: var(--bg-3); }
     .container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
     .s-header { text-align: center; max-width: 700px; margin: 0 auto 56px; }
     .s-eyebrow { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: var(--accent-l); margin-bottom: 16px; }
@@ -47,103 +39,59 @@
     .s-desc { font-size: 1rem; color: var(--text-2); line-height: 1.9; }
     .hero { padding: 180px 0 120px; text-align: center; position: relative; overflow: hidden; }
     .hero::before { content:''; position: absolute; top:-200px; left:50%; transform: translateX(-50%); width: 800px; height: 800px; background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%); pointer-events: none; }
-    .hero h1 { font-size: 3.2rem; font-weight: 900; color: #fff; letter-spacing: -1.5px; line-height: 1.2; margin-bottom: 20px; }
-    .hero h1 em { font-style: normal; color: var(--accent-l); }
-    .hero-sub { font-size: 1.1rem; color: var(--text-2); max-width: 600px; margin: 0 auto 40px; line-height: 1.9; }
+    .hero h1 { font-size: 3rem; font-weight: 900; color: #fff; letter-spacing: -1px; line-height: 1.3; margin-bottom: 20px; } .hero h1 em { font-style: normal; color: var(--accent-l); }
+    .hero-sub { font-size: 1.1rem; color: var(--text-2); max-width: 640px; margin: 0 auto 40px; line-height: 1.9; }
     .hero-btns { display: flex; gap: 16px; justify-content: center; margin-bottom: 48px; }
-    .btn-p { padding: 14px 32px; background: var(--accent); color: #fff; border-radius: 10px; font-weight: 700; font-size: 0.95rem; transition: all 0.2s; }
-    .btn-p:hover { background: var(--accent-l); text-decoration: none; transform: translateY(-2px); }
-    .btn-s { padding: 14px 32px; background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); border-radius: 10px; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; }
-    .btn-s:hover { background: rgba(255,255,255,0.08); text-decoration: none; }
-    .hero-img { max-width: 900px; margin: 0 auto; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 32px 64px rgba(0,0,0,0.5); }
-    .hero-img img { width: 100%; display: block; }
+    .btn-p { padding: 14px 32px; background: var(--accent); color: #fff; border-radius: 10px; font-weight: 700; font-size: 0.95rem; transition: all 0.2s; } .btn-p:hover { background: var(--accent-l); text-decoration: none; transform: translateY(-2px); }
+    .btn-s { padding: 14px 32px; background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); border-radius: 10px; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; } .btn-s:hover { background: rgba(255,255,255,0.08); text-decoration: none; }
+    .hero-img { max-width: 900px; margin: 0 auto; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 32px 64px rgba(0,0,0,0.5); } .hero-img img { width: 100%; display: block; }
     .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border-radius: 16px; overflow: hidden; margin-top: -60px; position: relative; z-index: 10; }
-    .stat { padding: 32px; text-align: center; background: var(--bg-2); }
-    .stat-num { font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 4px; }
-    .stat-label { font-size: 0.78rem; color: var(--text-3); letter-spacing: 1px; }
+    .stat { padding: 32px; text-align: center; background: var(--bg-2); } .stat-num { font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: 4px; } .stat-label { font-size: 0.78rem; color: var(--text-3); letter-spacing: 1px; }
     .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .feat-card { padding: 36px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 16px; transition: all 0.3s; }
-    .feat-card:hover { border-color: rgba(99,102,241,0.2); transform: translateY(-4px); }
-    .feat-icon { font-size: 2rem; margin-bottom: 16px; }
-    .feat-card h3 { font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
-    .feat-card p { font-size: 0.88rem; color: var(--text-2); line-height: 1.8; }
+    .feat-card { padding: 36px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 16px; transition: all 0.3s; } .feat-card:hover { border-color: rgba(99,102,241,0.2); transform: translateY(-4px); }
+    .feat-icon { font-size: 2rem; margin-bottom: 16px; } .feat-card h3 { font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 8px; } .feat-card p { font-size: 0.88rem; color: var(--text-2); line-height: 1.8; }
     .split { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
-    .split-text h2 { font-size: 2rem; font-weight: 800; color: #fff; line-height: 1.3; letter-spacing: -0.5px; margin-bottom: 20px; }
-    .split-text p { color: var(--text-2); margin-bottom: 16px; font-size: 0.95rem; line-height: 1.9; }
-    .layer-stack { display: flex; flex-direction: column; gap: 4px; }
-    .layer-row { display: grid; grid-template-columns: 56px 110px 1fr; align-items: center; padding: 14px 16px; border-radius: 10px; font-size: 0.88rem; transition: all 0.2s; }
-    .layer-row:hover { transform: translateX(6px); }
-    .lr-0 { background: rgba(248,113,113,0.08); border-left: 3px solid var(--red); }
-    .lr-1 { background: rgba(251,191,36,0.06); border-left: 3px solid var(--yellow); }
-    .lr-2 { background: rgba(52,211,153,0.06); border-left: 3px solid var(--green); }
-    .lr-3 { background: rgba(99,102,241,0.06); border-left: 3px solid var(--accent); }
-    .lr-4 { background: rgba(167,139,250,0.06); border-left: 3px solid #a78bfa; }
-    .lr-5 { background: rgba(255,255,255,0.02); border-left: 3px solid var(--text-3); }
-    .lr-6 { background: rgba(255,255,255,0.02); border-left: 3px solid #3f3f50; }
-    .lp { font-weight: 800; font-size: 0.72rem; } .ln { font-weight: 700; color: var(--text); } .ld { color: var(--text-2); font-size: 0.82rem; }
-    .codeblock { background: #0a0a0e; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin: 24px 0; }
-    .codeblock-head { padding: 10px 16px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); font-size: 0.72rem; color: var(--text-3); display: flex; justify-content: space-between; }
-    .codeblock-body { padding: 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.9; color: #c8c8dc; overflow-x: auto; }
-    .ck { color: #818cf8; } .cs { color: var(--green); } .cc { color: var(--text-3); } .cf { color: #c4b5fd; } .co { color: var(--yellow); }
+    .split-text h2 { font-size: 2rem; font-weight: 800; color: #fff; line-height: 1.3; margin-bottom: 20px; } .split-text p { color: var(--text-2); margin-bottom: 16px; font-size: 0.95rem; line-height: 1.9; }
     .tbl-wrap { overflow-x: auto; margin: 24px 0; border: 1px solid var(--border); border-radius: 14px; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-    th, td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border); }
-    th { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-3); background: rgba(255,255,255,0.02); }
-    td { color: var(--text-2); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; } th, td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-3); background: rgba(255,255,255,0.02); } td { color: var(--text-2); }
     .w { color: var(--green); font-weight: 700; } .l { color: var(--text-3); } .m { color: var(--yellow); font-weight: 600; }
-    .callout { padding: 20px 24px; border-radius: 12px; margin: 28px 0; border-left: 3px solid; font-size: 0.92rem; color: var(--text-2); }
-    .c-info { background: rgba(99,102,241,0.06); border-color: var(--accent); }
-    .c-warn { background: rgba(251,191,36,0.06); border-color: var(--yellow); }
-    .c-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-    .c-info .c-label { color: var(--accent-l); } .c-warn .c-label { color: var(--yellow); }
     .cta-box { text-align: center; padding: 80px 40px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 24px; position: relative; overflow: hidden; }
     .cta-box::before { content:''; position: absolute; inset: -2px; border-radius: 26px; background: conic-gradient(var(--accent), transparent, var(--accent)); animation: spin 20s linear infinite; z-index: 0; opacity: 0.3; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .cta-box > * { position: relative; z-index: 1; }
-    .cta-box h2 { font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 16px; }
-    .cta-box p { color: var(--text-2); max-width: 500px; margin: 0 auto 36px; line-height: 1.9; }
+    .cta-box > * { position: relative; z-index: 1; } .cta-box h2 { font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 16px; } .cta-box p { color: var(--text-2); max-width: 500px; margin: 0 auto 36px; line-height: 1.9; }
     footer { padding: 48px 0; border-top: 1px solid var(--border); text-align: center; color: var(--text-3); font-size: 0.82rem; }
-    @media (max-width: 768px) {
-      .nav-links { display: none; }
-      .hero h1 { font-size: 2.2rem; }
-      .hero { padding: 140px 0 80px; }
-      .stats { grid-template-columns: repeat(2, 1fr); margin-top: -30px; }
-      .feat-grid { grid-template-columns: 1fr; }
-      .split { grid-template-columns: 1fr; gap: 32px; }
-      .s-title { font-size: 1.8rem; }
-    }
-    .rv { opacity: 0; transform: translateY(24px); transition: all 0.6s ease; }
-    .rv.vis { opacity: 1; transform: translateY(0); }
+    @media (max-width: 768px) { .nav-links { display: none; } .hero h1 { font-size: 2rem; } .hero { padding: 140px 0 80px; } .stats { grid-template-columns: repeat(2, 1fr); margin-top: -30px; } .feat-grid { grid-template-columns: 1fr; } .split { grid-template-columns: 1fr; gap: 32px; } .s-title { font-size: 1.8rem; } }
+    .rv { opacity: 0; transform: translateY(24px); transition: all 0.6s ease; } .rv.vis { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
 
-  <nav id="nav">
-    <div class="nav-inner">
-      <div class="nav-logo">Neuron<span>FS</span></div>
-      <div class="nav-links">
-        <a href="#features">기능</a>
-        <a href="#architecture">아키텍처</a>
-        <a href="#workflow">사용법</a>
-        <a href="#benchmark">벤치마크</a>
-        <a href="#comparison">비교</a>
-      </div>
-      <a href="https://github.com/rhino-acoustic/NeuronFS" class="nav-cta">GitHub →</a>
-      <a href="index.html" style="color:var(--text-3); font-size:0.85rem; font-weight:500; margin-left:8px;">🇺🇸 English</a>
+  <nav id="nav"><div class="nav-inner">
+    <div class="nav-logo">Neuron<span>FS</span></div>
+    <div class="nav-links">
+      <a href="#thesis">명제</a>
+      <a href="#features">기능</a>
+      <a href="#benchmark">벤치마크</a>
+      <a href="#usecases">활용</a>
+      <a href="docs.html">문서</a>
     </div>
-  </nav>
+    <a href="https://github.com/rhino-acoustic/NeuronFS" class="nav-cta">GitHub →</a>
+    <a href="index.html" onclick="localStorage.setItem('lang_override','en')" style="color:var(--text-3); font-size:0.85rem; font-weight:500; margin-left:8px;">🇺🇸 English</a>
+  </div></nav>
 
   <!-- 히어로 -->
   <section class="hero">
     <div class="container">
-      <h1 class="rv">mkdir로 AI의 <em>두뇌</em>를 만드세요</h1>
-      <p class="hero-sub rv">폴더로 AI 행동을 구조화합니다. 각 폴더가 규칙이고, 각 경로가 문장입니다. 데이터베이스 없이, 클라우드 없이, 토큰 소비 없이. 4MB 바이너리와 파일시스템만으로.</p>
+      <p class="rv" style="font-size:0.85rem; color:var(--accent-l); letter-spacing:2px; text-transform:uppercase; font-weight:700; margin-bottom:24px;">역사상 처음으로</p>
+      <h1 class="rv">인간의 가치관이<br><em>읽히는</em> 동시에 <em>실행</em>됩니다</h1>
+      <p class="hero-sub rv">폴더로 AI 행동을 구조화합니다. 각 폴더가 규칙이고, 각 경로가 문장이고, <strong style="color:var(--text)">폴더구조 자체가 문맥입니다.</strong> 법률은 읽히지만 실행 불가. 코드는 실행되지만 읽기 어려움. 뇌 폴더는 둘 다 — 버전 관리되고, 상속 가능하고, 벤더에 독립적인 거버넌스.</p>
       <div class="hero-btns rv">
         <a href="https://github.com/rhino-acoustic/NeuronFS" class="btn-p">시작하기 →</a>
-        <a href="https://github.com/rhino-acoustic/NeuronFS/wiki" class="btn-s">22편의 개발 일지 읽기</a>
+        <a href="docs.html" class="btn-s">문서 보기</a>
       </div>
       <div class="hero-img rv">
-        <img src="dashboard_preview.png" alt="NeuronFS 대시보드 — 7개 뇌 영역에 걸친 420개 뉴런">
+        <img src="dashboard_preview.png" alt="NeuronFS 대시보드 — 7개 뇌 영역, 420개 뉴런">
       </div>
     </div>
   </section>
@@ -153,9 +101,41 @@
     <div class="container">
       <div class="stats rv">
         <div class="stat"><div class="stat-num" data-count="420">0</div><div class="stat-label">활성 뉴런</div></div>
-        <div class="stat"><div class="stat-num" data-count="9121">0</div><div class="stat-label">총 활성화 횟수</div></div>
+        <div class="stat"><div class="stat-num" data-count="9121">0</div><div class="stat-label">총 활성화</div></div>
         <div class="stat"><div class="stat-num" data-count="39">0</div><div class="stat-label">REST API</div></div>
         <div class="stat"><div class="stat-num" data-count="177">0</div><div class="stat-label">Go 소스 파일</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5대 명제 -->
+  <section class="s s-dark" id="thesis">
+    <div class="container">
+      <div class="s-header rv">
+        <div class="s-eyebrow">명제</div>
+        <h2 class="s-title">옳은 질문이 옳은 답보다 더 희귀합니다</h2>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr; gap:20px; max-width:800px; margin:0 auto;">
+        <div class="rv" style="padding:28px 32px; border-left:3px solid var(--accent); background:rgba(99,102,241,0.04); border-radius:0 12px 12px 0;">
+          <h3 style="color:#fff; font-size:1rem; margin-bottom:8px;">1. 가치관의 최초 실행 가능한 포맷</h3>
+          <p style="color:var(--text-2); font-size:0.9rem; margin:0;">인류는 수천 년간 가치관을 저장했지만 실행할 수 없었습니다 — 법률, 경전, 사규 모두 해석이 필요했습니다. 뇌 폴더는 처음으로 가치관이 해석 없이 직접 실행되는 포맷입니다.</p>
+        </div>
+        <div class="rv" style="padding:28px 32px; border-left:3px solid var(--green); background:rgba(52,211,153,0.04); border-radius:0 12px 12px 0;">
+          <h3 style="color:#fff; font-size:1rem; margin-bottom:8px;">2. 모델 독립적 지식 자산</h3>
+          <p style="color:var(--text-2); font-size:0.9rem; margin:0;">GPT → Claude → Gemini → 미래 모델. 뇌는 그대로. 조직의 판단 기준이 어떤 AI 벤더와도 독립적으로 누적됩니다. 지식이 모델에 종속되지 않는 최초의 구조.</p>
+        </div>
+        <div class="rv" style="padding:28px 32px; border-left:3px solid var(--yellow); background:rgba(251,191,36,0.04); border-radius:0 12px 12px 0;">
+          <h3 style="color:#fff; font-size:1rem; margin-bottom:8px;">3. AI 시대의 책임 소재 인프라</h3>
+          <p style="color:var(--text-2); font-size:0.9rem; margin:0;">"AI가 왜 그 결정을 했는가?" 증명해야 하는 시대가 옵니다. 뇌 폴더 + git 로그는 유일한 감사 가능한 사전 문서화 거버넌스 구조입니다. XAI(모델 해석)가 아닌, 모델에 준 규칙의 문서화.</p>
+        </div>
+        <div class="rv" style="padding:28px 32px; border-left:3px solid var(--red); background:rgba(248,113,113,0.04); border-radius:0 12px 12px 0;">
+          <h3 style="color:#fff; font-size:1rem; margin-bottom:8px;">4. 전문가 지식의 사멸 방지</h3>
+          <p style="color:var(--text-2); font-size:0.9rem; margin:0;">30년 경력자가 은퇴하면 판단 기준이 사라집니다. 뇌 폴더는 의사결정 구조를 상속 가능하고 실행 가능한 형태로 보존합니다. 뇌의 유언장.</p>
+        </div>
+        <div class="rv" style="padding:28px 32px; border-left:3px solid #a78bfa; background:rgba(167,139,250,0.04); border-radius:0 12px 12px 0;">
+          <h3 style="color:#fff; font-size:1rem; margin-bottom:8px;">5. 아직 없는 표준</h3>
+          <p style="color:var(--text-2); font-size:0.9rem; margin:0;">CLAUDE.md, AGENTS.md, .cursorrules — 업계가 파일 기반 AI 거버넌스로 수렴하고 있습니다. 하지만 AI 운영 지식의 표준 포맷은 아직 없습니다. 그 포맷을 정의하는 자가 다음 시대를 만듭니다.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -166,90 +146,14 @@
       <div class="s-header rv">
         <div class="s-eyebrow">기능</div>
         <h2 class="s-title">왜 폴더가 벡터를 이길까</h2>
-        <p class="s-desc">NeuronFS는 파일시스템을 통해 AI 규칙을 구조화하고 우선순위를 부여하는 프롬프트 거버넌스 도구입니다. 규칙은 프롬프트 수준에서 결정론적이며, 최종 LLM 준수는 확률적입니다.</p>
       </div>
       <div class="feat-grid">
-        <div class="feat-card rv"><div class="feat-icon">📁</div><h3>폴더 = 규칙</h3><p>mkdir로 규칙을 만들고, rm으로 삭제하고, git diff로 거버넌스를 추적합니다. 모든 변경은 감사 가능하고, 버전 관리되며, 사람이 읽을 수 있습니다.</p></div>
-        <div class="feat-card rv"><div class="feat-icon">⚡</div><h3>O(1) 조회</h3><p>규칙은 프롬프트 생성 단계에서 OS dentry 캐시를 통해 조회됩니다. 임베딩 계산도, 유사도 검색도, API 호출도 없습니다.</p></div>
-        <div class="feat-card rv"><div class="feat-icon">🔒</div><h3>망분리 배포</h3><p>네트워크 호출 제로. 텔레메트리 제로. USB에 담아 배포. 군사, 의료, 금융 — 데이터가 외부로 나갈 수 없는 모든 환경에서 작동합니다.</p></div>
-        <div class="feat-card rv"><div class="feat-icon">🎯</div><h3>멀티 포맷 출력</h3><p>하나의 두뇌, 6개 출력: GEMINI.md, .cursorrules, CLAUDE.md, AGENTS.md, COPILOT.md, .windsurfrules. 동일한 거버넌스, 모든 도구.</p></div>
-        <div class="feat-card rv"><div class="feat-icon">🧬</div><h3>자가 진화</h3><p>헤비안 학습: 자주 발화하는 뉴런은 강화됩니다. TTL 감쇠: 사용하지 않는 뉴런은 사라집니다. 폐쇄 학습 루프: 스킬이 자동으로 축적됩니다.</p></div>
-        <div class="feat-card rv"><div class="feat-icon">💰</div><h3>영원히 무료</h3><p>클라우드 없음. 구독 없음. 벤더 종속 없음. 4MB Go 바이너리 하나. AGPL-3.0 오픈소스. 가장 비싼 부분은 USB 드라이브 가격입니다.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 아키텍처 -->
-  <section class="s" id="architecture">
-    <div class="container">
-      <div class="split rv">
-        <div class="split-text">
-          <div class="s-eyebrow">아키텍처</div>
-          <h2>7계층 서브섬션 캐스케이드</h2>
-          <p>로드니 브룩스의 로보틱스 아키텍처(1986)에서 영감을 받았습니다. 하위 계층이 emit 파이프라인에서 구조적 우선권을 가지며, 개념적으로 하드웨어 인터럽트와 유사합니다.</p>
-          <p>뇌간(P0)에 禁 폴더가 있으면, emit 파이프라인은 이를 NEVER 계층 규칙으로 배치합니다. 상위 계층은 프롬프트 생성 수준에서 이를 약화시킬 수 없습니다.</p>
-          <div class="callout c-warn">
-            <div class="c-label">정직한 고백</div>
-            이것은 프롬프트 생성 도구입니다. 서브섬션 캐스케이드는 출력에 무엇이 나타나는지를 제어하지만, 최종 LLM 동작은 여전히 확률적입니다.
-          </div>
-        </div>
-        <div>
-          <div class="layer-stack">
-            <div class="layer-row lr-0"><span class="lp" style="color:var(--red)">P0</span><span class="ln">뇌간</span><span class="ld">禁/bomb — NEVER 계층 금지</span></div>
-            <div class="layer-row lr-1"><span class="lp" style="color:var(--yellow)">P1</span><span class="ln">변연계</span><span class="ld">EmotionPrompt — 집중, 스트레스 신호</span></div>
-            <div class="layer-row lr-2"><span class="lp" style="color:var(--green)">P2</span><span class="ln">해마</span><span class="ld">기억, 스킬, 에피소드 회상</span></div>
-            <div class="layer-row lr-3"><span class="lp" style="color:var(--accent-l)">P3</span><span class="ln">감각</span><span class="ld">외부 입력, NAS 감시자</span></div>
-            <div class="layer-row lr-4"><span class="lp" style="color:#a78bfa">P4</span><span class="ln">대뇌피질</span><span class="ld">코드 규칙, 코드맵, 에러 패턴</span></div>
-            <div class="layer-row lr-5"><span class="lp" style="color:var(--text-3)">P5</span><span class="ln">자아</span><span class="ld">페르소나, 언어, 정체성</span></div>
-            <div class="layer-row lr-6"><span class="lp" style="color:#3f3f50">P6</span><span class="ln">전두엽</span><span class="ld">전략적 방향, 장기 목표</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 사용법 -->
-  <section class="s s-alt" id="workflow">
-    <div class="container">
-      <div class="s-header rv">
-        <div class="s-eyebrow">사용법</div>
-        <h2 class="s-title">세 개의 명령어. 인프라 제로.</h2>
-      </div>
-      <div class="feat-grid" style="grid-template-columns: repeat(3, 1fr);">
-        <div class="feat-card rv" style="text-align:center;">
-          <div style="font-size:3rem; font-weight:900; background:linear-gradient(135deg,var(--accent-l),var(--green)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:12px;">01</div>
-          <h3>생성</h3>
-          <p>규칙을 폴더로 정의합니다. 폴더 이름이 규칙입니다. 깊이 = 구체성.</p>
-          <div class="codeblock" style="margin-top:16px; text-align:left;">
-            <div class="codeblock-body" style="padding:14px; font-size:0.75rem;">
-<span class="ck">mkdir</span> <span class="cs">brain/brainstem/禁/data_leak</span>
-<span class="ck">mkdir</span> <span class="cs">brain/cortex/dev/推/testing</span>
-            </div>
-          </div>
-        </div>
-        <div class="feat-card rv" style="text-align:center;">
-          <div style="font-size:3rem; font-weight:900; background:linear-gradient(135deg,var(--accent-l),var(--green)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:12px;">02</div>
-          <h3>컴파일</h3>
-          <p>트리를 순회하고, 서브섬션을 해결하고, 원하는 AI 도구에 맞게 출력합니다.</p>
-          <div class="codeblock" style="margin-top:16px; text-align:left;">
-            <div class="codeblock-body" style="padding:14px; font-size:0.75rem;">
-<span class="ck">neuronfs</span> <span class="co">--emit</span> <span class="cs">all</span>
-<span class="co">✓</span> <span class="cs">420개 뉴런 → 6개 파일</span>
-            </div>
-          </div>
-        </div>
-        <div class="feat-card rv" style="text-align:center;">
-          <div style="font-size:3rem; font-weight:900; background:linear-gradient(135deg,var(--accent-l),var(--green)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:12px;">03</div>
-          <h3>배포</h3>
-          <p>출력된 파일을 AI 도구가 읽습니다. 거버넌스 활성화.</p>
-          <div class="codeblock" style="margin-top:16px; text-align:left;">
-            <div class="codeblock-body" style="padding:14px; font-size:0.75rem;">
-<span class="cc"># 호환 도구:</span>
-Cursor, Claude, Gemini, GPT,
-Copilot, Windsurf, Cline...
-            </div>
-          </div>
-        </div>
+        <div class="feat-card rv"><div class="feat-icon">📁</div><h3>폴더 = 규칙</h3><p>mkdir로 규칙을 만들고, git diff로 거버넌스를 추적합니다. 모든 변경은 감사 가능하고, 사람이 읽을 수 있습니다.</p></div>
+        <div class="feat-card rv"><div class="feat-icon">⚡</div><h3>빠른 조회</h3><p>개별 규칙은 OS dentry 캐시로 조회. 전체 emit은 O(n)이지만 420 뉴런이 40ms 미만에 완료됩니다.</p></div>
+        <div class="feat-card rv"><div class="feat-icon">🔒</div><h3>망분리 배포</h3><p>네트워크 호출 제로, 텔레메트리 제로. USB에 담아 배포. 데이터가 외부로 나갈 수 없는 환경에 적합합니다.</p></div>
+        <div class="feat-card rv"><div class="feat-icon">🎯</div><h3>멀티 포맷 출력</h3><p>하나의 두뇌, 6개 출력: GEMINI.md, .cursorrules, CLAUDE.md, AGENTS.md, COPILOT.md, .windsurfrules.</p></div>
+        <div class="feat-card rv"><div class="feat-icon">🧬</div><h3>자가 진화</h3><p>헤비안 학습, TTL 감쇠, 폐쇄 학습 루프. 자주 쓰이는 뉴런은 강화되고, 안 쓰이는 뉴런은 사라집니다.</p></div>
+        <div class="feat-card rv"><div class="feat-icon">💰</div><h3>영원히 무료</h3><p>클라우드 없음, 구독 없음. 4MB Go 바이너리. AGPL-3.0 오픈소스. 벡터 DB 대비 최소 인프라.</p></div>
       </div>
     </div>
   </section>
@@ -260,10 +164,9 @@ Copilot, Windsurf, Cline...
       <div class="s-header rv">
         <div class="s-eyebrow">벤치마크</div>
         <h2 class="s-title">실제 테스트 데이터. 실제 숫자.</h2>
-        <p class="s-desc">모든 벤치마크는 내부 테스트(go test ./...)에서 수행되었습니다. 독립적인 재현을 권장합니다.</p>
+        <p class="s-desc">모든 벤치마크는 내부 테스트(go test ./...)입니다. 독립적 재현을 권장합니다.</p>
       </div>
       <div class="rv">
-        <h3 style="color:#fff; margin-bottom:16px; font-size:1.1rem;">지시 준수율 (40점 테스트)</h3>
         <div class="tbl-wrap">
           <table>
             <thead><tr><th>모델</th><th>크기</th><th>기본</th><th>+ NeuronFS</th><th>향상</th></tr></thead>
@@ -274,105 +177,68 @@ Copilot, Windsurf, Cline...
             </tbody>
           </table>
         </div>
-        <div class="callout c-info" style="margin-top:20px;">
-          <div class="c-label">핵심 발견</div>
-          8.9GB 모델 + NeuronFS (31.5/40)가 70GB 기본 모델 (23/40)을 능가합니다. 잘 구조화된 거버넌스 프롬프트가 모델 크기 차이를 보상할 수 있음을 시사합니다.
-        </div>
-      </div>
-      <div class="rv" style="margin-top:48px;">
-        <h3 style="color:#fff; margin-bottom:16px; font-size:1.1rem;">LongMemEval 어댑터 (6개 테스트 — 전부 PASS)</h3>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>ID</th><th>테스트</th><th>지연시간</th><th>결과</th></tr></thead>
-            <tbody>
-              <tr><td>L-1</td><td>활성화 정확도 (10세션)</td><td>12ms</td><td class="w">PASS</td></tr>
-              <tr><td>L-2</td><td>지식 업데이트 우선순위</td><td>8ms</td><td class="w">PASS</td></tr>
-              <tr><td>L-3</td><td>서브섬션 캐스케이드</td><td>1ms</td><td class="w">PASS</td></tr>
-              <tr><td>L-4</td><td>TTL 보호관찰</td><td>15ms</td><td class="w">PASS</td></tr>
-              <tr><td>L-5</td><td>회로 차단기 (Bomb)</td><td>3ms</td><td class="w">PASS</td></tr>
-              <tr><td>L-6</td><td>극성 계산</td><td>1ms</td><td class="w">PASS</td></tr>
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   </section>
 
-  <!-- 비교 -->
-  <section class="s s-alt" id="comparison">
+  <!-- 활용 사례 -->
+  <section class="s s-alt" id="usecases">
     <div class="container">
       <div class="s-header rv">
-        <div class="s-eyebrow">비교</div>
-        <h2 class="s-title">NeuronFS vs. 대안들</h2>
+        <div class="s-eyebrow">활용 사례</div>
+        <h2 class="s-title">책임 소재가 중요한 곳</h2>
+        <p class="s-desc">AI 책임법이 전 세계적으로 강화되고 있습니다. NeuronFS는 git 커밋 로그를 통해 감사 가능한 거버넌스 증거를 제공합니다.</p>
       </div>
-      <div class="tbl-wrap rv">
-        <table>
-          <thead><tr><th>기능</th><th>NeuronFS</th><th>Mem0</th><th>Letta</th><th>Vector DB</th></tr></thead>
-          <tbody>
-            <tr><td>인프라</td><td class="w">제로 (4MB)</td><td class="l">클라우드 API</td><td class="l">서버 필요</td><td class="l">클라우드</td></tr>
-            <tr><td>규칙 결정론</td><td class="w">구조적 (프롬프트 수준)</td><td class="l">확률적</td><td class="m">부분적</td><td class="l">없음</td></tr>
-            <tr><td>사람이 읽기</td><td class="w">폴더 = 규칙</td><td class="l">API 전용</td><td class="m">JSON</td><td class="l">벡터</td></tr>
-            <tr><td>버전 관리</td><td class="w">네이티브 git</td><td class="l">독점</td><td class="l">독점</td><td class="l">없음</td></tr>
-            <tr><td>망분리 배포</td><td class="w">USB 배포</td><td class="l">인터넷 필요</td><td class="l">인터넷 필요</td><td class="l">인터넷 필요</td></tr>
-            <tr><td>비용</td><td class="w">영원히 $0</td><td class="l">$99+/월</td><td class="m">무료 계층</td><td class="l">$70+/월</td></tr>
-          </tbody>
-        </table>
+      <div class="feat-grid rv">
+        <div class="feat-card"><div class="feat-icon">⚖️</div><h3>법무 & 컴플라이언스</h3><p>"AI가 그 결정을 내릴 때 어떤 규칙이 활성화되어 있었는가?" → <code>git log brain/</code>. EU AI Act 감사 증거가 내장됩니다.</p></div>
+        <div class="feat-card"><div class="feat-icon">🏥</div><h3>의료</h3><p>추적 가능한 규칙 세트를 가진 AI 진단 보조. "왜 AI가 이것을 플래그했는가?" → 해당 조건의 禁 폴더, 버전 관리됨.</p></div>
+        <div class="feat-card"><div class="feat-icon">🏦</div><h3>금융 & 보험</h3><p>대출 거절 AI, 보험금 거부 AI — 모든 결정이 특정 뇌 폴더 상태로 추적 가능. 컴플라이언스 담당자가 정확한 거버넌스 버전을 감사할 수 있습니다.</p></div>
+        <div class="feat-card"><div class="feat-icon">🎓</div><h3>교육</h3><p>학생이 직접 禁/推 규칙을 설계. AI가 그 규칙으로 동작하면서 논리적 허점을 드러냅니다. 소크라테스식 교육.</p></div>
+        <div class="feat-card"><div class="feat-icon">🚨</div><h3>재난 대응</h3><p>인터넷 다운? USB 뇌 + 로컬 모델 = 사전 정의된 규칙을 가진 완전 작동 AI. 혼란 속에서도 일관된 판단.</p></div>
+        <div class="feat-card"><div class="feat-icon">🔄</div><h3>벤더 독립</h3><p>GPT에서 Claude로, Gemini로 전환해도 뇌는 동일. 조직의 거버넌스 지식이 어떤 AI 벤더와도 독립적으로 누적됩니다.</p></div>
       </div>
     </div>
   </section>
 
-  <!-- 한계 -->
-  <section class="s" id="limitations">
+  <!-- 마켓플레이스 비전 -->
+  <section class="s" id="marketplace">
     <div class="container">
       <div class="s-header rv">
-        <div class="s-eyebrow">한계</div>
-        <h2 class="s-title">NeuronFS가 할 수 있는 것과 없는 것</h2>
+        <div class="s-eyebrow">비전</div>
+        <h2 class="s-title">두뇌가 상품입니다</h2>
+        <p class="s-desc">수천 번의 실패를 거쳐 정제된 폴더 구조는 전달 가능한 전문 지식입니다. 사람이 읽을 수 있고, 기계가 실행할 수 있고, 버전 관리되는 조직 가치관의 최초 표현.</p>
       </div>
-      <div class="split rv">
-        <div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>NeuronFS는</th><th>NeuronFS는 아닙니다</th></tr></thead>
-              <tbody>
-                <tr><td>프롬프트 구조화 도구</td><td>모델 수정 시스템</td></tr>
-                <tr><td>파일시스템 기반 규칙 정리기</td><td>모든 용도의 벡터 DB 대체</td></tr>
-                <tr><td>AI 에이전트 거버넌스 프레임워크</td><td>추론 수준 강제 레이어</td></tr>
-                <tr><td>지시 준수율을 높이는 방법</td><td>100% 준수 보장</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="split-text">
-          <p>NeuronFS는 AI 도구의 <strong style="color:var(--text)">입력</strong>을 구조적 정밀도로 제어합니다. <strong style="color:var(--text)">출력</strong>은 여전히 확률적입니다.</p>
-          <p>禁 폴더는 NEVER 계층 규칙이 프롬프트에 반드시 나타남을 보장합니다. 모델이 절대 위반하지 않음을 보장하지는 않습니다.</p>
-          <p>벤치마크 결과는 내부 테스트이며, 독립적으로 검증되지 않았습니다. 커뮤니티의 재현을 환영합니다.</p>
-        </div>
+      <div class="feat-grid rv">
+        <div class="feat-card" style="text-align:center;"><div class="feat-icon">💼</div><h3>엔터프라이즈 뇌</h3><p>"React 에이전트 뇌" $29 · "금융 컴플라이언스 뇌" $199 · "의료 기록 뇌" $499. 설치 = 압축 해제.</p></div>
+        <div class="feat-card" style="text-align:center;"><div class="feat-icon">🛒</div><h3>뇌 마켓플레이스</h3><p>별점, 리뷰, 업종별 카테고리. AI 거버넌스를 위한 플러그인 마켓. 커뮤니티가 큐레이션한 베스트 프랙티스.</p></div>
+        <div class="feat-card" style="text-align:center;"><div class="feat-icon">🧬</div><h3>뇌의 유산</h3><p>은퇴하는 전문가의 판단을 폴더로 인코딩. 30년의 의료 판단이 보존되고 실행 가능. 사람이 떠나도 지식은 남습니다.</p></div>
       </div>
     </div>
   </section>
 
   <!-- CTA -->
-  <section class="s">
+  <section class="s s-alt">
     <div class="container">
       <div class="cta-box rv">
-        <h2>오늘 AI 거버넌스를 시작하세요</h2>
-        <p>두뇌를 mkdir하세요. 도구에 emit하세요. 인프라 제로. 비용 제로. 무한한 구조.</p>
+        <h2>모든 AI 규칙의 단일 진실 공급원</h2>
+        <p>한 번 정의하세요. 모든 곳에 emit하세요. git으로 추적하세요. 일관된 AI 거버넌스로 가는 가장 단순한 경로.</p>
         <div class="hero-btns">
           <a href="https://github.com/rhino-acoustic/NeuronFS" class="btn-p">GitHub 보기 →</a>
-          <a href="https://github.com/rhino-acoustic/NeuronFS/wiki" class="btn-s">22편 개발 일지 읽기</a>
+          <a href="docs.html" class="btn-s">문서 보기</a>
         </div>
       </div>
     </div>
   </section>
 
-  <footer>
-    <div class="container">
-      <p>NeuronFS v13 · AGPL-3.0 · <a href="https://github.com/rhino-acoustic/NeuronFS">GitHub</a> · <a href="https://github.com/rhino-acoustic/NeuronFS/wiki">Wiki</a></p>
-      <p style="margin-top:8px; font-size:0.75rem; color:var(--text-3);">"AI는 지능이 아닙니다. 전류입니다. 회로가 목적지를 결정합니다."</p>
-    </div>
-  </footer>
+  <footer><div class="container">
+    <p>NeuronFS v13 · AGPL-3.0 · <a href="https://github.com/rhino-acoustic/NeuronFS">GitHub</a> · <a href="https://github.com/rhino-acoustic/NeuronFS/wiki">Wiki</a></p>
+    <p style="margin-top:8px; font-size:0.75rem; color:var(--text-3);">"코드도 아니고, 문서도 아니고, 데이터베이스도 아닌 — 가치관의 최초 실행 가능한 표현."</p>
+  </div></footer>
 
   <script>
+    // Set lang override when clicking English link (prevents redirect loop)
+    localStorage.setItem('lang_override', 'ko');
+    // Scroll reveal
     const obs = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); }); }, { threshold: 0.1 });
     document.querySelectorAll('.rv').forEach(el => obs.observe(el));
     window.addEventListener('scroll', () => { document.getElementById('nav').classList.toggle('shrink', scrollY > 80); });

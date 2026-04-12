@@ -163,7 +163,7 @@
         <a href="docs.html">Docs</a>
       </div>
       <a href="https://github.com/rhino-acoustic/NeuronFS" class="nav-cta">GitHub →</a>
-      <a href="ko.html" style="color:var(--text-3); font-size:0.85rem; font-weight:500; margin-left:8px;">🇰🇷 한국어</a>
+      <a href="ko.html" onclick="localStorage.setItem('lang_override','ko')" style="color:var(--text-3); font-size:0.85rem; font-weight:500; margin-left:8px;">🇰🇷 한국어</a>
     </div>
   </nav>
 
@@ -172,7 +172,7 @@
     <div class="container">
       <p class="rv" style="font-size:0.85rem; color:var(--accent-l); letter-spacing:2px; text-transform:uppercase; font-weight:700; margin-bottom:24px;">For the first time in history</p>
       <h1 class="rv">Human values that are<br><em>readable</em> and <em>executable</em></h1>
-      <p class="hero-sub rv">Laws can be read but not executed. Code can be executed but not read. <strong style="color:var(--text)">Brain folders are both.</strong> Version-controlled, inheritable, vendor-independent governance — expressed as directories.</p>
+      <p class="hero-sub rv">Each folder is a rule. Each path is a sentence. <strong style="color:var(--text)">The folder tree itself is context.</strong> Laws can be read but not executed. Code can be executed but not read. Brain folders are both — version-controlled, inheritable, vendor-independent governance expressed as directories.</p>
       <div class="hero-btns rv">
         <a href="https://github.com/rhino-acoustic/NeuronFS" class="btn-p">Get Started →</a>
         <a href="docs.html" class="btn-s">Read the Docs</a>
@@ -554,6 +554,10 @@ Copilot, Windsurf, Cline...
   </footer>
 
   <script>
+    // Language auto-detect (browser language → ko.html)
+    if (!localStorage.getItem('lang_override') && navigator.language.startsWith('ko') && !location.pathname.includes('ko')) {
+      location.href = 'ko.html';
+    }
     // Scroll reveal
     const obs = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); }); }, { threshold: 0.1 });
     document.querySelectorAll('.rv').forEach(el => obs.observe(el));
