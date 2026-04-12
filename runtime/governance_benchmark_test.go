@@ -997,9 +997,9 @@ func TestDCI_NoHardcodedMagicNumbers(t *testing.T) {
 
 func TestDCI_RuneSSoT(t *testing.T) {
 	// 1. RuneToKorean은 정확히 12개
-	t.Run("DCI-09a: 16 runes defined (12 hanja + 4 neologisms)", func(t *testing.T) {
-		if len(RuneToKorean) != 16 {
-			t.Errorf("RuneToKorean has %d entries, expected 16 (12 hanja + vorq/zelk/mirp/qorz)", len(RuneToKorean))
+	t.Run("DCI-09a: 18 runes defined (14 hanja + 4 neologisms)", func(t *testing.T) {
+		if len(RuneToKorean) != 18 {
+			t.Errorf("RuneToKorean has %d entries, expected 18 (14 hanja + vorq/zelk/mirp/qorz)", len(RuneToKorean))
 		}
 	})
 

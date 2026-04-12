@@ -140,10 +140,12 @@ var RuneToKorean = map[string]string{
 	"zelk": "갱신: ",       // 코드맵 카트리지 sync. NeuronFS 조어. 학습데이터 부재.
 	"mirp": "신선도: ",      // STALE mtime 비교. NeuronFS 조어. 학습데이터 부재.
 	"qorz": "커뮤니티검색필수: ", // 기술 결정 전 Reddit/GitHub/HN 검색 선행. NeuronFS 조어. 학습데이터 부재.
+	"憶":    "기억: ",       // 자가 학습/성장 기록
+	"魂":    "자문: ",       // 양심/자기 검증 트리거
 }
 
-// RuneChars: ContainsAny용 문자열 (한자 12 + ASCII neologisms는 별도 처리)
-const RuneChars = "禁必推要答想索改略參結警"
+// RuneChars: ContainsAny용 문자열 (한자 14 + ASCII neologisms는 별도 처리)
+const RuneChars = "禁必推要答想索改略參結警憶魂"
 
 // RuneKeys: 정규화용 룬 목록 (normalizeHanjaPath에서 사용)
 func RuneKeys() []string {
