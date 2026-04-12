@@ -274,6 +274,7 @@ func runSupervisor(brainRoot string) {
 
 	svBootTime = time.Now()
 	hlLoadTelegram(nfsRoot)
+	logBootEpisode(brainRoot)
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
@@ -352,6 +353,12 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 		if c.restartCount >= maxCrashBeforeCircuitBreak {
 			svLog(fmt.Sprintf("\033[31m[TRAUMA] Circuit breaker triggered for %s. Vital signs critical (%d failures).\033[0m", c.Name, c.restartCount))
 			svCrashAlert(c)
+			if svLogPath != "" {
+				nfsR := filepath.Dir(filepath.Dir(svLogPath))
+				if br := filepath.Join(nfsR, "brain_v4"); fileExists(br) {
+					logCrashEpisode(br, c.Name, c.restartCount)
+				}
+			}
 			// Wait until crash window resets (60s) or stopCh
 			select {
 			case <-stopCh:
