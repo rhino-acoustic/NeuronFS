@@ -49,14 +49,14 @@ let scene, camera, renderer, controls, particleSystem;
 const vertShader = `
   uniform float uTime;
   uniform float uTransition;
+  uniform vec3 uColorCore;
+  uniform vec3 uColorEdge;
   attribute vec3 targetPos;
   attribute vec3 aColor;
   attribute float aSize;
   varying vec3 vColor;
   
   void main() {
-    vColor = aColor;
-    
     // Smooth Lerp between current (position) and target (targetPos)
     vec3 mixedPos = mix(position, targetPos, uTransition);
     
@@ -72,8 +72,19 @@ const vertShader = `
 
     vec4 mvPosition = modelViewMatrix * vec4(mixedPos, 1.0);
     
+    // Mathematical depth-based coloring
+    float distToCenter = length(mixedPos);
+    // map distance 0..250 to 1.0..0.0
+    float depthFactor = clamp(1.0 - (distToCenter / 200.0), 0.0, 1.0);
+    // Exponential falloff for super bright hot core
+    depthFactor = pow(depthFactor, 3.0); 
+    
+    // Mix individual assigned color with intense core glow based on depth
+    vec3 blendedColor = mix(aColor, uColorCore, depthFactor);
+    vColor = blendedColor;
+    
     // Size attenuation (closer = bigger)
-    gl_PointSize = aSize * (150.0 / -mvPosition.z);
+    gl_PointSize = (aSize + depthFactor * 4.0) * (150.0 / -mvPosition.z);
     gl_Position = projectionMatrix * mvPosition;
   }
 `;
@@ -101,10 +112,10 @@ let isTransitioning = false;
 function init() {
   const container = document.getElementById('gl-container');
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x030305, 0.003);
+  scene.fog = new THREE.FogExp2(0x030305, 0.002);
 
-  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1500);
-  camera.position.set(200, 150, 300);
+  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
+  camera.position.set(250, 180, 350);
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -127,20 +138,18 @@ function init() {
     new THREE.Color(0x3b82f6), // Blue
     new THREE.Color(0x06b6d4), // Cyan
     new THREE.Color(0x8b5cf6), // Violet
-    new THREE.Color(0xa78bfa)  // Purple
+    new THREE.Color(0x2dd4bf)  // Teal
   ];
 
-  // Starting Initial Random Positions
   for(let i=0; i<PARTICLE_COUNT; i++) {
-    const x = (Math.random()-0.5) * 500;
-    const y = (Math.random()-0.5) * 500;
-    const z = (Math.random()-0.5) * 500;
+    const x = (Math.random()-0.5) * 800;
+    const y = (Math.random()-0.5) * 800;
+    const z = (Math.random()-0.5) * 800;
     
     posArr[i*3] = x; posArr[i*3+1] = y; posArr[i*3+2] = z;
     targetArr[i*3] = x; targetArr[i*3+1] = y; targetArr[i*3+2] = z;
     
-    // Assign varying sizes to simulate stars
-    sizeArr[i] = Math.random() < 0.05 ? 4.0 + Math.random()*2.0 : Math.random() * 2.0;
+    sizeArr[i] = Math.random() < 0.05 ? 3.0 + Math.random()*2.0 : Math.random() * 1.5;
     
     const col = colors[Math.floor(Math.random()*colors.length)];
     colorArr[i*3] = col.r; colorArr[i*3+1] = col.g; colorArr[i*3+2] = col.b;
@@ -155,7 +164,9 @@ function init() {
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0.0 },
-      uTransition: { value: 1.0 } // Initially 1 so it stays at target
+      uTransition: { value: 1.0 },
+      uColorCore: { value: new THREE.Color(0xfffbcc) }, // super bright warm white/gold core
+      uColorEdge: { value: new THREE.Color(0x10b981) }
     },
     vertexShader: vertShader,
     fragmentShader: fragShader,
@@ -167,7 +178,20 @@ function init() {
 
   window.addEventListener('resize', onResize);
   
-  // Create generating target sets
+  // Re-generate UI buttons properly
+  const ui = document.getElementById('ui-panel');
+  ui.innerHTML = \`
+    <h1>V3 Generative Art</h1>
+    <p>중심으로 말려들어갈수록 초고온(화이트+골드)으로 색이 변하며, 깊이감이 극대화된 구조체들.</p>
+    <button class="layout-btn active" onclick="switchLayout(0, this)">1. Neural Spiral Galaxy</button>
+    <button class="layout-btn" onclick="switchLayout(1, this)">2. Lorenz Chaos Energy</button>
+    <button class="layout-btn" onclick="switchLayout(2, this)">3. Synaptic Brain Core</button>
+    <button class="layout-btn" onclick="switchLayout(3, this)">4. Quantum Torus (도넛형 에너지)</button>
+    <button class="layout-btn" onclick="switchLayout(4, this)">5. Clifford Attractor (비단결 리본)</button>
+    <button class="layout-btn" onclick="switchLayout(5, this)">6. Supernova Explosion (초신성 코어)</button>
+    <button class="layout-btn" onclick="switchLayout(6, this)">7. Fibonacci Sphere (황금비 넥서스)</button>
+  \`;
+  
   setTimeout(() => loadLayout(0), 100);
   animate();
 }
@@ -175,72 +199,96 @@ function init() {
 function loadLayout(idx) {
   const tArr = geometry.attributes.targetPos.array;
   
-  if(idx === 0) {
-    // Neural Galaxy
+  if(idx === 0) { // Neural Galaxy
     for(let i=0; i<PARTICLE_COUNT; i++) {
-      const radius = Math.pow(Math.random(), 3) * 200; // dense core
-      const angle = radius * 0.1 + Math.random() * Math.PI * 2;
-      const spread = Math.max(0, 40 - radius*0.2); // thick core, thin edge
+      const radius = Math.pow(Math.random(), 3) * 220;
+      const angle = radius * 0.15 + Math.random() * Math.PI * 2;
+      const spread = Math.max(0, 50 - radius*0.2); 
       tArr[i*3] = Math.cos(angle) * (radius + Math.random()*spread);
       tArr[i*3+1] = (Math.random()-0.5) * spread * 2.0;
       tArr[i*3+2] = Math.sin(angle) * (radius + Math.random()*spread);
     }
-  } else if(idx === 1) {
-    // Lorenz Attractor 3D map
-    // Extremely cool chaotic physics mapping
-    let x = 0.1, y = 0, z = 0;
-    const dt = 0.005;
+  } else if(idx === 1) { // Lorenz Attractor
+    let x = 0.1, y = 0, z = 0, dt = 0.005;
     for(let i=0; i<PARTICLE_COUNT; i++) {
-      // integrate Lorenz approx
       const dx = 10.0 * (y - x) * dt;
       const dy = (28.0 * x - y - x * z) * dt;
       const dz = (x * y - 8.0/3.0 * z) * dt;
       x += dx; y += dy; z += dz;
-      
-      // scale and scatter slightly
-      tArr[i*3] = x * 3.5 + (Math.random()-0.5)*3.0;
-      tArr[i*3+1] = y * 3.5 - 70.0 + (Math.random()-0.5)*3.0;
-      tArr[i*3+2] = z * 3.5 - 70.0 + (Math.random()-0.5)*3.0;
+      tArr[i*3] = x * 4.0 + (Math.random()-0.5)*2.0;
+      tArr[i*3+1] = y * 4.0 - 80.0 + (Math.random()-0.5)*2.0;
+      tArr[i*3+2] = z * 4.0 - 80.0 + (Math.random()-0.5)*2.0;
     }
-  } else if(idx === 2) {
-    // Synaptic Core (Hyper-dense structured brain)
+  } else if(idx === 2) { // Synaptic Brain Core
     for(let i=0; i<PARTICLE_COUNT; i++) {
       const u = Math.random() * Math.PI * 2;
       const v = Math.acos(2 * Math.random() - 1);
       const isLeft = Math.random() > 0.5;
-      const offset = isLeft ? -40 : 40;
-      const r = 40 + Math.random() * 50;
-      tArr[i*3] = r * Math.sin(v) * Math.cos(u) * 0.6 + offset + (Math.random()-0.5)*15;
-      tArr[i*3+1] = r * Math.cos(v) * 0.9 + 20 + (Math.random()-0.5)*15;
-      tArr[i*3+2] = r * Math.sin(v) * Math.sin(u) * 1.5 + (Math.random()-0.5)*15;
+      const offset = isLeft ? -45 : 45;
+      const r = 30 + Math.pow(Math.random(), 1.5) * 60; // Denser core
+      tArr[i*3] = r * Math.sin(v) * Math.cos(u) * 0.6 + offset + (Math.random()-0.5)*12;
+      tArr[i*3+1] = r * Math.cos(v) * 0.9 + 20 + (Math.random()-0.5)*12;
+      tArr[i*3+2] = r * Math.sin(v) * Math.sin(u) * 1.5 + (Math.random()-0.5)*12;
+    }
+  } else if(idx === 3) { // Quantum Torus
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+      const u = Math.random() * Math.PI * 2;
+      const v = Math.random() * Math.PI * 2;
+      const R = 80; // Distance to center of tube
+      const r = 40 * Math.pow(Math.random(), 0.5); // Density towards tube center
+      tArr[i*3] = (R + r * Math.cos(v)) * Math.cos(u);
+      tArr[i*3+1] = r * Math.sin(v);
+      tArr[i*3+2] = (R + r * Math.cos(v)) * Math.sin(u);
+    }
+  } else if(idx === 4) { // Clifford Attractor
+    let x = 0, y = 0, a = -1.4, b = 1.6, c = 1.0, d = 0.7;
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+      let xn = Math.sin(a * y) + c * Math.cos(a * x);
+      let yn = Math.sin(b * x) + d * Math.cos(b * y);
+      x = xn; y = yn;
+      // Map 2D attractor to 3D with a twist
+      tArr[i*3] = x * 60 + (Math.random()-0.5)*1.5;
+      tArr[i*3+1] = y * 60 + (Math.random()-0.5)*1.5;
+      tArr[i*3+2] = Math.sin(x*y) * 40 + (Math.random()-0.5)*1.5;
+    }
+  } else if(idx === 5) { // Supernova Form
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+      const dist = Math.pow(Math.random(), 6.0) * 300; // Extreme density near 0
+      const u = Math.random() * Math.PI * 2;
+      const v = Math.acos(2 * Math.random() - 1);
+      tArr[i*3] = dist * Math.sin(v) * Math.cos(u);
+      tArr[i*3+1] = dist * Math.cos(v);
+      tArr[i*3+2] = dist * Math.sin(v) * Math.sin(u);
+    }
+  } else if(idx === 6) { // Fibonacci Sphere Layering
+    const phi = Math.PI * (3 - Math.sqrt(5));
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+      const y = 1 - (i / (PARTICLE_COUNT - 1)) * 2;
+      const radius = Math.sqrt(1 - y*y);
+      const theta = phi * i;
+      const layerDist = 50 + Math.pow((i % 100)/100, 2) * 100; // distinct shells
+      tArr[i*3] = Math.cos(theta) * radius * layerDist;
+      tArr[i*3+1] = y * layerDist;
+      tArr[i*3+2] = Math.sin(theta) * radius * layerDist;
     }
   }
 
   geometry.attributes.targetPos.needsUpdate = true;
-  
-  // Copy current transformed physical positions to start pos so movement is continuous
-  const pArr = geometry.attributes.position.array;
-  for(let i=0; i<PARTICLE_COUNT; i++) {
-    // Approximate current pos based on last target + lerp (pure glsl does this, we copy the visual target backwards)
-    // Actually simpler: just let shader do mix(current, target). We overwrite current = old target.
-  }
 }
 
 function switchLayout(idx, btnEl) {
   document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
   btnEl.classList.add('active');
   
-  // Swap Target into Position
   const posArr = geometry.attributes.position.array;
   const tarArr = geometry.attributes.targetPos.array;
   for(let i=0; i<PARTICLE_COUNT*3; i++) {
-    posArr[i] = tarArr[i]; // old target becomes current start
+    posArr[i] = tarArr[i]; 
   }
   geometry.attributes.position.needsUpdate = true;
   
-  loadLayout(idx); // sets new Target
+  loadLayout(idx);
   
-  // Trigger animation uniform
   isTransitioning = true;
   transStart = performance.now();
   particleSystem.material.uniforms.uTransition.value = 0.0;
@@ -254,9 +302,8 @@ function animate() {
   particleSystem.material.uniforms.uTime.value = time * 0.001;
 
   if (isTransitioning) {
-    let progress = (time - transStart) / 2500; // 2.5 second lerp
+    let progress = (time - transStart) / 2500; 
     if(progress >= 1.0) { progress = 1.0; isTransitioning = false; }
-    // easeInOutCubic
     const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
     particleSystem.material.uniforms.uTransition.value = ease;
   }
