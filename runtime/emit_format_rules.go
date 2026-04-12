@@ -609,15 +609,15 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 		return iPrio > jPrio
 	})
 
-	// 각 티어 최대 제한 (AgentIF 권장: 10-15개 총합)
-	if len(alwaysRules) > 5 {
-		alwaysRules = alwaysRules[:5]
+	// 각 티어 최대 제한 — 2026 모델(Flash 포함) 기준 완화
+	if len(alwaysRules) > 10 {
+		alwaysRules = alwaysRules[:10]
 	}
-	if len(whenRules) > 12 {
-		whenRules = whenRules[:12]
+	if len(whenRules) > 20 {
+		whenRules = whenRules[:20]
 	}
-	if len(neverRules) > 15 {
-		neverRules = neverRules[:15]
+	if len(neverRules) > 25 {
+		neverRules = neverRules[:25]
 	}
 
 	sb.WriteString(renderSection("section_tiered_rules.tmpl", BootstrapSection{
