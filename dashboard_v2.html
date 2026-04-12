@@ -65,6 +65,15 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 .audit-ok { color: var(--accent); }
 .audit-fail { color: var(--danger); }
 
+/* Codemap Panel (Quick Win 4) */
+.codemap-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.35); }
+.codemap-panel::-webkit-scrollbar { width: 3px; }
+.codemap-panel::-webkit-scrollbar-thumb { background: var(--border); }
+.codemap-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #8b5cf6; margin-bottom: 8px; font-family: var(--font-mono); cursor: pointer; }
+.codemap-entry { font-size: 10px; font-family: var(--font-mono); color: #71717a; margin-bottom: 3px; display: flex; justify-content: space-between; }
+.codemap-name { color: #a78bfa; }
+.codemap-lines { color: #52525b; }
+
 /* Debounce Overlay */
 #debounce-overlay { position: absolute; top: 20px; left: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 8px; font-family: var(--font-mono); color: var(--accent); display: none; align-items: center; gap: 12px; box-shadow: 0 0 20px var(--accent-glow); z-index: 20; }
 .db-spinner { width: 14px; height: 14px; border: 2px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
@@ -127,6 +136,10 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 
   <div class="audit-panel" id="audit-feed">
     <div class="audit-title">🔍 Autonomous Audit Trail (Phase 43)</div>
+  </div>
+
+  <div class="codemap-panel" id="codemap-feed">
+    <div class="codemap-title">🗺️ Runtime Code Map (Phase 57)</div>
   </div>
 </div>
 
@@ -517,6 +530,25 @@ async function fetchUsage() {
 }
 setInterval(fetchUsage, 30000);
 fetchUsage();
+
+// Quick Win 4: /api/codemap → 코드맵 패널
+async function fetchCodemap() {
+  try {
+    const r = await fetch('/api/codemap');
+    if (!r.ok) return;
+    const d = await r.json();
+    const feed = document.getElementById('codemap-feed');
+    feed.innerHTML = `<div class="codemap-title">🗺️ Runtime Code Map — ${d.totalFiles || 0} files, ${(d.totalLines || 0).toLocaleString()} lines</div>`;
+    if (d.files && Array.isArray(d.files)) {
+      d.files.sort((a, b) => b.lines - a.lines).slice(0, 20).forEach(f => {
+        const bar = '█'.repeat(Math.min(20, Math.floor(f.lines / 20)));
+        feed.innerHTML += `<div class="codemap-entry"><span class="codemap-name">${f.name}</span><span class="codemap-lines">${f.lines}L ${bar}</span></div>`;
+      });
+    }
+  } catch(e) {}
+}
+setInterval(fetchCodemap, 60000);
+fetchCodemap();
 
 initData();
 </script>
