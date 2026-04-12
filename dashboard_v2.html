@@ -655,6 +655,55 @@ async function runInject() {
   } catch(e) { logTTY('❌ Inject failed', 'error'); }
 }
 
+// Stacked: /api/evolve → 진화 트리거
+async function runEvolve(dryRun = true) {
+  logTTY(`🧬 Evolve triggered (dry_run=${dryRun})...`, 'info');
+  try {
+    const r = await fetch('/api/evolve', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({dry_run: dryRun}) });
+    const d = await r.json();
+    logTTY(`🧬 Evolve: ${d.status || 'complete'} — ${d.changes || 0} changes`, 'info');
+  } catch(e) { logTTY('❌ Evolve failed', 'error'); }
+}
+
+// Stacked: /api/read?region=X → 리전 읽기
+async function readRegion(region) {
+  try {
+    const r = await fetch('/api/read?region=' + region);
+    const d = await r.json();
+    logTTY(`📂 ${region}: ${d.neurons || 0} neurons, ${d.rules || 0} rules`, 'info');
+  } catch(e) { logTTY('❌ Read failed: ' + region, 'error'); }
+}
+
+// Stacked: /api/rollback → 뉴런 롤백
+async function rollbackNeuron(path) {
+  logTTY('⏪ Rolling back: ' + path, 'warn');
+  try {
+    const r = await fetch('/api/rollback', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path}) });
+    const d = await r.json();
+    logTTY(`⏪ ${d.status}: ${path}`, d.status === 'rolled_back' ? 'info' : 'error');
+  } catch(e) { logTTY('❌ Rollback failed', 'error'); }
+}
+
+// Stacked: /api/skills → 스킬 조회
+async function fetchSkills() {
+  try {
+    const r = await fetch('/api/skills');
+    const d = await r.json();
+    logTTY(`📚 Skills loaded: ${d.total || 0} learned patterns`, 'info');
+  } catch(e) {}
+}
+fetchSkills();
+
+// Stacked: /api/dedup → 중복 뉴런 정리
+async function runDedup() {
+  logTTY('🧹 Deduplicating neurons...', 'info');
+  try {
+    const r = await fetch('/api/dedup', { method: 'POST' });
+    const d = await r.json();
+    logTTY(`🧹 Dedup: ${d.neurons || 0} neurons, activation: ${d.activation || 0}`, 'info');
+  } catch(e) { logTTY('❌ Dedup failed', 'error'); }
+}
+
 initData();
 </script>
 </body>
