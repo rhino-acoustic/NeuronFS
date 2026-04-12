@@ -63,6 +63,9 @@ func InitializeP2PNode(brainRoot string) error {
 		Rendezvous: "neuronfs-v5-mdns-rendezvous",
 	}
 
+	// Register Sync Protocol Handler
+	h.SetStreamHandler("/neuronfs/sync/1.0.0", handleSyncStream)
+
 	// Setup mDNS discovery
 	notifee := &DiscoveryNotifee{h: h}
 	ser := mdns.NewMdnsService(h, GlobalP2P.Rendezvous, notifee)

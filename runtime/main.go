@@ -88,6 +88,7 @@ func main() {
 	router.Register(&ExportCartridgeCmd{}) // V12-D: Encrypted brain export
 	router.Register(&ImportCartridgeCmd{}) // V12-D: Encrypted brain import
 	router.Register(&PackageCmd{})         // Marketplace: Zip packaging
+	router.Register(&SyncCmd{})            // Phase 60: P2P Brain Synchronization
 
 	// Check if any arguments match our new router
 	routed := false

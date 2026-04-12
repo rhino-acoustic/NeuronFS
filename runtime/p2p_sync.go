@@ -1,104 +1,148 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
+	"archive/zip"
+	"context"
 	"fmt"
-	"io/fs"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/peer"
 )
 
-// ============================================================================
-// Module: Agent-to-Agent P2P Knowledge Synchronizer (Phase 36)
-// Automatically merges local corrections.jsonl to the global swarm brain.
-// ============================================================================
+// handleSyncStream receives a zip archive from a peer and saves it to _inbox/p2p/
+func handleSyncStream(s network.Stream) {
+	defer s.Close()
+	peerID := s.Conn().RemotePeer().String()
+	log.Printf("[P2P Sync] Incoming Sync Stream from: %s\n", peerID)
 
-func startP2PSyncDaemon(brainRoot string) {
-	if brainRoot == "" {
+	// Build safe reception path in inbox
+	home := os.Getenv("USERPROFILE")
+	if home == "" {
+		home = "."
+	}
+	brainRoot := filepath.Join(home, "NeuronFS", "brain_v4")
+	p2pInbox := filepath.Join(brainRoot, "_inbox", "p2p")
+	
+	if err := os.MkdirAll(p2pInbox, 0755); err != nil {
+		log.Printf("[P2P Sync] Failed to create inbox: %v", err)
 		return
 	}
+
+	timestamp := time.Now().Format("20060102150405")
+	fileName := fmt.Sprintf("peer_%s_%s.zip", peerID[:8], timestamp)
+	outPath := filepath.Join(p2pInbox, fileName)
+
+	outFile, err := os.Create(outPath)
+	if err != nil {
+		log.Printf("[P2P Sync] Failed to create file: %v", err)
+		return
+	}
+	defer outFile.Close()
+
+	// Read stream directly into zip file
+	bytesCopied, err := io.Copy(outFile, s)
+	if err != nil {
+		log.Printf("[P2P Sync] Stream read error: %v", err)
+		return
+	}
+
+	fmt.Printf("\033[32m[SUCCESS] Received brain from peer: %s\033[0m\n", peerID)
+	fmt.Printf("          Saved isolated payload to: %s (%d bytes)\n", outPath, bytesCopied)
 	
-	fmt.Println("  🔄 SWARM ENGINE: P2P Knowledge Cross-over Daemon ONLINE")
-	
-	for {
-		time.Sleep(5 * time.Minute)
-		syncP2PCorrections(brainRoot)
+	// Notify via SSE
+	if GlobalSSEBroker != nil {
+		GlobalSSEBroker.Broadcast("info", fmt.Sprintf("[P2P] Received brain packet from %s", peerID[:8]))
 	}
 }
 
-func syncP2PCorrections(brainRoot string) {
-	agentsDir := filepath.Join(brainRoot, "_agents")
-	globalInboxFile := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
-	
-	// Create global inbox directory if not exists
-	_ = os.MkdirAll(filepath.Dir(globalInboxFile), 0755)
-	
-	// 1. Read existing global corrections to map hashes and avoid dups
-	globalHashes := make(map[string]bool)
-	content, err := os.ReadFile(globalInboxFile)
-	if err == nil {
-		lines := strings.Split(string(content), "\n")
-		for _, line := range lines {
-			if strings.TrimSpace(line) != "" {
-				hash := hashLine(line)
-				globalHashes[hash] = true
-			}
-		}
+// SendBrainToPeer streams the local brain structure (excluding caches) directly over libp2p
+func SendBrainToPeer(ctx context.Context, pi peer.AddrInfo, brainRoot string) error {
+	if GlobalP2P == nil || GlobalP2P.Host == nil {
+		return fmt.Errorf("p2p node not initialized")
 	}
+
+	s, err := GlobalP2P.Host.NewStream(ctx, pi.ID, "/neuronfs/sync/1.0.0")
+	if err != nil {
+		return fmt.Errorf("failed to open sync stream: %v", err)
+	}
+	defer s.Close()
+
+	fmt.Printf("[P2P Sync] Compressing and streaming brain to peer %s...\n", pi.ID.String()[:8])
 	
-	// 2. Scan all subdirectories in _agents for their own corrections.jsonl
-	newEntries := 0
-	var mergedLines []string
-	
-	_ = filepath.WalkDir(agentsDir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
+	archive := zip.NewWriter(s)
+
+	err = filepath.Walk(brainRoot, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, err := filepath.Rel(brainRoot, path)
+		if err != nil {
+			return err
+		}
+		if relPath == "." {
 			return nil
 		}
-		
-		if d.Name() == "corrections.jsonl" && path != globalInboxFile {
-			localData, readErr := os.ReadFile(path)
-			if readErr == nil {
-				lines := strings.Split(string(localData), "\n")
-				for _, line := range lines {
-					cleanLine := strings.TrimSpace(line)
-					if cleanLine != "" {
-						h := hashLine(cleanLine)
-						if !globalHashes[h] {
-							globalHashes[h] = true
-							mergedLines = append(mergedLines, cleanLine)
-							newEntries++
-						}
-					}
-				}
-			}
-		}
-		return nil
-	})
-	
-	// 3. Append to global
-	if newEntries > 0 {
-		f, err := os.OpenFile(globalInboxFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err == nil {
-			defer f.Close()
-			for _, ml := range mergedLines {
-				_, _ = f.WriteString(ml + "\n")
-			}
-			fmt.Printf("[P2P Sync] Successfully merged %d new cross-over corrections to swarm.\n", newEntries)
-			
-			// Broadcast via global SSE
-			if GlobalSSEBroker != nil {
-				GlobalSSEBroker.Broadcast("info", fmt.Sprintf("[P2P Sync] %d개의 피어 지식이 전역 스웜으로 융합되었습니다.", newEntries))
-			}
-			// Phase 40: Audit Trail
-			RecordAudit(brainRoot, "p2p_sync", "merge", globalInboxFile, fmt.Sprintf("%d new corrections merged", newEntries), true)
-		}
-	}
-}
 
-func hashLine(line string) string {
-	h := sha256.Sum256([]byte(line))
-	return hex.EncodeToString(h[:])
+		// Marketplace rules for excluding pure execution layer overlaps
+		if strings.HasPrefix(relPath, ".git") ||
+			strings.HasPrefix(relPath, "_inbox") ||
+			strings.HasPrefix(relPath, "_transcripts") ||
+			strings.HasPrefix(relPath, "_agents") ||
+			strings.HasPrefix(relPath, ".archive") ||
+			strings.HasPrefix(relPath, ".neuronfs_backup") ||
+			strings.HasPrefix(relPath, "scratch") {
+			if info.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+
+		header.Name = filepath.ToSlash(relPath)
+		if info.IsDir() {
+			header.Name += "/"
+		} else {
+			header.Method = zip.Deflate
+		}
+
+		writer, err := archive.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		_, err = io.Copy(writer, file)
+		return err
+	})
+
+	if err != nil {
+		return fmt.Errorf("packaging error during stream: %v", err)
+	}
+
+	if err := archive.Close(); err != nil {
+		return fmt.Errorf("failed closing zip writer: %v", err)
+	}
+
+	fmt.Printf("\033[32m[SUCCESS] Transmission complete to peer: %s\033[0m\n", pi.ID.String()[:8])
+	return nil
 }

@@ -71,7 +71,7 @@ func startAPI(brainRoot string, port int) {
 	go runIdleLoop(brainRoot)
 	go startFSWatcherPool(brainRoot) // <--- Phase 31: V7 OS Sensory Monitor
 	go startWebhookDaemon(brainRoot) // <--- Phase 32: B2B Webhook Forwarder
-	go startP2PSyncDaemon(brainRoot) // <--- Phase 36: V8 P2P Knowledge Crossover
+	// go startP2PSyncDaemon(brainRoot) // <--- Replaced by explicit Phase 60 NeuronFS --sync command
 	go startDreamCycleDaemon(brainRoot) // <--- Phase 41: V10 Dream Cycle
 	go func() { BuildSimilarityIndex(brainRoot) }() // <--- Phase 44: V11 TF-IDF Index
 
