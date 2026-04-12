@@ -320,8 +320,12 @@ function initSSE() {
   evtSource.onmessage = function(e) {
     try {
       const d = JSON.parse(e.data);
-      document.getElementById('m-neurons').innerText = d.totalNeurons.toLocaleString();
-      document.getElementById('m-act').innerText = d.totalActivation.toLocaleString();
+      if (d.type === 'stat') {
+        document.getElementById('m-neurons').innerText = d.totalNeurons.toLocaleString();
+        document.getElementById('m-act').innerText = d.totalActivation.toLocaleString();
+      } else if (d.type === 'log') {
+        logTTY(d.message, d.level);
+      }
     } catch(err) {}
   };
   evtSource.onerror = function() {

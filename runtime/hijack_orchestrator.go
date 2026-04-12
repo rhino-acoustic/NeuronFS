@@ -353,4 +353,7 @@ func appendDebugLog(nfsRoot, msg string) {
 	}
 	defer f.Close()
 	fmt.Fprintf(f, "[%s] %s\n", time.Now().Format("15:04:05"), msg)
+	
+	// Broadcast to SSE (Dashboard V2)
+	GlobalSSEBroker.Broadcast("info", fmt.Sprintf("[TG] %s", msg))
 }

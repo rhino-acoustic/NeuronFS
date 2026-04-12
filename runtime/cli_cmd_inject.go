@@ -9,7 +9,9 @@ func (c *InjectCmd) Name() string {
 }
 
 func (c *InjectCmd) Execute(brainRoot string, args []string) error {
+	GlobalSSEBroker.Broadcastf("info", "[CLI] --inject Triggered: Processing Inbox & Rebuilding GEMINI.md")
 	processInbox(brainRoot)
 	writeAllTiers(brainRoot)
+	GlobalSSEBroker.Broadcastf("success", "[CLI] --inject Compiling Tiers Complete")
 	return nil
 }

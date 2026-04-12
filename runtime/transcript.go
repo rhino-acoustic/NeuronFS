@@ -308,6 +308,7 @@ func injectIdleResult(summary string) {
 	// 3회 실패: 진단 로그를 텔레그램으로 전송 + IDE에 인젝션 시도
 	diagStr := strings.Join(diagLog, " | ")
 	fmt.Printf("[IDLE] ❌ CDP 3회 실패: %s\n", diagStr)
+	GlobalSSEBroker.Broadcastf("error", "[IDLE] CDP 3회 실패: %s", diagStr)
 
 	// 텔레그램 알림
 	if hlTgToken != "" && hlTgChatID != "" {
@@ -468,11 +469,13 @@ func digestTranscripts(brainRoot string) int {
 		}
 		autoSetEmotion(brainRoot, "긴급", intensity)
 		fmt.Printf("[LIMBIC] 😤 답답함 %d회 감지 → 긴급 모드 (intensity: %.1f)\n", frustrationCount, intensity)
+		GlobalSSEBroker.Broadcastf("warn", "[LIMBIC] 답답함 %d회 감지 → 긴급 모드 (intensity: %.1f)", frustrationCount, intensity)
 	}
 	if satisfactionCount >= 3 {
 		fireNeuron(brainRoot, "limbic/칭찬_사용자만족감지")
 		autoSetEmotion(brainRoot, "만족", 0.6)
 		fmt.Printf("[LIMBIC] 😊 만족 %d회 감지 → 만족 모드\n", satisfactionCount)
+		GlobalSSEBroker.Broadcastf("success", "[LIMBIC] 만족 %d회 감지 → 만족 모드", satisfactionCount)
 	}
 
 	// cursor 갱신
@@ -534,6 +537,7 @@ func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 	if prevNeurons > 0 && growth >= 20 {
 		fmt.Printf("[HEARTBEAT] 🔥 뉴런 폭발 감지: %d→%d (+%d) — 통합 지시 주입\n",
 			prevNeurons, result.TotalNeurons, growth)
+		GlobalSSEBroker.Broadcastf("info", "[HEARTBEAT] 뉴런 폭발 감지: %d→%d (+%d) — 통합 지시 주입", prevNeurons, result.TotalNeurons, growth)
 
 		// 1. git snapshot 선행 (롤백 보장)
 		fmt.Println("[HEARTBEAT] 📸 통합 전 git snapshot...")

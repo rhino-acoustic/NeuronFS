@@ -9,8 +9,50 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
+
+type LogMessage struct {
+	Level   string `json:"level"`
+	Message string `json:"message"`
+}
+
+type SSEBroker struct {
+	mu      sync.Mutex
+	clients map[chan LogMessage]bool
+}
+
+func (b *SSEBroker) AddClient(c chan LogMessage) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.clients[c] = true
+}
+
+func (b *SSEBroker) RemoveClient(c chan LogMessage) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	delete(b.clients, c)
+}
+
+func (b *SSEBroker) Broadcast(level, msg string) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	logObj := LogMessage{Level: level, Message: msg}
+	for c := range b.clients {
+		select {
+		case c <- logObj:
+		default:
+		}
+	}
+}
+
+func (b *SSEBroker) Broadcastf(level, format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	b.Broadcast(level, msg)
+}
+
+var GlobalSSEBroker = &SSEBroker{clients: make(map[chan LogMessage]bool)}
 
 func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http.HandlerFunc) http.HandlerFunc) {
 	// GET /api/integrity?region=cortex
@@ -354,10 +396,23 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()
 
+		clientChan := make(chan LogMessage, 100)
+		GlobalSSEBroker.AddClient(clientChan)
+		defer GlobalSSEBroker.RemoveClient(clientChan)
+
 		for {
 			select {
 			case <-r.Context().Done():
 				return
+			case logMsg := <-clientChan:
+				data := map[string]interface{}{
+					"type":    "log",
+					"level":   logMsg.Level,
+					"message": logMsg.Message,
+				}
+				jsonBytes, _ := json.Marshal(data)
+				fmt.Fprintf(w, "data: %s\n\n", string(jsonBytes))
+				flusher.Flush()
 			case <-ticker.C:
 				brain := scanBrain(brainRoot)
 				totalNeurons := 0
@@ -370,6 +425,7 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 				}
 
 				data := map[string]interface{}{
+					"type":            "stat",
 					"ts":              time.Now().Format(time.RFC3339),
 					"totalNeurons":    totalNeurons,
 					"totalActivation": totalActivation,
