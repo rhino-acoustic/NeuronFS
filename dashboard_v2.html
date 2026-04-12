@@ -101,7 +101,11 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 <div id="console-container">
   <div class="header">
     <div class="brand"><h1><span>Neuron</span>FS V2</h1><span class="ver">Autopilot Nerve Center</span></div>
-    <button class="toggle-btn" id="btn-autopilot" onclick="toggleAutopilot()">AUTOPILOT: ON</button>
+    <div style="display:flex;gap:6px">
+      <button class="toggle-btn" style="font-size:9px;padding:6px 10px;border-color:#8b5cf6;color:#8b5cf6;background:rgba(139,92,246,0.1)" onclick="runIntegrity()">🛡️ CHECK</button>
+      <button class="toggle-btn" style="font-size:9px;padding:6px 10px;border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,0.1)" onclick="runInject()">🔄 INJECT</button>
+      <button class="toggle-btn" id="btn-autopilot" onclick="toggleAutopilot()">AUTOPILOT: ON</button>
+    </div>
   </div>
   
   <div class="ap-status">
@@ -624,6 +628,32 @@ async function fetchCodemap() {
 }
 setInterval(fetchCodemap, 60000);
 fetchCodemap();
+
+// Stacked: /api/integrity → 무결성 검사
+async function runIntegrity() {
+  logTTY('🛡️ Running integrity check...', 'info');
+  try {
+    const r = await fetch('/api/integrity');
+    const d = await r.json();
+    const status = d.status || 'unknown';
+    const regions = d.regions || [];
+    logTTY(`🛡️ Integrity: ${status} (${regions.length} regions scanned)`, status === 'NOMINAL' ? 'info' : 'error');
+    regions.forEach(rg => {
+      const icon = rg.status === 'intact' ? '✅' : rg.status === 'empty' ? '⚪' : '❌';
+      logTTY(`  ${icon} ${rg.region}: ${rg.status} (${rg.files || 0} files)`, rg.status === 'violated' ? 'error' : 'info');
+    });
+  } catch(e) { logTTY('❌ Integrity check failed', 'error'); }
+}
+
+// Stacked: /api/inject → 뻠 재주입
+async function runInject() {
+  logTTY('🔄 Re-injecting brain into GEMINI.md...', 'warn');
+  try {
+    const r = await fetch('/api/inject', { method: 'POST' });
+    const text = await r.text();
+    logTTY('✅ ' + text, 'info');
+  } catch(e) { logTTY('❌ Inject failed', 'error'); }
+}
 
 initData();
 </script>
