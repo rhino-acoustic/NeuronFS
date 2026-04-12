@@ -137,6 +137,8 @@ func main() {
 	router.Register(&RollbackCmd{})
 	router.Register(&RollbackAllCmd{})
 	router.Register(&ExportSvgCmd{})
+	router.Register(&StatsCmd{})
+	router.Register(&VacuumCmd{})
 
 	// Check if any arguments match our new router
 	routed := false
@@ -176,10 +178,6 @@ func main() {
 		writeAllTiersForTargets(brainRoot, emitTarget)
 	case "harness":
 		// Handled by router
-	case "stats":
-		runStats(brainRoot)
-	case "vacuum":
-		runVacuum(brainRoot)
 	case "mcp":
 		// MCP Streamable HTTP server + background loops
 		// HTTP transport: IDE 재시작에도 연결 유지
