@@ -180,7 +180,7 @@ function init() {
   
   // Re-generate UI buttons properly
   const ui = document.getElementById('ui-panel');
-  ui.innerHTML = \`
+  ui.innerHTML = `
     <h1>V3 Generative Art</h1>
     <p>중심으로 말려들어갈수록 초고온(화이트+골드)으로 색이 변하며, 깊이감이 극대화된 구조체들.</p>
     <button class="layout-btn active" onclick="switchLayout(0, this)">1. Neural Spiral Galaxy</button>
@@ -191,7 +191,7 @@ function init() {
     <button class="layout-btn" onclick="switchLayout(5, this)">6. Supernova Explosion (초신성 코어)</button>
     <button class="layout-btn" onclick="switchLayout(6, this)">7. Fibonacci Sphere (황금비 넥서스)</button>
     <button class="layout-btn" onclick="switchLayout(7, this)">8. Chaos Gravity Well (응축 깔때기)</button>
-  \`;
+  `;
   
   setTimeout(() => loadLayout(0), 100);
   animate();
