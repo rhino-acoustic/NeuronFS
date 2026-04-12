@@ -21,77 +21,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	mode := "diag"
 	quietMode := false
 	forceAwakening := false
-	emitTarget := "" // --emit target: gemini, cursor, claude, copilot, generic, all
-	for i, arg := range os.Args {
-		switch arg {
-		case "--emit":
-			mode = "emit"
-			// Check if next arg is an emit target (not a flag)
-			if i+1 < len(os.Args) && !strings.HasPrefix(os.Args[i+1], "--") {
-				candidate := strings.ToLower(os.Args[i+1])
-				if candidate == "gemini" || candidate == "cursor" || candidate == "claude" || candidate == "copilot" || candidate == "generic" || candidate == "all" || candidate == "auto" {
-					emitTarget = candidate
-					mode = "emit-target" // file output mode
-				}
-			}
-		case "--inject":
-			mode = "inject"
-		case "--watch":
-			mode = "watch"
-		case "--html":
-			mode = "html"
-		case "--dashboard":
-			mode = "dashboard"
-		case "--init":
-			mode = "init"
-		case "--grow":
-			mode = "grow"
-		case "--fire":
-			mode = "fire"
-		case "--signal":
-			mode = "signal"
-		case "--decay":
-			mode = "decay"
-		case "--api":
-			mode = "api"
-		case "--mcp":
-			mode = "mcp"
-		case "--snapshot":
-			mode = "snapshot"
-		case "--evolve":
-			mode = "evolve"
-		case "--rollback":
-			mode = "rollback"
-		case "--rollback-all":
-			mode = "rollback-all"
-		case "--stats":
-			mode = "stats"
-		case "--vacuum":
-			mode = "vacuum"
-		case "--webhook":
-			// Standby for P9 (B2B Social Pressure / Slack Shaming Hook)
-			if i+1 < len(os.Args) && !strings.HasPrefix(os.Args[i+1], "--") {
-				_ = os.Args[i+1] // webhookUrl = os.Args[i+1]
-			}
-		case "--supervisor":
-			mode = "supervisor"
-		case "--neuronize":
-			mode = "neuronize"
-		case "--polarize":
-			mode = "polarize"
-		case "--symlink":
-			mode = "symlink"
-		case "--quiet", "-q":
+
+	// Legacy global flag parse (commands should parse their own specific flags)
+	for _, arg := range os.Args {
+		if arg == "--quiet" || arg == "-q" {
 			quietMode = true
-		case "--awakening":
+		}
+		if arg == "--awakening" {
 			forceAwakening = true
-		case "--harness":
-			mode = "harness"
-		case "--tool":
-			mode = "tool"
 		}
 	}
 
@@ -142,6 +81,8 @@ func main() {
 	router.Register(&PolarizeCmd{})
 	router.Register(&SymlinkCmd{})
 	router.Register(&ToolCmd{})
+	router.Register(&DiagCmd{})
+	router.Register(&EmitCmd{})
 
 	// Check if any arguments match our new router
 	routed := false
@@ -164,24 +105,9 @@ func main() {
 		return // Command fully handled by new router
 	}
 
-	// ── Legacy Switch-Case Fallback (Anti-Corruption Layer) ──
-	switch mode {
-	case "init":
-		// Handled by router
-	case "diag":
-		brain := scanBrain(brainRoot)
-		result := runSubsumption(brain)
-		printDiag(brain, result)
-	case "emit":
-		brain := scanBrain(brainRoot)
-		result := runSubsumption(brain)
-		fmt.Print(emitRules(result))
-	case "emit-target":
-		processInbox(brainRoot)
-		writeAllTiersForTargets(brainRoot, emitTarget)
-	default:
-		fmt.Printf("[FATAL] Unknown mode '%s'\n", mode)
-	}
+	// If it reached here without routing, it's an unknown invocation format
+	fmt.Printf("[FATAL] Unknown command. Could not route given arguments.\n")
+	os.Exit(1)
 }
 
 // ─── Region priority (hardcoded — no folder prefix numbers) ───
