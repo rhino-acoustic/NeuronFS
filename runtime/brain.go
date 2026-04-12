@@ -24,6 +24,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -168,8 +169,14 @@ func scanBrain(root string) Brain {
 		// regionPriority, regionIcons, regionKo는 이제 SSOT(governance_consts.go)에 영구 정의됨
 	}
 
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
 	for name, regionPath := range regionsToScan {
-		priority := regionPriority[name]
+		wg.Add(1)
+		go func(name, regionPath string) {
+			defer wg.Done()
+			priority := regionPriority[name]
 
 		region := Region{
 			Name:     name,
@@ -496,8 +503,13 @@ func scanBrain(root string) Brain {
 			region.Neurons = append(region.Neurons, *n)
 		}
 
+		mu.Lock()
 		brain.Regions = append(brain.Regions, region)
+		mu.Unlock()
+	}(name, regionPath)
 	}
+
+	wg.Wait()
 
 	// Sort regions by priority
 	sort.Slice(brain.Regions, func(i, j int) bool {
