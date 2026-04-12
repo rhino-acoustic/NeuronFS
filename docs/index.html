@@ -3,985 +3,651 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NeuronFS — mkdir beats vector DB | B-tree AI Governance</title>
-  <meta name="description" content="mkdir beats vector DB. B-tree NeuronFS: Zero-Trust AI Governance via OS filesystem. Zero infrastructure. Zero hallucination. O(1) deterministic control.">
-  <meta property="og:title" content="NeuronFS — mkdir beats vector DB">
-  <meta property="og:description" content="Zero-Trust AI Governance via OS filesystem. 4MB binary. O(1) deterministic control.">
+  <title>NeuronFS — Deterministic AI Governance via Filesystem Hierarchy</title>
+  <meta name="description" content="NeuronFS: A filesystem-native cognitive architecture for deterministic AI agent governance. Zero infrastructure. O(1) rule enforcement. AGPL-3.0.">
+  <meta property="og:title" content="NeuronFS — Deterministic AI Governance via Filesystem Hierarchy">
+  <meta property="og:description" content="A filesystem-native cognitive architecture for deterministic AI agent governance. 4MB binary. O(1) rule enforcement.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://neuronfs.dev">
   <meta property="og:image" content="https://raw.githubusercontent.com/rhino-acoustic/NeuronFS/main/docs/dashboard.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="NeuronFS — mkdir beats vector DB">
-  <meta name="twitter:description" content="Zero-Trust AI Governance via OS filesystem. 4MB. O(1).">
-  <meta name="twitter:image" content="https://raw.githubusercontent.com/rhino-acoustic/NeuronFS/main/docs/dashboard.png">
   <link rel="canonical" href="https://neuronfs.dev">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg: #08080c;
-      --bg-s: #0e0e14;
-      --bg-card: rgba(14, 14, 20, 0.6);
-      --text: #eaeaf0;
-      --text-dim: #6b6b80;
-      --cyan: #00d4ff;
-      --purple: #a855f7;
-      --green: #22c55e;
-      --red: #ef4444;
-      --gold: #f59e0b;
-      --pink: #ec4899;
-      --border: rgba(255,255,255,0.06);
-      --glow-c: 0 0 60px rgba(0,212,255,0.12);
-      --glow-p: 0 0 60px rgba(168,85,247,0.12);
+      --bg: #fafaf9;
+      --bg-alt: #f5f5f0;
+      --bg-code: #1c1c22;
+      --text: #1a1a2e;
+      --text-secondary: #555566;
+      --text-muted: #888899;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --border: #e5e5e0;
+      --border-strong: #d0d0c8;
+      --navy: #0f172a;
+      --navy-light: #1e293b;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --sidebar-w: 240px;
+      --content-max: 820px;
     }
 
     html { scroll-behavior: smooth; }
     body {
-      font-family: 'Inter', -apple-system, sans-serif;
+      font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.7;
-      overflow-x: hidden;
+      line-height: 1.85;
+      font-size: 17px;
     }
 
-    /* ═══ CANVAS BACKGROUND ═══ */
-    #particles-canvas {
+    /* ═══ LAYOUT ═══ */
+    .page-grid {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      min-height: 100vh;
+    }
+
+    /* ═══ SIDEBAR ═══ */
+    .sidebar {
       position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--navy);
+      color: #cbd5e1;
+      padding: 32px 0;
+      overflow-y: auto;
+      z-index: 100;
+      border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    .sidebar-logo {
+      padding: 0 24px; margin-bottom: 32px;
+      font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.1rem;
+      color: #fff; letter-spacing: -0.3px;
+    }
+    .sidebar-logo span { color: var(--accent); }
+    .sidebar-section {
+      padding: 0 20px; margin-bottom: 24px;
+    }
+    .sidebar-section-title {
+      font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 2px;
+      color: #64748b; margin-bottom: 10px; padding-left: 4px;
+    }
+    .sidebar-link {
+      display: block; padding: 7px 12px; border-radius: 6px;
+      color: #94a3b8; text-decoration: none;
+      font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500;
+      transition: all 0.2s; line-height: 1.4;
+    }
+    .sidebar-link:hover { color: #fff; background: rgba(255,255,255,0.06); }
+    .sidebar-link.active { color: #fff; background: rgba(37,99,235,0.15); border-left: 2px solid var(--accent); }
+    .sidebar-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 4px;
+      font-size: 0.6rem; font-weight: 600; margin-left: 6px;
+      background: rgba(37,99,235,0.2); color: var(--accent);
     }
 
-    /* ═══ GRADIENT ORBS ═══ */
-    .orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(120px);
-      z-index: 0;
-      pointer-events: none;
-      animation: orbFloat 20s ease-in-out infinite;
-    }
-    .orb-1 { width: 600px; height: 600px; top: -200px; left: -100px; background: rgba(0,212,255,0.07); }
-    .orb-2 { width: 500px; height: 500px; top: 40%; right: -150px; background: rgba(168,85,247,0.06); animation-delay: -7s; }
-    .orb-3 { width: 400px; height: 400px; bottom: -100px; left: 30%; background: rgba(236,72,153,0.05); animation-delay: -14s; }
-
-    @keyframes orbFloat {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      33% { transform: translate(30px, -40px) scale(1.05); }
-      66% { transform: translate(-20px, 30px) scale(0.95); }
+    /* ═══ MAIN CONTENT ═══ */
+    .main { margin-left: var(--sidebar-w); }
+    .content {
+      max-width: var(--content-max);
+      margin: 0 auto;
+      padding: 60px 40px 80px;
     }
 
-    /* ═══ SCROLL ANIMATIONS ═══ */
-    .reveal {
-      opacity: 0;
-      transform: translateY(40px);
-      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    /* ═══ HEADER / PAPER TITLE ═══ */
+    .paper-header {
+      padding-bottom: 48px; margin-bottom: 48px;
+      border-bottom: 2px solid var(--border);
     }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
+    .paper-header h1 {
+      font-size: 2.4rem; font-weight: 700; line-height: 1.25;
+      letter-spacing: -0.5px; margin-bottom: 16px;
+      color: var(--navy);
     }
-    .reveal-delay-1 { transition-delay: 0.1s; }
-    .reveal-delay-2 { transition-delay: 0.2s; }
-    .reveal-delay-3 { transition-delay: 0.3s; }
-    .reveal-delay-4 { transition-delay: 0.4s; }
-    .reveal-delay-5 { transition-delay: 0.5s; }
+    .paper-meta {
+      font-family: 'Inter', sans-serif; font-size: 0.85rem;
+      color: var(--text-secondary); line-height: 1.8;
+    }
+    .paper-meta a { color: var(--accent); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .paper-tags { margin-top: 16px; }
+    .paper-tag {
+      display: inline-block; padding: 3px 12px; border-radius: 4px;
+      font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 600;
+      margin-right: 6px; margin-bottom: 4px;
+    }
+    .tag-blue { background: #dbeafe; color: #1e40af; }
+    .tag-green { background: #dcfce7; color: #166534; }
+    .tag-gray { background: #f1f5f9; color: #475569; }
 
-    .container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    /* ═══ ABSTRACT ═══ */
+    .abstract {
+      padding: 28px 32px; background: var(--bg-alt);
+      border: 1px solid var(--border); border-radius: 8px;
+      margin-bottom: 48px;
+    }
+    .abstract-label {
+      font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2px;
+      color: var(--text-muted); margin-bottom: 10px;
+    }
+    .abstract p { font-size: 1rem; color: var(--text-secondary); }
 
-    /* ═══ NAV ═══ */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      padding: 14px 0;
-      backdrop-filter: blur(24px) saturate(180%);
-      background: rgba(8,8,12,0.75);
+    /* ═══ SECTIONS ═══ */
+    .section { margin-bottom: 56px; scroll-margin-top: 32px; }
+    .section h2 {
+      font-size: 1.6rem; font-weight: 700; color: var(--navy);
+      margin-bottom: 20px; padding-bottom: 10px;
       border-bottom: 1px solid var(--border);
-      transition: all 0.3s;
     }
-    nav.scrolled { padding: 10px 0; box-shadow: 0 4px 30px rgba(0,0,0,0.3); }
-    nav .container { display: flex; align-items: center; justify-content: space-between; }
-    .logo { font-weight: 900; font-size: 1.3rem; letter-spacing: -0.5px; }
-    .logo span { background: linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .nav-links { display: flex; gap: 32px; list-style: none; }
-    .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.3s; position: relative; }
-    .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--cyan); transition: width 0.3s; }
-    .nav-links a:hover { color: var(--text); }
-    .nav-links a:hover::after { width: 100%; }
-    .btn-gh {
-      display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px;
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
-      color: var(--text); text-decoration: none; font-size: 0.85rem; font-weight: 500;
-      transition: all 0.3s; background: rgba(255,255,255,0.03);
+    .section h3 {
+      font-size: 1.2rem; font-weight: 600; color: var(--text);
+      margin-top: 32px; margin-bottom: 12px;
     }
-    .btn-gh:hover { border-color: var(--cyan); box-shadow: var(--glow-c); transform: translateY(-1px); }
-    .hamburger { display: none; flex-direction: column; gap: 4px; cursor: pointer; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: transparent; }
-    .hamburger span { width: 18px; height: 2px; background: var(--text); transition: all 0.3s; }
-    .mobile-menu { display: none; position: fixed; top: 56px; left: 0; right: 0; background: rgba(8,8,12,0.97); backdrop-filter: blur(20px); padding: 20px 28px; border-bottom: 1px solid var(--border); z-index: 99; }
-    .mobile-menu.open { display: block; }
-    .mobile-menu a { display: block; padding: 14px 0; color: var(--text-dim); text-decoration: none; font-size: 1rem; border-bottom: 1px solid var(--border); }
+    .section p { margin-bottom: 16px; }
+    .section ul, .section ol { margin-bottom: 16px; padding-left: 24px; }
+    .section li { margin-bottom: 6px; }
 
-    /* ═══ HERO ═══ */
-    .hero { padding: 200px 0 120px; text-align: center; position: relative; }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 18px; border: 1px solid rgba(0,212,255,0.2); border-radius: 100px;
-      font-size: 0.78rem; font-weight: 500; color: var(--cyan);
-      margin-bottom: 36px; background: rgba(0,212,255,0.04);
-      animation: badgePulse 3s ease-in-out infinite;
+    /* ═══ FIGURES ═══ */
+    .figure {
+      margin: 32px 0; padding: 24px;
+      background: var(--bg-alt); border: 1px solid var(--border);
+      border-radius: 8px;
     }
-    .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: dotPulse 2s ease infinite; }
-    @keyframes badgePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(0,212,255,0.15); } 50% { box-shadow: 0 0 0 12px rgba(0,212,255,0); } }
-    @keyframes dotPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .figure-caption {
+      font-family: 'Inter', sans-serif; font-size: 0.82rem;
+      color: var(--text-secondary); margin-top: 12px;
+      text-align: center; font-style: italic;
+    }
+    .figure-caption strong { font-style: normal; color: var(--text); }
 
-    h1 {
-      font-size: clamp(3rem, 7vw, 5.5rem);
-      font-weight: 900;
-      line-height: 1.05;
-      letter-spacing: -3px;
+    /* ═══ LAYER DIAGRAM ═══ */
+    .layer-stack { display: flex; flex-direction: column; gap: 2px; }
+    .layer-row {
+      display: grid; grid-template-columns: 60px 120px 1fr;
+      align-items: center; padding: 10px 16px;
+      border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 0.85rem;
+    }
+    .layer-row:nth-child(1) { background: #fef2f2; border-left: 4px solid var(--danger); }
+    .layer-row:nth-child(2) { background: #fffbeb; border-left: 4px solid var(--warning); }
+    .layer-row:nth-child(3) { background: #f0fdf4; border-left: 4px solid var(--success); }
+    .layer-row:nth-child(4) { background: #eff6ff; border-left: 4px solid var(--accent); }
+    .layer-row:nth-child(5) { background: #faf5ff; border-left: 4px solid #7c3aed; }
+    .layer-row:nth-child(6) { background: #f8fafc; border-left: 4px solid #64748b; }
+    .layer-row:nth-child(7) { background: #f8fafc; border-left: 4px solid #94a3b8; }
+    .layer-priority { font-weight: 700; font-size: 0.75rem; }
+    .layer-name { font-weight: 600; }
+    .layer-desc { color: var(--text-secondary); font-size: 0.82rem; }
+
+    /* ═══ CODE BLOCKS ═══ */
+    .code-block {
+      background: var(--bg-code); color: #e2e8f0;
+      border-radius: 8px; overflow: hidden;
+      margin: 20px 0; font-size: 0.85rem;
+    }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-family: 'Inter', sans-serif; font-size: 0.72rem;
+      color: #64748b;
+    }
+    .code-body {
+      padding: 18px 20px; font-family: 'JetBrains Mono', monospace;
+      line-height: 1.8; overflow-x: auto;
+    }
+    .code-body .kw { color: #7dd3fc; }
+    .code-body .str { color: #86efac; }
+    .code-body .cm { color: #64748b; }
+    .code-body .fn { color: #c4b5fd; }
+    .code-body .op { color: #fbbf24; }
+
+    /* ═══ TABLES ═══ */
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-family: 'Inter', sans-serif; font-size: 0.88rem; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 600; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg-alt); }
+    td { color: var(--text); }
+    tr:hover td { background: rgba(37,99,235,0.02); }
+    .win { color: var(--success); font-weight: 600; }
+    .lose { color: var(--text-muted); }
+    .partial { color: var(--warning); font-weight: 500; }
+
+    /* ═══ CALLOUTS ═══ */
+    .callout {
+      padding: 20px 24px; border-radius: 8px;
+      margin: 24px 0; border-left: 4px solid;
+      font-size: 0.95rem;
+    }
+    .callout-insight { background: #eff6ff; border-color: var(--accent); }
+    .callout-warning { background: #fffbeb; border-color: var(--warning); }
+    .callout-critical { background: #fef2f2; border-color: var(--danger); }
+    .callout-label {
+      font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
       margin-bottom: 6px;
     }
-    h1 .gradient {
-      background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 50%, var(--pink) 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      background-size: 200% auto;
-      animation: gradientShift 4s ease infinite;
-    }
-    @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .callout-insight .callout-label { color: var(--accent); }
+    .callout-warning .callout-label { color: var(--warning); }
+    .callout-critical .callout-label { color: var(--danger); }
 
-    .hero-tagline {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.95rem;
-      color: var(--purple);
-      letter-spacing: 2px;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-    }
-    .hero-sub { font-size: 1.2rem; color: var(--text-dim); max-width: 640px; margin: 0 auto 52px; line-height: 1.9; font-weight: 300; }
-    .hero-sub strong { color: var(--text); font-weight: 600; }
-
-    .hero-cta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-    .btn-primary {
-      padding: 16px 36px; border: none; border-radius: 12px;
-      font-size: 0.95rem; font-weight: 700; cursor: pointer; text-decoration: none;
-      background: linear-gradient(135deg, var(--cyan), #0099cc);
-      color: #000; transition: all 0.4s;
-      box-shadow: 0 4px 24px rgba(0,212,255,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
-      position: relative; overflow: hidden;
-    }
-    .btn-primary::before {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%);
-      transform: translateX(-100%); transition: transform 0.6s;
-    }
-    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 40px rgba(0,212,255,0.4); }
-    .btn-primary:hover::before { transform: translateX(100%); }
-
-    .btn-secondary {
-      padding: 16px 36px; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-      font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: none;
-      background: rgba(255,255,255,0.02); color: var(--text); transition: all 0.4s;
-      backdrop-filter: blur(8px);
-    }
-    .btn-secondary:hover { border-color: var(--purple); box-shadow: var(--glow-p); transform: translateY(-3px); }
-
-    /* ═══ INTERACTIVE TERMINAL ═══ */
-    .terminal {
-      max-width: 700px; margin: 72px auto 0;
-      background: rgba(12, 12, 18, 0.9);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px; overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 80px rgba(0,212,255,0.05);
-      backdrop-filter: blur(20px);
-    }
-    .term-header {
-      display: flex; align-items: center; gap: 8px; padding: 14px 18px;
-      background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border);
-    }
-    .term-dot { width: 12px; height: 12px; border-radius: 50%; }
-    .term-dot.r { background: #ff5f57; }
-    .term-dot.y { background: #febc2e; }
-    .term-dot.g { background: #28c840; }
-    .term-title { margin-left: auto; font-size: 0.72rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
-    .term-body {
-      padding: 24px; font-family: 'JetBrains Mono', monospace;
-      font-size: 0.84rem; line-height: 2; min-height: 200px;
-    }
-    .term-line { opacity: 0; transform: translateX(-10px); animation: lineAppear 0.4s ease forwards; }
-    .term-line:nth-child(1) { animation-delay: 0.3s; }
-    .term-line:nth-child(2) { animation-delay: 0.8s; }
-    .term-line:nth-child(3) { animation-delay: 1.3s; }
-    .term-line:nth-child(4) { animation-delay: 2.0s; }
-    .term-line:nth-child(5) { animation-delay: 2.5s; }
-    .term-line:nth-child(6) { animation-delay: 3.0s; }
-    .term-line:nth-child(7) { animation-delay: 3.5s; }
-    .term-line:nth-child(8) { animation-delay: 4.2s; }
-    .term-line:nth-child(9) { animation-delay: 4.8s; }
-    @keyframes lineAppear { to { opacity: 1; transform: translateX(0); } }
-    .t-comment { color: #4a4a5a; }
-    .t-cmd { color: var(--cyan); }
-    .t-path { color: var(--green); }
-    .t-flag { color: var(--purple); }
-    .t-result { color: var(--gold); }
-    .t-cursor { display: inline-block; width: 8px; height: 16px; background: var(--cyan); animation: blink 1s step-end infinite; vertical-align: text-bottom; margin-left: 4px; }
-    @keyframes blink { 50% { opacity: 0; } }
-
-    /* ═══ STATS ═══ */
-    .stats-section { padding: 40px 0; }
-    .stats {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 1px; background: var(--border);
-      border: 1px solid var(--border); border-radius: 20px;
-      overflow: hidden;
-    }
-    .stat {
-      padding: 44px 24px; text-align: center;
-      background: var(--bg-s);
-      transition: all 0.3s;
-    }
-    .stat:hover { background: rgba(20,20,30,0.8); }
-    .stat-value {
-      font-size: 2.8rem; font-weight: 900; letter-spacing: -2px; margin-bottom: 6px;
-      font-variant-numeric: tabular-nums;
-    }
-    .stat-value.cyan { color: var(--cyan); }
-    .stat-value.purple { color: var(--purple); }
-    .stat-value.green { color: var(--green); }
-    .stat-value.gold { color: var(--gold); }
-    .stat-label { font-size: 0.82rem; color: var(--text-dim); font-weight: 500; }
-
-    /* ═══ FEATURES ═══ */
-    .features { padding: 100px 0; }
-    .section-eyebrow {
-      text-transform: uppercase; font-size: 0.72rem; font-weight: 700;
-      letter-spacing: 4px; margin-bottom: 14px;
-      background: linear-gradient(90deg, var(--cyan), var(--purple));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    h2 { font-size: 2.6rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 56px; line-height: 1.2; }
-
-    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .feature-card {
-      padding: 36px; background: var(--bg-card);
-      border: 1px solid var(--border); border-radius: 20px;
-      backdrop-filter: blur(16px);
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      position: relative; overflow: hidden;
-    }
-    .feature-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent);
-      opacity: 0; transition: opacity 0.4s;
-    }
-    .feature-card:hover { border-color: rgba(0,212,255,0.15); transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-    .feature-card:hover::before { opacity: 1; }
-    .feature-icon {
-      width: 52px; height: 52px; border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; margin-bottom: 22px;
-    }
-    .fi-cyan { background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.15); }
-    .fi-purple { background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.15); }
-    .fi-green { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.15); }
-    .fi-red { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.15); }
-    .fi-gold { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15); }
-    .fi-pink { background: rgba(236,72,153,0.08); border: 1px solid rgba(236,72,153,0.15); }
-    .feature-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
-    .feature-card p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.8; }
-
-    /* ═══ OPCODES / RUNEWORDS ═══ */
-    .runewords { padding: 100px 0; text-align: center; }
-    .rune-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 56px; }
-    .rune-card {
-      padding: 32px 16px; background: var(--bg-card);
-      border: 1px solid var(--border); border-radius: 18px;
-      backdrop-filter: blur(16px); transition: all 0.4s;
-      position: relative;
-    }
-    .rune-card::after {
-      content: ''; position: absolute; inset: -1px; border-radius: 18px;
-      background: conic-gradient(from 180deg, transparent 70%, rgba(0,212,255,0.2), transparent);
-      z-index: -1; opacity: 0; transition: opacity 0.5s;
-    }
-    .rune-card:hover { transform: translateY(-6px) scale(1.02); border-color: transparent; }
-    .rune-card:hover::after { opacity: 1; }
-    .rune-char { font-size: 2.8rem; font-weight: 900; margin-bottom: 10px; line-height: 1; }
-    .rc-red { color: var(--red); text-shadow: 0 0 30px rgba(239,68,68,0.3); }
-    .rc-gold { color: var(--gold); text-shadow: 0 0 30px rgba(245,158,11,0.3); }
-    .rc-green { color: var(--green); text-shadow: 0 0 30px rgba(34,197,94,0.3); }
-    .rc-purple { color: var(--purple); text-shadow: 0 0 30px rgba(168,85,247,0.3); }
-    .rc-white { color: #fff; text-shadow: 0 0 30px rgba(255,255,255,0.3); }
-    .rune-name { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-dim); margin-bottom: 8px; letter-spacing: 1px; }
-    .rune-desc { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; }
-
-    /* ═══ BENCHMARK ═══ */
-    .benchmark { padding: 100px 0; }
-    table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--bg-s); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
-    th, td { padding: 18px 28px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-    th { font-weight: 600; color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; background: rgba(255,255,255,0.02); }
-    td:last-child { font-weight: 700; color: var(--green); }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(0,212,255,0.02); }
-
-    /* ═══ CTA ═══ */
-    .cta { padding: 120px 0; text-align: center; }
-    .cta-box {
-      padding: 80px 56px; border-radius: 28px;
-      background: linear-gradient(135deg, rgba(0,212,255,0.04), rgba(168,85,247,0.04), rgba(236,72,153,0.03));
-      border: 1px solid var(--border);
-      position: relative; overflow: hidden;
-    }
-    .cta-box::before {
-      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-      background: conic-gradient(from 0deg, transparent, rgba(0,212,255,0.03), transparent, rgba(168,85,247,0.03), transparent);
-      animation: ctaSpin 20s linear infinite;
-    }
-    @keyframes ctaSpin { to { transform: rotate(360deg); } }
-    .cta-box > * { position: relative; z-index: 1; }
-    .cta-box h2 { margin-bottom: 20px; }
-    .cta-box p { color: var(--text-dim); margin-bottom: 40px; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.8; }
+    /* ═══ REFERENCES ═══ */
+    .references { font-size: 0.88rem; }
+    .references ol { padding-left: 24px; }
+    .references li { margin-bottom: 8px; color: var(--text-secondary); }
+    .references a { color: var(--accent); }
 
     /* ═══ FOOTER ═══ */
-    footer { padding: 48px 0; border-top: 1px solid var(--border); text-align: center; color: var(--text-dim); font-size: 0.82rem; }
-    footer a { color: var(--cyan); text-decoration: none; transition: color 0.3s; }
-    footer a:hover { color: var(--purple); }
+    .paper-footer {
+      margin-top: 64px; padding-top: 32px;
+      border-top: 2px solid var(--border);
+      font-family: 'Inter', sans-serif; font-size: 0.82rem;
+      color: var(--text-muted); text-align: center;
+    }
+    .paper-footer a { color: var(--accent); text-decoration: none; }
 
-    /* ═══ RESPONSIVE ═══ */
-    @media (max-width: 768px) {
-      .nav-links { display: none; }
-      .hamburger { display: flex; }
-      .stats { grid-template-columns: repeat(2, 1fr); }
-      .feature-grid { grid-template-columns: 1fr; }
-      .rune-grid { grid-template-columns: repeat(3, 1fr); }
-      h1 { font-size: 2.6rem; letter-spacing: -1.5px; }
-      .hero { padding: 160px 0 80px; }
-      .cta-box { padding: 48px 28px; }
-      .arch-layers { grid-template-columns: 1fr; }
-      .workflow { grid-template-columns: 1fr; }
-      .compare-grid { overflow-x: auto; }
-      .usecase-grid { grid-template-columns: 1fr; }
-      .steps { grid-template-columns: 1fr; }
+    /* ═══ MOBILE ═══ */
+    .mobile-toggle {
+      display: none; position: fixed; top: 12px; left: 12px; z-index: 200;
+      padding: 8px 12px; background: var(--navy); color: #fff;
+      border: none; border-radius: 6px; cursor: pointer;
+      font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 600;
+    }
+    @media (max-width: 900px) {
+      .mobile-toggle { display: block; }
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+      .sidebar.open { transform: translateX(0); }
+      .page-grid { grid-template-columns: 1fr; }
+      .main { margin-left: 0; }
+      .content { padding: 80px 20px 60px; }
+      .paper-header h1 { font-size: 1.8rem; }
+      .layer-row { grid-template-columns: 50px 90px 1fr; font-size: 0.78rem; }
     }
 
-    /* ═══ ARCHITECTURE DEEP DIVE ═══ */
-    .architecture { padding: 100px 0; }
-    .arch-layers { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 48px; }
-    .arch-layer {
-      padding: 28px 12px; text-align: center; border-radius: 14px;
-      border: 1px solid var(--border); background: var(--bg-card);
-      backdrop-filter: blur(12px); transition: all 0.4s;
-      position: relative;
-    }
-    .arch-layer:hover { transform: translateY(-4px); border-color: rgba(0,212,255,0.2); }
-    .arch-layer .priority {
-      position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
-      padding: 2px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700;
-      letter-spacing: 1px;
-    }
-    .p0 { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
-    .p1 { background: rgba(245,158,11,0.15); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
-    .p2 { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
-    .p3 { background: rgba(0,212,255,0.15); color: var(--cyan); border: 1px solid rgba(0,212,255,0.3); }
-    .p4 { background: rgba(168,85,247,0.15); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
-    .arch-icon { font-size: 2rem; margin-bottom: 8px; }
-    .arch-name { font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; }
-    .arch-desc { font-size: 0.68rem; color: var(--text-dim); line-height: 1.4; }
-    .arch-arrow { display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 1.5rem; }
-    .arch-note { max-width: 700px; margin: 32px auto 0; text-align: center; font-size: 0.9rem; color: var(--text-dim); line-height: 1.8; }
-    .arch-note strong { color: var(--text); }
-
-    /* ═══ HOW IT WORKS ═══ */
-    .howitworks { padding: 100px 0; }
-    .workflow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
-    .wf-step {
-      padding: 40px 28px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
-      backdrop-filter: blur(16px); transition: all 0.4s; text-align: center; position: relative;
-    }
-    .wf-step:hover { border-color: rgba(0,212,255,0.2); transform: translateY(-4px); }
-    .wf-number {
-      font-size: 3rem; font-weight: 900; line-height: 1;
-      background: linear-gradient(135deg, var(--cyan), var(--purple));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      margin-bottom: 16px;
-    }
-    .wf-step h3 { font-size: 1.15rem; margin-bottom: 12px; }
-    .wf-step p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.7; }
-    .wf-code { margin-top: 16px; padding: 14px; background: rgba(0,0,0,0.3); border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--cyan); text-align: left; }
-
-    /* ═══ COMPETITIVE MATRIX ═══ */
-    .competitive { padding: 100px 0; }
-    .compare-grid { margin-top: 48px; }
-    .compare-grid table { font-size: 0.85rem; }
-    .compare-grid td.win { color: var(--green); font-weight: 700; }
-    .compare-grid td.lose { color: var(--text-dim); }
-    .compare-grid td.partial { color: var(--gold); }
-    .check { color: var(--green); } .cross { color: var(--red); } .partial-icon { color: var(--gold); }
-
-    /* ═══ USE CASES ═══ */
-    .usecases { padding: 100px 0; }
-    .usecase-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 48px; }
-    .usecase-card {
-      padding: 36px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
-      backdrop-filter: blur(16px); transition: all 0.4s;
-    }
-    .usecase-card:hover { border-color: rgba(168,85,247,0.2); transform: translateY(-4px); }
-    .usecase-card .uc-icon { font-size: 2rem; margin-bottom: 16px; }
-    .usecase-card h3 { font-size: 1.1rem; margin-bottom: 10px; }
-    .usecase-card p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.8; margin-bottom: 12px; }
-    .usecase-card .uc-tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; margin-right: 6px; }
-    .tag-enterprise { background: rgba(168,85,247,0.15); color: var(--purple); }
-    .tag-devtool { background: rgba(0,212,255,0.15); color: var(--cyan); }
-    .tag-security { background: rgba(239,68,68,0.15); color: var(--red); }
-    .tag-education { background: rgba(34,197,94,0.15); color: var(--green); }
-
-    /* ═══ GETTING STARTED ═══ */
-    .getstarted { padding: 100px 0; }
-    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px; counter-reset: step; }
-    .step-card {
-      padding: 32px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px;
-      backdrop-filter: blur(16px); transition: all 0.4s; text-align: center;
-    }
-    .step-card:hover { border-color: rgba(34,197,94,0.2); transform: translateY(-4px); }
-    .step-card::before {
-      counter-increment: step; content: counter(step);
-      display: block; font-size: 2rem; font-weight: 900; margin-bottom: 12px;
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .step-card h4 { font-size: 0.95rem; margin-bottom: 8px; }
-    .step-card p { font-size: 0.82rem; color: var(--text-dim); line-height: 1.6; }
-    .step-code { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--green); }
+    /* ═══ SCROLL REVEAL ═══ */
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
 
-  <canvas id="particles-canvas"></canvas>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
+  <button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰ Navigation</button>
 
-  <nav id="main-nav">
-    <div class="container">
-      <div class="logo">Neuron<span>FS</span></div>
-      <ul class="nav-links">
-        <li><a href="#features">Features</a></li>
-        <li><a href="#opcodes">Opcodes</a></li>
-        <li><a href="#benchmark">Benchmark</a></li>
-        <li><a href="https://github.com/rhino-acoustic/NeuronFS/wiki">Wiki</a></li>
-      </ul>
-      <a href="https://github.com/rhino-acoustic/NeuronFS" class="btn-gh">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        Star on GitHub
-      </a>
-      <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open')">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </nav>
-  <div class="mobile-menu" id="mobile-nav">
-    <a href="#features" onclick="this.parentElement.classList.remove('open')">Features</a>
-    <a href="#opcodes" onclick="this.parentElement.classList.remove('open')">Opcodes</a>
-    <a href="#benchmark" onclick="this.parentElement.classList.remove('open')">Benchmark</a>
-    <a href="https://github.com/rhino-acoustic/NeuronFS/wiki">Wiki</a>
+  <div class="page-grid">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">Neuron<span>FS</span></div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Overview</div>
+        <a href="#abstract" class="sidebar-link active">Abstract</a>
+        <a href="#introduction" class="sidebar-link">1. Introduction</a>
+        <a href="#problem" class="sidebar-link">2. Problem Statement</a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Architecture</div>
+        <a href="#subsumption" class="sidebar-link">3. Subsumption Cascade</a>
+        <a href="#opcodes" class="sidebar-link">4. Opcode System</a>
+        <a href="#emit" class="sidebar-link">5. Emit Pipeline</a>
+        <a href="#evolution" class="sidebar-link">6. Self-Evolution</a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Evaluation</div>
+        <a href="#benchmark" class="sidebar-link">7. Benchmark Results</a>
+        <a href="#comparison" class="sidebar-link">8. Competitive Analysis</a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Application</div>
+        <a href="#usecases" class="sidebar-link">9. Use Cases</a>
+        <a href="#quickstart" class="sidebar-link">10. Quick Start</a>
+        <a href="#references" class="sidebar-link">References</a>
+      </div>
+
+      <div class="sidebar-section" style="margin-top:auto; padding-top:24px; border-top:1px solid rgba(255,255,255,0.06);">
+        <a href="https://github.com/rhino-acoustic/NeuronFS" class="sidebar-link" style="color:#fff;">⭐ GitHub</a>
+        <a href="https://github.com/rhino-acoustic/NeuronFS/wiki" class="sidebar-link">📖 Wiki (22 Episodes)</a>
+        <a href="getting-started.html" class="sidebar-link">🚀 Getting Started</a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+      <div class="content">
+
+        <!-- PAPER HEADER -->
+        <header class="paper-header reveal">
+          <h1>NeuronFS: Deterministic AI Governance via Filesystem Hierarchy</h1>
+          <div class="paper-meta">
+            <strong>JG Park</strong> · rhino-acoustic · rubisesJO777<br>
+            Published: 2026 · Version 13 · <a href="https://github.com/rhino-acoustic/NeuronFS">github.com/rhino-acoustic/NeuronFS</a><br>
+            License: AGPL-3.0
+          </div>
+          <div class="paper-tags">
+            <span class="paper-tag tag-blue">AI Governance</span>
+            <span class="paper-tag tag-blue">Filesystem Architecture</span>
+            <span class="paper-tag tag-green">Zero Infrastructure</span>
+            <span class="paper-tag tag-gray">Go Runtime</span>
+            <span class="paper-tag tag-gray">4MB Binary</span>
+          </div>
+        </header>
+
+        <!-- ABSTRACT -->
+        <div class="abstract reveal" id="abstract">
+          <div class="abstract-label">Abstract</div>
+          <p>
+            We present NeuronFS, a filesystem-native cognitive architecture that achieves <strong>deterministic AI agent governance</strong> with zero infrastructure dependency. Unlike probabilistic approaches (vector databases, embedding-based retrieval), NeuronFS encodes governance rules as OS directory structures — achieving O(1) rule lookup via the kernel's dentry cache. A 4MB Go binary walks the folder hierarchy, resolves a 7-layer subsumption cascade inspired by Brooks' robotics architecture, and emits format-specific instruction files for any AI tool (Cursor, Claude, Gemini, GPT). In controlled benchmarks, NeuronFS-harnessed agents show a <strong>+43% performance improvement</strong> over bare models, with an 8.9GB model (Gemma 4) outperforming a bare 70GB model (Llama 3). The system has been validated over 13 evolutionary versions with 420+ active neurons and 9,100+ total activations.
+          </p>
+        </div>
+
+        <!-- 1. INTRODUCTION -->
+        <div class="section reveal" id="introduction">
+          <h2>1. Introduction</h2>
+          <p>
+            The dominant paradigm for AI agent memory and governance relies on embedding vectors stored in external databases (Pinecone, Chroma, Weaviate). This approach suffers from three fundamental limitations: <strong>non-determinism</strong> (similarity search returns probabilistic results), <strong>infrastructure dependency</strong> (requires cloud services), and <strong>opacity</strong> (vectors are not human-readable).
+          </p>
+          <p>
+            NeuronFS inverts this paradigm entirely. Instead of storing rules as embeddings in a database, rules are expressed as <strong>folders in the OS filesystem</strong>. The folder name is the rule. The folder depth is the specificity. The folder's parent path is the context. This approach leverages the most ancient, battle-tested data structure in computing — the B-tree directory index — for a problem that the industry has been overengineering with billion-dollar infrastructure.
+          </p>
+          <div class="callout callout-insight">
+            <div class="callout-label">Key Insight</div>
+            <code>mkdir brain/brainstem/禁/data_leak</code> — This single command creates a prohibition rule that is physically instantiated in the OS kernel's dentry cache. It cannot be bypassed by any model, regardless of intelligence. The constraint is structural, not probabilistic.
+          </div>
+          <p>
+            The philosophical foundation is simple: <em>"When a document becomes a folder, hierarchy is born."</em> A non-developer listed philosophical declarations as folder names. Those declarations became circuits. The result: a 4MB binary that governs AI agents with zero tokens consumed, zero API calls, and zero infrastructure.
+          </p>
+        </div>
+
+        <!-- 2. PROBLEM STATEMENT -->
+        <div class="section reveal" id="problem">
+          <h2>2. Problem Statement</h2>
+          <p>Current AI governance approaches exhibit the following failure modes:</p>
+
+          <h3>2.1 The Probabilistic Trap</h3>
+          <p>
+            System prompts and RAG-based rules are processed by the language model itself. The model <em>interprets</em> the rules — meaning it can <em>ignore</em> them, <em>misinterpret</em> them, or <em>hallucinate</em> alternative rules. This is inherently probabilistic. A rule that works 95% of the time is not governance — it is a suggestion.
+          </p>
+
+          <h3>2.2 Infrastructure Overhead</h3>
+          <p>
+            A typical vector-based governance stack requires: a vector database ($70–200/month), an embedding model API ($0.0001/token), a retrieval pipeline, and a production server. NeuronFS requires: a USB stick. The total cost of the most sophisticated AI governance system in the world should not exceed the price of a USB drive.
+          </p>
+
+          <h3>2.3 The Context Window Illusion</h3>
+          <p>
+            Even with 1M+ token context windows, system prompts suffer from <strong>positional decay</strong> — instructions placed early in the prompt are progressively ignored. NeuronFS sidesteps this entirely by encoding rules structurally, outside the token stream, where they cannot be subject to attention degradation.
+          </p>
+
+          <div class="callout callout-warning">
+            <div class="callout-label">Industry Observation</div>
+            The industry spent billions making models smarter. NeuronFS asks: what if we made the rails perfect instead? A dumb engine on perfect rails always arrives. A smart engine on broken rails derails.
+          </div>
+        </div>
+
+        <!-- 3. SUBSUMPTION CASCADE -->
+        <div class="section reveal" id="subsumption">
+          <h2>3. Subsumption Cascade Architecture</h2>
+          <p>
+            The brain is organized into 7 layers, inspired by Rodney Brooks' subsumption architecture in robotics (1986). Each layer has a priority level (P0–P6). Lower layers physically override higher layers — this is not a priority queue, it is a <strong>hardware interrupt model</strong>.
+          </p>
+
+          <div class="figure">
+            <div class="layer-stack">
+              <div class="layer-row"><span class="layer-priority" style="color:var(--danger)">P0</span><span class="layer-name">Brainstem</span><span class="layer-desc">禁/bomb — Absolute prohibitions. Kill switches. Cannot be overridden by any higher layer.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:var(--warning)">P1</span><span class="layer-name">Limbic</span><span class="layer-desc">EmotionPrompt engine. Focus signals, stress adaptation, dopamine-driven reinforcement.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:var(--success)">P2</span><span class="layer-name">Hippocampus</span><span class="layer-desc">Persistent memory. Learned skills (Closed Learning Loop). Episodic recall. Spaced repetition.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:var(--accent)">P3</span><span class="layer-name">Sensors</span><span class="layer-desc">External input: NAS filesystem watchers, brand guidelines, market data connectors.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:#7c3aed">P4</span><span class="layer-name">Cortex</span><span class="layer-desc">Development rules, codemap, error pattern database, architecture constraints.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:#64748b">P5</span><span class="layer-name">Ego</span><span class="layer-desc">Persona definition. Language preference. Communication tone. Identity expression.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:#94a3b8">P6</span><span class="layer-name">Prefrontal</span><span class="layer-desc">Strategic direction. Long-term objectives. Project-level planning.</span></div>
+            </div>
+            <div class="figure-caption"><strong>Figure 1.</strong> The 7-layer subsumption cascade. P0 (brainstem) always overrides P6 (prefrontal). A bomb neuron at P0 halts the entire system — no higher layer can resume operation.</div>
+          </div>
+
+          <h3>3.1 The Override Mechanism</h3>
+          <p>
+            When the emit pipeline walks the brain folder, it processes regions in P0→P6 order. If a <code>禁</code> (prohibition) folder is found in brainstem (P0), the rule is emitted as a <strong>NEVER</strong> tier — placed in the highest-priority section of the output. Even if cortex (P4) contains a contradictory <code>推</code> (recommendation), the brainstem rule takes absolute precedence. This is structurally guaranteed by the traversal order, not by model interpretation.
+          </p>
+
+          <h3>3.2 Emission Tiers</h3>
+          <p>The emit pipeline produces three tiers of rules, each mapped to the subsumption cascade:</p>
+          <ul>
+            <li><strong>ALWAYS:</strong> Rules that fire on every invocation. Brainstem prohibitions, mandatory checks.</li>
+            <li><strong>WHEN → THEN:</strong> Conditional triggers. "When modifying Go code, fire the codemap neuron."</li>
+            <li><strong>NEVER:</strong> Absolute prohibitions. Derived from 禁 folders. Cannot be weakened by any mechanism.</li>
+          </ul>
+        </div>
+
+        <!-- 4. OPCODES -->
+        <div class="section reveal" id="opcodes">
+          <h2>4. Opcode System (Runewords)</h2>
+          <p>
+            Governance rules are encoded using single-character Han ideograph opcodes. Each character maps to a specific enforcement behavior. The system draws a deliberate analogy from <em>Diablo II</em> runewords: the folder is the socket, the opcode is the rune. The combination creates the runeword — a compound rule with deterministic behavior.
+          </p>
+
+          <table>
+            <thead><tr><th>Opcode</th><th>Name</th><th>Enforcement</th><th>Tier</th><th>Analogy</th></tr></thead>
+            <tbody>
+              <tr><td><strong style="color:var(--danger)">禁</strong></td><td>Prohibition</td><td>Absolute barrier. O(1). Cannot be overridden.</td><td>NEVER</td><td>Zod Rune</td></tr>
+              <tr><td><strong style="color:var(--warning)">必</strong></td><td>Mandatory</td><td>Must-pass checkpoint. Validated on every emit.</td><td>ALWAYS</td><td>Ber Rune</td></tr>
+              <tr><td><strong style="color:var(--success)">推</strong></td><td>Recommendation</td><td>Declared intent. Soft guidance.</td><td>WHEN→THEN</td><td>Ist Rune</td></tr>
+              <tr><td><strong style="color:#7c3aed">.axon</strong></td><td>Cross-Link</td><td>Teleport link across brain regions.</td><td>Structural</td><td>Jah Rune</td></tr>
+              <tr><td><strong>💣 bomb</strong></td><td>Kill Switch</td><td>Immediate system halt. All layers frozen.</td><td>P0 Override</td><td>El Rune</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 5. EMIT PIPELINE -->
+        <div class="section reveal" id="emit">
+          <h2>5. Emit Pipeline</h2>
+          <p>The emit pipeline is the core transformation engine. It converts a filesystem hierarchy into format-specific instruction files consumed by AI tools.</p>
+
+          <div class="code-block">
+            <div class="code-header"><span>bash</span><span>Emit to all supported formats</span></div>
+            <div class="code-body">
+<span class="cm"># Scan 420 neurons across 7 regions</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">gemini</span>    <span class="cm"># → GEMINI.md (3-tier rules)</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">cursor</span>    <span class="cm"># → .cursorrules</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">claude</span>    <span class="cm"># → CLAUDE.md</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">agents</span>    <span class="cm"># → AGENTS.md (2026 standard)</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">all</span>       <span class="cm"># → all formats simultaneously</span>
+
+<span class="op">✓</span> <span class="str">420 neurons loaded · 9121 activations · 0 tokens consumed · O(1)</span>
+            </div>
+          </div>
+
+          <h3>5.1 Format Support</h3>
+          <p>NeuronFS currently emits to 6 formats, with more planned:</p>
+          <ul>
+            <li><strong>GEMINI.md</strong> — Google Gemini / Gemini CLI (3-tier ALWAYS/WHEN/NEVER)</li>
+            <li><strong>.cursorrules</strong> — Cursor IDE</li>
+            <li><strong>CLAUDE.md</strong> — Anthropic Claude Code</li>
+            <li><strong>AGENTS.md</strong> — 2026 industry standard (OpenAI, Google)</li>
+            <li><strong>COPILOT.md</strong> — GitHub Copilot</li>
+            <li><strong>.windsurfrules</strong> — Windsurf / Codeium</li>
+          </ul>
+        </div>
+
+        <!-- 6. SELF-EVOLUTION -->
+        <div class="section reveal" id="evolution">
+          <h2>6. Self-Evolution Mechanisms</h2>
+
+          <h3>6.1 Hebbian Learning</h3>
+          <p>
+            "Neurons that fire together, wire together." Each neuron has a <code>counter</code> field that increments when the neuron is activated (read, referenced, or triggered). Neurons with high activation counts are promoted to "강화" (reinforced) status, receiving priority in emit output. Neurons that remain dormant undergo TTL decay and are eventually archived.
+          </p>
+
+          <h3>6.2 Closed Learning Loop (Phase 58)</h3>
+          <p>
+            Inspired by Hermes Agent's skill accumulation pattern, NeuronFS now implements a closed learning loop: successful operations generate <code>.skill</code> files in <code>hippocampus/skills/</code>. These skills are automatically injected into the cortex emit pipeline, enabling the agent to leverage past success patterns in future sessions.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header"><span>flow</span><span>Closed Learning Loop</span></div>
+            <div class="code-body">
+<span class="cm">Build Success</span> → <span class="fn">LearnSkill()</span> → <span class="str">.skill file</span> → <span class="fn">hippocampus/skills/</span>
+                                                    ↓
+<span class="cm">Next Session</span>  ← <span class="fn">InjectSkillsToPrompt()</span> ← <span class="fn">emit pipeline</span> ← <span class="str">_rules.md</span>
+            </div>
+          </div>
+
+          <h3>6.3 Dopamine & Bomb Signals</h3>
+          <p>
+            Positive outcomes trigger <code>dopamine</code> signals, reinforcing the activated neuron path. Catastrophic failures trigger <code>bomb</code> signals at P0, creating permanent prohibition neurons that prevent the same failure pattern from recurring.
+          </p>
+        </div>
+
+        <!-- 7. BENCHMARK -->
+        <div class="section reveal" id="benchmark">
+          <h2>7. Benchmark Results</h2>
+          <p>We evaluated NeuronFS harness integration against three model classes using a standardized 40-point instruction adherence test suite:</p>
+
+          <table>
+            <thead><tr><th>Model</th><th>Parameters</th><th>Bare Score</th><th>+ NeuronFS</th><th>Improvement</th></tr></thead>
+            <tbody>
+              <tr><td>Gemma 4</td><td>8.9 GB</td><td>22.0 / 40</td><td>31.5 / 40</td><td class="win">+43.2%</td></tr>
+              <tr><td>Llama 3</td><td>70 GB</td><td>23.0 / 40</td><td>29.0 / 40</td><td class="win">+26.1%</td></tr>
+              <tr><td>GPT-4o</td><td>Cloud</td><td>28.0 / 40</td><td>35.0 / 40</td><td class="win">+25.0%</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-critical">
+            <div class="callout-label">Key Finding</div>
+            An 8.9GB model with NeuronFS harness (31.5/40) outperforms a bare 70GB model without it (23.0/40). This validates the "dumb engine on perfect rails" thesis — the quality of governance infrastructure matters more than model intelligence.
+          </div>
+        </div>
+
+        <!-- 8. COMPARISON -->
+        <div class="section reveal" id="comparison">
+          <h2>8. Competitive Analysis</h2>
+
+          <table>
+            <thead><tr><th>Capability</th><th>NeuronFS</th><th>Mem0</th><th>Letta</th><th>Vector DB</th></tr></thead>
+            <tbody>
+              <tr><td>Infrastructure</td><td class="win">Zero (4MB binary)</td><td class="lose">Cloud API required</td><td class="lose">Server required</td><td class="lose">Cloud required</td></tr>
+              <tr><td>Rule Determinism</td><td class="win">O(1) structural</td><td class="lose">Probabilistic</td><td class="partial">Partial (tiered)</td><td class="lose">None</td></tr>
+              <tr><td>Human Readable</td><td class="win">Folders = Rules</td><td class="lose">API-only</td><td class="partial">JSON config</td><td class="lose">Opaque vectors</td></tr>
+              <tr><td>Version Control</td><td class="win">Native git</td><td class="lose">Proprietary</td><td class="lose">Proprietary</td><td class="lose">None</td></tr>
+              <tr><td>Air-Gap Deploy</td><td class="win">USB-deployable</td><td class="lose">Internet required</td><td class="lose">Internet required</td><td class="lose">Internet required</td></tr>
+              <tr><td>Multi-Agent Output</td><td class="win">6+ formats</td><td class="lose">Single format</td><td class="partial">Limited</td><td class="lose">None</td></tr>
+              <tr><td>Self-Evolution</td><td class="win">Hebbian + TTL + Skill Loop</td><td class="partial">Basic memory</td><td class="win">Tiered memory</td><td class="lose">Static</td></tr>
+              <tr><td>Monthly Cost</td><td class="win">$0 forever</td><td class="lose">$99+</td><td class="partial">Free tier available</td><td class="lose">$70+</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 9. USE CASES -->
+        <div class="section reveal" id="usecases">
+          <h2>9. Use Cases</h2>
+
+          <h3>9.1 Enterprise AI Governance</h3>
+          <p>
+            Deploy standardized AI rules across 1,000+ developers. A single brain folder, distributed via git or USB, ensures every AI agent in the organization adheres to the same governance framework. No cloud dependency. Compliance-ready. SOC 2 and HIPAA compatible by design — no data leaves the premises.
+          </p>
+
+          <h3>9.2 Air-Gapped Environments</h3>
+          <p>
+            Military, healthcare, and financial institutions operate in environments where data cannot leave the premises. NeuronFS runs entirely offline. Zero network calls. Zero telemetry. Zero data exfiltration risk. The entire brain can be encrypted with XChaCha20-Poly1305 and transported on a single USB device.
+          </p>
+
+          <h3>9.3 Developer Productivity</h3>
+          <p>
+            Teach your AI coding assistant project-specific rules: naming conventions, architecture patterns, forbidden anti-patterns. Skills accumulate over time through the Closed Learning Loop, meaning the governance system becomes more effective the longer it is used.
+          </p>
+
+          <h3>9.4 AI Education & Research</h3>
+          <p>
+            NeuronFS provides a tangible, hands-on system for teaching cognitive architecture concepts. Students <code>mkdir</code> neurons and observe subsumption in real-time. The filesystem <em>is</em> the curriculum. No frameworks to learn. No APIs to configure. Just folders and files.
+          </p>
+        </div>
+
+        <!-- 10. QUICK START -->
+        <div class="section reveal" id="quickstart">
+          <h2>10. Quick Start</h2>
+
+          <div class="code-block">
+            <div class="code-header"><span>bash</span><span>Complete setup in 60 seconds</span></div>
+            <div class="code-body">
+<span class="cm"># 1. Download the binary (4MB, zero dependencies)</span>
+<span class="kw">curl</span> -fsSL <span class="str">https://neuronfs.dev/install</span> | sh
+
+<span class="cm"># 2. Initialize a brain with 7 pre-scaffolded regions</span>
+<span class="kw">neuronfs</span> init <span class="str">my-project</span>
+
+<span class="cm"># 3. Create your first prohibition rule</span>
+<span class="kw">mkdir</span> -p <span class="str">brain/brainstem/禁/sql_injection</span>
+<span class="kw">mkdir</span> -p <span class="str">brain/brainstem/禁/hardcoded_secrets</span>
+<span class="kw">mkdir</span> -p <span class="str">brain/cortex/dev/推/test_driven_development</span>
+
+<span class="cm"># 4. Emit governance to all AI tools</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">all</span>
+
+<span class="cm"># 5. Verify</span>
+<span class="op">✓</span> <span class="str">GEMINI.md written (12KB)</span>
+<span class="op">✓</span> <span class="str">.cursorrules written (8KB)</span>
+<span class="op">✓</span> <span class="str">CLAUDE.md written (10KB)</span>
+<span class="op">✓</span> <span class="str">AGENTS.md written (9KB)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- REFERENCES -->
+        <div class="section references reveal" id="references">
+          <h2>References</h2>
+          <ol>
+            <li>Brooks, R.A. (1986). "A Robust Layered Control System for a Mobile Robot." <em>IEEE Journal of Robotics and Automation</em>, 2(1), 14–23.</li>
+            <li>Li, C. et al. (2023). "EmotionPrompt: Leveraging Psychology for Large Language Models." <em>arXiv</em>:2307.11760.</li>
+            <li>Hebb, D.O. (1949). <em>The Organization of Behavior</em>. Wiley & Sons.</li>
+            <li>Park, J.G. (2026). "NeuronFS: When mkdir Beat Vector DB." <em>GitHub Wiki</em>, 22 Episodes.</li>
+            <li>Google (2026). "AGENTS.md Specification." <em>github.com/anthropics/agent-protocol</em>.</li>
+            <li>Packer, C. et al. (2024). "MemGPT: Towards LLMs as Operating Systems." <em>NeurIPS 2024</em>.</li>
+          </ol>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="paper-footer reveal">
+          <p>NeuronFS v13 · AGPL-3.0 · <a href="https://github.com/rhino-acoustic/NeuronFS">GitHub</a> · <a href="https://github.com/rhino-acoustic/NeuronFS/wiki">Wiki</a></p>
+          <p style="margin-top:8px; font-size:0.75rem;">
+            "AI is not intelligence. It is current. The circuit determines the destination."
+          </p>
+        </div>
+
+      </div>
+    </main>
   </div>
 
-  <!-- ═══ HERO ═══ -->
-  <section class="hero">
-    <div class="container">
-      <div class="hero-badge reveal">Live · Open Source · AGPL-3.0</div>
-      <h1 class="reveal reveal-delay-1">
-        <span class="gradient">mkdir</span> beats<br>vector DB.
-      </h1>
-      <p class="hero-tagline reveal reveal-delay-2">B-tree NeuronFS</p>
-      <p class="hero-sub reveal reveal-delay-3">
-        When a document becomes a folder, hierarchy is born.<br>
-        A non-developer listed philosophical declarations as folder names.<br>
-        Those declarations became circuits. <strong>4MB</strong>. Zero infrastructure.
-      </p>
-
-      <div class="hero-cta reveal reveal-delay-4">
-        <a href="https://github.com/rhino-acoustic/NeuronFS/wiki/Getting-Started" class="btn-primary">Get Started →</a>
-        <a href="https://github.com/rhino-acoustic/NeuronFS/wiki" class="btn-secondary">Read the Architecture</a>
-      </div>
-
-      <div class="terminal reveal reveal-delay-5">
-        <div class="term-header">
-          <div class="term-dot r"></div>
-          <div class="term-dot y"></div>
-          <div class="term-dot g"></div>
-          <div class="term-title">neuronfs — bash</div>
-        </div>
-        <div class="term-body">
-          <div class="term-line"><span class="t-comment"># Create an indestructible prohibition wall</span></div>
-          <div class="term-line"><span class="t-cmd">mkdir</span> <span class="t-path">brain/brainstem/禁/data_leak</span></div>
-          <div class="term-line"><span class="t-comment"># That's it. The folder IS the rule.</span></div>
-          <div class="term-line">&nbsp;</div>
-          <div class="term-line"><span class="t-comment"># Compile to any AI tool</span></div>
-          <div class="term-line"><span class="t-cmd">neuronfs</span> <span class="t-flag">--emit</span> <span class="t-path">cursor</span>    <span class="t-comment"># → .cursorrules</span></div>
-          <div class="term-line"><span class="t-cmd">neuronfs</span> <span class="t-flag">--emit</span> <span class="t-path">claude</span>    <span class="t-comment"># → CLAUDE.md</span></div>
-          <div class="term-line"><span class="t-cmd">neuronfs</span> <span class="t-flag">--emit</span> <span class="t-path">all</span>       <span class="t-comment"># → every AI format</span></div>
-          <div class="term-line"><span class="t-result">✓ 675 neurons loaded · 0 tokens consumed · O(1)</span><span class="t-cursor"></span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ STATS ═══ -->
-  <section class="stats-section">
-    <div class="container">
-      <div class="stats reveal">
-        <div class="stat">
-          <div class="stat-value cyan" data-count="0">0</div>
-          <div class="stat-label">Infrastructure Cost</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value purple">4MB</div>
-          <div class="stat-label">Single Binary</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value green" data-count="43" data-suffix="%">0</div>
-          <div class="stat-label">Performance Boost</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value gold">O(1)</div>
-          <div class="stat-label">Rule Lookup</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ FEATURES ═══ -->
-  <section class="features" id="features">
-    <div class="container">
-      <div class="section-eyebrow reveal">Architecture</div>
-      <h2 class="reveal">Why folders beat everything</h2>
-
-      <div class="feature-grid">
-        <div class="feature-card reveal reveal-delay-1">
-          <div class="feature-icon fi-cyan">🧱</div>
-          <h3>Deterministic Walls</h3>
-          <p>A folder at <code>禁/data_leak/</code> is a physical O(1) barrier. No probability. No bypass. The constraint lives in the OS kernel's dentry cache.</p>
-        </div>
-        <div class="feature-card reveal reveal-delay-2">
-          <div class="feature-icon fi-purple">🧠</div>
-          <h3>7-Layer Brain</h3>
-          <p>Subsumption cascade: brainstem (P0) always overrides cortex (P4). Inspired by Brooks' robotics — lower layers physically dominate higher reasoning.</p>
-        </div>
-        <div class="feature-card reveal reveal-delay-3">
-          <div class="feature-icon fi-green">⚡</div>
-          <h3>~200x Token Efficiency</h3>
-          <p>Structure replaces prose. A folder tree conveys governance that would take 50,000 tokens as a system prompt — in zero tokens.</p>
-        </div>
-        <div class="feature-card reveal reveal-delay-1">
-          <div class="feature-icon fi-red">🔒</div>
-          <h3>Encrypted Cartridges</h3>
-          <p>XChaCha20-Poly1305 encrypted .jloot cartridges. 100% RAM-based decryption. Zero disk drops. Brainwallet key derivation (Argon2id).</p>
-        </div>
-        <div class="feature-card reveal reveal-delay-2">
-          <div class="feature-icon fi-gold">🔌</div>
-          <h3>USB-Deployable</h3>
-          <p>Plug a USB with the brain folder into any air-gapped machine. Instant deterministic AI governance. No internet. No cloud. No GPU.</p>
-        </div>
-        <div class="feature-card reveal reveal-delay-3">
-          <div class="feature-icon fi-pink">🧬</div>
-          <h3>Self-Evolving</h3>
-          <p>Neurons accumulate signals (fire/dopamine/bomb). Autonomous evolution creates new rules from patterns — the brain grows with use.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ OPCODES ═══ -->
-  <section class="runewords" id="opcodes">
-    <div class="container">
-      <div class="section-eyebrow reveal">Opcodes</div>
-      <h2 class="reveal">Opcodes are Runewords</h2>
-      <p class="reveal" style="color:var(--text-dim); max-width:600px; margin:0 auto;">
-        Like Diablo 2 — the folder is the socket, the opcode is the rune.<br>
-        The combination creates the Runeword.
-      </p>
-      <div class="rune-grid">
-        <div class="rune-card reveal reveal-delay-1">
-          <div class="rune-char rc-red">禁</div>
-          <div class="rune-name">Zod Rune</div>
-          <div class="rune-desc">Absolute Prohibition<br><strong>Instant wall</strong></div>
-        </div>
-        <div class="rune-card reveal reveal-delay-2">
-          <div class="rune-char rc-gold">必</div>
-          <div class="rune-name">Ber Rune</div>
-          <div class="rune-desc">Mandatory Gate<br><strong>Must-pass</strong></div>
-        </div>
-        <div class="rune-card reveal reveal-delay-3">
-          <div class="rune-char rc-green">推</div>
-          <div class="rune-name">Ist Rune</div>
-          <div class="rune-desc">Recommendation<br><strong>Declared intent</strong></div>
-        </div>
-        <div class="rune-card reveal reveal-delay-4">
-          <div class="rune-char rc-purple">.axon</div>
-          <div class="rune-name">Jah Rune</div>
-          <div class="rune-desc">Teleport Link<br><strong>Cross-region</strong></div>
-        </div>
-        <div class="rune-card reveal reveal-delay-5">
-          <div class="rune-char rc-white">💣</div>
-          <div class="rune-name">El Rune</div>
-          <div class="rune-desc">Kill Switch<br><strong>Imperative</strong></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ BENCHMARK ═══ -->
-  <section class="benchmark" id="benchmark">
-    <div class="container">
-      <div class="section-eyebrow reveal">Benchmark</div>
-      <h2 class="reveal">8.9GB model outperforms 70GB</h2>
-      <div class="reveal">
-        <table>
-          <thead><tr><th>Model</th><th>Size</th><th>Bare Score</th><th>+ NeuronFS Harness</th><th>Boost</th></tr></thead>
-          <tbody>
-            <tr><td>Gemma 4</td><td>8.9 GB</td><td>22.0 / 40</td><td>31.5 / 40</td><td>+43%</td></tr>
-            <tr><td>Llama 3</td><td>70 GB</td><td>23.0 / 40</td><td>29.0 / 40</td><td>+26%</td></tr>
-            <tr><td>GPT-4o</td><td>Cloud</td><td>28.0 / 40</td><td>35.0 / 40</td><td>+25%</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="reveal" style="text-align:center; margin-top:24px; color:var(--text-dim); font-size:0.88rem; font-style:italic;">
-        The model is a dumb engine. NeuronFS is the rail.<br>A dumb engine on perfect rails always arrives.
-      </p>
-    </div>
-  </section>
-
-  <!-- ═══ ARCHITECTURE DEEP DIVE ═══ -->
-  <section class="architecture" id="architecture">
-    <div class="container">
-      <div class="section-eyebrow reveal">Deep Dive</div>
-      <h2 class="reveal">7-Layer Subsumption Cascade</h2>
-      <p class="reveal" style="color:var(--text-dim); max-width:700px; font-size:0.95rem; line-height:1.8;">
-        Inspired by Rodney Brooks' robotics architecture. Lower layers <strong>physically override</strong> higher layers.
-        A bomb in brainstem (P0) halts the entire system — cortex (P4) cannot override it.
-        This is not a priority queue. It is a <strong>hardware interrupt</strong>.
-      </p>
-      <div class="arch-layers reveal">
-        <div class="arch-layer">
-          <span class="priority p0">P0</span>
-          <div class="arch-icon">🪨</div>
-          <div class="arch-name">Brainstem</div>
-          <div class="arch-desc">禁/bomb — Kill switches. Absolute walls. Cannot be overridden.</div>
-        </div>
-        <div class="arch-layer">
-          <span class="priority p1">P1</span>
-          <div class="arch-icon">💓</div>
-          <div class="arch-name">Limbic</div>
-          <div class="arch-desc">EmotionPrompt. Focus, stress, dopamine signals.</div>
-        </div>
-        <div class="arch-layer">
-          <span class="priority p2">P2</span>
-          <div class="arch-icon">📝</div>
-          <div class="arch-name">Hippocampus</div>
-          <div class="arch-desc">Long-term memory. Skills. Episodic recall.</div>
-        </div>
-        <div class="arch-layer">
-          <span class="priority p3">P3</span>
-          <div class="arch-icon">👁️</div>
-          <div class="arch-name">Sensors</div>
-          <div class="arch-desc">NAS, Brand guidelines, external input.</div>
-        </div>
-        <div class="arch-layer">
-          <span class="priority p4">P4</span>
-          <div class="arch-icon">🧠</div>
-          <div class="arch-name">Cortex</div>
-          <div class="arch-desc">Code, dev rules, codemap, error patterns.</div>
-        </div>
-        <div class="arch-layer">
-          <span class="priority p4">P5</span>
-          <div class="arch-icon">🎭</div>
-          <div class="arch-name">Ego</div>
-          <div class="arch-desc">Persona. Language. Tone. Identity.</div>
-        </div>
-        <div class="arch-layer">
-          <span class="priority p4">P6</span>
-          <div class="arch-icon">🎯</div>
-          <div class="arch-name">Prefrontal</div>
-          <div class="arch-desc">Strategic direction. Long-term goals.</div>
-        </div>
-      </div>
-      <div class="arch-note reveal">
-        <strong>Key insight:</strong> When brainstem detects a 禁 (prohibition) folder, it emits a <strong>NEVER</strong> rule.
-        Cortex cannot weaken it. This is why NeuronFS achieves <strong>100% instruction adherence</strong> —
-        constraints are structural, not probabilistic.
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ HOW IT WORKS ═══ -->
-  <section class="howitworks">
-    <div class="container">
-      <div class="section-eyebrow reveal">Workflow</div>
-      <h2 class="reveal">Three commands. Zero infrastructure.</h2>
-      <div class="workflow">
-        <div class="wf-step reveal reveal-delay-1">
-          <div class="wf-number">01</div>
-          <h3>Create</h3>
-          <p>Define your AI's governance as folders. Each folder name is a rule. Subfolder depth = specificity.</p>
-          <div class="wf-code">
-            mkdir brain/brainstem/禁/data_leak<br>
-            mkdir brain/cortex/dev/推/testing<br>
-            mkdir brain/limbic/必/korean_response
-          </div>
-        </div>
-        <div class="wf-step reveal reveal-delay-2">
-          <div class="wf-number">02</div>
-          <h3>Compile</h3>
-          <p>NeuronFS walks the tree, resolves subsumption priorities, and emits a format-specific output.</p>
-          <div class="wf-code">
-            neuronfs --emit gemini<br>
-            <span style="color:var(--gold)">✓ 420 neurons → GEMINI.md (12KB)</span><br>
-            <span style="color:var(--gold)">✓ 3-tier rules: ALWAYS/WHEN/NEVER</span>
-          </div>
-        </div>
-        <div class="wf-step reveal reveal-delay-3">
-          <div class="wf-number">03</div>
-          <h3>Deploy</h3>
-          <p>The emitted file is injected into your AI tool. The agent reads it. Governance active. Zero tokens consumed.</p>
-          <div class="wf-code">
-            # Works with any AI tool:<br>
-            Cursor, Claude, Gemini, GPT,<br>
-            Windsurf, Copilot, Cline...
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ COMPETITIVE MATRIX ═══ -->
-  <section class="competitive">
-    <div class="container">
-      <div class="section-eyebrow reveal">Comparison</div>
-      <h2 class="reveal">NeuronFS vs. The World</h2>
-      <div class="compare-grid reveal">
-        <table>
-          <thead>
-            <tr>
-              <th>Capability</th>
-              <th>NeuronFS</th>
-              <th>Mem0</th>
-              <th>Letta (MemGPT)</th>
-              <th>Vector DB (Pinecone)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Infrastructure</td><td class="win">✅ Zero</td><td class="lose">❌ Cloud API</td><td class="lose">❌ Server</td><td class="lose">❌ Cloud</td></tr>
-            <tr><td>Deterministic Rules</td><td class="win">✅ O(1) structural</td><td class="lose">❌ Probabilistic</td><td class="partial">⚠️ Partial</td><td class="lose">❌ None</td></tr>
-            <tr><td>Human Readable</td><td class="win">✅ Folders = Rules</td><td class="lose">❌ API only</td><td class="partial">⚠️ JSON</td><td class="lose">❌ Vectors</td></tr>
-            <tr><td>Version Control</td><td class="win">✅ Native git</td><td class="lose">❌ Custom</td><td class="lose">❌ Custom</td><td class="lose">❌ None</td></tr>
-            <tr><td>Air-Gap Deploy</td><td class="win">✅ USB stick</td><td class="lose">❌ Internet</td><td class="lose">❌ Internet</td><td class="lose">❌ Internet</td></tr>
-            <tr><td>Multi-Agent Emit</td><td class="win">✅ Cursor/Claude/Gemini</td><td class="lose">❌ Single</td><td class="partial">⚠️ Limited</td><td class="lose">❌ None</td></tr>
-            <tr><td>Self-Evolution</td><td class="win">✅ Hebbian + TTL</td><td class="partial">⚠️ Basic</td><td class="win">✅ Tiered</td><td class="lose">❌ None</td></tr>
-            <tr><td>Cost</td><td class="win">✅ $0 forever</td><td class="lose">❌ $99+/mo</td><td class="partial">⚠️ Free tier</td><td class="lose">❌ $70+/mo</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ USE CASES ═══ -->
-  <section class="usecases">
-    <div class="container">
-      <div class="section-eyebrow reveal">Use Cases</div>
-      <h2 class="reveal">Where NeuronFS shines</h2>
-      <div class="usecase-grid">
-        <div class="usecase-card reveal reveal-delay-1">
-          <div class="uc-icon">🏢</div>
-          <h3>Enterprise AI Governance</h3>
-          <p>Deploy standardized AI rules across 1,000+ developers. USB-deployable. No cloud dependency. Compliance-ready. A single brain folder governs all agents.</p>
-          <span class="uc-tag tag-enterprise">Enterprise</span>
-          <span class="uc-tag tag-security">Compliance</span>
-        </div>
-        <div class="usecase-card reveal reveal-delay-2">
-          <div class="uc-icon">🔧</div>
-          <h3>Developer Productivity</h3>
-          <p>Teach your AI coding assistant project-specific rules: naming conventions, architecture patterns, forbidden anti-patterns. Skills accumulate over time.</p>
-          <span class="uc-tag tag-devtool">DevTool</span>
-        </div>
-        <div class="usecase-card reveal reveal-delay-3">
-          <div class="uc-icon">🔒</div>
-          <h3>Air-Gapped Security</h3>
-          <p>Military, healthcare, finance — environments where data cannot leave the premises. NeuronFS runs entirely offline. Zero network calls. Zero telemetry.</p>
-          <span class="uc-tag tag-security">Security</span>
-          <span class="uc-tag tag-enterprise">Classified</span>
-        </div>
-        <div class="usecase-card reveal reveal-delay-4">
-          <div class="uc-icon">🎓</div>
-          <h3>AI Education & Research</h3>
-          <p>Teach cognitive architecture concepts with a tangible, hands-on system. Students mkdir neurons and observe subsumption in real-time. The filesystem is the curriculum.</p>
-          <span class="uc-tag tag-education">Education</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ GETTING STARTED ═══ -->
-  <section class="getstarted">
-    <div class="container">
-      <div class="section-eyebrow reveal">Quick Start</div>
-      <h2 class="reveal">Up and running in 60 seconds</h2>
-      <div class="steps">
-        <div class="step-card reveal reveal-delay-1">
-          <h4>Download</h4>
-          <p>Grab the 4MB binary. No dependencies. No runtime.</p>
-          <div class="step-code">curl -fsSL neuronfs.dev/install | sh</div>
-        </div>
-        <div class="step-card reveal reveal-delay-2">
-          <h4>Initialize</h4>
-          <p>Create your brain folder with 7 regions pre-scaffolded.</p>
-          <div class="step-code">neuronfs init my-project</div>
-        </div>
-        <div class="step-card reveal reveal-delay-3">
-          <h4>Create Rules</h4>
-          <p>mkdir your governance. Each folder = one rule.</p>
-          <div class="step-code">mkdir brain/brainstem/禁/sql_injection</div>
-        </div>
-        <div class="step-card reveal reveal-delay-4">
-          <h4>Emit</h4>
-          <p>Compile to your AI tool of choice. Done.</p>
-          <div class="step-code">neuronfs --emit all</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ CTA ═══ -->
-  <section class="cta">
-    <div class="container">
-      <div class="cta-box reveal">
-        <h2>The world builds bigger brains.<br>We built a cage.</h2>
-        <p>They spend billions on bigger context windows and smarter models.<br>We spend zero — because a dumb engine on perfect rails always arrives.</p>
-        <div class="hero-cta">
-          <a href="https://github.com/rhino-acoustic/NeuronFS" class="btn-primary">View on GitHub →</a>
-          <a href="https://github.com/rhino-acoustic/NeuronFS/wiki" class="btn-secondary">Read 22 Episodes</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer>
-    <div class="container">
-      <p style="margin-bottom:10px;">NeuronFS — AGPL-3.0 | <a href="https://github.com/rhino-acoustic/NeuronFS/wiki">Wiki</a></p>
-      <p style="font-size:0.75rem; max-width:500px; margin:0 auto;">
-        Designed by a non-developer who reversed the industry's direction.<br>
-        AI is not intelligence. It is current. The circuit determines the destination.<br>
-        <a href="https://github.com/rhino-acoustic">JG Park</a> — rubisesJO777
-      </p>
-    </div>
-  </footer>
-
-  <!-- ═══ SCRIPTS ═══ -->
   <script>
-    // IntersectionObserver for scroll reveals
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    // Scroll reveal
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-    // Nav shrink on scroll
-    window.addEventListener('scroll', () => {
-      document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 50);
-    });
+    // Active sidebar link tracking
+    const sections = document.querySelectorAll('.section, .abstract, .paper-header');
+    const links = document.querySelectorAll('.sidebar-link');
+    const linkMap = {};
+    links.forEach(l => { const id = l.getAttribute('href')?.replace('#',''); if (id) linkMap[id] = l; });
 
-    // Counter animation
-    function animateCounters() {
-      document.querySelectorAll('[data-count]').forEach(el => {
-        const target = parseInt(el.dataset.count);
-        const suffix = el.dataset.suffix || '';
-        const prefix = el.dataset.prefix || '+';
-        if (target === 0) { el.textContent = '0'; return; }
-        let current = 0;
-        const step = Math.max(1, Math.floor(target / 40));
-        const timer = setInterval(() => {
-          current += step;
-          if (current >= target) { current = target; clearInterval(timer); }
-          el.textContent = prefix + current + suffix;
-        }, 30);
-      });
-    }
-    const counterObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          animateCounters();
-          counterObserver.disconnect();
+    const sectionObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const id = e.target.id;
+          if (linkMap[id]) linkMap[id].classList.add('active');
         }
       });
-    }, { threshold: 0.3 });
-    const statsEl = document.querySelector('.stats');
-    if (statsEl) counterObserver.observe(statsEl);
-
-    // Particle Canvas
-    const canvas = document.getElementById('particles-canvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    class Particle {
-      constructor() { this.reset(); }
-      reset() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 1.5 + 0.3;
-        this.speedX = (Math.random() - 0.5) * 0.3;
-        this.speedY = (Math.random() - 0.5) * 0.3;
-        this.opacity = Math.random() * 0.4 + 0.1;
-      }
-      update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-      }
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 212, 255, ${this.opacity})`;
-        ctx.fill();
-      }
-    }
-
-    for (let i = 0; i < 80; i++) particles.push(new Particle());
-
-    function drawLines() {
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 150) {
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(0, 212, 255, ${0.06 * (1 - dist / 150)})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        }
-      }
-    }
-
-    function animateParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => { p.update(); p.draw(); });
-      drawLines();
-      requestAnimationFrame(animateParticles);
-    }
-    animateParticles();
+    }, { threshold: 0.3, rootMargin: '-20% 0px -60% 0px' });
+    sections.forEach(s => { if (s.id) sectionObserver.observe(s); });
   </script>
 </body>
 </html>
