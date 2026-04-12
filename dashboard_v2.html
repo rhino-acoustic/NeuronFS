@@ -169,34 +169,26 @@ function init3D() {
   animate();
 }
 
-// Phase 35: GraphQL Realtime Brain Fetcher
+// Phase 57: REST API Brain Fetcher (replaces GraphQL — GraphQL server never existed)
 async function fetchGraphQLBrain() {
   try {
-    const q = `
-      query {
-        brain {
-          name
-          count
-          neurons { name path }
-        }
-      }
-    `;
-    const res = await fetch("http://localhost:8080/graphql", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({query: q})
-    });
-    
-    if(!res.ok) throw new Error("GraphQL Error");
-    
+    const res = await fetch('/api/brain');
+    if(!res.ok) throw new Error('REST API Error');
     const json = await res.json();
-    renderGraphQLBrain(json.data.brain);
-    
-    // Auto refresh every 5 seconds
+    // Transform REST response to match renderGraphQLBrain format
+    const brainRegions = json.regions.map(r => ({
+      name: r.name,
+      count: r.neurons ? r.neurons.length : 0,
+      neurons: r.neurons || []
+    }));
+    // Update metrics from real data
+    document.getElementById('m-neurons').innerText = (json.totalNeurons || 0).toLocaleString();
+    document.getElementById('m-act').innerText = (json.totalCounter || 0).toLocaleString();
+    renderGraphQLBrain(brainRegions);
     setTimeout(fetchGraphQLBrain, 5000);
   } catch(e) {
-    console.error("[GraphQLError]", e);
-    document.getElementById('gl-stats').innerText = `API OFFLINE | 0 Nodes`;
+    console.error('[REST Brain]', e);
+    document.getElementById('gl-stats').innerText = 'API OFFLINE | Retrying...';
     setTimeout(fetchGraphQLBrain, 5000);
   }
 }
@@ -449,29 +441,38 @@ function initSSE() {
   logTTY("SSE Telemetry Stream Connected.", "success");
 }
 
-// Phase 43: Audit Trail GraphQL Polling
+// Phase 57: Audit Trail REST Polling (replaces GraphQL — uses /api/evolution)
 async function fetchAuditTrail() {
   try {
-    const r = await fetch('/graphql', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({query: '{ auditTrail(limit: 10) { ts actor action target success } }'})
-    });
+    const r = await fetch('/api/evolution');
     const json = await r.json();
-    const entries = json?.data?.auditTrail || [];
+    const entries = json?.entries || json?.trail || [];
     const feed = document.getElementById('audit-feed');
-    // Keep title, replace entries
     feed.innerHTML = '<div class="audit-title">🔍 Autonomous Audit Trail</div>';
-    entries.forEach(e => {
+    entries.slice(-10).forEach(e => {
       const ts = e.ts ? e.ts.substring(11, 19) : '??:??:??';
-      const icon = e.success ? '✅' : '❌';
-      const cls = e.success ? 'audit-ok' : 'audit-fail';
-      feed.innerHTML += `<div class="audit-entry"><span style="color:#52525b">${ts}</span><span class="audit-actor">${e.actor}</span><span class="audit-action">${e.action}</span><span class="${cls}">${icon}</span></div>`;
+      const icon = e.success !== false ? '✅' : '❌';
+      const cls = e.success !== false ? 'audit-ok' : 'audit-fail';
+      feed.innerHTML += `<div class="audit-entry"><span style="color:#52525b">${ts}</span><span class="audit-actor">${e.actor || 'system'}</span><span class="audit-action">${e.action || e.type || ''}</span><span class="${cls}">${icon}</span></div>`;
     });
   } catch(e) {}
 }
+// Health metrics from /api/health
+async function fetchHealth() {
+  try {
+    const r = await fetch('/api/health');
+    const d = await r.json();
+    const subs = d.subsystems || {};
+    const nodeEl = document.querySelectorAll('.m-value')[2];
+    const goEl = document.querySelectorAll('.m-value')[3];
+    if (nodeEl) nodeEl.innerHTML = subs.mcp?.status === 'alive' ? '<span style="color:var(--accent)">ONLINE</span>' : '<span style="color:var(--danger)">OFFLINE</span>';
+    if (goEl) goEl.innerHTML = subs.supervisor?.status === 'alive' ? '<span style="color:var(--accent)">ONLINE</span>' : '<span style="color:#fbbf24">UNKNOWN</span>';
+  } catch(e) {}
+}
 setInterval(fetchAuditTrail, 15000);
+setInterval(fetchHealth, 10000);
 fetchAuditTrail();
+fetchHealth();
 
 initData();
 </script>
