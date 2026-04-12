@@ -136,6 +136,7 @@ func main() {
 	router.Register(&SnapshotCmd{})
 	router.Register(&RollbackCmd{})
 	router.Register(&RollbackAllCmd{})
+	router.Register(&ExportSvgCmd{})
 
 	// Check if any arguments match our new router
 	routed := false

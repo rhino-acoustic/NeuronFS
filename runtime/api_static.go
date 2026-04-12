@@ -64,6 +64,15 @@ func registerStaticRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		w.Write(data)
 	}))
 
+	// GET /api/dashboard.svg — Generate dashboard vector snapshot
+	mux.HandleFunc("/api/dashboard.svg", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		brain := scanBrain(brainRoot)
+		res := runSubsumption(brain)
+		svgContent := GenerateDashboardSVG(brain, res.TotalNeurons, res.TotalCounter)
+		w.Header().Set("Content-Type", "image/svg+xml")
+		w.Write([]byte(svgContent))
+	}))
+
 	// GET / — Main Dashboard
 	mux.HandleFunc("/", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/api/") {
