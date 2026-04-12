@@ -519,6 +519,9 @@ func runEvolve(brainRoot string, dryRun bool) {
 		return
 	}
 
+	fmt.Println("  📸 [Phase 61] Snapshotting current brain state before execution...")
+	gitSnapshot(brainRoot)
+
 	fmt.Println("  ⚡ Executing actions...")
 	executed := 0
 	skipped := 0
@@ -597,6 +600,30 @@ func runEvolve(brainRoot string, dryRun bool) {
 		executed, skipped, truncate(evoResp.Summary, 200)))
 
 	if executed > 0 {
+		// Phase 61 Closed Loop: Validation Gate
+		fmt.Printf("\n  🛡️ [Phase 61] Validating Evolution Integrity...\n")
+		if err := VerifyBrainIntegrity(brainRoot); err != nil {
+			fmt.Printf("  ❌ [VALIDATOR] Integrity check failed: %v\n", err)
+			fmt.Printf("  🧨 Rolling back to previous Git snapshot...\n")
+			
+			if rbErr := rollbackAll(brainRoot); rbErr != nil {
+				fmt.Printf("  🚨 [FATAL] Rollback failed: %v\n", rbErr)
+			} else {
+				fmt.Printf("  ✅ [RESTORE] Brain successfully rolled back to safe state.\n")
+				// Append to corrections.jsonl to learn from this failure
+				corrPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
+				failLog := fmt.Sprintf(`{"ts":"%s","error":"Evolve Validation Failed","reason":"%v","type":"auto_rollback"}`+"\n", time.Now().Format(time.RFC3339), err)
+				
+				f, _ := os.OpenFile(corrPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+				if f != nil {
+					f.WriteString(failLog)
+					f.Close()
+				}
+			}
+			return // Abort reinjection since we failed
+		}
+
+		fmt.Printf("  ✅ [Phase 61] Evolution accepted. Brain is stable.\n")
 		autoReinject(brainRoot)
 	}
 }
