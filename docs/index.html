@@ -357,7 +357,101 @@
       h1 { font-size: 2.6rem; letter-spacing: -1.5px; }
       .hero { padding: 160px 0 80px; }
       .cta-box { padding: 48px 28px; }
+      .arch-layers { grid-template-columns: 1fr; }
+      .workflow { grid-template-columns: 1fr; }
+      .compare-grid { overflow-x: auto; }
+      .usecase-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
     }
+
+    /* ═══ ARCHITECTURE DEEP DIVE ═══ */
+    .architecture { padding: 100px 0; }
+    .arch-layers { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 48px; }
+    .arch-layer {
+      padding: 28px 12px; text-align: center; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--bg-card);
+      backdrop-filter: blur(12px); transition: all 0.4s;
+      position: relative;
+    }
+    .arch-layer:hover { transform: translateY(-4px); border-color: rgba(0,212,255,0.2); }
+    .arch-layer .priority {
+      position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+      padding: 2px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .p0 { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .p1 { background: rgba(245,158,11,0.15); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
+    .p2 { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .p3 { background: rgba(0,212,255,0.15); color: var(--cyan); border: 1px solid rgba(0,212,255,0.3); }
+    .p4 { background: rgba(168,85,247,0.15); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+    .arch-icon { font-size: 2rem; margin-bottom: 8px; }
+    .arch-name { font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; }
+    .arch-desc { font-size: 0.68rem; color: var(--text-dim); line-height: 1.4; }
+    .arch-arrow { display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 1.5rem; }
+    .arch-note { max-width: 700px; margin: 32px auto 0; text-align: center; font-size: 0.9rem; color: var(--text-dim); line-height: 1.8; }
+    .arch-note strong { color: var(--text); }
+
+    /* ═══ HOW IT WORKS ═══ */
+    .howitworks { padding: 100px 0; }
+    .workflow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+    .wf-step {
+      padding: 40px 28px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+      backdrop-filter: blur(16px); transition: all 0.4s; text-align: center; position: relative;
+    }
+    .wf-step:hover { border-color: rgba(0,212,255,0.2); transform: translateY(-4px); }
+    .wf-number {
+      font-size: 3rem; font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+    }
+    .wf-step h3 { font-size: 1.15rem; margin-bottom: 12px; }
+    .wf-step p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.7; }
+    .wf-code { margin-top: 16px; padding: 14px; background: rgba(0,0,0,0.3); border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--cyan); text-align: left; }
+
+    /* ═══ COMPETITIVE MATRIX ═══ */
+    .competitive { padding: 100px 0; }
+    .compare-grid { margin-top: 48px; }
+    .compare-grid table { font-size: 0.85rem; }
+    .compare-grid td.win { color: var(--green); font-weight: 700; }
+    .compare-grid td.lose { color: var(--text-dim); }
+    .compare-grid td.partial { color: var(--gold); }
+    .check { color: var(--green); } .cross { color: var(--red); } .partial-icon { color: var(--gold); }
+
+    /* ═══ USE CASES ═══ */
+    .usecases { padding: 100px 0; }
+    .usecase-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 48px; }
+    .usecase-card {
+      padding: 36px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+      backdrop-filter: blur(16px); transition: all 0.4s;
+    }
+    .usecase-card:hover { border-color: rgba(168,85,247,0.2); transform: translateY(-4px); }
+    .usecase-card .uc-icon { font-size: 2rem; margin-bottom: 16px; }
+    .usecase-card h3 { font-size: 1.1rem; margin-bottom: 10px; }
+    .usecase-card p { font-size: 0.88rem; color: var(--text-dim); line-height: 1.8; margin-bottom: 12px; }
+    .usecase-card .uc-tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; margin-right: 6px; }
+    .tag-enterprise { background: rgba(168,85,247,0.15); color: var(--purple); }
+    .tag-devtool { background: rgba(0,212,255,0.15); color: var(--cyan); }
+    .tag-security { background: rgba(239,68,68,0.15); color: var(--red); }
+    .tag-education { background: rgba(34,197,94,0.15); color: var(--green); }
+
+    /* ═══ GETTING STARTED ═══ */
+    .getstarted { padding: 100px 0; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px; counter-reset: step; }
+    .step-card {
+      padding: 32px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px;
+      backdrop-filter: blur(16px); transition: all 0.4s; text-align: center;
+    }
+    .step-card:hover { border-color: rgba(34,197,94,0.2); transform: translateY(-4px); }
+    .step-card::before {
+      counter-increment: step; content: counter(step);
+      display: block; font-size: 2rem; font-weight: 900; margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .step-card h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    .step-card p { font-size: 0.82rem; color: var(--text-dim); line-height: 1.6; }
+    .step-code { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--green); }
   </style>
 </head>
 <body>
@@ -555,6 +649,205 @@
       <p class="reveal" style="text-align:center; margin-top:24px; color:var(--text-dim); font-size:0.88rem; font-style:italic;">
         The model is a dumb engine. NeuronFS is the rail.<br>A dumb engine on perfect rails always arrives.
       </p>
+    </div>
+  </section>
+
+  <!-- ═══ ARCHITECTURE DEEP DIVE ═══ -->
+  <section class="architecture" id="architecture">
+    <div class="container">
+      <div class="section-eyebrow reveal">Deep Dive</div>
+      <h2 class="reveal">7-Layer Subsumption Cascade</h2>
+      <p class="reveal" style="color:var(--text-dim); max-width:700px; font-size:0.95rem; line-height:1.8;">
+        Inspired by Rodney Brooks' robotics architecture. Lower layers <strong>physically override</strong> higher layers.
+        A bomb in brainstem (P0) halts the entire system — cortex (P4) cannot override it.
+        This is not a priority queue. It is a <strong>hardware interrupt</strong>.
+      </p>
+      <div class="arch-layers reveal">
+        <div class="arch-layer">
+          <span class="priority p0">P0</span>
+          <div class="arch-icon">🪨</div>
+          <div class="arch-name">Brainstem</div>
+          <div class="arch-desc">禁/bomb — Kill switches. Absolute walls. Cannot be overridden.</div>
+        </div>
+        <div class="arch-layer">
+          <span class="priority p1">P1</span>
+          <div class="arch-icon">💓</div>
+          <div class="arch-name">Limbic</div>
+          <div class="arch-desc">EmotionPrompt. Focus, stress, dopamine signals.</div>
+        </div>
+        <div class="arch-layer">
+          <span class="priority p2">P2</span>
+          <div class="arch-icon">📝</div>
+          <div class="arch-name">Hippocampus</div>
+          <div class="arch-desc">Long-term memory. Skills. Episodic recall.</div>
+        </div>
+        <div class="arch-layer">
+          <span class="priority p3">P3</span>
+          <div class="arch-icon">👁️</div>
+          <div class="arch-name">Sensors</div>
+          <div class="arch-desc">NAS, Brand guidelines, external input.</div>
+        </div>
+        <div class="arch-layer">
+          <span class="priority p4">P4</span>
+          <div class="arch-icon">🧠</div>
+          <div class="arch-name">Cortex</div>
+          <div class="arch-desc">Code, dev rules, codemap, error patterns.</div>
+        </div>
+        <div class="arch-layer">
+          <span class="priority p4">P5</span>
+          <div class="arch-icon">🎭</div>
+          <div class="arch-name">Ego</div>
+          <div class="arch-desc">Persona. Language. Tone. Identity.</div>
+        </div>
+        <div class="arch-layer">
+          <span class="priority p4">P6</span>
+          <div class="arch-icon">🎯</div>
+          <div class="arch-name">Prefrontal</div>
+          <div class="arch-desc">Strategic direction. Long-term goals.</div>
+        </div>
+      </div>
+      <div class="arch-note reveal">
+        <strong>Key insight:</strong> When brainstem detects a 禁 (prohibition) folder, it emits a <strong>NEVER</strong> rule.
+        Cortex cannot weaken it. This is why NeuronFS achieves <strong>100% instruction adherence</strong> —
+        constraints are structural, not probabilistic.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ HOW IT WORKS ═══ -->
+  <section class="howitworks">
+    <div class="container">
+      <div class="section-eyebrow reveal">Workflow</div>
+      <h2 class="reveal">Three commands. Zero infrastructure.</h2>
+      <div class="workflow">
+        <div class="wf-step reveal reveal-delay-1">
+          <div class="wf-number">01</div>
+          <h3>Create</h3>
+          <p>Define your AI's governance as folders. Each folder name is a rule. Subfolder depth = specificity.</p>
+          <div class="wf-code">
+            mkdir brain/brainstem/禁/data_leak<br>
+            mkdir brain/cortex/dev/推/testing<br>
+            mkdir brain/limbic/必/korean_response
+          </div>
+        </div>
+        <div class="wf-step reveal reveal-delay-2">
+          <div class="wf-number">02</div>
+          <h3>Compile</h3>
+          <p>NeuronFS walks the tree, resolves subsumption priorities, and emits a format-specific output.</p>
+          <div class="wf-code">
+            neuronfs --emit gemini<br>
+            <span style="color:var(--gold)">✓ 420 neurons → GEMINI.md (12KB)</span><br>
+            <span style="color:var(--gold)">✓ 3-tier rules: ALWAYS/WHEN/NEVER</span>
+          </div>
+        </div>
+        <div class="wf-step reveal reveal-delay-3">
+          <div class="wf-number">03</div>
+          <h3>Deploy</h3>
+          <p>The emitted file is injected into your AI tool. The agent reads it. Governance active. Zero tokens consumed.</p>
+          <div class="wf-code">
+            # Works with any AI tool:<br>
+            Cursor, Claude, Gemini, GPT,<br>
+            Windsurf, Copilot, Cline...
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ COMPETITIVE MATRIX ═══ -->
+  <section class="competitive">
+    <div class="container">
+      <div class="section-eyebrow reveal">Comparison</div>
+      <h2 class="reveal">NeuronFS vs. The World</h2>
+      <div class="compare-grid reveal">
+        <table>
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>NeuronFS</th>
+              <th>Mem0</th>
+              <th>Letta (MemGPT)</th>
+              <th>Vector DB (Pinecone)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Infrastructure</td><td class="win">✅ Zero</td><td class="lose">❌ Cloud API</td><td class="lose">❌ Server</td><td class="lose">❌ Cloud</td></tr>
+            <tr><td>Deterministic Rules</td><td class="win">✅ O(1) structural</td><td class="lose">❌ Probabilistic</td><td class="partial">⚠️ Partial</td><td class="lose">❌ None</td></tr>
+            <tr><td>Human Readable</td><td class="win">✅ Folders = Rules</td><td class="lose">❌ API only</td><td class="partial">⚠️ JSON</td><td class="lose">❌ Vectors</td></tr>
+            <tr><td>Version Control</td><td class="win">✅ Native git</td><td class="lose">❌ Custom</td><td class="lose">❌ Custom</td><td class="lose">❌ None</td></tr>
+            <tr><td>Air-Gap Deploy</td><td class="win">✅ USB stick</td><td class="lose">❌ Internet</td><td class="lose">❌ Internet</td><td class="lose">❌ Internet</td></tr>
+            <tr><td>Multi-Agent Emit</td><td class="win">✅ Cursor/Claude/Gemini</td><td class="lose">❌ Single</td><td class="partial">⚠️ Limited</td><td class="lose">❌ None</td></tr>
+            <tr><td>Self-Evolution</td><td class="win">✅ Hebbian + TTL</td><td class="partial">⚠️ Basic</td><td class="win">✅ Tiered</td><td class="lose">❌ None</td></tr>
+            <tr><td>Cost</td><td class="win">✅ $0 forever</td><td class="lose">❌ $99+/mo</td><td class="partial">⚠️ Free tier</td><td class="lose">❌ $70+/mo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ USE CASES ═══ -->
+  <section class="usecases">
+    <div class="container">
+      <div class="section-eyebrow reveal">Use Cases</div>
+      <h2 class="reveal">Where NeuronFS shines</h2>
+      <div class="usecase-grid">
+        <div class="usecase-card reveal reveal-delay-1">
+          <div class="uc-icon">🏢</div>
+          <h3>Enterprise AI Governance</h3>
+          <p>Deploy standardized AI rules across 1,000+ developers. USB-deployable. No cloud dependency. Compliance-ready. A single brain folder governs all agents.</p>
+          <span class="uc-tag tag-enterprise">Enterprise</span>
+          <span class="uc-tag tag-security">Compliance</span>
+        </div>
+        <div class="usecase-card reveal reveal-delay-2">
+          <div class="uc-icon">🔧</div>
+          <h3>Developer Productivity</h3>
+          <p>Teach your AI coding assistant project-specific rules: naming conventions, architecture patterns, forbidden anti-patterns. Skills accumulate over time.</p>
+          <span class="uc-tag tag-devtool">DevTool</span>
+        </div>
+        <div class="usecase-card reveal reveal-delay-3">
+          <div class="uc-icon">🔒</div>
+          <h3>Air-Gapped Security</h3>
+          <p>Military, healthcare, finance — environments where data cannot leave the premises. NeuronFS runs entirely offline. Zero network calls. Zero telemetry.</p>
+          <span class="uc-tag tag-security">Security</span>
+          <span class="uc-tag tag-enterprise">Classified</span>
+        </div>
+        <div class="usecase-card reveal reveal-delay-4">
+          <div class="uc-icon">🎓</div>
+          <h3>AI Education & Research</h3>
+          <p>Teach cognitive architecture concepts with a tangible, hands-on system. Students mkdir neurons and observe subsumption in real-time. The filesystem is the curriculum.</p>
+          <span class="uc-tag tag-education">Education</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ GETTING STARTED ═══ -->
+  <section class="getstarted">
+    <div class="container">
+      <div class="section-eyebrow reveal">Quick Start</div>
+      <h2 class="reveal">Up and running in 60 seconds</h2>
+      <div class="steps">
+        <div class="step-card reveal reveal-delay-1">
+          <h4>Download</h4>
+          <p>Grab the 4MB binary. No dependencies. No runtime.</p>
+          <div class="step-code">curl -fsSL neuronfs.dev/install | sh</div>
+        </div>
+        <div class="step-card reveal reveal-delay-2">
+          <h4>Initialize</h4>
+          <p>Create your brain folder with 7 regions pre-scaffolded.</p>
+          <div class="step-code">neuronfs init my-project</div>
+        </div>
+        <div class="step-card reveal reveal-delay-3">
+          <h4>Create Rules</h4>
+          <p>mkdir your governance. Each folder = one rule.</p>
+          <div class="step-code">mkdir brain/brainstem/禁/sql_injection</div>
+        </div>
+        <div class="step-card reveal reveal-delay-4">
+          <h4>Emit</h4>
+          <p>Compile to your AI tool of choice. Done.</p>
+          <div class="step-code">neuronfs --emit all</div>
+        </div>
+      </div>
     </div>
   </section>
 
