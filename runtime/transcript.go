@@ -187,8 +187,17 @@ func runIdleLoop(brainRoot string) {
 }
 
 // injectIdleResult injects heartbeat summary into AI input via CDP.
-// 자가수복 포함: 실패 시 원인 진단 + aaAgents 재스캔 + 3회 재시도
 func injectIdleResult(summary string) {
+	// Idle Injection also uses CDPQueue to prevent concurrent CDP access and hangs
+	select {
+	case CDPQueue <- CDPJob{TargetRoom: "IDLE_INJECT", Payload: summary}:
+	default:
+		GlobalSSEBroker.Broadcastf("warn", "⚠️ CDP Queue full! Dropping idle result.")
+	}
+}
+
+// injectIdleResultSync performs the actual self-healing and injection
+func injectIdleResultSync(summary string) {
 	escaped := strings.ReplaceAll(summary, `"`, `\"`)
 	escaped = strings.ReplaceAll(escaped, "\n", "\\n")
 

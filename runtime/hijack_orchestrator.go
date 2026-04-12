@@ -275,7 +275,8 @@ func runHijackLauncher(brainRoot string) {
 	// 텔레그램 양방향 polling
 	go hlTgPoll(brainRoot)
 
-	// CDP 모니터
+	// CDP 모니터 & 큐 워커
+	go hlStartCDPWorker()
 	go hlStartCDPMonitor(brainRoot)
 
 	// 자동 evolve

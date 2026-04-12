@@ -12,7 +12,33 @@ import (
 	"time"
 )
 
+type CDPJob struct {
+	TargetRoom string
+	Payload    string
+}
+
+var CDPQueue = make(chan CDPJob, 100)
+
+func hlStartCDPWorker() {
+	for job := range CDPQueue {
+		if job.TargetRoom == "IDLE_INJECT" {
+			injectIdleResultSync(job.Payload)
+		} else {
+			hlCDPInjectSync(job.TargetRoom, job.Payload)
+		}
+	}
+}
+
 func hlCDPInject(targetRoom, payload string) {
+	select {
+	case CDPQueue <- CDPJob{TargetRoom: targetRoom, Payload: payload}:
+	default:
+		// Queue full, drop or log
+		appendDebugLog(hlTgNfsRoot, "⚠️ CDP Queue full! Dropping payload.")
+	}
+}
+
+func hlCDPInjectSync(targetRoom, payload string) {
 	targets, err := cdpListTargets(hlCDPPort)
 	if err != nil {
 		return
