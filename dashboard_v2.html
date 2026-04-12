@@ -7,22 +7,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg: #f8f9fb; --surface: rgba(255, 255, 255, 0.85); --border: rgba(0,0,0,0.08);
-  --accent: #059669; --accent-glow: rgba(5, 150, 105, 0.15);
-  --danger: #dc2626; --text: #1e293b; --text-muted: #64748b;
+  --bg: #030305; --surface: rgba(15, 20, 30, 0.6); --border: rgba(255,255,255,0.08);
+  --accent: #10b981; --accent-glow: rgba(16, 185, 129, 0.3);
+  --danger: #ef4444; --text: #f8fafc; --text-muted: #94a3b8;
   --font-ui: 'Inter', sans-serif; --font-mono: 'JetBrains Mono', monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: var(--font-ui); overflow: hidden; display: flex; height: 100vh; }
 
 /* Left: Holographic 3D WebGL Map */
-#gl-container { flex: 1; position: relative; border-right: 1px solid var(--border); background: radial-gradient(circle at center, #e8ecf2 0%, #f0f2f5 100%); }
+#gl-container { flex: 1; position: relative; border-right: 1px solid var(--border); background: radial-gradient(circle at center, #0a0a14 0%, #030305 100%); }
 canvas { display: block; width: 100%; height: 100%; outline: none; }
 
 /* Right: Nerve Center Console */
 #console-container { width: 450px; background: var(--surface); display: flex; flex-direction: column; backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); position: relative; z-index: 10; }
 .header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-.brand h1 { font-size: 18px; font-weight: 800; letter-spacing: 0.1em; color: #0f172a; text-shadow: none; }
+.brand h1 { font-size: 18px; font-weight: 800; letter-spacing: 0.1em; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
 .brand span { color: var(--accent); }
 .ver { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
 
@@ -40,39 +40,39 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 .toggle-btn.off:hover { background: rgba(148, 163, 184, 0.2); box-shadow: none; }
 
 /* TTY Feed / Metrics */
-.tty-feed { flex: 1; padding: 20px; font-family: var(--font-mono); font-size: 11px; overflow-y: auto; color: #475569; line-height: 1.6; }
+.tty-feed { flex: 1; padding: 20px; font-family: var(--font-mono); font-size: 11px; overflow-y: auto; color: #a1a1aa; line-height: 1.6; }
 .tty-feed::-webkit-scrollbar { width: 4px; }
 .tty-feed::-webkit-scrollbar-thumb { background: var(--border); }
 .log-line { margin-bottom: 6px; display: flex; gap: 8px; }
-.log-ts { color: #94a3b8; flex-shrink: 0; }
-.log-info { color: #2563eb; }
-.log-warn { color: #d97706; }
-.log-error { color: #dc2626; }
+.log-ts { color: #52525b; flex-shrink: 0; }
+.log-info { color: #60a5fa; }
+.log-warn { color: #fbbf24; }
+.log-error { color: #ef4444; }
 
-.metrics-panel { padding: 20px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: rgba(241,245,249,0.8); }
+.metrics-panel { padding: 20px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: rgba(0,0,0,0.3); }
 .metric { display: flex; flex-direction: column; gap: 4px; }
 .m-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
-.m-value { font-size: 16px; font-weight: 800; color: #0f172a; font-family: var(--font-mono); }
+.m-value { font-size: 16px; font-weight: 800; color: #fff; font-family: var(--font-mono); }
 
 /* Audit Trail (Phase 43) */
-.audit-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 160px; overflow-y: auto; background: rgba(241,245,249,0.6); }
+.audit-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 160px; overflow-y: auto; background: rgba(0,0,0,0.4); }
 .audit-panel::-webkit-scrollbar { width: 3px; }
 .audit-panel::-webkit-scrollbar-thumb { background: var(--border); }
 .audit-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 8px; font-family: var(--font-mono); }
-.audit-entry { font-size: 10px; font-family: var(--font-mono); color: #64748b; margin-bottom: 4px; display: flex; gap: 6px; }
-.audit-actor { color: #2563eb; min-width: 90px; }
-.audit-action { color: #7c3aed; }
+.audit-entry { font-size: 10px; font-family: var(--font-mono); color: #71717a; margin-bottom: 4px; display: flex; gap: 6px; }
+.audit-actor { color: #60a5fa; min-width: 90px; }
+.audit-action { color: #a78bfa; }
 .audit-ok { color: var(--accent); }
 .audit-fail { color: var(--danger); }
 
 /* Codemap Panel (Quick Win 4) */
-.codemap-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 180px; overflow-y: auto; background: rgba(241,245,249,0.5); }
+.codemap-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.35); }
 .codemap-panel::-webkit-scrollbar { width: 3px; }
 .codemap-panel::-webkit-scrollbar-thumb { background: var(--border); }
 .codemap-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #8b5cf6; margin-bottom: 8px; font-family: var(--font-mono); cursor: pointer; }
-.codemap-entry { font-size: 10px; font-family: var(--font-mono); color: #64748b; margin-bottom: 3px; display: flex; justify-content: space-between; }
-.codemap-name { color: #7c3aed; }
-.codemap-lines { color: #94a3b8; }
+.codemap-entry { font-size: 10px; font-family: var(--font-mono); color: #71717a; margin-bottom: 3px; display: flex; justify-content: space-between; }
+.codemap-name { color: #a78bfa; }
+.codemap-lines { color: #52525b; }
 
 /* Debounce Overlay */
 #debounce-overlay { position: absolute; top: 20px; left: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 8px; font-family: var(--font-mono); color: var(--accent); display: none; align-items: center; gap: 12px; box-shadow: 0 0 20px var(--accent-glow); z-index: 20; }
@@ -84,7 +84,7 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 
 /* Fire Spark CSS */
 .fire-flash { box-shadow: inset 0 0 100px rgba(16, 185, 129, 0.4); transition: box-shadow 0.1s; }
-.fire-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #059669; font-family: var(--font-mono); font-size: 24px; font-weight: 800; text-shadow: 0 0 10px rgba(5,150,105,0.3); opacity: 0; pointer-events: none; z-index: 30; }
+.fire-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #10b981; font-family: var(--font-mono); font-size: 24px; font-weight: 800; text-shadow: 0 0 20px rgba(16,185,129,0.8); opacity: 0; pointer-events: none; z-index: 30; }
 @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -150%) scale(1.5); } }
 </style>
 </head>
@@ -113,7 +113,7 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
   <div class="ap-status">
     <div class="status-indicator">
       <div class="pulse-dot pulsing" id="ap-dot"></div>
-      <div style="font-size:12px; font-weight:600; color:#0f172a" id="ap-text">System Listening...</div>
+      <div style="font-size:12px; font-weight:600; color:#fff" id="ap-text">System Listening...</div>
     </div>
   </div>
 
@@ -160,7 +160,7 @@ const dummy = new THREE.Object3D();
 function init3D() {
   const container = document.getElementById('gl-container');
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0xf0f2f5, 0.003);
+  scene.fog = new THREE.FogExp2(0x030305, 0.003);
 
   camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 1000);
   camera.position.set(100, 80, 150);
@@ -179,7 +179,7 @@ function init3D() {
   renderDemoLayer();
   fetchGraphQLBrain();
 
-  scene.add(new THREE.AmbientLight(0x059669, 0.4));
+  scene.add(new THREE.AmbientLight(0x10b981, 0.2));
   const pLight = new THREE.PointLight(0x3b82f6, 1, 300);
   pLight.position.set(0, 50, 0);
   scene.add(pLight);
@@ -188,99 +188,65 @@ function init3D() {
   window.addEventListener('resize', onWindowResize);
   animate();
 }
-// ── Demo Layer: Force-directed gravity field (1000 nodes) ──
+// ── Demo Layer: Golden-angle nautilus spiral (snail shell) ──
 let demoMesh, demoAxonMesh;
 function renderDemoLayer() {
-  const demoCount = 1000;
-  
-  // 7 region attractors spread across 3D space
-  const regions = [
-    { cx:0,   cy:-55, cz:0,   count:60,  col:0xfbbf24 },  // brainstem
-    { cx:-15, cy:-30, cz:10,  count:80,  col:0xef4444 },  // limbic
-    { cx:-25, cy:-5,  cz:20,  count:100, col:0x14b8a6 },  // hippocampus
-    { cx:40,  cy:5,   cz:-10, count:110, col:0x06b6d4 },  // sensors
-    { cx:0,   cy:25,  cz:0,   count:350, col:0x3b82f6 },  // cortex (largest)
-    { cx:15,  cy:10,  cz:40,  count:80,  col:0x8b5cf6 },  // ego
-    { cx:0,   cy:55,  cz:15,  count:220, col:0x10b981 }   // prefrontal
-  ];
-  
-  // Seed nodes around attractors
-  const nodes = [];
-  regions.forEach(reg => {
-    for(let i=0; i<reg.count; i++) {
-      nodes.push({
-        x: reg.cx + (Math.random()-0.5)*60,
-        y: reg.cy + (Math.random()-0.5)*60,
-        z: reg.cz + (Math.random()-0.5)*60,
-        vx:0, vy:0, vz:0,
-        cx: reg.cx, cy: reg.cy, cz: reg.cz,
-        col: reg.col,
-        size: 0.3 + Math.random()*0.7
-      });
-    }
-  });
-  
-  // Run 150-iteration force simulation
-  for(let iter=0; iter<150; iter++) {
-    const alpha = 0.4 * (1 - iter/150);
-    for(let i=0; i<nodes.length; i++) {
-      // Repulsion: sample 15 random neighbors
-      for(let s=0; s<15; s++) {
-        const j = Math.floor(Math.random()*nodes.length);
-        if(i===j) continue;
-        const dx = nodes[i].x-nodes[j].x, dy = nodes[i].y-nodes[j].y, dz = nodes[i].z-nodes[j].z;
-        const d2 = dx*dx+dy*dy+dz*dz+0.1;
-        const d = Math.sqrt(d2);
-        if(d < 20) {
-          const f = 60/d2*alpha;
-          nodes[i].vx += dx/d*f; nodes[i].vy += dy/d*f; nodes[i].vz += dz/d*f;
-        }
-      }
-      // Attraction to center (spring)
-      const dx = nodes[i].cx-nodes[i].x, dy = nodes[i].cy-nodes[i].y, dz = nodes[i].cz-nodes[i].z;
-      nodes[i].vx += dx*0.008*alpha; nodes[i].vy += dy*0.008*alpha; nodes[i].vz += dz*0.008*alpha;
-      // Damping
-      nodes[i].vx *= 0.82; nodes[i].vy *= 0.82; nodes[i].vz *= 0.82;
-    }
-    nodes.forEach(n => { n.x += n.vx; n.y += n.vy; n.z += n.vz; });
-  }
-  
-  // Render
-  const geometry = new THREE.SphereGeometry(0.8, 8, 6);
+  const demoCount = 1200;
+  const geometry = new THREE.SphereGeometry(0.6, 6, 4);
   const material = new THREE.MeshPhongMaterial({
-    color: 0xffffff, transparent: true, opacity: 0.35,
-    shininess: 60, blending: THREE.AdditiveBlending
+    color: 0xffffff, transparent: true, opacity: 0.6,
+    shininess: 80, blending: THREE.AdditiveBlending
   });
   demoMesh = new THREE.InstancedMesh(geometry, material, demoCount);
+  
   const demoPositions = [];
-  nodes.forEach((n, idx) => {
-    demoPositions.push(new THREE.Vector3(n.x, n.y, n.z));
-    dummy.position.set(n.x, n.y, n.z);
-    dummy.scale.set(n.size, n.size, n.size);
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5°
+  const palette = [0x10b981, 0x3b82f6, 0x8b5cf6, 0x06b6d4, 0xa78bfa, 0x14b8a6, 0x60a5fa, 0xfbbf24, 0xf472b6];
+  
+  for(let n=0; n<demoCount; n++) {
+    const t = n / demoCount;
+    const angle = n * goldenAngle;
+    const radius = Math.sqrt(n) * 3.2; // square-root spacing = nautilus curve
+    const height = (Math.random()-0.5) * 8 * (1 + t*0.5); // thin disc with slight spread
+    
+    const px = Math.cos(angle) * radius;
+    const py = height;
+    const pz = Math.sin(angle) * radius;
+    
+    demoPositions.push(new THREE.Vector3(px, py, pz));
+    dummy.position.set(px, py, pz);
+    const s = 0.2 + (1-t)*0.6;
+    dummy.scale.set(s, s, s);
     dummy.updateMatrix();
-    demoMesh.setMatrixAt(idx, dummy.matrix);
-    const c = new THREE.Color(n.col); c.multiplyScalar(0.5);
-    demoMesh.setColorAt(idx, c);
-  });
+    demoMesh.setMatrixAt(n, dummy.matrix);
+    
+    const col = new THREE.Color(palette[n % palette.length]);
+    col.multiplyScalar(0.3 + t*0.5);
+    demoMesh.setColorAt(n, col);
+  }
   demoMesh.instanceMatrix.needsUpdate = true;
   if(demoMesh.instanceColor) demoMesh.instanceColor.needsUpdate = true;
   scene.add(demoMesh);
   
-  // Axons
+  // Axons along the spiral
   const linePos = [];
-  for(let i=0; i<nodes.length; i++) {
-    for(let s=0; s<12; s++) {
-      const j = Math.floor(Math.random()*nodes.length);
-      if(i===j) continue;
+  for(let i=0; i<demoCount-1; i++) {
+    // Connect sequential neighbors (creates spiral threads)
+    if(Math.random() < 0.4) {
+      const p1 = demoPositions[i], p2 = demoPositions[i+1];
+      linePos.push(p1.x,p1.y,p1.z, p2.x,p2.y,p2.z);
+    }
+    // Random proximity links
+    if(Math.random() < 0.15) {
+      const j = Math.floor(Math.random()*demoCount);
       const p1 = demoPositions[i], p2 = demoPositions[j];
-      if(p1.distanceTo(p2)<15) { linePos.push(p1.x,p1.y,p1.z,p2.x,p2.y,p2.z); break; }
+      if(p1.distanceTo(p2)<15) linePos.push(p1.x,p1.y,p1.z, p2.x,p2.y,p2.z);
     }
   }
-  // Backbone
-  for(let r=0; r<regions.length-1; r++) {
-    linePos.push(regions[r].cx,regions[r].cy,regions[r].cz, regions[r+1].cx,regions[r+1].cy,regions[r+1].cz);
-  }
-  const axMat = new THREE.LineBasicMaterial({ color:0x94a3b8, transparent:true, opacity:0.08, depthWrite:false });
+  const axMat = new THREE.LineBasicMaterial({
+    color: 0x10b981, transparent:true, opacity:0.08,
+    blending: THREE.AdditiveBlending, depthWrite:false
+  });
   const axGeo = new THREE.BufferGeometry();
   axGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePos, 3));
   demoAxonMesh = new THREE.LineSegments(axGeo, axMat);
