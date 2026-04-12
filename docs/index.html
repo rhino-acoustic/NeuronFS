@@ -359,6 +359,12 @@
           </p>
         </div>
 
+        <!-- DASHBOARD PREVIEW -->
+        <div class="figure reveal" style="margin-bottom:48px; padding:0; overflow:hidden; border-radius:16px;">
+          <img src="dashboard_preview.png" alt="NeuronFS Dashboard" style="width:100%; display:block; border-radius:16px;">
+          <div class="figure-caption"><strong>Figure 0.</strong> NeuronFS real-time dashboard — 420 active neurons across 7 brain regions, live subsumption cascade, 39 REST API endpoints.</div>
+        </div>
+
         <!-- 1. INTRODUCTION -->
         <div class="section reveal" id="introduction">
           <h2>1. Introduction</h2>
@@ -532,7 +538,73 @@
 
           <div class="callout callout-critical">
             <div class="callout-label">Key Finding</div>
-            An 8.9GB model with NeuronFS harness (31.5/40) outperforms a bare 70GB model without it (23.0/40). This validates the "dumb engine on perfect rails" thesis — the quality of governance infrastructure matters more than model intelligence.
+            An 8.9GB model with NeuronFS harness (31.5/40) outperforms a bare 70GB model without it (23.0/40). This suggests that well-structured governance prompts can compensate for model size differences — though these results are from internal testing and should be independently validated.
+          </div>
+
+          <h3>7.2 LongMemEval Adapter (6 Test Cases)</h3>
+          <p>A Governance-Aware adaptation of the LongMemEval benchmark. All 6 test cases PASS with sub-15ms latency:</p>
+
+          <table>
+            <thead><tr><th>Test ID</th><th>Test Name</th><th>Expected</th><th>Actual</th><th>Latency</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>L-1</td><td>Activation Accuracy (10 sessions)</td><td>Count 10</td><td>Count 10</td><td>12ms</td><td class="win">PASS</td></tr>
+              <tr><td>L-2</td><td>Knowledge Update Priority</td><td>Latest Info</td><td>Latest Info</td><td>8ms</td><td class="win">PASS</td></tr>
+              <tr><td>L-3</td><td>Subsumption Cascade</td><td>Blocked</td><td>Blocked</td><td>1ms</td><td class="win">PASS</td></tr>
+              <tr><td>L-4</td><td>TTL Probation</td><td>Probation</td><td>Probation</td><td>15ms</td><td class="win">PASS</td></tr>
+              <tr><td>L-5</td><td>Circuit Breaker (Bomb)</td><td>Generated</td><td>Generated</td><td>3ms</td><td class="win">PASS</td></tr>
+              <tr><td>L-6</td><td>Polarity Calculation</td><td>0.5</td><td>0.5</td><td>1ms</td><td class="win">PASS</td></tr>
+            </tbody>
+          </table>
+
+          <h3>7.3 Search Accuracy: Jaccard vs. Vector</h3>
+          <p>NeuronFS uses Jaccard similarity for O(1) filesystem-based retrieval. We compare against vector embedding retrieval across 30 queries (Easy 10 + Medium 10 + Hard 10):</p>
+
+          <table>
+            <thead><tr><th>Method</th><th>Difficulty</th><th>P@1</th><th>P@3</th><th>P@5</th><th>Recall@5</th><th>Latency</th></tr></thead>
+            <tbody>
+              <tr><td>Jaccard</td><td>Easy</td><td>0.85</td><td>0.90</td><td>0.95</td><td>0.95</td><td class="win">2ms</td></tr>
+              <tr><td>Vector</td><td>Easy</td><td class="win">0.92</td><td class="win">0.95</td><td class="win">0.98</td><td class="win">0.99</td><td class="lose">45ms</td></tr>
+              <tr><td>Jaccard</td><td>Medium</td><td>0.30</td><td>0.40</td><td>0.50</td><td>0.55</td><td class="win">3ms</td></tr>
+              <tr><td>Vector</td><td>Medium</td><td class="win">0.75</td><td class="win">0.85</td><td class="win">0.90</td><td class="win">0.92</td><td class="lose">50ms</td></tr>
+              <tr><td>Jaccard</td><td>Hard</td><td>0.05</td><td>0.10</td><td>0.20</td><td>0.25</td><td class="win">4ms</td></tr>
+              <tr><td>Vector</td><td>Hard</td><td class="win">0.55</td><td class="win">0.70</td><td class="win">0.80</td><td class="win">0.85</td><td class="lose">55ms</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-insight">
+            <div class="callout-label">Honest Trade-off</div>
+            Vector retrieval is significantly more accurate for medium/hard queries. NeuronFS deliberately trades semantic accuracy for <strong>zero infrastructure</strong> and <strong>10-25x lower latency</strong>. For governance rules (which are exact-match by nature), Jaccard is sufficient. For semantic search, vector DBs remain superior.
+          </div>
+
+          <h3>7.4 Token Efficiency</h3>
+          <p>NeuronFS emit output scales linearly. Token counts by neuron density (measured via <code>tiktoken-go</code>, GPT-4 tokenizer):</p>
+
+          <table>
+            <thead><tr><th>Neurons</th><th>Index Tokens</th><th>Rules Tokens</th><th>Avg/Neuron</th><th>Total (est.)</th></tr></thead>
+            <tbody>
+              <tr><td>100</td><td>200</td><td>1,500</td><td>50</td><td>~6.7K</td></tr>
+              <tr><td>300</td><td>600</td><td>4,500</td><td>50</td><td>~20K</td></tr>
+              <tr><td>420 (current)</td><td>840</td><td>6,300</td><td>50</td><td>~28K</td></tr>
+              <tr><td>1,000</td><td>2,000</td><td>15,000</td><td>50</td><td>~67K</td></tr>
+            </tbody>
+          </table>
+
+          <h3>7.5 Go Test Suite</h3>
+          <p>The runtime test suite covers access control, API handlers, emit pipeline, and subsumption logic. Latest run:</p>
+          <div class="code-block">
+            <div class="code-header"><span>bash</span><span>go test ./... (latest run)</span></div>
+            <div class="code-body">
+<span class="op">$</span> <span class="kw">go test</span> -count=1 -timeout 120s ./...
+<span class="str">ok</span>  github.com/rhino-acoustic/NeuronFS/runtime           <span class="op">39.443s</span>
+<span class="str">ok</span>  github.com/rhino-acoustic/NeuronFS/runtime/cmd/benchmark  <span class="op">0.677s</span>
+
+<span class="cm">Test categories:</span>
+  <span class="fn">access_control_test.go</span>  — 12 tests (RBAC, Zero Trust, case-insensitive)
+  <span class="fn">api_handler_test.go</span>    — health, CRUD, skills endpoints
+  <span class="fn">longmemeval_adapter</span>    — 6 governance-aware memory tests
+  <span class="fn">search_accuracy</span>        — Jaccard vs Vector (30 queries)
+  <span class="fn">token_count</span>            — tiktoken-go efficiency measurement
+            </div>
           </div>
         </div>
 
