@@ -342,6 +342,81 @@ function animate() {
 
 window.onload = init3D;
 
+// ═══ Major Project: Neuron CRUD via 3D interaction ═══
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let neuronPaths = []; // populated by fetchGraphQLBrain
+
+// Store neuron paths for click lookup
+const _origRender = renderGraphQLBrain;
+function renderGraphQLBrainWithPaths(brainRegions) {
+  neuronPaths = [];
+  if (brainRegions) {
+    brainRegions.forEach(r => {
+      (r.neurons || []).forEach(n => {
+        neuronPaths.push({ name: n.name, path: n.path, region: r.name });
+      });
+    });
+  }
+  _origRender(brainRegions);
+}
+// Patch: override global reference
+window._renderBrain = renderGraphQLBrainWithPaths;
+
+// Click → Fire neuron
+document.getElementById('gl-container').addEventListener('click', async function(e) {
+  if (e.target.tagName === 'BUTTON') return;
+  const container = document.getElementById('gl-container');
+  const rect = container.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  
+  if (!instancedMesh) return;
+  const intersects = raycaster.intersectObject(instancedMesh);
+  if (intersects.length > 0) {
+    const idx = intersects[0].instanceId;
+    const neuron = neuronPaths[idx];
+    if (!neuron) return;
+    
+    if (e.shiftKey) {
+      // Shift+Click → Grow new neuron
+      const name = prompt('New neuron name (under ' + neuron.region + '):');
+      if (name) {
+        const path = neuron.region + '/' + name;
+        await fetch('/api/grow', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path}) });
+        logTTY('🌱 GROWN: ' + path, 'info');
+        triggerSparkEffect(path);
+      }
+    } else {
+      // Click → Fire
+      await fetch('/api/fire', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path: neuron.path}) });
+      logTTY('🔥 FIRED: ' + neuron.path, 'info');
+      triggerSparkEffect(neuron.path);
+    }
+  }
+});
+
+// Right-click → Neuron info tooltip
+document.getElementById('gl-container').addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  const container = document.getElementById('gl-container');
+  const rect = container.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  
+  if (!instancedMesh) return;
+  const intersects = raycaster.intersectObject(instancedMesh);
+  if (intersects.length > 0) {
+    const idx = intersects[0].instanceId;
+    const neuron = neuronPaths[idx];
+    if (neuron) {
+      logTTY('📍 ' + neuron.region + '/' + neuron.name + ' [' + neuron.path + ']', 'info');
+    }
+  }
+});
+
 function logTTY(msg, type='info') {
   const tty = document.getElementById('tty');
   const d = new Date();
