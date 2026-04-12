@@ -234,6 +234,40 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		json.NewEncoder(w).Encode(map[string]interface{}{"pending": len(reports), "reports": reports})
 	}))
 
+	// POST /api/proposal — submit auto-repair patch
+	mux.HandleFunc("/api/proposal", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "POST only", 405)
+			return
+		}
+		var req struct {
+			Title   string `json:"title"`
+			Message string `json:"message"`
+			Patch   string `json:"patch"`
+		}
+		json.NewDecoder(r.Body).Decode(&req)
+		if req.Title == "" || req.Patch == "" {
+			http.Error(w, "title and patch required", 400)
+			return
+		}
+		
+		proposalDir := filepath.Join(brainRoot, "_inbox", "repair_proposals")
+		os.MkdirAll(proposalDir, 0750)
+		
+		ts := fmt.Sprintf("%d", time.Now().UnixMilli())
+		safeTitle := strings.ReplaceAll(req.Title, " ", "_")
+		safeTitle = strings.ReplaceAll(safeTitle, "/", "_")
+		filename := fmt.Sprintf("%s_%s.neuron", ts, safeTitle)
+		
+		content := fmt.Sprintf("status: pending\nresolved_at: \nresolution: \n\n%s\n\n```patch\n%s\n```\n", req.Message, req.Patch)
+		os.WriteFile(filepath.Join(proposalDir, filename), []byte(content), 0600)
+		
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "received", "filename": filename,
+		})
+	}))
+
 	// GET /api/evolution — Git-based neural evolution timeline
 	mux.HandleFunc("/api/evolution", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
