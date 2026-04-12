@@ -54,6 +54,17 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 .m-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
 .m-value { font-size: 16px; font-weight: 800; color: #fff; font-family: var(--font-mono); }
 
+/* Audit Trail (Phase 43) */
+.audit-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 160px; overflow-y: auto; background: rgba(0,0,0,0.4); }
+.audit-panel::-webkit-scrollbar { width: 3px; }
+.audit-panel::-webkit-scrollbar-thumb { background: var(--border); }
+.audit-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 8px; font-family: var(--font-mono); }
+.audit-entry { font-size: 10px; font-family: var(--font-mono); color: #71717a; margin-bottom: 4px; display: flex; gap: 6px; }
+.audit-actor { color: #60a5fa; min-width: 90px; }
+.audit-action { color: #a78bfa; }
+.audit-ok { color: var(--accent); }
+.audit-fail { color: var(--danger); }
+
 /* Debounce Overlay */
 #debounce-overlay { position: absolute; top: 20px; left: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 8px; font-family: var(--font-mono); color: var(--accent); display: none; align-items: center; gap: 12px; box-shadow: 0 0 20px var(--accent-glow); z-index: 20; }
 .db-spinner { width: 14px; height: 14px; border: 2px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
@@ -112,6 +123,10 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
       <span class="m-label">Go Supervisor</span>
       <span class="m-value" style="color:var(--accent)">ONLINE</span>
     </div>
+  </div>
+
+  <div class="audit-panel" id="audit-feed">
+    <div class="audit-title">🔍 Autonomous Audit Trail (Phase 43)</div>
   </div>
 </div>
 
@@ -433,6 +448,30 @@ function initSSE() {
   };
   logTTY("SSE Telemetry Stream Connected.", "success");
 }
+
+// Phase 43: Audit Trail GraphQL Polling
+async function fetchAuditTrail() {
+  try {
+    const r = await fetch('/graphql', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({query: '{ auditTrail(limit: 10) { ts actor action target success } }'})
+    });
+    const json = await r.json();
+    const entries = json?.data?.auditTrail || [];
+    const feed = document.getElementById('audit-feed');
+    // Keep title, replace entries
+    feed.innerHTML = '<div class="audit-title">🔍 Autonomous Audit Trail</div>';
+    entries.forEach(e => {
+      const ts = e.ts ? e.ts.substring(11, 19) : '??:??:??';
+      const icon = e.success ? '✅' : '❌';
+      const cls = e.success ? 'audit-ok' : 'audit-fail';
+      feed.innerHTML += `<div class="audit-entry"><span style="color:#52525b">${ts}</span><span class="audit-actor">${e.actor}</span><span class="audit-action">${e.action}</span><span class="${cls}">${icon}</span></div>`;
+    });
+  } catch(e) {}
+}
+setInterval(fetchAuditTrail, 15000);
+fetchAuditTrail();
 
 initData();
 </script>
