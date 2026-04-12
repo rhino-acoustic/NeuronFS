@@ -11,6 +11,14 @@ func (c *APICmd) Name() string {
 
 func (c *APICmd) Execute(brainRoot string, args []string) error {
 	fmt.Printf("[NeuronFS] API mode starting on port :%d\n", APIPort)
+
+	// Phase 25: Initialize Libp2p/mDNS
+	go func() {
+		if err := InitializeP2PNode(); err != nil {
+			fmt.Printf("[P2P] Initialization failed: %v\n", err)
+		}
+	}()
+
 	startAPI(brainRoot, APIPort)
 	return nil
 }
