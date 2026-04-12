@@ -129,6 +129,8 @@ func main() {
 	router.Register(&DashboardCmd{})
 	router.Register(&APICmd{})
 	router.Register(&HtmlCmd{})
+	router.Register(&GrowCmd{})
+	router.Register(&FireCmd{})
 
 	// Check if any arguments match our new router
 	routed := false
@@ -168,21 +170,6 @@ func main() {
 		writeAllTiersForTargets(brainRoot, emitTarget)
 	case "harness":
 		// Handled by router
-	case "grow":
-		neuronPath := getNonFlagArg(1) // brain_v4=0, path=1
-		if neuronPath == "" {
-			fmt.Println("[FATAL] Usage: neuronfs <brain> --grow <region/path/to/neuron>")
-			fmt.Println("  Example: neuronfs brain_v4 --grow cortex/frontend/coding/no_console_log")
-			os.Exit(1)
-		}
-		growNeuron(brainRoot, neuronPath)
-	case "fire":
-		neuronPath := getNonFlagArg(1)
-		if neuronPath == "" {
-			fmt.Println("[FATAL] Usage: neuronfs <brain> --fire <region/path/to/neuron>")
-			os.Exit(1)
-		}
-		fireNeuron(brainRoot, neuronPath)
 	case "signal":
 		sigType := ""
 		neuronPath := ""
