@@ -193,6 +193,7 @@ function init() {
     <button class="layout-btn" onclick="switchLayout(7, this)">8. Chaos Gravity Well (응축 깔때기)</button>
     <button class="layout-btn" onclick="switchLayout(8, this)">9. Triangular Plane (2D 면 삼각 에너지)</button>
     <button class="layout-btn" onclick="switchLayout(9, this)">10. Cochlea Triangle (달팽이관 롤)</button>
+    <button class="layout-btn" onclick="switchLayout(10, this)">11. Dense Solid Snail (무간극 고밀도 연속체)</button>
   `;
   
   setTimeout(() => loadLayout(0), 100);
@@ -361,6 +362,30 @@ function loadLayout(idx) {
         
         tArr[i*3]   = finalR * Math.cos(theta);
         tArr[i*3+1] = yPos; // Width of triangle becomes the height of the shell wall
+        tArr[i*3+2] = finalR * Math.sin(theta);
+    }
+  } else if(idx === 10) { // Dense Solid Snail
+    // 15 tight wraps, dense center bias, fully contiguous surface (no streams)
+    const coils = 15.0; 
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+        // Heavy density bias towards the center (power 3.0 or 2.5)
+        const tScale = Math.pow(Math.random(), 2.5); 
+        
+        const theta = (1.0 - tScale) * Math.PI * 2.0 * coils;
+        const r = Math.pow(tScale, 1.2) * 220; 
+        
+        // Triangle width
+        const maxWidth = tScale * 400; 
+        
+        // Completely solid random distribution across the width, no stream gaps
+        const yPos = (Math.random() - 0.5) * maxWidth;
+        
+        // Add thickness so consecutive coils physically touch and merge
+        const thickness = (Math.random() - 0.5) * 18; 
+        const finalR = r + thickness;
+        
+        tArr[i*3]   = finalR * Math.cos(theta);
+        tArr[i*3+1] = yPos - 50; // Center tip lowered slightly 
         tArr[i*3+2] = finalR * Math.sin(theta);
     }
   }
