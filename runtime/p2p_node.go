@@ -41,7 +41,7 @@ func (n *DiscoveryNotifee) HandlePeerFound(pi peer.AddrInfo) {
 
 var GlobalP2P *P2PNet
 
-func InitializeP2PNode() error {
+func InitializeP2PNode(brainRoot string) error {
 	ctx := context.Background()
 
 	h, err := libp2p.New(
@@ -69,6 +69,11 @@ func InitializeP2PNode() error {
 	err = ser.Start()
 	if err != nil {
 		return fmt.Errorf("failed to start mDNS: %v", err)
+	}
+
+	// Trigger Merkle Sync Worker (Phase 26)
+	if err := initMerkleSyncWorker(ctx, brainRoot); err != nil {
+		log.Printf("[P2P] Failed to init merkle sync: %v", err)
 	}
 
 	// Wait asynchronously forever

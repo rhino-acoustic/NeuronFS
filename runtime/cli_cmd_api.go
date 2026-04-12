@@ -14,7 +14,7 @@ func (c *APICmd) Execute(brainRoot string, args []string) error {
 
 	// Phase 25: Initialize Libp2p/mDNS
 	go func() {
-		if err := InitializeP2PNode(); err != nil {
+		if err := InitializeP2PNode(brainRoot); err != nil {
 			fmt.Printf("[P2P] Initialization failed: %v\n", err)
 		}
 	}()
