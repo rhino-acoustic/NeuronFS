@@ -120,6 +120,34 @@ func (c *WSClient) readPump(brainRoot string) {
 					logContent := fmt.Sprintf("발신: System Watchdog\n# Frontend Compiler Error (Next.js Turbopack)\n\n```\n%s\n```\n", errorPayload.Message)
 					os.WriteFile(filePath, []byte(logContent), 0644)
 				}
+			case "delegate":
+				// Handle Phase 27: Multi-Agent Delegation Pipeline
+				var delegatePayload struct {
+					Source  string `json:"source"`
+					Target  string `json:"target"`
+					Title   string `json:"title"`
+					Message string `json:"message"`
+				}
+				if json.Unmarshal(message, &delegatePayload) == nil {
+					if delegatePayload.Target == "" {
+						delegatePayload.Target = "bot1" // Default fallback
+					}
+					fmt.Printf("[WS] Delegation Intercepted! %s -> %s\n", delegatePayload.Source, delegatePayload.Target)
+					
+					inboxDir := filepath.Join(brainRoot, "_agents", delegatePayload.Target, "inbox")
+					os.MkdirAll(inboxDir, 0755)
+					
+					fileName := fmt.Sprintf("delegation_%d.md", time.Now().UnixNano())
+					filePath := filepath.Join(inboxDir, fileName)
+					
+					logContent := fmt.Sprintf("발신: %s\n# %s\n\n%s\n", delegatePayload.Source, delegatePayload.Title, delegatePayload.Message)
+					os.WriteFile(filePath, []byte(logContent), 0644)
+					
+					// Flash UI via SSE
+					if GlobalSSEBroker != nil {
+						GlobalSSEBroker.Broadcast("info", fmt.Sprintf("[Swarm] Task delegated: %s → %s (%s)", delegatePayload.Source, delegatePayload.Target, delegatePayload.Title))
+					}
+				}
 			}
 		}
 	}
