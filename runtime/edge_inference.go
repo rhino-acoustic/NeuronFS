@@ -51,7 +51,9 @@ func CheckEdgeAvailability() bool {
 // InvokeLocalLLM sends a prompt to the local LLM instance
 func InvokeLocalLLM(model, prompt string) (string, error) {
 	if !CheckEdgeAvailability() {
-		return "", fmt.Errorf("edge compute (Ollama) is not running on localhost:11434")
+		err := fmt.Errorf("edge compute (Ollama) is not running on localhost:11434")
+		EngraveRuntimeError(findBrainRoot(), "Edge_Inference", err.Error())
+		return "", err
 	}
 
 	// Phase 33: NPU HAL Fast-Path Payload Generation
@@ -61,7 +63,9 @@ func InvokeLocalLLM(model, prompt string) (string, error) {
 
 	resp, err := http.Post(OllamaLocalEndpoint, "application/json", bytes.NewBuffer(payloadBuf))
 	if err != nil {
-		return "", fmt.Errorf("edge inference failed: %w", err)
+		errObj := fmt.Errorf("edge inference failed: %w", err)
+		EngraveRuntimeError(findBrainRoot(), "Edge_Inference", errObj.Error())
+		return "", errObj
 	}
 	defer resp.Body.Close()
 
@@ -71,7 +75,9 @@ func InvokeLocalLLM(model, prompt string) (string, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("edge HTTP error: status %d, body: %s", resp.StatusCode, string(bodyBytes))
+		errObj := fmt.Errorf("edge HTTP error: status %d", resp.StatusCode)
+		EngraveRuntimeError(findBrainRoot(), "Edge_Inference", errObj.Error())
+		return "", fmt.Errorf("%v, body: %s", errObj, string(bodyBytes))
 	}
 
 	var ollamaResp OllamaResponse
