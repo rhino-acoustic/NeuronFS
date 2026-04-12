@@ -389,8 +389,7 @@ func formatGrowthAndLimbic(sb *strings.Builder, result SubsumptionResult, brainR
 				active++
 			}
 		}
-		icon := regionIcons[region.Name]
-		regionParts = append(regionParts, fmt.Sprintf("%s%s(%d)", icon, region.Name, active))
+		regionParts = append(regionParts, fmt.Sprintf("%s(%d)", region.Name, active))
 	}
 	data.RegionSummary = strings.Join(regionParts, " ")
 
