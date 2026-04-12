@@ -126,6 +126,8 @@ func main() {
 	router.Register(&InitCmd{})
 	router.Register(&InjectCmd{})
 	router.Register(&EvolveCmd{})
+	router.Register(&WatchCmd{})
+	router.Register(&DashboardCmd{})
 
 	// Check if any arguments match our new router
 	routed := false
@@ -165,15 +167,10 @@ func main() {
 		writeAllTiersForTargets(brainRoot, emitTarget)
 	case "harness":
 		// Handled by router
-	case "watch":
-		fmt.Println("[NeuronFS] Watch mode — monitoring brain/ for changes...")
-		runWatch(brainRoot)
 	case "html":
 		brain := scanBrain(brainRoot)
 		result := runSubsumption(brain)
 		generateBrainJSON(brainRoot, brain, result)
-	case "dashboard":
-		startAPI(brainRoot, port)
 	case "grow":
 		neuronPath := getNonFlagArg(1) // brain_v4=0, path=1
 		if neuronPath == "" {
