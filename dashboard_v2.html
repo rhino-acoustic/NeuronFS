@@ -191,62 +191,59 @@ function init3D() {
 // ── Demo Layer: Always-visible beautiful brain scaffold ──
 let demoMesh, demoAxonMesh;
 function renderDemoLayer() {
-  const demoCount = 500;
-  const geometry = new THREE.OctahedronGeometry(1.0, 0);
+  const demoCount = 600;
+  const geometry = new THREE.OctahedronGeometry(0.9, 1);
   const material = new THREE.MeshPhongMaterial({
-    color: 0xffffff, transparent: true, opacity: 0.35,
-    shininess: 60, blending: THREE.AdditiveBlending
+    color: 0xffffff, transparent: true, opacity: 0.4,
+    shininess: 80, blending: THREE.AdditiveBlending
   });
   demoMesh = new THREE.InstancedMesh(geometry, material, demoCount);
   
   const demoPositions = [];
-  const demoRegions = [
-    { x:0, y:20, z:0, scale:55, col:0x94a3b8, count:200 },   // cortex (gray)
-    { x:0, y:-10, z:0, scale:25, col:0xbfdbfe, count:60 },    // limbic
-    { x:0, y:-40, z:-10, scale:18, col:0xfde68a, count:40 },   // brainstem
-    { x:0, y:40, z:20, scale:22, col:0xa7f3d0, count:70 },     // prefrontal
-    { x:0, y:0, z:40, scale:12, col:0xc4b5fd, count:30 },      // ego
-    { x:30, y:0, z:0, scale:30, col:0x99f6e4, count:60 },      // sensors
-    { x:-30, y:0, z:0, scale:30, col:0xcbd5e1, count:40 }      // shared
-  ];
+  const palette = [0x6366f1, 0x8b5cf6, 0xa78bfa, 0x60a5fa, 0x38bdf8, 0x2dd4bf, 0x34d399, 0xfbbf24, 0xf472b6];
   
-  let idx = 0;
-  demoRegions.forEach(meta => {
-    for(let n=0; n<meta.count; n++) {
-      const u = Math.random(), v = Math.random();
-      const theta = 2*Math.PI*u, phi = Math.acos(2*v-1);
-      const r = Math.random() * meta.scale;
-      const px = meta.x + r*Math.sin(phi)*Math.cos(theta);
-      const py = meta.y + r*Math.sin(phi)*Math.sin(theta);
-      const pz = meta.z + r*Math.cos(phi);
-      demoPositions.push(new THREE.Vector3(px, py, pz));
-      dummy.position.set(px, py, pz);
-      const s = 0.3 + Math.random()*0.4;
-      dummy.scale.set(s, s, s);
-      dummy.updateMatrix();
-      demoMesh.setMatrixAt(idx, dummy.matrix);
-      demoMesh.setColorAt(idx, new THREE.Color(meta.col));
-      idx++;
-    }
-  });
+  for(let n=0; n<demoCount; n++) {
+    const t = n / demoCount;
+    
+    // Double helix spiral galaxy
+    const arm = n % 2; // two spiral arms
+    const angle = t * Math.PI * 8 + arm * Math.PI;
+    const radius = 5 + t * 65;
+    const spread = (1 - t*0.6) * 8;
+    
+    const px = Math.cos(angle) * radius + (Math.random()-0.5) * spread;
+    const py = Math.sin(angle * 0.5) * 15 * (1-t) + (Math.random()-0.5) * spread * 1.5;
+    const pz = Math.sin(angle) * radius + (Math.random()-0.5) * spread;
+    
+    demoPositions.push(new THREE.Vector3(px, py, pz));
+    dummy.position.set(px, py, pz);
+    const s = 0.2 + (1-t) * 0.6 + Math.random()*0.2;
+    dummy.scale.set(s, s, s);
+    dummy.updateMatrix();
+    demoMesh.setMatrixAt(n, dummy.matrix);
+    
+    const col = new THREE.Color(palette[n % palette.length]);
+    col.multiplyScalar(0.6 + Math.random()*0.4);
+    demoMesh.setColorAt(n, col);
+  }
   demoMesh.instanceMatrix.needsUpdate = true;
   if(demoMesh.instanceColor) demoMesh.instanceColor.needsUpdate = true;
   scene.add(demoMesh);
   
-  // Demo axons
+  // Demo axons — flowing connections along the spiral
   const linePos = [];
-  for(let j=0; j<800; j++) {
+  for(let j=0; j<1200; j++) {
     const p1 = demoPositions[Math.floor(Math.random()*demoCount)];
-    for(let k=0; k<20; k++) {
+    for(let k=0; k<30; k++) {
       const p2 = demoPositions[Math.floor(Math.random()*demoCount)];
-      if(p1 && p2 && p1.distanceTo(p2)<22) {
+      if(p1 && p2 && p1.distanceTo(p2)<30) {
         linePos.push(p1.x,p1.y,p1.z, p2.x,p2.y,p2.z);
         break;
       }
     }
   }
   const axMat = new THREE.LineBasicMaterial({
-    color: 0x94a3b8, transparent:true, opacity:0.12,
+    color: 0x8b5cf6, transparent:true, opacity:0.15,
     blending: THREE.AdditiveBlending, depthWrite:false
   });
   const axGeo = new THREE.BufferGeometry();
