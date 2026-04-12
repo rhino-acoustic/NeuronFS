@@ -159,4 +159,44 @@ func RegisterNativeTools(s *mcp.Server, brainRoot string) {
 			}, nil
 		},
 	)
+
+	// ─── Native Tool 5: MCP Delegation Hub (Phase 30) ───
+	s.AddTool(
+		&mcp.Tool{
+			Name:        "delegate_task",
+			Description: "P2P 네트워크를 통해 특정 전문 에이전트(bot1, enfp, architect)에게 작업을 위임한다.",
+			InputSchema: json.RawMessage(`{"type": "object", "properties": {"target_agent": {"type": "string", "enum": ["bot1", "enfp", "architect"]}, "title": {"type": "string"}, "message": {"type": "string"}}, "required": ["target_agent", "title", "message"]}`),
+		},
+		func(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			var args struct {
+				TargetAgent string `json:"target_agent"`
+				Title       string `json:"title"`
+				Message     string `json:"message"`
+			}
+			if err := json.Unmarshal(req.Params.Arguments, &args); err != nil {
+				return mcpError("invalid arguments: " + err.Error()), nil
+			}
+
+			// Dump to inbox (Reuse Phase 27 Delegation logic)
+			inboxDir := filepath.Join(brainRoot, "_agents", args.TargetAgent, "inbox")
+			os.MkdirAll(inboxDir, 0755)
+
+			fileName := fmt.Sprintf("mcp_delegation_%d.md", time.Now().UnixNano())
+			filePath := filepath.Join(inboxDir, fileName)
+
+			logContent := fmt.Sprintf("발신: MCP Network\n# %s\n\n%s\n", args.Title, args.Message)
+			if err := os.WriteFile(filePath, []byte(logContent), 0644); err != nil {
+				return mcpError("Server error: could not write to inbox"), nil
+			}
+
+			// Trigger SSE if available (GlobalSSEBroker must be tracked globally. Since it is declared in main package, we can access it if initialized)
+			if GlobalSSEBroker != nil {
+				GlobalSSEBroker.Broadcast("info", fmt.Sprintf("[MCP] Swarm Task Delegated: %s", args.TargetAgent))
+			}
+
+			return &mcp.CallToolResult{
+				Content: []mcp.Content{&mcp.TextContent{Text: "✅ P2P Swarm Delegation to " + args.TargetAgent + " success."}},
+			}, nil
+		},
+	)
 }
