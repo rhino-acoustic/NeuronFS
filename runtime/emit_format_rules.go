@@ -613,8 +613,8 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 	if len(alwaysRules) > 5 {
 		alwaysRules = alwaysRules[:5]
 	}
-	if len(whenRules) > 8 {
-		whenRules = whenRules[:8]
+	if len(whenRules) > 12 {
+		whenRules = whenRules[:12]
 	}
 	if len(neverRules) > 15 {
 		neverRules = neverRules[:15]

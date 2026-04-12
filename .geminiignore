@@ -1,0 +1,13 @@
+# NeuronFS Gemini CLI — 뇌 접근 허용
+# .gitignore보다 우선. brain_v4 전체 접근 허용.
+# (개인 데이터지만 AI 에이전트가 읽어야 규칙 준수 가능)
+
+# 빌드/시스템 파일만 제외
+*.exe
+*.log
+node_modules/
+dist/
+logs/
+_quarantine/
+.secrets/
+*.bin

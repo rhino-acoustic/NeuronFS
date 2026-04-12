@@ -2,10 +2,11 @@
 qorz: 커뮤니티 동향(reddit, github 등)을 최우선 검색해서 베스트 프랙티스 확인. 세션 첫 대화 시 검색 없이 코딩 시작 금지.
 매 응답 끝에 반드시 [EVOLVE:proceed] 태그를 삽입한다. 자율주행 사이클의 연쇄 트리거 보장.
 10턴마다 view_file로 ~/.gemini/GEMINI.md를 다시 읽어 글로벌 룰을 재확인하라. 긴 대화에서 규칙이 잊혀지는 것을 방지한다.
+코드 수정 전 반드시: 1) brain_v4/{영역}/_rules.md 읽기 2) 코드맵 뉴런(cortex/dev/_codemap) 확인 3) 영향 범위 파악 4) go vet ./... 실행 5) 기존 기능 목록화 후 누락 대조
 <!-- NEURONFS:START -->
-<!-- Generated: 2026-04-12T09:43:09 -->
+<!-- Generated: 2026-04-12T10:16:11 -->
 <!-- Axiom: Folder=Neuron | File=Trace | Path=Sentence -->
-<!-- Active: 415/415 neurons | Total activation: 8890 -->
+<!-- Active: 419/419 neurons | Total activation: 9090 -->
 
 ## NeuronFS Active Rules
 
@@ -39,6 +40,10 @@ brainstem ←→ limbic ←→ hippocampus ←→ sensors ←→ cortex ←→ e
 - ⚡ WHEN 해당 작업 시 → 추천: 에러분석
 - ⚡ WHEN 해당 작업 시 → 추천: 제안서구조화
 - ⚡ WHEN 코드 검색 시 → grep search
+- ⚡ WHEN 해당 작업 시 → 추천: 패턴분석
+- ⚡ WHEN 배포/릴리스 시 → 버전관리
+- ⚡ WHEN 해당 작업 시 → 추천: 모듈화
+- ⚡ WHEN 코드 수정 전 → 추천: 코드수정전 영향범위파악
 
 ### 🔴 NEVER (절대 금지)
 - ⛔ 이전에 완료한 작업을 다시 하지 마라. 기존 결과를 확인하고 이어가라. (∵ 토큰 낭비 + 기존 결과 덮어쓰기 위험)
@@ -64,7 +69,7 @@ brainstem ←→ limbic ←→ hippocampus ←→ sensors ←→ cortex ←→ e
 경로: `C:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4\_inbox\corrections.jsonl`
 Limbic: 경고 반복실수감지 | 긴급 사용자답답함감지 | 칭찬 사용자만족감지
 EMOTION=focus(high): 현재 함수만 집중. 다른 파일 열지 않음.
-영역: 💓limbic(3) 📝hippocampus(9) 👁️sensors(10) 🧠cortex(348) 🎭ego(8) 🎯prefrontal(13) 🔗shared(0)
+영역: 💓limbic(3) 📝hippocampus(9) 👁️sensors(10) 🧠cortex(352) 🎭ego(8) 🎯prefrontal(13) 🔗shared(0)
 
 **작업 전 `C:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4\{영역}\_rules.md`를 반드시 읽는다** (cortex=코딩/NeuronFS, sensors=NAS/브랜드, prefrontal=방향)
 ⚠️ 읽지 않으면 금지 규칙 위반이 발생한다. view_file로 먼저 읽어라. MCP read_region 호출 금지(느림).

@@ -109,6 +109,9 @@ brain.obj
 
 # Brain user data (personal — use `--init` to create example brain)
 brain_v4/
+!brain_v4/*/_rules.md
+!brain_v4/brainstem/
+!brain_v4/brainstem/**
 .gemini/
 .neuronrc
 
