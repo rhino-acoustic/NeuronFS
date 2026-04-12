@@ -6,7 +6,6 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -132,6 +131,8 @@ func main() {
 	router.Register(&GrowCmd{})
 	router.Register(&FireCmd{})
 	router.Register(&DashboardV2Cmd{})
+	router.Register(&SignalCmd{})
+	router.Register(&DecayCmd{})
 
 	// Check if any arguments match our new router
 	routed := false
@@ -171,38 +172,6 @@ func main() {
 		writeAllTiersForTargets(brainRoot, emitTarget)
 	case "harness":
 		// Handled by router
-	case "signal":
-		sigType := ""
-		neuronPath := ""
-		// Find sigType (the argument immediately after --signal)
-		for i, arg := range os.Args {
-			if arg == "--signal" && i+1 < len(os.Args) {
-				sigType = os.Args[i+1]
-				break
-			}
-		}
-		// Find neuronPath (the first non-flag arg after brainRoot and sigType)
-		neuronPath = getNonFlagArg(1) // brainRoot is 0, path is 1
-		if sigType == "" || neuronPath == "" {
-			fmt.Println("[FATAL] Usage: neuronfs <brain> --signal dopamine|bomb|memory <path>")
-			os.Exit(1)
-		}
-		signalNeuron(brainRoot, neuronPath, sigType)
-	case "decay":
-		daysStr := "30" // Default decay days
-		// Find days (the argument immediately after --decay)
-		for i, arg := range os.Args {
-			if arg == "--decay" && i+1 < len(os.Args) && !strings.HasPrefix(os.Args[i+1], "--") {
-				daysStr = os.Args[i+1]
-				break
-			}
-		}
-		days, err := strconv.Atoi(daysStr)
-		if err != nil || days <= 0 {
-			fmt.Printf("[WARN] Invalid decay days '%s', using default 30 days.\n", daysStr)
-			days = 30
-		}
-		runDecay(brainRoot, days)
 	case "snapshot":
 		gitSnapshot(brainRoot)
 	case "rollback":
