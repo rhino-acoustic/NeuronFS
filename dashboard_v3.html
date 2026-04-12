@@ -196,6 +196,7 @@ function init() {
     <button class="layout-btn" onclick="switchLayout(10, this)">11. Dense Solid Snail (무간극 고밀도 연속체)</button>
     <button class="layout-btn" onclick="switchLayout(11, this)">12. Organic Chaos Snail (유기적 파동 변형)</button>
     <button class="layout-btn" onclick="switchLayout(12, this)">13. Mobius Pyramid (뫼비우스 삼각뿔)</button>
+    <button class="layout-btn" onclick="switchLayout(13, this)">14. Klein Bottle (4차원 항아리)</button>
   `;
   
   setTimeout(() => loadLayout(0), 100);
@@ -465,6 +466,41 @@ function loadLayout(idx) {
         tArr[i*3]   = finalX;
         tArr[i*3+1] = y + yTwist + wave;
         tArr[i*3+2] = finalZ;
+    }
+  } else if(idx === 13) { // Klein Bottle (4차원 항아리)
+    // Classic 3D immersion of the 4D Klein Bottle (Paul Bourke parameterization)
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+        const u = Math.random() * Math.PI * 2.0; 
+        const v = Math.random() * Math.PI * 2.0; 
+        
+        const cosU = Math.cos(u);
+        const sinU = Math.sin(u);
+        const cosV = Math.cos(v);
+        const sinV = Math.sin(v);
+        
+        const rFactor = 4.0 * (1.0 - cosU / 2.0);
+        
+        let x, y;
+        if (u < Math.PI) {
+            x = 6.0 * cosU * (1.0 + sinU) + rFactor * cosU * cosV;
+            y = 16.0 * sinU + rFactor * sinU * cosV;
+        } else {
+            x = 6.0 * cosU * (1.0 + sinU) - rFactor * cosV;
+            y = 16.0 * sinU;
+        }
+        let z = rFactor * sinV;
+        
+        // Add subtle thickness/energy vibration
+        const thickness = (Math.random() - 0.5) * 1.5;
+        const wave = Math.sin(u * 15.0 + v * 15.0) * 0.4;
+        
+        const scale = 11.0;
+        
+        tArr[i*3]   = x * scale + thickness + wave;
+        
+        // y naturally spans from approx -16 to +16. Center it perfectly so the intersection tube hits the hot Origin(0,0,0)
+        tArr[i*3+1] = y * scale + thickness + wave - 40.0; 
+        tArr[i*3+2] = z * scale + thickness + wave;
     }
   }
 
