@@ -54,18 +54,12 @@ func InvokeLocalLLM(model, prompt string) (string, error) {
 		return "", fmt.Errorf("edge compute (Ollama) is not running on localhost:11434")
 	}
 
-	reqPayload := OllamaRequest{
-		Model:  model,
-		Prompt: prompt,
-		Stream: false,
-	}
+	// Phase 33: NPU HAL Fast-Path Payload Generation
+	// Bypass json.Marshal reflection overhead using Zero-Copy Pool
+	payloadBuf, releaseFn := BuildInferencePayload(model, prompt)
+	defer releaseFn()
 
-	jsonData, err := json.Marshal(reqPayload)
-	if err != nil {
-		return "", err
-	}
-
-	resp, err := http.Post(OllamaLocalEndpoint, "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post(OllamaLocalEndpoint, "application/json", bytes.NewBuffer(payloadBuf))
 	if err != nil {
 		return "", fmt.Errorf("edge inference failed: %w", err)
 	}
