@@ -145,9 +145,32 @@ func getFolderBirthTime(folderPath string) time.Time {
 	return fi.ModTime() // fallback: non-Windows or VFS
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// BRAIN CACHE (Phase 19: High-speed In-Memory sync.Map)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+var rootBrainCache sync.Map
+
+type brainCacheEntry struct {
+	Brain Brain
+	Time  time.Time
+}
+
+func InvalidateBrainCache(root string) {
+	rootBrainCache.Delete(root)
+}
+
 // SCAN: Folder tree → Brain structure
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 func scanBrain(root string) Brain {
+	if os.Getenv("NEURONFS_TEST_ISOLATION") != "1" {
+		if entry, ok := rootBrainCache.Load(root); ok {
+			ce := entry.(*brainCacheEntry)
+			if time.Since(ce.Time) < 1500*time.Millisecond {
+				return ce.Brain
+			}
+		}
+	}
+
 	brain := Brain{Root: root}
 
 	regionsToScan := make(map[string]string)
@@ -514,6 +537,11 @@ func scanBrain(root string) Brain {
 	// Sort regions by priority
 	sort.Slice(brain.Regions, func(i, j int) bool {
 		return brain.Regions[i].Priority < brain.Regions[j].Priority
+	})
+
+	rootBrainCache.Store(root, &brainCacheEntry{
+		Brain: brain,
+		Time:  time.Now(),
 	})
 
 	return brain

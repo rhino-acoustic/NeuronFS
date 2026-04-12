@@ -140,6 +140,7 @@ func growNeuron(brainRoot string, neuronPath string) error {
 	logEpisode(brainRoot, "GROW", neuronPath)
 
 	// Mark dirty — periodic loop will handle injection
+	InvalidateBrainCache(brainRoot)
 	markBrainDirty()
 	return nil
 }
@@ -208,6 +209,7 @@ func fireNeuron(brainRoot string, neuronPath string) {
 	// Hebbian Co-activation: 30초 내 발화된 뉴런과의 연관 기록
 	hebbianTrack(brainRoot, neuronPath)
 
+	InvalidateBrainCache(brainRoot)
 	markBrainDirty()
 }
 
@@ -271,6 +273,7 @@ func rollbackNeuron(brainRoot string, neuronPath string) error {
 	fmt.Printf("[ROLLBACK] ⏪ %s → %d → %d\n", neuronPath, currentCounter, newCounter)
 
 	logEpisode(brainRoot, "ROLLBACK", fmt.Sprintf("%s (%d→%d)", neuronPath, currentCounter, newCounter))
+	InvalidateBrainCache(brainRoot)
 	markBrainDirty()
 	return nil
 }
@@ -338,6 +341,7 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 	}
 
 	logEpisode(brainRoot, "SIGNAL:"+sigType, neuronPath)
+	InvalidateBrainCache(brainRoot)
 	markBrainDirty()
 	return nil
 }
