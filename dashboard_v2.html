@@ -152,150 +152,201 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
+const PARTICLE_COUNT = 300000;
 let scene, camera, renderer, controls;
-let instancedMesh;
-let axonMesh;
-const dummy = new THREE.Object3D();
+let bgParticleSystem, activeNeuronSystem;
+
+// Subsumption 7 Layers
+const layers = [
+  { name: 'brainstem',  color: 0xe11d48 }, 
+  { name: 'limbic',     color: 0xf97316 }, 
+  { name: 'hippocampus',color: 0xeab308 }, 
+  { name: 'sensors',    color: 0x10b981 }, 
+  { name: 'cortex',     color: 0x3b82f6 }, 
+  { name: 'ego',        color: 0x8b5cf6 }, 
+  { name: 'prefrontal', color: 0xf8fafc }  
+];
+
+const vertShader = `
+  uniform float uTime;
+  uniform vec3 uColorCore;
+  attribute vec3 aColor;
+  attribute float aSize;
+  attribute float aWrinkleOffset;
+  varying vec3 vColor;
+  
+  void main() {
+    vec3 mixedPos = position;
+    
+    // Ambient breathing
+    float breath = sin(uTime * 1.5 + mixedPos.x * 0.02 + aWrinkleOffset) * 2.0;
+    mixedPos.y += breath;
+    mixedPos.z += cos(uTime * 2.0 + mixedPos.y * 0.05) * 1.5;
+
+    // Spinning core effect very slowly
+    float angle = uTime * 0.1;
+    float s = sin(angle), c = cos(angle);
+    mat2 rot = mat2(c, -s, s, c);
+    mixedPos.xz = rot * mixedPos.xz;
+
+    vec4 mvPosition = modelViewMatrix * vec4(mixedPos, 1.0);
+    
+    float distToCenter = length(mixedPos);
+    float depthFactor = clamp(1.0 - (distToCenter / 150.0), 0.0, 1.0);
+    depthFactor = pow(depthFactor, 3.0); 
+    
+    vec3 blendedColor = mix(aColor, uColorCore, depthFactor);
+    vColor = blendedColor;
+    
+    gl_PointSize = (aSize + depthFactor * 6.0) * (150.0 / -mvPosition.z);
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`;
+
+const fragShader = `
+  varying vec3 vColor;
+  void main() {
+    vec2 p = gl_PointCoord - vec2(0.5);
+    float dist = length(p);
+    if(dist > 0.5) discard;
+    float alpha = exp(-dist * dist * 10.0);
+    gl_FragColor = vec4(vColor * 1.8, alpha); 
+  }
+`;
 
 function init3D() {
   const container = document.getElementById('gl-container');
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x030305, 0.003);
+  scene.fog = new THREE.FogExp2(0x030305, 0.0025);
 
-  camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 1000);
-  camera.position.set(100, 80, 150);
+  camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 1, 3000);
+  camera.position.set(0, 100, 500);
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setClearColor(0x030305, 1.0);
   container.appendChild(renderer.domElement);
 
   controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
-  controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.5;
+  controls.autoRotate = true; 
+  controls.autoRotateSpeed = 0.3;
 
-  renderDemoLayer();
-  fetchGraphQLBrain();
+  const posArr = new Float32Array(PARTICLE_COUNT * 3);
+  const colorArr = new Float32Array(PARTICLE_COUNT * 3);
+  const sizeArr = new Float32Array(PARTICLE_COUNT);
+  const wrinkleArr = new Float32Array(PARTICLE_COUNT);
 
-  scene.add(new THREE.AmbientLight(0x10b981, 0.2));
-  const pLight = new THREE.PointLight(0x3b82f6, 1, 300);
-  pLight.position.set(0, 50, 0);
-  scene.add(pLight);
-  window.pLight = pLight; // expose for sparks
+  for(let i=0; i<PARTICLE_COUNT; i++) {
+    const tScale = Math.pow(Math.random(), 0.7); 
+    const y = tScale * 350; 
+    const maxWidth = tScale * 700; 
+    
+    const streamCount = 7.0;
+    const layerIdx = Math.min(6, Math.floor(Math.random() * streamCount));
+    
+    const nx = ((layerIdx + 0.5) / streamCount) + (Math.random() - 0.5) * (1.0 / streamCount); 
+    
+    const x = (nx - 0.5) * maxWidth;
+    const zWave = Math.sin((nx - 0.5) * Math.PI * 2.0 * streamCount) * 40 * tScale;
+    const z = zWave + (Math.random() - 0.5) * 6 * tScale;
 
+    posArr[i*3] = x;
+    posArr[i*3+1] = y - 100;
+    posArr[i*3+2] = z;
+    
+    sizeArr[i] = Math.random() < 0.05 ? 3.0 + Math.random()*2.0 : 1.0 + Math.random() * 1.5;
+    wrinkleArr[i] = layerIdx * 10.0;
+    
+    const col = new THREE.Color(layers[layerIdx].color);
+    colorArr[i*3] = col.r; colorArr[i*3+1] = col.g; colorArr[i*3+2] = col.b;
+  }
+
+  const bgGeo = new THREE.BufferGeometry();
+  bgGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+  bgGeo.setAttribute('aColor', new THREE.BufferAttribute(colorArr, 3));
+  bgGeo.setAttribute('aSize', new THREE.BufferAttribute(sizeArr, 1));
+  bgGeo.setAttribute('aWrinkleOffset', new THREE.BufferAttribute(wrinkleArr, 1));
+
+  const bgMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0.0 }, uColorCore: { value: new THREE.Color(0xfffbcc) } },
+    vertexShader: vertShader, fragmentShader: fragShader,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+  });
+
+  bgParticleSystem = new THREE.Points(bgGeo, bgMat);
+  scene.add(bgParticleSystem);
+
+  initActiveNeurons();
   window.addEventListener('resize', onWindowResize);
+  fetchGraphQLBrain();
   animate();
 }
-// ── Demo Layer: GLSL Lissajous orbit trail (neuron visualization) ──
-let demoMesh, demoAxonMesh; // keep vars for compat
-let shaderBgMesh;
-function renderDemoLayer() {
-  const vertShader = `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`;
-  const fragShader = `
-    precision highp float;
-    uniform float iTime;
-    uniform vec2 iResolution;
-    uniform float neuronCount;
-    varying vec2 vUv;
-    
-    #define PI 3.14159265359
-    
-    void main() {
-      vec2 uv = vUv - 0.5;
-      uv.x *= iResolution.x / iResolution.y;
-      
-      float time = iTime;
-      float radius1 = 0.2;
-      float rotSpeed = -0.5;
-      float lineSpeed = 3.5;
-      float base = 500.0 * PI;
-      
-      vec4 col = vec4(0.0);
-      
-      // N neuron lead balls distributed along the Lissajous curve
-      float dots = clamp(neuronCount, 2.0, 512.0);
-      float ballGlow = 0.008 * (2.0 / max(sqrt(dots), 1.0)); // auto-dim
-      float phaseStep = (2.0 * PI) / dots;
-      
-      for(float n = 0.0; n < 512.0; n++) {
-        if(n >= dots) break;
-        float phase = n * phaseStep;
-        vec2 bp = vec2(
-          radius1 * cos(rotSpeed*time*lineSpeed + base + phase) * 2.0,
-          radius1 * sin(rotSpeed*time*lineSpeed*2.0 + base + phase*2.0)
-        );
-        // Alternate emerald / blue
-        vec3 bCol = mod(n, 2.0) < 1.0 ? vec3(0.06, 0.72, 0.51) : vec3(0.23, 0.51, 0.96);
-        col += ballGlow * vec4(bCol, 1.0) / length(uv - bp);
-      }
-      
-      // Full continuous Lissajous trail (the beautiful curve)
-      float trailGlow = 0.00003;
-      for(float i = 0.0; i < PI; i += 0.002) {
-        vec2 tp1 = vec2(radius1 * cos(rotSpeed*time*lineSpeed + base + i) * 2.0,
-                        radius1 * sin(rotSpeed*time*lineSpeed*2.0 + base + i*2.0));
-        col += trailGlow * vec4(vec3(0.06, 0.72, 0.51), 1.0) / length(uv - tp1);
-        
-        vec2 tp2 = vec2(radius1 * cos(rotSpeed*time*lineSpeed + base + PI + i) * 2.0,
-                        radius1 * -sin(rotSpeed*time*lineSpeed*2.0 + base + i*2.0));
-        col += trailGlow * vec4(vec3(0.23, 0.51, 0.96), 1.0) / length(uv - tp2);
-      }
-      
-      col = clamp(col, 0.0, 1.0);
-      gl_FragColor = col;
-    }
-  `;
+
+let activeNeuronsData = [];
+const MAX_NEURONS = 1000;
+let nGeo, nPosArr, nColorArr;
+
+function initActiveNeurons() {
+  nPosArr = new Float32Array(MAX_NEURONS * 3);
+  nColorArr = new Float32Array(MAX_NEURONS * 3);
+  nGeo = new THREE.BufferGeometry();
   
-  const container = document.getElementById('gl-container');
-  const shaderMat = new THREE.ShaderMaterial({
-    uniforms: {
-      iTime: { value: 0.0 },
-      iResolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) },
-      neuronCount: { value: 12.0 }
-    },
-    vertexShader: vertShader,
-    fragmentShader: fragShader,
-    depthWrite: false,
-    depthTest: false
-  });
+  for(let i=0; i<MAX_NEURONS; i++) nPosArr[i*3+1] = 9999; 
   
-  shaderBgMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMat);
-  shaderBgMesh.frustumCulled = false;
-  shaderBgMesh.renderOrder = -1;
-  scene.add(shaderBgMesh);
+  nGeo.setAttribute('position', new THREE.BufferAttribute(nPosArr, 3));
+  nGeo.setAttribute('color', new THREE.BufferAttribute(nColorArr, 3));
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+  gradient.addColorStop(0.5, 'rgba(255,255,255,0.2)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gradient; ctx.fillRect(0,0,64,64);
+  const tex = new THREE.CanvasTexture(canvas);
+  
+  const nMat = new THREE.PointsMaterial({ size: 8.0, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, map: tex });
+  activeNeuronSystem = new THREE.Points(nGeo, nMat);
+  scene.add(activeNeuronSystem);
 }
 
-// Phase 57: REST API Brain Fetcher — neuron count drives shader
-async function fetchGraphQLBrain() {
-  try {
-    const res = await fetch('/api/brain');
-    if(!res.ok) throw new Error('REST API Error');
-    const json = await res.json();
-    const brainRegions = json.regions.map(r => ({
-      name: r.name,
-      count: r.neurons ? r.neurons.length : 0,
-      neurons: r.neurons || []
-    }));
-    document.getElementById('m-neurons').innerText = (json.totalNeurons || 0).toLocaleString();
-    document.getElementById('m-act').innerText = (json.totalCounter || 0).toLocaleString();
-    // Update shader dot count to match real neuron count
-    if(shaderBgMesh) shaderBgMesh.material.uniforms.neuronCount.value = Math.min(json.totalNeurons || 12, 64);
-    document.getElementById('gl-stats').innerText = `${(json.totalNeurons||0).toLocaleString()} Neurons Orbiting`;
-    renderGraphQLBrain(brainRegions);
-    setTimeout(fetchGraphQLBrain, 5000);
-  } catch(e) {
-    console.error('[REST Brain]', e);
-    document.getElementById('gl-stats').innerText = 'DEMO MODE | 12 Neurons';
-    setTimeout(fetchGraphQLBrain, 5000);
+function getLayerIndex(regionName) {
+  const name = (regionName || "").toLowerCase();
+  const idx = layers.findIndex(l => name.includes(l.name));
+  return idx !== -1 ? idx : 4; 
+}
+
+function syncNeurons(loadedList) {
+  let newList = [];
+  const minLen = Math.min(loadedList.length, MAX_NEURONS);
+  for(let i=0; i<minLen; i++) {
+    const n = loadedList[i];
+    newList.push({ tScale: Math.random(), layerIdx: n.layerIdx, speed: 0.001 + Math.random() * 0.003 });
+    const col = new THREE.Color(layers[n.layerIdx].color);
+    nColorArr[i*3] = col.r; nColorArr[i*3+1] = col.g; nColorArr[i*3+2] = col.b;
   }
+  for(let i=minLen; i<MAX_NEURONS; i++) nPosArr[i*3+1] = 9999;
+  
+  activeNeuronsData = newList;
+  nGeo.attributes.color.needsUpdate = true;
 }
 
+// ── Overridden V2 functions ──
 function renderGraphQLBrain(brainRegions) {
-  // Shader handles neuron visualization — clean up legacy 3D meshes
-  if(instancedMesh) { scene.remove(instancedMesh); instancedMesh.geometry.dispose(); instancedMesh.material.dispose(); instancedMesh = null; }
-  if(axonMesh) { scene.remove(axonMesh); axonMesh.geometry.dispose(); axonMesh.material.dispose(); axonMesh = null; }
+  let loadedNeurons = [];
+  if (brainRegions) {
+    brainRegions.forEach(r => {
+      const lIdx = getLayerIndex(r.name);
+      (r.neurons || []).forEach(n => {
+        loadedNeurons.push({ path: n.path, layerIdx: lIdx });
+      });
+    });
+  }
+  syncNeurons(loadedNeurons);
 }
 
 function onWindowResize() {
@@ -303,18 +354,36 @@ function onWindowResize() {
   camera.aspect = container.clientWidth / container.clientHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(container.clientWidth, container.clientHeight);
-  if(shaderBgMesh) shaderBgMesh.material.uniforms.iResolution.value.set(container.clientWidth, container.clientHeight);
 }
 
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
 
-  const time = performance.now() * 0.001;
-  scene.rotation.y = Math.sin(time * 0.1) * 0.1;
+  const time = performance.now();
+  if(bgParticleSystem) bgParticleSystem.material.uniforms.uTime.value = time * 0.001;
   
-  // Update GLSL shader time
-  if(shaderBgMesh) shaderBgMesh.material.uniforms.iTime.value = time;
+  const dt = 0.016; 
+  for(let i=0; i<activeNeuronsData.length; i++) {
+    let n = activeNeuronsData[i];
+    n.tScale -= n.speed * dt * 60; 
+    if(n.tScale < 0.02) n.tScale = 1.0; 
+    
+    const y = n.tScale * 350;
+    const maxWidth = n.tScale * 700;
+    const nx = ((n.layerIdx + 0.5) / 7.0); 
+    const x = (nx - 0.5) * maxWidth;
+    const zWave = Math.sin((nx - 0.5) * Math.PI * 2.0 * 7.0) * 40 * n.tScale;
+    
+    const angle = time * 0.0001;
+    let rx = x * Math.cos(angle) - zWave * Math.sin(angle);
+    let rz = x * Math.sin(angle) + zWave * Math.cos(angle);
+    
+    nPosArr[i*3] = rx;
+    nPosArr[i*3+1] = y - 100 + Math.sin(time*0.005 + i)*5; 
+    nPosArr[i*3+2] = rz + 10; 
+  }
+  if(nGeo) nGeo.attributes.position.needsUpdate = true;
   
   renderer.render(scene, camera);
 }
