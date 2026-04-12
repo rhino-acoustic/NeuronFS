@@ -268,6 +268,10 @@ func runSupervisor(brainRoot string) {
 	go superviseMCPGoroutine(brainRoot, MCPStreamPort)
 	svLog(fmt.Sprintf("🌐 MCP Streamable HTTP 시작 (:%d)", MCPStreamPort))
 
+	// Go 네이티브 Backlog Classifier (inbox 자동 분류)
+	go RunBacklogLoop(brainRoot, svLog)
+	svLog("📋 Backlog Classifier 시작 (5분 주기)")
+
 	svBootTime = time.Now()
 	hlLoadTelegram(nfsRoot)
 
