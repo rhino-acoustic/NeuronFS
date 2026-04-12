@@ -155,6 +155,8 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 const PARTICLE_COUNT = 300000;
 let scene, camera, renderer, controls;
 let bgParticleSystem, activeNeuronSystem;
+let instancedMesh = null;
+let axonMesh = null;
 
 // Subsumption 7 Layers
 const layers = [
@@ -333,6 +335,33 @@ function syncNeurons(loadedList) {
   
   activeNeuronsData = newList;
   nGeo.attributes.color.needsUpdate = true;
+}
+
+async function fetchGraphQLBrain() {
+  try {
+    const res = await fetch('/api/brain');
+    if(!res.ok) throw new Error('REST API Error');
+    const json = await res.json();
+    const brainRegions = json.regions.map(r => ({
+      name: r.name,
+      count: r.neurons ? r.neurons.length : 0,
+      neurons: r.neurons || []
+    }));
+    document.getElementById('m-neurons').innerText = (json.totalNeurons || 0).toLocaleString();
+    if(document.getElementById('m-act')) {
+        document.getElementById('m-act').innerText = (json.totalCounter || 0).toLocaleString();
+    }
+    if(document.getElementById('gl-stats')) {
+        document.getElementById('gl-stats').innerText = `${(json.totalNeurons||0).toLocaleString()} Neurons Orbiting`;
+    }
+    renderGraphQLBrain(brainRegions);
+    setTimeout(fetchGraphQLBrain, 5000);
+  } catch(e) {
+    if(document.getElementById('gl-stats')) {
+        document.getElementById('gl-stats').innerText = 'DEMO MODE | Simulation Overlay';
+    }
+    setTimeout(fetchGraphQLBrain, 5000);
+  }
 }
 
 // ── Overridden V2 functions ──
