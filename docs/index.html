@@ -169,14 +169,22 @@
   <!-- HERO -->
   <section class="hero">
     <div class="container">
-      <h1 class="rv">mkdir your AI's <em>brain</em></h1>
-      <p class="hero-sub rv">Structure AI behavior with folders. Each folder is a rule. Each path is a sentence. No database, no cloud, no tokens consumed. Just a 4MB binary and your filesystem.</p>
+      <h1 class="rv">One brain.<br>Every AI tool.<br><em>Same rules.</em></h1>
+      <p class="hero-sub rv">NeuronFS is a structured prompt management tool. Define rules as folders, emit to any AI tool, track changes with git. The real value: <strong style="color:var(--text)">consistency across your entire team</strong>.</p>
       <div class="hero-btns rv">
         <a href="https://github.com/rhino-acoustic/NeuronFS" class="btn-p">Get Started →</a>
-        <a href="https://github.com/rhino-acoustic/NeuronFS/wiki" class="btn-s">Read 22 Episodes</a>
+        <a href="docs.html" class="btn-s">Read the Docs</a>
       </div>
-      <div class="hero-img rv">
-        <img src="dashboard_preview.png" alt="NeuronFS Dashboard — 420 neurons across 7 brain regions">
+
+      <!-- LIVE NEURON TREE -->
+      <div class="rv" style="max-width:900px; margin:0 auto; background:var(--bg-2); border:1px solid var(--border); border-radius:16px; overflow:hidden;">
+        <div style="padding:10px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; font-size:0.75rem; color:var(--text-3);">
+          <span style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block;"></span>
+          <span style="width:10px;height:10px;border-radius:50%;background:var(--yellow);display:inline-block;"></span>
+          <span style="width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block;"></span>
+          <span style="margin-left:8px;">brain_v4/ — Live Neuron Tree (420 neurons)</span>
+        </div>
+        <div id="neuron-tree" style="padding:20px 24px; font-family:'JetBrains Mono',monospace; font-size:0.78rem; line-height:2; max-height:380px; overflow-y:auto; color:var(--text-2);"></div>
       </div>
     </div>
   </section>
@@ -443,15 +451,43 @@ Copilot, Windsurf, Cline...
     </div>
   </section>
 
+  <!-- MARKETPLACE VISION -->
+  <section class="s s-alt" id="marketplace">
+    <div class="container">
+      <div class="s-header rv">
+        <div class="s-eyebrow">Vision</div>
+        <h2 class="s-title">The brain is the product</h2>
+        <p class="s-desc">A curated folder structure — refined through thousands of iterations — is transferable knowledge. Brain packages can be shared, sold, and installed with a single unzip.</p>
+      </div>
+      <div class="feat-grid rv">
+        <div class="feat-card" style="text-align:center;">
+          <div class="feat-icon">💼</div>
+          <h3>Enterprise Brains</h3>
+          <p>"Financial Compliance Brain" — HIPAA, SOX, PCI-DSS rules pre-configured as folders. git clone and emit.</p>
+        </div>
+        <div class="feat-card" style="text-align:center;">
+          <div class="feat-icon">🛒</div>
+          <h3>Brain Marketplace</h3>
+          <p>Community-curated brain packages. Stars, reviews, categories. Like a plugin marketplace for AI governance.</p>
+        </div>
+        <div class="feat-card" style="text-align:center;">
+          <div class="feat-icon">🔐</div>
+          <h3>Private Brains</h3>
+          <p>Internal brain repositories for enterprise teams. Accumulated 禁 rules = institutional memory that doesn't leave with employees.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="s">
     <div class="container">
       <div class="cta-box rv">
-        <h2>Start governing your AI today</h2>
-        <p>mkdir a brain. Emit to your tool. Zero infrastructure. Zero cost. Infinite structure.</p>
+        <h2>One source of truth for all your AI rules</h2>
+        <p>Define once. Emit everywhere. Track with git. The simplest path to consistent AI governance.</p>
         <div class="hero-btns">
           <a href="https://github.com/rhino-acoustic/NeuronFS" class="btn-p">View on GitHub →</a>
-          <a href="https://github.com/rhino-acoustic/NeuronFS/wiki" class="btn-s">Read 22 Episodes</a>
+          <a href="docs.html" class="btn-s">Read the Docs</a>
         </div>
       </div>
     </div>
@@ -460,7 +496,7 @@ Copilot, Windsurf, Cline...
   <footer>
     <div class="container">
       <p>NeuronFS v13 · AGPL-3.0 · <a href="https://github.com/rhino-acoustic/NeuronFS">GitHub</a> · <a href="https://github.com/rhino-acoustic/NeuronFS/wiki">Wiki</a></p>
-      <p style="margin-top:8px; font-size:0.75rem; color:var(--text-3);">"AI is not intelligence. It is current. The circuit determines the destination."</p>
+      <p style="margin-top:8px; font-size:0.75rem; color:var(--text-3);">"The folder is not the innovation. The consistency is."</p>
     </div>
   </footer>
 
@@ -468,10 +504,8 @@ Copilot, Windsurf, Cline...
     // Scroll reveal
     const obs = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); }); }, { threshold: 0.1 });
     document.querySelectorAll('.rv').forEach(el => obs.observe(el));
-
     // Nav shrink
     window.addEventListener('scroll', () => { document.getElementById('nav').classList.toggle('shrink', scrollY > 80); });
-
     // Counter animation
     const cobs = new IntersectionObserver(es => {
       es.forEach(e => {
@@ -485,6 +519,74 @@ Copilot, Windsurf, Cline...
       });
     }, { threshold: 0.3 });
     document.querySelectorAll('.stats').forEach(el => cobs.observe(el));
+
+    // Neuron tree renderer — actual brain_v4 structure
+    const tree = [
+      {n:'brainstem/', c:'var(--red)', ch:[
+        {n:'禁/', c:'var(--red)', ch:[
+          {n:'data_leak/'}, {n:'hardcoding/'}, {n:'IntersectionObserver삭제/'},
+          {n:'리팩토링_기능누락/'}, {n:'수동작/'}, {n:'수동검증/'}
+        ]},
+        {n:'bomb/', c:'var(--red)', ch:[{n:'의미없는_시뮬레이션/'}]}
+      ]},
+      {n:'limbic/', c:'var(--yellow)', ch:[
+        {n:'경고_반복실수감지/'}, {n:'긴급_사용자답답함감지/'}, {n:'칭찬_사용자만족감지/'}
+      ]},
+      {n:'hippocampus/', c:'var(--green)', ch:[
+        {n:'skills/', ch:[{n:'build_success_pattern.skill'},{n:'api_handler_pattern.skill'}]},
+        {n:'episodes/', ch:[{n:'emit_bootstrap_로그스케일/'},{n:'멀티모델_벤치마크/'}]},
+        {n:'에러_패턴/', ch:[{n:'SPA루팅에러/'},{n:'서버오케스트레이터에러/'}]}
+      ]},
+      {n:'sensors/', c:'var(--accent-l)', ch:[
+        {n:'브랜드/', ch:[{n:'NUGREY/'},{n:'VEGAVERY/'}]},
+        {n:'환경/', ch:[{n:'Windows_PowerShell/'},{n:'Supabase_EdgeFunctions/'}]}
+      ]},
+      {n:'cortex/', c:'#a78bfa', ch:[
+        {n:'dev/', ch:[
+          {n:'에러패턴확인/', ch:[{n:'레거시_이관.neuron'}]},
+          {n:'작업/', ch:[{n:'MIGRATION_TODO.neuron'}]},
+          {n:'推/testing/'}, {n:'코드맵/'}
+        ]}
+      ]},
+      {n:'ego/', c:'var(--text-3)', ch:[
+        {n:'톤/', ch:[{n:'한국어사고_한국어응답/'},{n:'간결_명령조/'}]},
+        {n:'행동양식/', ch:[{n:'출력전_5자문_체크/'},{n:'출력전_자기검증_CoVe/'}]}
+      ]},
+      {n:'prefrontal/', c:'#3f3f50', ch:[
+        {n:'목표/', ch:[{n:'NeuronFS_자율거버넌스완성/'},{n:'블로그_시리즈/'}]},
+        {n:'tasks/', ch:[{n:'WIP/'},{n:'NEXT/'},{n:'DONE/'}]}
+      ]}
+    ];
+    function renderTree(nodes, depth=0) {
+      let html = '';
+      nodes.forEach((nd, i) => {
+        const last = i === nodes.length - 1;
+        const prefix = depth === 0 ? '' : '│  '.repeat(depth-1) + (last ? '└─ ' : '├─ ');
+        const color = nd.c || 'inherit';
+        const isDir = nd.n.endsWith('/');
+        const icon = isDir ? '<span style="color:var(--accent-l)">📁</span> ' : '<span style="color:var(--text-3)">📄</span> ';
+        html += `<div style="white-space:pre">${prefix}${icon}<span style="color:${color}">${nd.n}</span></div>`;
+        if (nd.ch) html += renderTree(nd.ch, depth + 1);
+      });
+      return html;
+    }
+    // Typing effect
+    const treeEl = document.getElementById('neuron-tree');
+    const fullHtml = renderTree(tree);
+    const lines = fullHtml.split('</div>').filter(l => l.trim());
+    let lineIdx = 0;
+    function typeLine() {
+      if (lineIdx >= lines.length) return;
+      treeEl.innerHTML += lines[lineIdx] + '</div>';
+      treeEl.scrollTop = treeEl.scrollHeight;
+      lineIdx++;
+      setTimeout(typeLine, 40);
+    }
+    const treeObs = new IntersectionObserver(es => {
+      if (es[0].isIntersecting) { typeLine(); treeObs.unobserve(es[0].target); }
+    }, { threshold: 0.3 });
+    treeObs.observe(treeEl);
   </script>
 </body>
 </html>
+
