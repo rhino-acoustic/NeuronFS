@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 // ============================================================================
 // Module: EmotionPrompt Engine — Phase 53
@@ -7,25 +7,25 @@ package main
 // A/B tested: F → B+ quality improvement observed.
 // ============================================================================
 
-// EmotionTier defines intensity levels for emotional pressure
-type EmotionTier int
+// EmotionLevel defines intensity levels for emotional pressure
+type EmotionLevel int
 
 const (
-	EmotionLow    EmotionTier = iota // Gentle encouragement
+	EmotionLow    EmotionLevel = iota // Gentle encouragement
 	EmotionMedium                     // Professional pressure
 	EmotionHigh                       // Career-stakes pressure
 )
 
-// EmotionBlock holds a structured emotional injection
-type EmotionBlock struct {
-	Tier     EmotionTier
+// EmotionInjection holds a structured emotional injection
+type EmotionInjection struct {
+	Tier     EmotionLevel
 	Preamble string // Emotional context before the task
 	Rules    string // Hard rules enforced by emotion
 	Closer   string // Final emotional pressure
 }
 
-// emotionBlocks contains pre-built emotion templates per tier
-var emotionBlocks = map[EmotionTier]EmotionBlock{
+// EmotionInjections contains pre-built emotion templates per tier
+var EmotionInjections = map[EmotionLevel]EmotionInjection{
 	EmotionLow: {
 		Tier: EmotionLow,
 		Preamble: "이 작업의 결과가 팀에 공유됩니다. 좋은 인상을 남기세요.",
@@ -61,17 +61,17 @@ var emotionBlocks = map[EmotionTier]EmotionBlock{
 }
 
 // WrapWithEmotion wraps a task prompt with emotional pressure
-func WrapWithEmotion(taskPrompt string, tier EmotionTier) string {
-	block, ok := emotionBlocks[tier]
+func WrapWithEmotion(taskPrompt string, tier EmotionLevel) string {
+	block, ok := EmotionInjections[tier]
 	if !ok {
-		block = emotionBlocks[EmotionMedium]
+		block = EmotionInjections[EmotionMedium]
 	}
 
 	return block.Preamble + "\n\n" + block.Rules + "\n\n[작업]\n" + taskPrompt + "\n\n" + block.Closer
 }
 
-// DefaultEmotionTier returns the recommended tier based on task type
-func DefaultEmotionTier(taskType string) EmotionTier {
+// DefaultEmotionLevel returns the recommended tier based on task type
+func DefaultEmotionLevel(taskType string) EmotionLevel {
 	switch taskType {
 	case "code_write", "code_create":
 		return EmotionHigh
