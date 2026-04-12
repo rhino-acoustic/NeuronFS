@@ -400,9 +400,14 @@ func scanBrain(root string) Brain {
 					if n.Description == "" {
 						for _, line := range strings.Split(ruleText, "\n") {
 							line = strings.TrimSpace(line)
-							if line != "" && line != "---" && !strings.HasPrefix(line, "#") {
-								if len(line) > 120 {
-									line = line[:120]
+							if strings.HasPrefix(line, "#") {
+								line = strings.TrimSpace(strings.TrimPrefix(line, "#"))
+								line = strings.TrimSpace(strings.TrimPrefix(line, "#"))
+							}
+							if line != "" && line != "---" {
+								runes := []rune(line)
+								if len(runes) > 150 {
+									line = string(runes[:150]) + "..."
 								}
 								n.Description = line
 								break
@@ -410,26 +415,55 @@ func scanBrain(root string) Brain {
 						}
 					}
 				}
-				// Fallback 2: .neuron 파일 이름 (Path=Sentence 원칙)
-				// 예: "이전작업을_다시하지마라.neuron" → "이전작업을 다시하지마라"
+				// Fallback 2: .neuron 파일 본문 첫 줄 또는 파일 이름
 				if n.Description == "" && n.FullPath != "" {
 					entries, _ := os.ReadDir(n.FullPath)
 					for _, e := range entries {
 						if !e.IsDir() && strings.HasSuffix(e.Name(), ".neuron") {
-							name := strings.TrimSuffix(e.Name(), ".neuron")
-							// 숫자만이거나 시스템 예약 이름은 카운터용 → 스킵
-							isReserved := true
-							for _, r := range name {
-								if r < '0' || r > '9' {
-									isReserved = false
-									break
+							// 1) 본문 내용 파싱 시도
+							if content, err := os.ReadFile(filepath.Join(n.FullPath, e.Name())); err == nil {
+								for _, line := range strings.Split(string(content), "\n") {
+									line = strings.TrimSpace(line)
+									// BOM 제어
+									line = strings.TrimPrefix(line, "\xEF\xBB\xBF")
+									// JSON 및 시스템 메타데이터 스킵
+									if strings.HasPrefix(line, "{") || strings.HasPrefix(line, "counter:") || strings.HasPrefix(line, "created:") || strings.HasPrefix(line, "last_fired:") {
+										continue
+									}
+									// Markdown 헤더 기호 제거
+									if strings.HasPrefix(line, "#") {
+										line = strings.TrimSpace(strings.TrimPrefix(line, "#"))
+										line = strings.TrimSpace(strings.TrimPrefix(line, "#")) // ## 지원
+									}
+									if line != "" && line != "---" {
+										runes := []rune(line)
+										if len(runes) > 150 {
+											line = string(runes[:150]) + "..."
+										}
+										n.Description = line
+										break
+									}
 								}
 							}
-							if name == "consolidated" || name == "merged" {
-								isReserved = true
+							
+							// 2) 본문에 없으면 파일 이름 파싱
+							if n.Description == "" {
+								name := strings.TrimSuffix(e.Name(), ".neuron")
+								isReserved := true
+								for _, r := range name {
+									if r < '0' || r > '9' {
+										isReserved = false
+										break
+									}
+								}
+								if name == "consolidated" || name == "merged" {
+									isReserved = true
+								}
+								if !isReserved && len(name) > 2 {
+									n.Description = strings.ReplaceAll(name, "_", " ")
+								}
 							}
-							if !isReserved && len(name) > 2 {
-								n.Description = strings.ReplaceAll(name, "_", " ")
+							if n.Description != "" {
 								break
 							}
 						}

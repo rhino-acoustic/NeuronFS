@@ -85,6 +85,9 @@ func formatPersona(sb *strings.Builder, result SubsumptionResult) {
 						continue
 					}
 					label := strings.ReplaceAll(strings.Join(parts[1:], " > "), "_", " ")
+					if n.Description != "" {
+						label += ": " + n.Description
+					}
 					personaItems = append(personaItems, label)
 				}
 			}
@@ -566,9 +569,17 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 					}
 				}
 				wh := lookupWhyHow(leaf, n.Path, n.Description)
+				
+				labelWithDesc := leaf
+				if n.Description != "" && !strings.HasPrefix(n.Description, leaf) {
+					labelWithDesc = leaf + ": " + n.Description
+				} else if n.Description != "" {
+					labelWithDesc = n.Description
+				}
+
 				if condition != "" {
 					whenRules = append(whenRules, TieredRule{
-						Label:     leaf,
+						Label:     labelWithDesc,
 						Condition: condition,
 						How:       wh.How,
 						Score:     score,
@@ -576,14 +587,14 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 				} else if strings.ContainsAny(n.Path, "推") {
 					// 推 without specific condition → default WHEN
 					whenRules = append(whenRules, TieredRule{
-						Label:     leaf,
+						Label:     labelWithDesc,
 						Condition: "해당 작업 시",
 						How:       wh.How,
 						Score:     score,
 					})
 				} else {
 					alwaysRules = append(alwaysRules, TieredRule{
-						Label: leaf,
+						Label: labelWithDesc,
 						Score: score,
 					})
 				}
