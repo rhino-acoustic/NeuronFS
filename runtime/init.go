@@ -248,4 +248,15 @@ func initBrain(root string) {
 	fmt.Println("\n=== COMPLETE ===")
 	fmt.Printf("  Root: %s\n", root)
 	fmt.Printf("  Neurons (folders): %d\n", neuronCount)
+
+	// V12-E: Auto-emit for all agent formats (immediate usability)
+	fmt.Println("\n[V12-E] 에이전트 규칙 파일 자동 생성...")
+	writeAllTiersForTargets(root, "all")
+
+	fmt.Println("\n=== 즉시 사용 가능 ===")
+	fmt.Println("  GEMINI.md  → Google Gemini / Antigravity")
+	fmt.Println("  CLAUDE.md  → Claude Code Agent")
+	fmt.Println("  AGENTS.md  → 범용 에이전트 표준")
+	fmt.Println("  .cursorrules → Cursor Editor")
+	fmt.Printf("\n  다음 단계: cd %s && neuronfs . --api\n", filepath.Dir(root))
 }
