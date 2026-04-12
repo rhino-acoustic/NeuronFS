@@ -474,6 +474,50 @@ setInterval(fetchHealth, 10000);
 fetchAuditTrail();
 fetchHealth();
 
+// Quick Win 1: /api/state → brain_state.json 메트릭
+async function fetchState() {
+  try {
+    const r = await fetch('/api/state');
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.totalNeurons) document.getElementById('m-neurons').innerText = d.totalNeurons.toLocaleString();
+    if (d.totalActivation) document.getElementById('m-act').innerText = d.totalActivation.toLocaleString();
+  } catch(e) {}
+}
+setInterval(fetchState, 8000);
+
+// Quick Win 2: /api/ops → TTY 피드에 오퍼레이션 로그 주입
+async function fetchOps() {
+  try {
+    const r = await fetch('/api/ops');
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.ops && Array.isArray(d.ops)) {
+      d.ops.slice(-5).forEach(op => {
+        const level = op.success === false ? 'error' : 'info';
+        logTTY(`[${op.actor || 'sys'}] ${op.action || ''} → ${op.target || ''}`, level);
+      });
+    }
+  } catch(e) {}
+}
+setInterval(fetchOps, 20000);
+fetchOps();
+
+// Quick Win 3: /api/usage → Groq/Emotion 메트릭
+async function fetchUsage() {
+  try {
+    const r = await fetch('/api/usage');
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.uptime) {
+      const uptimeEl = document.querySelector('.ver');
+      if (uptimeEl) uptimeEl.innerText = `Autopilot Nerve Center | ⏱ ${d.uptime}`;
+    }
+  } catch(e) {}
+}
+setInterval(fetchUsage, 30000);
+fetchUsage();
+
 initData();
 </script>
 </body>
