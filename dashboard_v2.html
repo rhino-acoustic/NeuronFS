@@ -214,17 +214,24 @@ function renderDemoLayer() {
       
       vec4 col = vec4(0.0);
       
-      // Lead ball 1 (emerald)
-      vec2 bp1 = vec2(radius1 * cos(rotSpeed*time*lineSpeed + base) * 2.0,
-                      radius1 * sin(rotSpeed*time*lineSpeed*2.0 + base));
-      col += 0.008 * vec4(vec3(0.06, 0.72, 0.51), 1.0) / length(uv - bp1);
+      // N neuron lead balls distributed along the Lissajous curve
+      float dots = clamp(neuronCount, 2.0, 512.0);
+      float ballGlow = 0.008 * (2.0 / max(sqrt(dots), 1.0)); // auto-dim
+      float phaseStep = (2.0 * PI) / dots;
       
-      // Lead ball 2 (blue)
-      vec2 bp2 = vec2(radius1 * cos(rotSpeed*time*lineSpeed + base + PI) * 2.0,
-                      radius1 * -sin(rotSpeed*time*lineSpeed*2.0 + base));
-      col += 0.008 * vec4(vec3(0.23, 0.51, 0.96), 1.0) / length(uv - bp2);
+      for(float n = 0.0; n < 512.0; n++) {
+        if(n >= dots) break;
+        float phase = n * phaseStep;
+        vec2 bp = vec2(
+          radius1 * cos(rotSpeed*time*lineSpeed + base + phase) * 2.0,
+          radius1 * sin(rotSpeed*time*lineSpeed*2.0 + base + phase*2.0)
+        );
+        // Alternate emerald / blue
+        vec3 bCol = mod(n, 2.0) < 1.0 ? vec3(0.06, 0.72, 0.51) : vec3(0.23, 0.51, 0.96);
+        col += ballGlow * vec4(bCol, 1.0) / length(uv - bp);
+      }
       
-      // Full continuous Lissajous trail — step scales with neuron count
+      // Full continuous Lissajous trail (the beautiful curve)
       float trailGlow = 0.00003;
       for(float i = 0.0; i < PI; i += 0.002) {
         vec2 tp1 = vec2(radius1 * cos(rotSpeed*time*lineSpeed + base + i) * 2.0,
