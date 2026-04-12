@@ -8,7 +8,7 @@ import (
 )
 
 // EdgeFixCmd implements a CLI command to read the latest bot1 inbox error
-// and pipe it to the local Edge LLM for a free, fast fix proposal.
+// and pipe it to the Two-Track hybrid LLM engine for an optimal fix.
 type EdgeFixCmd struct{}
 
 func (c *EdgeFixCmd) Name() string {
@@ -45,19 +45,17 @@ func (c *EdgeFixCmd) Execute(brainRoot string, args []string) error {
 	}
 
 	fmt.Printf("[Edge] Targeting inbox item: %s\n", latest)
-	fmt.Println("[Edge] Waking up local 4-bit quant LLM...")
+	fmt.Println("[Hybrid] Waking up Cloud and Edge LLMs concurrently...")
 
 	prompt := fmt.Sprintf("You are an expert Next.js developer. Please provide a brief fix for the following Turbopack error:\n\n%s", string(content))
 	
-	// Invoke Edge model (Gemma/Llama3 usually available locally)
-	// For production, we'd parameterize model name. Let's default to typical "llama3:8b" or "gemma2"
-	resp, err := InvokeLocalLLM("llama3", prompt)
+	resp, track, err := InvokeTwoTrack("llama3", prompt)
 	if err != nil {
-		fmt.Printf("[Edge] Fallback to Cloud: Local LLM unreachable (%v)\n", err)
+		fmt.Printf("[Hybrid] System completely unreachable (%v)\n", err)
 		return nil
 	}
 
-	fmt.Println("\n=== Edge Inference Result ===")
+	fmt.Printf("\n=== Hybrid Inference Result (Winner: %s) ===\n", track)
 	fmt.Println(resp)
 	fmt.Println("=============================")
 
