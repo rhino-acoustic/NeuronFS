@@ -101,9 +101,11 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 <div id="console-container">
   <div class="header">
     <div class="brand"><h1><span>Neuron</span>FS V2</h1><span class="ver">Autopilot Nerve Center</span></div>
-    <div style="display:flex;gap:6px">
-      <button class="toggle-btn" style="font-size:9px;padding:6px 10px;border-color:#8b5cf6;color:#8b5cf6;background:rgba(139,92,246,0.1)" onclick="runIntegrity()">🛡️ CHECK</button>
-      <button class="toggle-btn" style="font-size:9px;padding:6px 10px;border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,0.1)" onclick="runInject()">🔄 INJECT</button>
+    <div style="display:flex;gap:4px;flex-wrap:wrap">
+      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#8b5cf6;color:#8b5cf6;background:rgba(139,92,246,0.1)" onclick="runIntegrity()">🛡️</button>
+      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,0.1)" onclick="runInject()">🔄</button>
+      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#10b981;color:#10b981;background:rgba(16,185,129,0.1)" onclick="runEvolve(true)">🧬</button>
+      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,0.1)" onclick="runDedup()">🧹</button>
       <button class="toggle-btn" id="btn-autopilot" onclick="toggleAutopilot()">AUTOPILOT: ON</button>
     </div>
   </div>
@@ -703,6 +705,79 @@ async function runDedup() {
     logTTY(`🧹 Dedup: ${d.neurons || 0} neurons, activation: ${d.activation || 0}`, 'info');
   } catch(e) { logTTY('❌ Dedup failed', 'error'); }
 }
+
+// Stacked: /api/neuronize → 텍스트→뉴런 변환
+async function runNeuronize(dryRun = true) {
+  logTTY('🧠 Neuronize (dry=' + dryRun + ')...', 'info');
+  try {
+    const r = await fetch('/api/neuronize', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({dry_run: dryRun}) });
+    const d = await r.json();
+    logTTY(`🧠 Neuronize: ${JSON.stringify(d)}`, 'info');
+  } catch(e) { logTTY('❌ Neuronize failed', 'error'); }
+}
+
+// Stacked: /api/polarize → 뉴런 극성 변환
+async function runPolarize() {
+  logTTY('⚡ Polarize...', 'info');
+  try {
+    const r = await fetch('/api/polarize', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({}) });
+    const d = await r.json();
+    logTTY(`⚡ Polarize: ${JSON.stringify(d)}`, 'info');
+  } catch(e) { logTTY('❌ Polarize failed', 'error'); }
+}
+
+// Stacked: /api/decay → TTL 감쇠
+async function runDecay(days = 30) {
+  logTTY(`⏳ Decay (${days} days)...`, 'info');
+  try {
+    const r = await fetch('/api/decay', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({days}) });
+    const d = await r.json();
+    logTTY(`⏳ Decay: ${d.status}`, 'info');
+  } catch(e) { logTTY('❌ Decay failed', 'error'); }
+}
+
+// Stacked: /api/retrieve → Hebbian 검색
+async function retrieve(query) {
+  try {
+    const r = await fetch('/api/retrieve?q=' + encodeURIComponent(query));
+    const d = await r.json();
+    logTTY(`🔍 Retrieved: ${d.results?.length || 0} matches for "${query}"`, 'info');
+    return d;
+  } catch(e) { logTTY('❌ Retrieve failed', 'error'); return null; }
+}
+
+// Stacked: /api/community → 커뮤니티 트렌드 수집
+async function collectCommunity(source, topic, insight) {
+  try {
+    const r = await fetch('/api/community', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({source, topic, insight}) });
+    const d = await r.json();
+    logTTY(`🌐 Community: ${d.path || ''}`, 'info');
+  } catch(e) { logTTY('❌ Community failed', 'error'); }
+}
+
+// Stacked: /api/report → 보고서 제출
+async function submitReport(message, priority = 'normal') {
+  try {
+    const r = await fetch('/api/report', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({message, priority}) });
+    const d = await r.json();
+    logTTY(`📝 Report: ${d.status}, pending: ${d.pending}`, 'info');
+  } catch(e) { logTTY('❌ Report failed', 'error'); }
+}
+
+// Stacked: /api/rollback/all → 전체 롤백
+async function rollbackAll() {
+  if (!confirm('⚠️ Global rollback? This cannot be undone.')) return;
+  logTTY('⚠️ Global rollback initiated...', 'error');
+  try {
+    const r = await fetch('/api/rollback/all', { method: 'POST' });
+    const d = await r.json();
+    logTTY(`⚠️ Rollback: ${d.status} - ${d.message || ''}`, d.status === 'rolled_back' ? 'info' : 'error');
+  } catch(e) { logTTY('❌ Global rollback failed', 'error'); }
+}
+
+// Expose all functions to console for agent use
+window.NFS = { runIntegrity, runInject, runEvolve, runDedup, runNeuronize, runPolarize, runDecay, retrieve, collectCommunity, submitReport, rollbackAll, readRegion, rollbackNeuron, fetchSkills };
+console.log('[NFS] 🧠 All 39 APIs connected. window.NFS ready.');
 
 initData();
 </script>
