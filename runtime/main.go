@@ -87,6 +87,7 @@ func main() {
 	router.Register(&EdgeFixCmd{})
 	router.Register(&ExportCartridgeCmd{}) // V12-D: Encrypted brain export
 	router.Register(&ImportCartridgeCmd{}) // V12-D: Encrypted brain import
+	router.Register(&PackageCmd{})         // Marketplace: Zip packaging
 
 	// Check if any arguments match our new router
 	routed := false
