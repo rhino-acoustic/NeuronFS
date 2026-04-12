@@ -288,17 +288,22 @@ function init3D() {
 
 let activeNeuronsData = [];
 const MAX_NEURONS = 1000;
-let nGeo, nPosArr, nColorArr;
+let nGeo, nPosArr, nColorArr, nSizeArr;
 
 function initActiveNeurons() {
   nPosArr = new Float32Array(MAX_NEURONS * 3);
   nColorArr = new Float32Array(MAX_NEURONS * 3);
+  nSizeArr = new Float32Array(MAX_NEURONS);
   nGeo = new THREE.BufferGeometry();
   
-  for(let i=0; i<MAX_NEURONS; i++) nPosArr[i*3+1] = 9999; 
+  for(let i=0; i<MAX_NEURONS; i++) {
+      nPosArr[i*3+1] = 9999; 
+      nSizeArr[i] = 8.0;
+  }
   
   nGeo.setAttribute('position', new THREE.BufferAttribute(nPosArr, 3));
   nGeo.setAttribute('color', new THREE.BufferAttribute(nColorArr, 3));
+  nGeo.setAttribute('nSize', new THREE.BufferAttribute(nSizeArr, 1));
   
   const canvas = document.createElement('canvas');
   canvas.width = 64; canvas.height = 64;
@@ -311,7 +316,31 @@ function initActiveNeurons() {
   ctx.fillStyle = gradient; ctx.fillRect(0,0,64,64);
   const tex = new THREE.CanvasTexture(canvas);
   
-  const nMat = new THREE.PointsMaterial({ size: 8.0, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, map: tex });
+  const nMat = new THREE.ShaderMaterial({
+    uniforms: { uTex: { value: tex } },
+    vertexShader: `
+      attribute vec3 color;
+      attribute float nSize;
+      varying vec3 vColor;
+      void main() {
+        vColor = color;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = nSize * (150.0 / -mvPosition.z);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D uTex;
+      varying vec3 vColor;
+      void main() {
+        vec4 texColor = texture2D(uTex, gl_PointCoord);
+        if(texColor.a < 0.05) discard;
+        gl_FragColor = vec4(vColor * 1.5, texColor.a);
+      }
+    `,
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  
   activeNeuronSystem = new THREE.Points(nGeo, nMat);
   scene.add(activeNeuronSystem);
 }
@@ -330,11 +359,13 @@ function syncNeurons(loadedList) {
     newList.push({ tScale: Math.random(), layerIdx: n.layerIdx, speed: 0.001 + Math.random() * 0.003 });
     const col = new THREE.Color(layers[n.layerIdx].color);
     nColorArr[i*3] = col.r; nColorArr[i*3+1] = col.g; nColorArr[i*3+2] = col.b;
+    nSizeArr[i] = n.isPrime ? 35.0 : 8.0;
   }
   for(let i=minLen; i<MAX_NEURONS; i++) nPosArr[i*3+1] = 9999;
   
   activeNeuronsData = newList;
   nGeo.attributes.color.needsUpdate = true;
+  nGeo.attributes.nSize.needsUpdate = true;
 }
 
 async function fetchGraphQLBrain() {
@@ -448,28 +479,29 @@ document.getElementById('gl-container').addEventListener('click', async function
   mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
+  raycaster.params.Points.threshold = 4.0;
   
-  if (!instancedMesh) return;
-  const intersects = raycaster.intersectObject(instancedMesh);
+  if (!activeNeuronSystem) return;
+  const intersects = raycaster.intersectObject(activeNeuronSystem);
   if (intersects.length > 0) {
-    const idx = intersects[0].instanceId;
-    const neuron = neuronPaths[idx];
-    if (!neuron) return;
-    
-    if (e.shiftKey) {
-      // Shift+Click → Grow new neuron
-      const name = prompt('New neuron name (under ' + neuron.region + '):');
-      if (name) {
-        const path = neuron.region + '/' + name;
-        await fetch('/api/grow', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path}) });
-        logTTY('🌱 GROWN: ' + path, 'info');
-        triggerSparkEffect(path);
+    const idx = intersects[0].index;
+    if (idx !== undefined && neuronPaths[idx]) {
+      const neuron = neuronPaths[idx];
+      if (e.shiftKey) {
+        // Shift+Click → Grow new neuron
+        const name = prompt('New neuron name (under ' + neuron.region + '):');
+        if (name) {
+          const path = neuron.region + '/' + name;
+          await fetch('/api/grow', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path}) });
+          logTTY('🌱 GROWN: ' + path, 'info');
+          triggerSparkEffect(path);
+        }
+      } else {
+        // Click → Fire
+        await fetch('/api/fire', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path: neuron.path}) });
+        logTTY('🔥 FIRED: ' + neuron.path, 'info');
+        triggerSparkEffect(neuron.path);
       }
-    } else {
-      // Click → Fire
-      await fetch('/api/fire', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path: neuron.path}) });
-      logTTY('🔥 FIRED: ' + neuron.path, 'info');
-      triggerSparkEffect(neuron.path);
     }
   }
 });
@@ -482,12 +514,14 @@ document.getElementById('gl-container').addEventListener('contextmenu', function
   mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
+  raycaster.params.Points.threshold = 4.0;
   
-  if (!instancedMesh) return;
-  const intersects = raycaster.intersectObject(instancedMesh);
+  if (!activeNeuronSystem) return;
+  const intersects = raycaster.intersectObject(activeNeuronSystem);
   if (intersects.length > 0) {
-    const idx = intersects[0].instanceId;
-    const neuron = neuronPaths[idx];
+    const idx = intersects[0].index;
+    if (idx !== undefined && neuronPaths[idx]) {
+      const neuron = neuronPaths[idx];
     if (neuron) {
       logTTY('📍 ' + neuron.region + '/' + neuron.name + ' [' + neuron.path + ']', 'info');
     }
