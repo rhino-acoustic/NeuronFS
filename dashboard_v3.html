@@ -192,6 +192,7 @@ function init() {
     <button class="layout-btn" onclick="switchLayout(6, this)">7. Fibonacci Sphere (황금비 넥서스)</button>
     <button class="layout-btn" onclick="switchLayout(7, this)">8. Chaos Gravity Well (응축 깔때기)</button>
     <button class="layout-btn" onclick="switchLayout(8, this)">9. Triangular Plane (2D 면 삼각 에너지)</button>
+    <button class="layout-btn" onclick="switchLayout(9, this)">10. Cochlea Triangle (달팽이관 롤)</button>
   `;
   
   setTimeout(() => loadLayout(0), 100);
@@ -329,6 +330,38 @@ function loadLayout(idx) {
       tArr[i*3]   = x;
       tArr[i*3+1] = y - 40; // tip near origin for intense white/gold Depth Coloring
       tArr[i*3+2] = zWave + scatterZ;
+    }
+  } else if(idx === 9) { // Cochlea Triangle Shell
+    // Roll the 2D triangular plane into a 3D Snail Shell
+    const coils = 5.0; // 5 full wraps
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+        const tScale = Math.pow(Math.random(), 0.5); // 0=tip(origin), 1=wide edge
+        
+        // Wrap angle: as tScale approaches 0, it wraps deep inside
+        const theta = (1.0 - tScale) * Math.PI * 2.0 * coils;
+        
+        // Radius: logarithmic/exponential shrink to origin
+        const r = Math.pow(tScale, 1.3) * 220; 
+        
+        // The Y-axis height is derived from the "width" of the original triangle
+        const maxWidth = tScale * 350; 
+        
+        // Group into 100 vertical streams flowing along the wall of the shell
+        const streamIdx = i % 100;
+        const streamBase = (streamIdx / 100.0) - 0.5;
+        
+        // Add random scatter to form an energy wall
+        const yPos = streamBase * maxWidth + (Math.random()-0.5)*5;
+        
+        // Add waving fabric texture to the shell wall
+        const wallWave = Math.sin(theta * 10.0 + yPos * 0.05) * 10.0 * tScale;
+        
+        // Final radius includes the wave
+        const finalR = r + wallWave;
+        
+        tArr[i*3]   = finalR * Math.cos(theta);
+        tArr[i*3+1] = yPos; // Width of triangle becomes the height of the shell wall
+        tArr[i*3+2] = finalR * Math.sin(theta);
     }
   }
 
