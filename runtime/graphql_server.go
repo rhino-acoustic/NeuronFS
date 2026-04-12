@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"net/http"
@@ -52,6 +53,21 @@ func buildGraphQLSchema(brainRoot string) (graphql.Schema, error) {
 				"timestamp": &graphql.Field{Type: graphql.String}, // Stringified unix ms
 				"hash":      &graphql.Field{Type: graphql.String},
 				"content":   &graphql.Field{Type: graphql.String},
+			},
+		},
+	)
+
+	// Object Type: AuditEntry (Phase 42)
+	auditEntryType := graphql.NewObject(
+		graphql.ObjectConfig{
+			Name: "AuditEntry",
+			Fields: graphql.Fields{
+				"ts":      &graphql.Field{Type: graphql.String},
+				"actor":   &graphql.Field{Type: graphql.String},
+				"action":  &graphql.Field{Type: graphql.String},
+				"target":  &graphql.Field{Type: graphql.String},
+				"reason":  &graphql.Field{Type: graphql.String},
+				"success": &graphql.Field{Type: graphql.Boolean},
 			},
 		},
 	)
@@ -135,6 +151,50 @@ func buildGraphQLSchema(brainRoot string) (graphql.Schema, error) {
 						})
 						
 						return deltas, nil
+					},
+				},
+				"auditTrail": &graphql.Field{
+					Type: graphql.NewList(auditEntryType),
+					Args: graphql.FieldConfigArgument{
+						"limit": &graphql.ArgumentConfig{Type: graphql.Int},
+						"actor": &graphql.ArgumentConfig{Type: graphql.String},
+					},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						limit := 50
+						if l, ok := p.Args["limit"].(int); ok && l > 0 {
+							limit = l
+						}
+						actorFilter := ""
+						if a, ok := p.Args["actor"].(string); ok {
+							actorFilter = a
+						}
+
+						auditFile := filepath.Join(brainRoot, "hippocampus", "audit_trail", "audit.jsonl")
+						data, err := os.ReadFile(auditFile)
+						if err != nil {
+							return []interface{}{}, nil
+						}
+
+						lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+						var results []map[string]interface{}
+
+						// Read from end (newest first)
+						for i := len(lines) - 1; i >= 0 && len(results) < limit; i-- {
+							line := strings.TrimSpace(lines[i])
+							if line == "" {
+								continue
+							}
+							var entry map[string]interface{}
+							if json.Unmarshal([]byte(line), &entry) == nil {
+								if actorFilter != "" {
+									if a, ok := entry["actor"].(string); !ok || a != actorFilter {
+										continue
+									}
+								}
+								results = append(results, entry)
+							}
+						}
+						return results, nil
 					},
 				},
 			},
