@@ -120,21 +120,36 @@ func main() {
 		ForceAwakening: forceAwakening,
 	})
 
-	switch mode {
-	case "init":
-		// --init requires a path argument
-		initPath := ""
-		for _, arg := range os.Args[1:] {
-			if !strings.HasPrefix(arg, "--") {
-				initPath = arg
+	// ── Strangler Fig CLI Router Injection ──
+	router := NewRouter()
+	router.Register(&HarnessCmd{})
+	router.Register(&InitCmd{})
+
+	// Check if any arguments match our new router
+	routed := false
+	for _, arg := range os.Args {
+		// Only check flags, as router uses flag names currently
+		if strings.HasPrefix(arg, "--") {
+			ok, err := router.TryRoute(arg, brainRoot, os.Args)
+			if ok {
+				if err != nil {
+					fmt.Printf("[FATAL] %s execution failed: %v\n", arg, err)
+					os.Exit(1)
+				}
+				routed = true
 				break
 			}
 		}
-		if initPath == "" {
-			initPath = filepath.Join(".", "brain_v4")
-		}
-		abs, _ := filepath.Abs(initPath)
-		initBrain(abs)
+	}
+
+	if routed {
+		return // Command fully handled by new router
+	}
+
+	// ── Legacy Switch-Case Fallback (Anti-Corruption Layer) ──
+	switch mode {
+	case "init":
+		// Handled by router
 	case "diag":
 		brain := scanBrain(brainRoot)
 		result := runSubsumption(brain)
@@ -150,7 +165,7 @@ func main() {
 		processInbox(brainRoot)
 		writeAllTiers(brainRoot)
 	case "harness":
-		RunHarness(brainRoot, func(msg string) { fmt.Println(msg) })
+		// Handled by router
 	case "watch":
 		fmt.Println("[NeuronFS] Watch mode — monitoring brain/ for changes...")
 		runWatch(brainRoot)
