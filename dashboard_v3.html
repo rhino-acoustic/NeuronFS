@@ -197,6 +197,7 @@ function init() {
     <button class="layout-btn" onclick="switchLayout(11, this)">12. Organic Chaos Snail (유기적 파동 변형)</button>
     <button class="layout-btn" onclick="switchLayout(12, this)">13. Mobius Pyramid (뫼비우스 삼각뿔)</button>
     <button class="layout-btn" onclick="switchLayout(13, this)">14. Klein Bottle (4차원 항아리)</button>
+    <button class="layout-btn" onclick="switchLayout(14, this)">15. 4D Klein Pyramid (자가투과 삼각뿔)</button>
   `;
   
   setTimeout(() => loadLayout(0), 100);
@@ -501,6 +502,56 @@ function loadLayout(idx) {
         // y naturally spans from approx -16 to +16. Center it perfectly so the intersection tube hits the hot Origin(0,0,0)
         tArr[i*3+1] = y * scale + thickness + wave - 40.0; 
         tArr[i*3+2] = z * scale + thickness + wave;
+    }
+  } else if(idx === 14) { // 4D Klein Pyramid (자가투과 삼각뿔)
+    // A true PLANAR structure forming 3 flat faces (Triangular Pyramid)
+    // The surface rolls inside itself like a 4D jar.
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+        // v = surface travel parameter from Base/Outer (v=0) up to Lip (v=0.45) 
+        //   and then plunging down the exact interior center to Tip (v=1.0)
+        const v = Math.pow(Math.random(), 0.7); 
+        
+        // u = angle around the pyramid
+        const u = Math.random() * Math.PI * 2.0; 
+        
+        // Mathematical Flat-Face Triangle profile in polar coordinates
+        // 120-degree angular slices to form perfect flat walls, not circles/omni
+        const angleMod = (u + Math.PI * 6.0) % (Math.PI * 2.0 / 3.0);
+        const uMod = angleMod - (Math.PI / 3.0);
+        const sharpTriangle = 0.5 / Math.cos(uMod); 
+        
+        let R, Y;
+        // The surface rolls UP and OVER the lip, then DOWN INTO its own core smoothly
+        if (v < 0.45) {
+            // OUTSIDE SURFACE: climbing up the 3 flat walls to the top lip
+            const t = v / 0.45; // 0 to 1
+            // Radius goes from very wide base (t=0) to slightly narrower lip (t=1)
+            R = (350 - 50 * t) * sharpTriangle;
+            // Height climbs
+            Y = -120 + 320 * t; // up to +200
+        } else {
+            // INSIDE SURFACE (4D Klein Plunge): Dives straight down the middle
+            const t = (v - 0.45) / 0.55; // 0 to 1
+            // Radius rapidly converges to exactly 0 to form the center singularity spike
+            R = 300 * Math.pow(1.0 - t, 2.0) * sharpTriangle;
+            // Height plunges from top lip (+200) all the way down into the hot origin tip
+            Y = 200 - 350 * t; 
+        }
+        
+        // Continuous inner twist: The inner plunging faces swirl like a mobius drain
+        let twist = 0;
+        if (v >= 0.45) {
+            const t = (v - 0.45) / 0.55;
+            twist = t * Math.PI * 1.5; // Inner funnel twists 270 degrees
+        }
+        
+        const finalU = u + twist;
+        
+        const thickness = (Math.random() - 0.5) * 8.0; 
+        
+        tArr[i*3]   = (R + thickness) * Math.cos(finalU);
+        tArr[i*3+1] = Y;
+        tArr[i*3+2] = (R + thickness) * Math.sin(finalU);
     }
   }
 
