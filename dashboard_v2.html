@@ -188,73 +188,60 @@ function init3D() {
   window.addEventListener('resize', onWindowResize);
   animate();
 }
-// ── Demo Layer: Vertical golden-angle spiral (top-to-bottom tower) ──
-let demoMesh, demoAxonMesh;
+// ── Demo Layer: GLSL orbiting glow dots (Shadertoy port) ──
+let demoMesh, demoAxonMesh; // keep vars for compat
+let shaderBgMesh;
 function renderDemoLayer() {
-  const demoCount = 1200;
-  const geometry = new THREE.SphereGeometry(0.6, 6, 4);
-  const material = new THREE.MeshPhongMaterial({
-    color: 0xffffff, transparent: true, opacity: 0.6,
-    shininess: 80, blending: THREE.AdditiveBlending
-  });
-  demoMesh = new THREE.InstancedMesh(geometry, material, demoCount);
-  
-  const demoPositions = [];
-  const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~137.5°
-  const palette = [0x10b981, 0x3b82f6, 0x8b5cf6, 0x06b6d4, 0xa78bfa, 0x14b8a6, 0x60a5fa, 0xfbbf24, 0xf472b6];
-  const totalHeight = 120; // tall vertical span
-  
-  for(let n=0; n<demoCount; n++) {
-    const t = n / demoCount;
-    const angle = n * goldenAngle;
+  const vertShader = `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`;
+  const fragShader = `
+    precision highp float;
+    uniform float iTime;
+    uniform vec2 iResolution;
+    varying vec2 vUv;
     
-    // Y = main vertical axis (bottom to top)
-    const py = -totalHeight/2 + t * totalHeight;
-    
-    // Radius varies: wider in middle, narrow at top/bottom (organic bulge)
-    const bulge = 1 - Math.pow(2*t - 1, 2); // parabolic: 0→1→0
-    const baseRadius = 8 + bulge * 25;
-    const radius = baseRadius + (Math.random()-0.5) * 6;
-    
-    const px = Math.cos(angle) * radius;
-    const pz = Math.sin(angle) * radius;
-    
-    demoPositions.push(new THREE.Vector3(px, py, pz));
-    dummy.position.set(px, py, pz);
-    const s = 0.15 + bulge * 0.5 + Math.random()*0.15;
-    dummy.scale.set(s, s, s);
-    dummy.updateMatrix();
-    demoMesh.setMatrixAt(n, dummy.matrix);
-    
-    const col = new THREE.Color(palette[n % palette.length]);
-    col.multiplyScalar(0.25 + bulge*0.5);
-    demoMesh.setColorAt(n, col);
-  }
-  demoMesh.instanceMatrix.needsUpdate = true;
-  if(demoMesh.instanceColor) demoMesh.instanceColor.needsUpdate = true;
-  scene.add(demoMesh);
-  
-  // Axons — vertical threads + proximity links
-  const linePos = [];
-  for(let i=0; i<demoCount-1; i++) {
-    if(Math.random() < 0.35) {
-      const p1 = demoPositions[i], p2 = demoPositions[i+1];
-      linePos.push(p1.x,p1.y,p1.z, p2.x,p2.y,p2.z);
+    void main() {
+      vec2 p = (vUv * 2.0 - 1.0) * vec2(iResolution.x/iResolution.y, 1.0);
+      
+      float f = 0.0;
+      const float DOTS = 12.0;
+      
+      for(float i = 1.0; i <= DOTS; i++) {
+        float s = sin(0.7 * iTime + i * 0.5 * iTime) * 0.2;
+        float c = cos(0.2 * iTime + i * 0.5 * iTime) * 0.2;
+        f += 0.008 / abs(length(p * 0.5 + vec2(c, s)));
+      }
+      
+      vec3 col = vec3(0.2, 0.6, 1.0) * f;
+      // Add subtle emerald secondary glow
+      float f2 = 0.0;
+      for(float i = 1.0; i <= 6.0; i++) {
+        float s2 = sin(0.5 * iTime + i * 0.8) * 0.15;
+        float c2 = cos(0.3 * iTime + i * 0.8) * 0.15;
+        f2 += 0.005 / abs(length(p * 0.4 + vec2(c2, s2)));
+      }
+      col += vec3(0.1, 0.9, 0.5) * f2;
+      
+      gl_FragColor = vec4(col, 1.0);
     }
-    if(Math.random() < 0.12) {
-      const j = Math.floor(Math.random()*demoCount);
-      const p1 = demoPositions[i], p2 = demoPositions[j];
-      if(p1.distanceTo(p2)<20) linePos.push(p1.x,p1.y,p1.z, p2.x,p2.y,p2.z);
-    }
-  }
-  const axMat = new THREE.LineBasicMaterial({
-    color: 0x10b981, transparent:true, opacity:0.06,
-    blending: THREE.AdditiveBlending, depthWrite:false
+  `;
+  
+  const container = document.getElementById('gl-container');
+  const shaderMat = new THREE.ShaderMaterial({
+    uniforms: {
+      iTime: { value: 0.0 },
+      iResolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) }
+    },
+    vertexShader: vertShader,
+    fragmentShader: fragShader,
+    depthWrite: false,
+    depthTest: false
   });
-  const axGeo = new THREE.BufferGeometry();
-  axGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePos, 3));
-  demoAxonMesh = new THREE.LineSegments(axGeo, axMat);
-  scene.add(demoAxonMesh);
+  
+  // Fullscreen quad rendered before everything else
+  shaderBgMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMat);
+  shaderBgMesh.frustumCulled = false;
+  shaderBgMesh.renderOrder = -1;
+  scene.add(shaderBgMesh);
 }
 
 // Phase 57: REST API Brain Fetcher — real neurons overlay on demo layer
@@ -402,6 +389,7 @@ function onWindowResize() {
   camera.aspect = container.clientWidth / container.clientHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(container.clientWidth, container.clientHeight);
+  if(shaderBgMesh) shaderBgMesh.material.uniforms.iResolution.value.set(container.clientWidth, container.clientHeight);
 }
 
 function animate() {
@@ -410,6 +398,9 @@ function animate() {
 
   const time = performance.now() * 0.001;
   scene.rotation.y = Math.sin(time * 0.1) * 0.1;
+  
+  // Update GLSL shader time
+  if(shaderBgMesh) shaderBgMesh.material.uniforms.iTime.value = time;
   
   renderer.render(scene, camera);
 }
