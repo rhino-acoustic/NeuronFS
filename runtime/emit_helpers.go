@@ -209,6 +209,18 @@ func emitRegionRules(region Region, brainOpt ...Brain) string {
 		sb.WriteString("\n")
 	}
 
+	// ━━━ Phase 58: Closed Learning Loop — Inject learned skills into prompt ━━━
+	// Only inject for cortex region (code-related skills most relevant)
+	if region.Name == "cortex" || region.Name == "hippocampus" {
+		brainRoot := filepath.Dir(region.Path)
+		skillBlock := InjectSkillsToPrompt(brainRoot, "build")
+		if skillBlock != "" {
+			sb.WriteString("## 📚 Learned Skills (Closed Learning Loop)\n")
+			sb.WriteString(skillBlock)
+			sb.WriteString("\n")
+		}
+	}
+
 	// Build tree from neuron paths
 	root := &treeNode{name: region.Name, children: make(map[string]*treeNode)}
 	for _, n := range region.Neurons {
