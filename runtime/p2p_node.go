@@ -72,9 +72,9 @@ func InitializeP2PNode(brainRoot string) error {
 	}
 
 	// Trigger Merkle Sync Worker (Phase 26)
-	if err := initMerkleSyncWorker(ctx, brainRoot); err != nil {
-		log.Printf("[P2P] Failed to init merkle sync: %v", err)
-	}
+	// if err := initMerkleSyncWorker(ctx, brainRoot); err != nil {
+	// 	log.Printf("[P2P] Failed to init merkle sync: %v", err)
+	// }
 
 	// Wait asynchronously forever
 	go func() {

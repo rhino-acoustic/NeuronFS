@@ -71,6 +71,7 @@ func startAPI(brainRoot string, port int) {
 	go runIdleLoop(brainRoot)
 	go startFSWatcherPool(brainRoot) // <--- Phase 31: V7 OS Sensory Monitor
 	go startWebhookDaemon(brainRoot) // <--- Phase 32: B2B Webhook Forwarder
+	go startP2PSyncDaemon(brainRoot) // <--- Phase 36: V8 P2P Knowledge Crossover
 
 	fmt.Printf("  🔄 IDLE ENGINE: auto evolve/snapshot/NAS every %dm idle\n", idleThresholdMinutes)
 
