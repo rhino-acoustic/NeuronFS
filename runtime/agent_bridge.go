@@ -13,7 +13,6 @@ import (
 	"time"
 )
 
-const abCDPPort = 9000
 const abPollMs = 3000
 
 var agentTargets = map[string]string{
@@ -160,7 +159,7 @@ func abInjectToAgent(agentID, message string) bool {
 		return false
 	}
 
-	targets, err := cdpListTargets(abCDPPort)
+	targets, err := cdpListTargets(hlCDPPort)
 	if err != nil {
 		return false
 	}
