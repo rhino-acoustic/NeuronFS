@@ -111,6 +111,9 @@ func processSensoryEvent(brainRoot, changedPath, opType string) {
 		return
 	}
 
+	// Phase 37: V9 Temporal Log (4D Memory) snapshot packing
+	RecordTemporalSnapshot(brainRoot, changedPath)
+
 	// Dump alert to bot1 inbox
 	inboxDir := filepath.Join(brainRoot, "_agents", "bot1", "inbox")
 	os.MkdirAll(inboxDir, 0755)
