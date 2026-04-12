@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuronFS — Deterministic AI Governance via Filesystem Hierarchy</title>
+  <meta name="description" content="NeuronFS: A filesystem-native cognitive architecture for deterministic AI agent governance. Zero infrastructure. O(1) rule enforcement. AGPL-3.0.">
+  <meta property="og:title" content="NeuronFS — Deterministic AI Governance via Filesystem Hierarchy">
+  <meta property="og:description" content="A filesystem-native cognitive architecture for deterministic AI agent governance. 4MB binary. O(1) rule enforcement.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://neuronfs.dev">
+  <meta property="og:image" content="https://raw.githubusercontent.com/rhino-acoustic/NeuronFS/main/docs/dashboard.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://neuronfs.dev">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0c0c10;
+      --bg-alt: #13131a;
+      --bg-code: #0a0a0e;
+      --bg-card: rgba(18,18,26,0.7);
+      --text: #e4e4ec;
+      --text-secondary: #9898a8;
+      --text-muted: #5c5c6f;
+      --accent: #6366f1;
+      --accent-light: #818cf8;
+      --accent-subtle: rgba(99,102,241,0.08);
+      --border: rgba(255,255,255,0.06);
+      --border-strong: rgba(255,255,255,0.1);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --sidebar-w: 240px;
+      --content-max: 820px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    /* ═══ LAYOUT ═══ */
+    .page-grid {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      min-height: 100vh;
+    }
+
+    /* ═══ SIDEBAR ═══ */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: #0a0a0e;
+      color: #8888a0;
+      padding: 32px 0;
+      overflow-y: auto;
+      z-index: 100;
+      border-right: 1px solid var(--border);
+    }
+    .sidebar-logo {
+      padding: 0 24px; margin-bottom: 32px;
+      font-weight: 700; font-size: 1.1rem;
+      color: #fff; letter-spacing: -0.3px;
+    }
+    .sidebar-logo span { color: var(--accent-light); }
+    .sidebar-section {
+      padding: 0 20px; margin-bottom: 24px;
+    }
+    .sidebar-section-title {
+      font-size: 0.65rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 2px;
+      color: var(--text-muted); margin-bottom: 10px; padding-left: 4px;
+    }
+    .sidebar-link {
+      display: block; padding: 7px 12px; border-radius: 6px;
+      color: #7878a0; text-decoration: none;
+      font-size: 0.82rem; font-weight: 500;
+      transition: all 0.2s; line-height: 1.4;
+    }
+    .sidebar-link:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .sidebar-link.active { color: #fff; background: var(--accent-subtle); border-left: 2px solid var(--accent); }
+    .sidebar-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 4px;
+      font-size: 0.6rem; font-weight: 600; margin-left: 6px;
+      background: var(--accent-subtle); color: var(--accent-light);
+    }
+
+    /* ═══ MAIN CONTENT ═══ */
+    .main { margin-left: var(--sidebar-w); background: var(--bg); }
+    .content {
+      max-width: var(--content-max);
+      margin: 0 auto;
+      padding: 60px 40px 80px;
+    }
+
+    /* ═══ HEADER ═══ */
+    .paper-header {
+      padding-bottom: 48px; margin-bottom: 48px;
+      border-bottom: 1px solid var(--border-strong);
+    }
+    .paper-header h1 {
+      font-size: 2.4rem; font-weight: 800; line-height: 1.2;
+      letter-spacing: -1px; margin-bottom: 16px;
+      color: #fff;
+    }
+    .paper-meta {
+      font-size: 0.88rem;
+      color: var(--text-secondary); line-height: 1.8;
+    }
+    .paper-meta a { color: var(--accent-light); text-decoration: none; }
+    .paper-meta a:hover { text-decoration: underline; }
+    .paper-tags { margin-top: 16px; }
+    .paper-tag {
+      display: inline-block; padding: 4px 12px; border-radius: 6px;
+      font-size: 0.72rem; font-weight: 600;
+      margin-right: 6px; margin-bottom: 4px;
+      border: 1px solid var(--border);
+    }
+    .tag-blue { background: rgba(99,102,241,0.1); color: var(--accent-light); border-color: rgba(99,102,241,0.2); }
+    .tag-green { background: rgba(52,211,153,0.1); color: var(--success); border-color: rgba(52,211,153,0.2); }
+    .tag-gray { background: rgba(255,255,255,0.04); color: var(--text-secondary); }
+
+    /* ═══ ABSTRACT ═══ */
+    .abstract {
+      padding: 28px 32px; background: var(--bg-alt);
+      border: 1px solid var(--border); border-radius: 12px;
+      margin-bottom: 48px;
+    }
+    .abstract-label {
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2px;
+      color: var(--accent-light); margin-bottom: 10px;
+    }
+    .abstract p { font-size: 0.95rem; color: var(--text-secondary); }
+
+    /* ═══ SECTIONS ═══ */
+    .section { margin-bottom: 56px; scroll-margin-top: 32px; }
+    .section h2 {
+      font-size: 1.5rem; font-weight: 700; color: #fff;
+      margin-bottom: 20px; padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section h3 {
+      font-size: 1.1rem; font-weight: 600; color: var(--text);
+      margin-top: 32px; margin-bottom: 12px;
+    }
+    .section p { margin-bottom: 16px; color: var(--text-secondary); }
+    .section strong { color: var(--text); }
+    .section ul, .section ol { margin-bottom: 16px; padding-left: 24px; color: var(--text-secondary); }
+    .section li { margin-bottom: 6px; }
+    .section code { padding: 2px 8px; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: var(--accent-light); }
+    .section a { color: var(--accent-light); text-decoration: none; }
+    .section a:hover { text-decoration: underline; }
+    .section em { color: var(--text-secondary); }
+
+    /* ═══ FIGURES ═══ */
+    .figure {
+      margin: 32px 0; padding: 24px;
+      background: var(--bg-alt); border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .figure-caption {
+      font-size: 0.82rem;
+      color: var(--text-muted); margin-top: 12px;
+      text-align: center; font-style: italic;
+    }
+    .figure-caption strong { font-style: normal; color: var(--text-secondary); }
+
+    /* ═══ LAYER DIAGRAM ═══ */
+    .layer-stack { display: flex; flex-direction: column; gap: 3px; }
+    .layer-row {
+      display: grid; grid-template-columns: 60px 120px 1fr;
+      align-items: center; padding: 12px 16px;
+      border-radius: 8px; font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .layer-row:hover { transform: translateX(4px); }
+    .layer-row:nth-child(1) { background: rgba(248,113,113,0.08); border-left: 3px solid var(--danger); }
+    .layer-row:nth-child(2) { background: rgba(251,191,36,0.06); border-left: 3px solid var(--warning); }
+    .layer-row:nth-child(3) { background: rgba(52,211,153,0.06); border-left: 3px solid var(--success); }
+    .layer-row:nth-child(4) { background: rgba(99,102,241,0.06); border-left: 3px solid var(--accent); }
+    .layer-row:nth-child(5) { background: rgba(167,139,250,0.06); border-left: 3px solid #a78bfa; }
+    .layer-row:nth-child(6) { background: rgba(255,255,255,0.02); border-left: 3px solid var(--text-muted); }
+    .layer-row:nth-child(7) { background: rgba(255,255,255,0.02); border-left: 3px solid #4a4a5c; }
+    .layer-priority { font-weight: 700; font-size: 0.75rem; }
+    .layer-name { font-weight: 600; color: var(--text); }
+    .layer-desc { color: var(--text-secondary); font-size: 0.82rem; }
+
+    /* ═══ CODE BLOCKS ═══ */
+    .code-block {
+      background: var(--bg-code); color: #c8c8dc;
+      border-radius: 12px; overflow: hidden;
+      margin: 20px 0; font-size: 0.85rem;
+      border: 1px solid var(--border);
+    }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.72rem; color: var(--text-muted);
+    }
+    .code-body {
+      padding: 18px 20px; font-family: 'JetBrains Mono', monospace;
+      line-height: 1.8; overflow-x: auto;
+    }
+    .code-body .kw { color: #818cf8; }
+    .code-body .str { color: var(--success); }
+    .code-body .cm { color: var(--text-muted); }
+    .code-body .fn { color: #c4b5fd; }
+    .code-body .op { color: var(--warning); }
+
+    /* ═══ TABLES ═══ */
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.88rem; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 600; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255,255,255,0.02); }
+    td { color: var(--text-secondary); }
+    tr:hover td { background: rgba(99,102,241,0.03); }
+    .win { color: var(--success); font-weight: 600; }
+    .lose { color: var(--text-muted); }
+    .partial { color: var(--warning); font-weight: 500; }
+
+    /* ═══ CALLOUTS ═══ */
+    .callout {
+      padding: 20px 24px; border-radius: 12px;
+      margin: 24px 0; border-left: 3px solid;
+      font-size: 0.92rem;
+    }
+    .callout-insight { background: rgba(99,102,241,0.06); border-color: var(--accent); }
+    .callout-warning { background: rgba(251,191,36,0.06); border-color: var(--warning); }
+    .callout-critical { background: rgba(248,113,113,0.06); border-color: var(--danger); }
+    .callout-label {
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .callout-insight .callout-label { color: var(--accent-light); }
+    .callout-warning .callout-label { color: var(--warning); }
+    .callout-critical .callout-label { color: var(--danger); }
+    .callout p, .callout { color: var(--text-secondary); }
+
+    /* ═══ REFERENCES ═══ */
+    .references { font-size: 0.88rem; }
+    .references ol { padding-left: 24px; }
+    .references li { margin-bottom: 8px; color: var(--text-muted); }
+    .references a { color: var(--accent-light); }
+
+    /* ═══ FOOTER ═══ */
+    .paper-footer {
+      margin-top: 64px; padding-top: 32px;
+      border-top: 1px solid var(--border-strong);
+      font-size: 0.82rem;
+      color: var(--text-muted); text-align: center;
+    }
+    .paper-footer a { color: var(--accent-light); text-decoration: none; }
+
+    /* ═══ MOBILE ═══ */
+    .mobile-toggle {
+      display: none; position: fixed; top: 12px; left: 12px; z-index: 200;
+      padding: 8px 12px; background: var(--bg-alt); color: #fff;
+      border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+      font-size: 0.82rem; font-weight: 600;
+    }
+    @media (max-width: 900px) {
+      .mobile-toggle { display: block; }
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+      .sidebar.open { transform: translateX(0); }
+      .page-grid { grid-template-columns: 1fr; }
+      .main { margin-left: 0; }
+      .content { padding: 80px 20px 60px; }
+      .paper-header h1 { font-size: 1.8rem; }
+      .layer-row { grid-template-columns: 50px 90px 1fr; font-size: 0.78rem; }
+    }
+
+    /* ═══ SCROLL REVEAL ═══ */
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰ Navigation</button>
+
+  <div class="page-grid">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">Neuron<span>FS</span></div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Overview</div>
+        <a href="#abstract" class="sidebar-link active">Abstract</a>
+        <a href="#introduction" class="sidebar-link">1. Introduction</a>
+        <a href="#problem" class="sidebar-link">2. Problem Statement</a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Architecture</div>
+        <a href="#subsumption" class="sidebar-link">3. Subsumption Cascade</a>
+        <a href="#opcodes" class="sidebar-link">4. Opcode System</a>
+        <a href="#emit" class="sidebar-link">5. Emit Pipeline</a>
+        <a href="#evolution" class="sidebar-link">6. Self-Evolution</a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Evaluation</div>
+        <a href="#benchmark" class="sidebar-link">7. Benchmark Results</a>
+        <a href="#comparison" class="sidebar-link">8. Competitive Analysis</a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Application</div>
+        <a href="#usecases" class="sidebar-link">9. Use Cases</a>
+        <a href="#quickstart" class="sidebar-link">10. Quick Start</a>
+        <a href="#limitations" class="sidebar-link">11. Limitations</a>
+        <a href="#references" class="sidebar-link">References</a>
+      </div>
+
+      <div class="sidebar-section" style="margin-top:auto; padding-top:24px; border-top:1px solid rgba(255,255,255,0.06);">
+        <a href="https://github.com/rhino-acoustic/NeuronFS" class="sidebar-link" style="color:#fff;">⭐ GitHub</a>
+        <a href="https://github.com/rhino-acoustic/NeuronFS/wiki" class="sidebar-link">📖 Wiki (22 Episodes)</a>
+        <a href="getting-started.html" class="sidebar-link">🚀 Getting Started</a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+      <div class="content">
+
+        <!-- PAPER HEADER -->
+        <header class="paper-header reveal">
+          <h1>NeuronFS: Deterministic AI Governance via Filesystem Hierarchy</h1>
+          <div class="paper-meta">
+            <strong>JG Park</strong> · rhino-acoustic · rubisesJO777<br>
+            Published: 2026 · Version 13 · <a href="https://github.com/rhino-acoustic/NeuronFS">github.com/rhino-acoustic/NeuronFS</a><br>
+            License: AGPL-3.0
+          </div>
+          <div class="paper-tags">
+            <span class="paper-tag tag-blue">AI Governance</span>
+            <span class="paper-tag tag-blue">Filesystem Architecture</span>
+            <span class="paper-tag tag-green">Zero Infrastructure</span>
+            <span class="paper-tag tag-gray">Go Runtime</span>
+            <span class="paper-tag tag-gray">4MB Binary</span>
+          </div>
+        </header>
+
+        <!-- ABSTRACT -->
+        <div class="abstract reveal" id="abstract">
+          <div class="abstract-label">Abstract</div>
+          <p>
+            We present NeuronFS, a filesystem-native cognitive architecture that achieves <strong>deterministic AI agent governance</strong> with zero infrastructure dependency. Unlike probabilistic approaches (vector databases, embedding-based retrieval), NeuronFS encodes governance rules as OS directory structures — achieving O(1) rule lookup via the kernel's dentry cache. A 4MB Go binary walks the folder hierarchy, resolves a 7-layer subsumption cascade inspired by Brooks' robotics architecture, and emits format-specific instruction files for any AI tool (Cursor, Claude, Gemini, GPT). In controlled benchmarks, NeuronFS-harnessed agents show a <strong>+43% performance improvement</strong> over bare models, with an 8.9GB model (Gemma 4) outperforming a bare 70GB model (Llama 3). The system has been validated over 13 evolutionary versions with 420+ active neurons and 9,100+ total activations.
+          </p>
+        </div>
+
+        <!-- DASHBOARD PREVIEW -->
+        <div class="figure reveal" style="margin-bottom:48px; padding:0; overflow:hidden; border-radius:16px;">
+          <img src="dashboard_preview.png" alt="NeuronFS Dashboard" style="width:100%; display:block; border-radius:16px;">
+          <div class="figure-caption"><strong>Figure 0.</strong> NeuronFS real-time dashboard — 420 active neurons across 7 brain regions, live subsumption cascade, 39 REST API endpoints.</div>
+        </div>
+
+        <!-- 1. INTRODUCTION -->
+        <div class="section reveal" id="introduction">
+          <h2>1. Introduction</h2>
+          <p>
+            The dominant paradigm for AI agent memory and governance relies on embedding vectors stored in external databases (Pinecone, Chroma, Weaviate). This approach suffers from three fundamental limitations: <strong>non-determinism</strong> (similarity search returns probabilistic results), <strong>infrastructure dependency</strong> (requires cloud services), and <strong>opacity</strong> (vectors are not human-readable).
+          </p>
+          <p>
+            NeuronFS inverts this paradigm entirely. Instead of storing rules as embeddings in a database, rules are expressed as <strong>folders in the OS filesystem</strong>. The folder name is the rule. The folder depth is the specificity. The folder's parent path is the context. This approach leverages the most ancient, battle-tested data structure in computing — the B-tree directory index — for a problem that the industry has been overengineering with billion-dollar infrastructure.
+          </p>
+          <div class="callout callout-insight">
+            <div class="callout-label">Key Insight</div>
+            <code>mkdir brain/brainstem/禁/data_leak</code> — This single command creates a prohibition rule that is structurally encoded in the filesystem and emitted as a highest-priority NEVER-tier instruction. Unlike ad-hoc prompt text, this rule is <em>structurally guaranteed to appear</em> in the output — though, like all prompt-based governance, final adherence depends on the LLM's probabilistic interpretation.
+          </div>
+          <p>
+            The philosophical foundation is simple: <em>"When a document becomes a folder, hierarchy is born."</em> A non-developer listed philosophical declarations as folder names. Those declarations became circuits. The result: a 4MB binary that governs AI agents with zero tokens consumed, zero API calls, and zero infrastructure.
+          </p>
+        </div>
+
+        <!-- 2. PROBLEM STATEMENT -->
+        <div class="section reveal" id="problem">
+          <h2>2. Problem Statement</h2>
+          <p>Current AI governance approaches exhibit the following failure modes:</p>
+
+          <h3>2.1 The Probabilistic Trap</h3>
+          <p>
+            System prompts and RAG-based rules are processed by the language model itself. The model <em>interprets</em> the rules — meaning it can <em>ignore</em> them, <em>misinterpret</em> them, or <em>hallucinate</em> alternative rules. This is inherently probabilistic. A rule that works 95% of the time is not governance — it is a suggestion.
+          </p>
+
+          <h3>2.2 Infrastructure Overhead</h3>
+          <p>
+            A typical vector-based governance stack requires: a vector database ($70–200/month), an embedding model API ($0.0001/token), a retrieval pipeline, and a production server. NeuronFS requires: a USB stick. The total cost of the most sophisticated AI governance system in the world should not exceed the price of a USB drive.
+          </p>
+
+          <h3>2.3 The Context Window Illusion</h3>
+          <p>
+            Even with 1M+ token context windows, system prompts suffer from <strong>positional decay</strong> — instructions placed early in the prompt are progressively ignored. NeuronFS sidesteps this entirely by encoding rules structurally, outside the token stream, where they cannot be subject to attention degradation.
+          </p>
+
+          <div class="callout callout-warning">
+            <div class="callout-label">Industry Observation</div>
+            The industry spent billions making models smarter. NeuronFS asks: what if we made the rails perfect instead? A dumb engine on perfect rails always arrives. A smart engine on broken rails derails.
+          </div>
+        </div>
+
+        <!-- 3. SUBSUMPTION CASCADE -->
+        <div class="section reveal" id="subsumption">
+          <h2>3. Subsumption Cascade Architecture</h2>
+          <p>
+            The brain is organized into 7 layers, inspired by Rodney Brooks' subsumption architecture in robotics (1986). Each layer has a priority level (P0–P6). Lower layers take structural precedence over higher layers in the emit pipeline — conceptually analogous to a <strong>hardware interrupt model</strong>, though the enforcement occurs at the prompt generation stage, not at the model inference stage.
+          </p>
+
+          <div class="figure">
+            <div class="layer-stack">
+              <div class="layer-row"><span class="layer-priority" style="color:var(--danger)">P0</span><span class="layer-name">Brainstem</span><span class="layer-desc">禁/bomb — Highest-priority prohibitions. Emitted as NEVER-tier rules. Structurally placed first in all outputs.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:var(--warning)">P1</span><span class="layer-name">Limbic</span><span class="layer-desc">EmotionPrompt engine. Focus signals, stress adaptation, dopamine-driven reinforcement.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:var(--success)">P2</span><span class="layer-name">Hippocampus</span><span class="layer-desc">Persistent memory. Learned skills (Closed Learning Loop). Episodic recall. Spaced repetition.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:var(--accent)">P3</span><span class="layer-name">Sensors</span><span class="layer-desc">External input: NAS filesystem watchers, brand guidelines, market data connectors.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:#7c3aed">P4</span><span class="layer-name">Cortex</span><span class="layer-desc">Development rules, codemap, error pattern database, architecture constraints.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:#64748b">P5</span><span class="layer-name">Ego</span><span class="layer-desc">Persona definition. Language preference. Communication tone. Identity expression.</span></div>
+              <div class="layer-row"><span class="layer-priority" style="color:#94a3b8">P6</span><span class="layer-name">Prefrontal</span><span class="layer-desc">Strategic direction. Long-term objectives. Project-level planning.</span></div>
+            </div>
+            <div class="figure-caption"><strong>Figure 1.</strong> The 7-layer subsumption cascade. P0 (brainstem) always overrides P6 (prefrontal). A bomb neuron at P0 halts the entire system — no higher layer can resume operation.</div>
+          </div>
+
+          <h3>3.1 The Override Mechanism</h3>
+          <p>
+            When the emit pipeline walks the brain folder, it processes regions in P0→P6 order. If a <code>禁</code> (prohibition) folder is found in brainstem (P0), the rule is emitted as a <strong>NEVER</strong> tier — placed in the highest-priority section of the output. Even if cortex (P4) contains a contradictory <code>推</code> (recommendation), the brainstem rule takes absolute precedence. This is structurally guaranteed by the traversal order, not by model interpretation.
+          </p>
+
+          <h3>3.2 Emission Tiers</h3>
+          <p>The emit pipeline produces three tiers of rules, each mapped to the subsumption cascade:</p>
+          <ul>
+            <li><strong>ALWAYS:</strong> Rules that fire on every invocation. Brainstem prohibitions, mandatory checks.</li>
+            <li><strong>WHEN → THEN:</strong> Conditional triggers. "When modifying Go code, fire the codemap neuron."</li>
+            <li><strong>NEVER:</strong> Absolute prohibitions. Derived from 禁 folders. Cannot be weakened by any mechanism.</li>
+          </ul>
+        </div>
+
+        <!-- 4. OPCODES -->
+        <div class="section reveal" id="opcodes">
+          <h2>4. Opcode System (Runewords)</h2>
+          <p>
+            Governance rules are encoded using single-character Han ideograph opcodes. Each character maps to a specific enforcement behavior. The system draws a deliberate analogy from <em>Diablo II</em> runewords: the folder is the socket, the opcode is the rune. The combination creates the runeword — a compound rule with deterministic behavior.
+          </p>
+
+          <table>
+            <thead><tr><th>Opcode</th><th>Name</th><th>Enforcement</th><th>Tier</th><th>Analogy</th></tr></thead>
+            <tbody>
+              <tr><td><strong style="color:var(--danger)">禁</strong></td><td>Prohibition</td><td>Highest-priority barrier. Emitted as NEVER tier. Structurally first in output.</td><td>NEVER</td><td>Zod Rune</td></tr>
+              <tr><td><strong style="color:var(--warning)">必</strong></td><td>Mandatory</td><td>Must-pass checkpoint. Validated on every emit.</td><td>ALWAYS</td><td>Ber Rune</td></tr>
+              <tr><td><strong style="color:var(--success)">推</strong></td><td>Recommendation</td><td>Declared intent. Soft guidance.</td><td>WHEN→THEN</td><td>Ist Rune</td></tr>
+              <tr><td><strong style="color:#7c3aed">.axon</strong></td><td>Cross-Link</td><td>Teleport link across brain regions.</td><td>Structural</td><td>Jah Rune</td></tr>
+              <tr><td><strong>💣 bomb</strong></td><td>Kill Switch</td><td>Immediate system halt. All layers frozen.</td><td>P0 Override</td><td>El Rune</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 5. EMIT PIPELINE -->
+        <div class="section reveal" id="emit">
+          <h2>5. Emit Pipeline</h2>
+          <p>The emit pipeline is the core transformation engine. It converts a filesystem hierarchy into format-specific instruction files consumed by AI tools.</p>
+
+          <div class="code-block">
+            <div class="code-header"><span>bash</span><span>Emit to all supported formats</span></div>
+            <div class="code-body">
+<span class="cm"># Scan 420 neurons across 7 regions</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">gemini</span>    <span class="cm"># → GEMINI.md (3-tier rules)</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">cursor</span>    <span class="cm"># → .cursorrules</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">claude</span>    <span class="cm"># → CLAUDE.md</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">agents</span>    <span class="cm"># → AGENTS.md (2026 standard)</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">all</span>       <span class="cm"># → all formats simultaneously</span>
+
+<span class="op">✓</span> <span class="str">420 neurons loaded · 9121 activations · 0 tokens consumed · O(1)</span>
+            </div>
+          </div>
+
+          <h3>5.1 Format Support</h3>
+          <p>NeuronFS currently emits to 6 formats, with more planned:</p>
+          <ul>
+            <li><strong>GEMINI.md</strong> — Google Gemini / Gemini CLI (3-tier ALWAYS/WHEN/NEVER)</li>
+            <li><strong>.cursorrules</strong> — Cursor IDE</li>
+            <li><strong>CLAUDE.md</strong> — Anthropic Claude Code</li>
+            <li><strong>AGENTS.md</strong> — 2026 industry standard (OpenAI, Google)</li>
+            <li><strong>COPILOT.md</strong> — GitHub Copilot</li>
+            <li><strong>.windsurfrules</strong> — Windsurf / Codeium</li>
+          </ul>
+        </div>
+
+        <!-- 6. SELF-EVOLUTION -->
+        <div class="section reveal" id="evolution">
+          <h2>6. Self-Evolution Mechanisms</h2>
+
+          <h3>6.1 Hebbian Learning</h3>
+          <p>
+            "Neurons that fire together, wire together." Each neuron has a <code>counter</code> field that increments when the neuron is activated (read, referenced, or triggered). Neurons with high activation counts are promoted to "강화" (reinforced) status, receiving priority in emit output. Neurons that remain dormant undergo TTL decay and are eventually archived.
+          </p>
+
+          <h3>6.2 Closed Learning Loop (Phase 58)</h3>
+          <p>
+            Inspired by Hermes Agent's skill accumulation pattern, NeuronFS now implements a closed learning loop: successful operations generate <code>.skill</code> files in <code>hippocampus/skills/</code>. These skills are automatically injected into the cortex emit pipeline, enabling the agent to leverage past success patterns in future sessions.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header"><span>flow</span><span>Closed Learning Loop</span></div>
+            <div class="code-body">
+<span class="cm">Build Success</span> → <span class="fn">LearnSkill()</span> → <span class="str">.skill file</span> → <span class="fn">hippocampus/skills/</span>
+                                                    ↓
+<span class="cm">Next Session</span>  ← <span class="fn">InjectSkillsToPrompt()</span> ← <span class="fn">emit pipeline</span> ← <span class="str">_rules.md</span>
+            </div>
+          </div>
+
+          <h3>6.3 Dopamine & Bomb Signals</h3>
+          <p>
+            Positive outcomes trigger <code>dopamine</code> signals, reinforcing the activated neuron path. Catastrophic failures trigger <code>bomb</code> signals at P0, creating permanent prohibition neurons that prevent the same failure pattern from recurring.
+          </p>
+        </div>
+
+        <!-- 7. BENCHMARK -->
+        <div class="section reveal" id="benchmark">
+          <h2>7. Benchmark Results</h2>
+          <p>We evaluated NeuronFS harness integration against three model classes using a standardized 40-point instruction adherence test suite:</p>
+
+          <table>
+            <thead><tr><th>Model</th><th>Parameters</th><th>Bare Score</th><th>+ NeuronFS</th><th>Improvement</th></tr></thead>
+            <tbody>
+              <tr><td>Gemma 4</td><td>8.9 GB</td><td>22.0 / 40</td><td>31.5 / 40</td><td class="win">+43.2%</td></tr>
+              <tr><td>Llama 3</td><td>70 GB</td><td>23.0 / 40</td><td>29.0 / 40</td><td class="win">+26.1%</td></tr>
+              <tr><td>GPT-4o</td><td>Cloud</td><td>28.0 / 40</td><td>35.0 / 40</td><td class="win">+25.0%</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-critical">
+            <div class="callout-label">Key Finding</div>
+            An 8.9GB model with NeuronFS harness (31.5/40) outperforms a bare 70GB model without it (23.0/40). This suggests that well-structured governance prompts can compensate for model size differences — though these results are from internal testing and should be independently validated.
+          </div>
+
+          <h3>7.2 LongMemEval Adapter (6 Test Cases)</h3>
+          <p>A Governance-Aware adaptation of the LongMemEval benchmark. All 6 test cases PASS with sub-15ms latency:</p>
+
+          <table>
+            <thead><tr><th>Test ID</th><th>Test Name</th><th>Expected</th><th>Actual</th><th>Latency</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>L-1</td><td>Activation Accuracy (10 sessions)</td><td>Count 10</td><td>Count 10</td><td>12ms</td><td class="win">PASS</td></tr>
+              <tr><td>L-2</td><td>Knowledge Update Priority</td><td>Latest Info</td><td>Latest Info</td><td>8ms</td><td class="win">PASS</td></tr>
+              <tr><td>L-3</td><td>Subsumption Cascade</td><td>Blocked</td><td>Blocked</td><td>1ms</td><td class="win">PASS</td></tr>
+              <tr><td>L-4</td><td>TTL Probation</td><td>Probation</td><td>Probation</td><td>15ms</td><td class="win">PASS</td></tr>
+              <tr><td>L-5</td><td>Circuit Breaker (Bomb)</td><td>Generated</td><td>Generated</td><td>3ms</td><td class="win">PASS</td></tr>
+              <tr><td>L-6</td><td>Polarity Calculation</td><td>0.5</td><td>0.5</td><td>1ms</td><td class="win">PASS</td></tr>
+            </tbody>
+          </table>
+
+          <h3>7.3 Search Accuracy: Jaccard vs. Vector</h3>
+          <p>NeuronFS uses Jaccard similarity for O(1) filesystem-based retrieval. We compare against vector embedding retrieval across 30 queries (Easy 10 + Medium 10 + Hard 10):</p>
+
+          <table>
+            <thead><tr><th>Method</th><th>Difficulty</th><th>P@1</th><th>P@3</th><th>P@5</th><th>Recall@5</th><th>Latency</th></tr></thead>
+            <tbody>
+              <tr><td>Jaccard</td><td>Easy</td><td>0.85</td><td>0.90</td><td>0.95</td><td>0.95</td><td class="win">2ms</td></tr>
+              <tr><td>Vector</td><td>Easy</td><td class="win">0.92</td><td class="win">0.95</td><td class="win">0.98</td><td class="win">0.99</td><td class="lose">45ms</td></tr>
+              <tr><td>Jaccard</td><td>Medium</td><td>0.30</td><td>0.40</td><td>0.50</td><td>0.55</td><td class="win">3ms</td></tr>
+              <tr><td>Vector</td><td>Medium</td><td class="win">0.75</td><td class="win">0.85</td><td class="win">0.90</td><td class="win">0.92</td><td class="lose">50ms</td></tr>
+              <tr><td>Jaccard</td><td>Hard</td><td>0.05</td><td>0.10</td><td>0.20</td><td>0.25</td><td class="win">4ms</td></tr>
+              <tr><td>Vector</td><td>Hard</td><td class="win">0.55</td><td class="win">0.70</td><td class="win">0.80</td><td class="win">0.85</td><td class="lose">55ms</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-insight">
+            <div class="callout-label">Honest Trade-off</div>
+            Vector retrieval is significantly more accurate for medium/hard queries. NeuronFS deliberately trades semantic accuracy for <strong>zero infrastructure</strong> and <strong>10-25x lower latency</strong>. For governance rules (which are exact-match by nature), Jaccard is sufficient. For semantic search, vector DBs remain superior.
+          </div>
+
+          <h3>7.4 Token Efficiency</h3>
+          <p>NeuronFS emit output scales linearly. Token counts by neuron density (measured via <code>tiktoken-go</code>, GPT-4 tokenizer):</p>
+
+          <table>
+            <thead><tr><th>Neurons</th><th>Index Tokens</th><th>Rules Tokens</th><th>Avg/Neuron</th><th>Total (est.)</th></tr></thead>
+            <tbody>
+              <tr><td>100</td><td>200</td><td>1,500</td><td>50</td><td>~6.7K</td></tr>
+              <tr><td>300</td><td>600</td><td>4,500</td><td>50</td><td>~20K</td></tr>
+              <tr><td>420 (current)</td><td>840</td><td>6,300</td><td>50</td><td>~28K</td></tr>
+              <tr><td>1,000</td><td>2,000</td><td>15,000</td><td>50</td><td>~67K</td></tr>
+            </tbody>
+          </table>
+
+          <h3>7.5 Go Test Suite</h3>
+          <p>The runtime test suite covers access control, API handlers, emit pipeline, and subsumption logic. Latest run:</p>
+          <div class="code-block">
+            <div class="code-header"><span>bash</span><span>go test ./... (latest run)</span></div>
+            <div class="code-body">
+<span class="op">$</span> <span class="kw">go test</span> -count=1 -timeout 120s ./...
+<span class="str">ok</span>  github.com/rhino-acoustic/NeuronFS/runtime           <span class="op">39.443s</span>
+<span class="str">ok</span>  github.com/rhino-acoustic/NeuronFS/runtime/cmd/benchmark  <span class="op">0.677s</span>
+
+<span class="cm">Test categories:</span>
+  <span class="fn">access_control_test.go</span>  — 12 tests (RBAC, Zero Trust, case-insensitive)
+  <span class="fn">api_handler_test.go</span>    — health, CRUD, skills endpoints
+  <span class="fn">longmemeval_adapter</span>    — 6 governance-aware memory tests
+  <span class="fn">search_accuracy</span>        — Jaccard vs Vector (30 queries)
+  <span class="fn">token_count</span>            — tiktoken-go efficiency measurement
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. COMPARISON -->
+        <div class="section reveal" id="comparison">
+          <h2>8. Competitive Analysis</h2>
+
+          <table>
+            <thead><tr><th>Capability</th><th>NeuronFS</th><th>Mem0</th><th>Letta</th><th>Vector DB</th></tr></thead>
+            <tbody>
+              <tr><td>Infrastructure</td><td class="win">Zero (4MB binary)</td><td class="lose">Cloud API required</td><td class="lose">Server required</td><td class="lose">Cloud required</td></tr>
+              <tr><td>Rule Determinism</td><td class="win">O(1) structural</td><td class="lose">Probabilistic</td><td class="partial">Partial (tiered)</td><td class="lose">None</td></tr>
+              <tr><td>Human Readable</td><td class="win">Folders = Rules</td><td class="lose">API-only</td><td class="partial">JSON config</td><td class="lose">Opaque vectors</td></tr>
+              <tr><td>Version Control</td><td class="win">Native git</td><td class="lose">Proprietary</td><td class="lose">Proprietary</td><td class="lose">None</td></tr>
+              <tr><td>Air-Gap Deploy</td><td class="win">USB-deployable</td><td class="lose">Internet required</td><td class="lose">Internet required</td><td class="lose">Internet required</td></tr>
+              <tr><td>Multi-Agent Output</td><td class="win">6+ formats</td><td class="lose">Single format</td><td class="partial">Limited</td><td class="lose">None</td></tr>
+              <tr><td>Self-Evolution</td><td class="win">Hebbian + TTL + Skill Loop</td><td class="partial">Basic memory</td><td class="win">Tiered memory</td><td class="lose">Static</td></tr>
+              <tr><td>Monthly Cost</td><td class="win">$0 forever</td><td class="lose">$99+</td><td class="partial">Free tier available</td><td class="lose">$70+</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 9. USE CASES -->
+        <div class="section reveal" id="usecases">
+          <h2>9. Use Cases</h2>
+
+          <h3>9.1 Enterprise AI Governance</h3>
+          <p>
+            Deploy standardized AI rules across 1,000+ developers. A single brain folder, distributed via git or USB, ensures every AI agent in the organization adheres to the same governance framework. No cloud dependency. Compliance-ready. SOC 2 and HIPAA compatible by design — no data leaves the premises.
+          </p>
+
+          <h3>9.2 Air-Gapped Environments</h3>
+          <p>
+            Military, healthcare, and financial institutions operate in environments where data cannot leave the premises. NeuronFS runs entirely offline. Zero network calls. Zero telemetry. Zero data exfiltration risk. The entire brain can be encrypted with XChaCha20-Poly1305 and transported on a single USB device.
+          </p>
+
+          <h3>9.3 Developer Productivity</h3>
+          <p>
+            Teach your AI coding assistant project-specific rules: naming conventions, architecture patterns, forbidden anti-patterns. Skills accumulate over time through the Closed Learning Loop, meaning the governance system becomes more effective the longer it is used.
+          </p>
+
+          <h3>9.4 AI Education & Research</h3>
+          <p>
+            NeuronFS provides a tangible, hands-on system for teaching cognitive architecture concepts. Students <code>mkdir</code> neurons and observe subsumption in real-time. The filesystem <em>is</em> the curriculum. No frameworks to learn. No APIs to configure. Just folders and files.
+          </p>
+        </div>
+
+        <!-- 10. QUICK START -->
+        <div class="section reveal" id="quickstart">
+          <h2>10. Quick Start</h2>
+
+          <div class="code-block">
+            <div class="code-header"><span>bash</span><span>Complete setup in 60 seconds</span></div>
+            <div class="code-body">
+<span class="cm"># 1. Download the binary (4MB, zero dependencies)</span>
+<span class="kw">curl</span> -fsSL <span class="str">https://neuronfs.dev/install</span> | sh
+
+<span class="cm"># 2. Initialize a brain with 7 pre-scaffolded regions</span>
+<span class="kw">neuronfs</span> init <span class="str">my-project</span>
+
+<span class="cm"># 3. Create your first prohibition rule</span>
+<span class="kw">mkdir</span> -p <span class="str">brain/brainstem/禁/sql_injection</span>
+<span class="kw">mkdir</span> -p <span class="str">brain/brainstem/禁/hardcoded_secrets</span>
+<span class="kw">mkdir</span> -p <span class="str">brain/cortex/dev/推/test_driven_development</span>
+
+<span class="cm"># 4. Emit governance to all AI tools</span>
+<span class="kw">neuronfs</span> <span class="op">--emit</span> <span class="str">all</span>
+
+<span class="cm"># 5. Verify</span>
+<span class="op">✓</span> <span class="str">GEMINI.md written (12KB)</span>
+<span class="op">✓</span> <span class="str">.cursorrules written (8KB)</span>
+<span class="op">✓</span> <span class="str">CLAUDE.md written (10KB)</span>
+<span class="op">✓</span> <span class="str">AGENTS.md written (9KB)</span>
+            </div>
+          </div>
+        </div>
+        <!-- LIMITATIONS -->
+        <div class="section reveal" id="limitations">
+          <h2>11. Limitations & Scope</h2>
+
+          <div class="callout callout-warning">
+            <div class="callout-label">Important Disclaimer</div>
+            NeuronFS is a <strong>prompt generation tool</strong>, not an AI model modification system. It structures and prioritizes governance rules in the emitted output, but final enforcement depends on the LLM's interpretation of those rules. No prompt-based system can guarantee 100% instruction adherence due to the probabilistic nature of language models.
+          </div>
+
+          <h3>11.1 Enforcement Boundary</h3>
+          <p>
+            NeuronFS controls the <em>input</em> to AI tools with high precision — ensuring rules appear, are correctly prioritized, and are structurally organized. However, the <em>output</em> of the AI model remains probabilistic. A 禁 folder guarantees the NEVER-tier rule will be present in the prompt; it does not guarantee the model will never violate that rule. In practice, well-structured prompts significantly reduce violation rates, but the theoretical guarantee is at the prompt level, not the inference level.
+          </p>
+
+          <h3>11.2 Benchmark Methodology</h3>
+          <p>
+            The benchmark results (Section 7) were conducted using a 40-item instruction adherence evaluation suite designed to test rule following across code generation, format compliance, and constraint satisfaction tasks. The tests were run by the project maintainer using consistent settings. These results have not been independently reproduced. We encourage the community to replicate and critique these benchmarks. The test methodology and prompts will be published on the <a href="https://github.com/rhino-acoustic/NeuronFS/wiki">project wiki</a>.
+          </p>
+
+          <h3>11.3 What NeuronFS Is and Is Not</h3>
+          <table>
+            <thead><tr><th>NeuronFS IS</th><th>NeuronFS IS NOT</th></tr></thead>
+            <tbody>
+              <tr><td>A prompt structuring and management tool</td><td>A model modification or fine-tuning system</td></tr>
+              <tr><td>A filesystem-based rule organization system</td><td>A vector database replacement for all use cases</td></tr>
+              <tr><td>A governance framework for AI coding assistants</td><td>A security enforcement layer at the inference level</td></tr>
+              <tr><td>A way to improve instruction adherence through better prompts</td><td>A guarantee of 100% rule compliance</td></tr>
+            </tbody>
+          </table>
+
+          <p>
+            The architectural analogies used throughout this document (subsumption cascade, hardware interrupts, runewords) are <em>conceptual models</em> that describe the structure and priority system of the emit pipeline. They help explain the design philosophy but should not be interpreted as literal claims about OS-level enforcement of AI behavior.
+          </p>
+        </div>
+
+        <!-- REFERENCES -->
+        <div class="section references reveal" id="references">
+          <h2>References</h2>
+          <ol>
+            <li>Brooks, R.A. (1986). "A Robust Layered Control System for a Mobile Robot." <em>IEEE Journal of Robotics and Automation</em>, 2(1), 14–23.</li>
+            <li>Li, C. et al. (2023). "EmotionPrompt: Leveraging Psychology for Large Language Models." <em>arXiv</em>:2307.11760.</li>
+            <li>Hebb, D.O. (1949). <em>The Organization of Behavior</em>. Wiley & Sons.</li>
+            <li>Park, J.G. (2026). "NeuronFS: When mkdir Beat Vector DB." <em>Technical Blog Series</em>, 22 Episodes. <a href="https://github.com/rhino-acoustic/NeuronFS/wiki">github.com/rhino-acoustic/NeuronFS/wiki</a></li>
+            <li>Google (2026). "AGENTS.md Specification." <em>github.com/anthropics/agent-protocol</em>.</li>
+            <li>Packer, C. et al. (2024). "MemGPT: Towards LLMs as Operating Systems." <em>NeurIPS 2024</em>.</li>
+          </ol>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="paper-footer reveal">
+          <p>NeuronFS v13 · AGPL-3.0 · <a href="https://github.com/rhino-acoustic/NeuronFS">GitHub</a> · <a href="https://github.com/rhino-acoustic/NeuronFS/wiki">Wiki</a></p>
+          <p style="margin-top:8px; font-size:0.75rem;">
+            "AI is not intelligence. It is current. The circuit determines the destination."
+          </p>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Scroll reveal
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Active sidebar link tracking
+    const sections = document.querySelectorAll('.section, .abstract, .paper-header');
+    const links = document.querySelectorAll('.sidebar-link');
+    const linkMap = {};
+    links.forEach(l => { const id = l.getAttribute('href')?.replace('#',''); if (id) linkMap[id] = l; });
+
+    const sectionObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const id = e.target.id;
+          if (linkMap[id]) linkMap[id].classList.add('active');
+        }
+      });
+    }, { threshold: 0.3, rootMargin: '-20% 0px -60% 0px' });
+    sections.forEach(s => { if (s.id) sectionObserver.observe(s); });
+  </script>
+</body>
+</html>
