@@ -120,6 +120,9 @@ func runGoSourceWatcher() {
 			fmt.Printf("\033[31m[BUILD-FAIL] Auto-compilation failed: %v\nOutput: %s\033[0m\n", err, string(out))
 		} else {
 			fmt.Printf("\033[32m[BUILD-OK] Worker Core Regenerated in %v. Next tool call will use new binary.\033[0m\n", elapsed)
+			// Phase 58: Closed Learning Loop — learn from successful builds
+			_ = LearnSkill(brainRoot, "build", fmt.Sprintf("auto_build_%s", time.Now().Format("20060102_150405")),
+				fmt.Sprintf("빌드 성공 %v", elapsed), "watch_src/triggerBuild")
 		}
 
 		// After successful build, sync codemap
