@@ -120,6 +120,7 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 <script>
 let scene, camera, renderer, controls;
 let instancedMesh;
+let axonMesh;
 const dummy = new THREE.Object3D();
 
 function init3D() {
@@ -141,7 +142,7 @@ function init3D() {
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.5;
 
-  generateOptimizedBrain();
+  fetchGraphQLBrain();
 
   scene.add(new THREE.AmbientLight(0x10b981, 0.2));
   const pLight = new THREE.PointLight(0x3b82f6, 1, 300);
@@ -153,68 +154,132 @@ function init3D() {
   animate();
 }
 
-function generateOptimizedBrain() {
-  const count = 30000; 
-  document.getElementById('gl-stats').innerText = `InstancedMesh | ${count.toLocaleString()} Neurons | 1 Draw Call`;
+// Phase 35: GraphQL Realtime Brain Fetcher
+async function fetchGraphQLBrain() {
+  try {
+    const q = `
+      query {
+        brain {
+          name
+          count
+          neurons { name path }
+        }
+      }
+    `;
+    const res = await fetch("http://localhost:8080/graphql", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({query: q})
+    });
+    
+    if(!res.ok) throw new Error("GraphQL Error");
+    
+    const json = await res.json();
+    renderGraphQLBrain(json.data.brain);
+    
+    // Auto refresh every 5 seconds
+    setTimeout(fetchGraphQLBrain, 5000);
+  } catch(e) {
+    console.error("[GraphQLError]", e);
+    document.getElementById('gl-stats').innerText = `API OFFLINE | 0 Nodes`;
+    setTimeout(fetchGraphQLBrain, 5000);
+  }
+}
+
+function renderGraphQLBrain(brainRegions) {
+  if(!brainRegions) return;
   
-  const geometry = new THREE.OctahedronGeometry(0.8, 0);
+  if(instancedMesh) {
+    scene.remove(instancedMesh);
+    instancedMesh.geometry.dispose();
+    instancedMesh.material.dispose();
+  }
+  if(axonMesh) {
+    scene.remove(axonMesh);
+    axonMesh.geometry.dispose();
+    axonMesh.material.dispose();
+  }
+
+  let totalNeurons = 0;
+  brainRegions.forEach(r => totalNeurons += r.count);
+  
+  // Guard for empty brain
+  if(totalNeurons === 0) {
+    document.getElementById('gl-stats').innerText = `Brain Empty`;
+    return;
+  }
+
+  const geometry = new THREE.OctahedronGeometry(1.2, 0);
   const material = new THREE.MeshPhongMaterial({
     color: 0xffffff,
     transparent: true,
-    opacity: 0.7,
+    opacity: 0.8,
     shininess: 100,
     blending: THREE.AdditiveBlending
   });
 
-  instancedMesh = new THREE.InstancedMesh(geometry, material, count);
+  instancedMesh = new THREE.InstancedMesh(geometry, material, totalNeurons);
   
   let i = 0;
   const positions = [];
-  while(i < count) {
-    const t = Math.random() * Math.PI * 2;
-    const p = Math.acos(2 * Math.random() - 1);
-    
-    let rx=55, ry=42, rz=48;
-    const f=1+0.2*Math.pow(Math.max(0,Math.sin(t)*Math.cos(p)),2);
-    const tm=1+0.12*Math.pow(Math.sin(t),2)*Math.pow(Math.sin(p),2);
-    const bt=t>Math.PI*0.75?1-0.3*(t-Math.PI*0.75)/(Math.PI*0.25):1;
-    const gr=1-0.08*Math.pow(Math.max(0,Math.cos(p)),4)*Math.pow(Math.sin(t),2);
-    const r=f*tm*bt*gr * (0.5 + Math.random()*0.5); 
-    
-    const x = rx*r*Math.sin(t)*Math.cos(p);
-    const y = ry*r*Math.cos(t);
-    const z = rz*r*Math.sin(t)*Math.sin(p);
+  
+  // Map Region Names to rough 3D Offsets & Colors
+  const regionOffsets = {
+    "cortex": { x:0, y:20, z:0, scale: 60, col: 0x3b82f6 },
+    "limbic": { x:0, y:-10, z:0, scale: 30, col: 0xdc2626 },
+    "brainstem": { x:0, y:-40, z:-10, scale: 20, col: 0xfbbf24 },
+    "prefrontal": { x:0, y:40, z:20, scale: 25, col: 0x10b981 },
+    "ego": { x:0, y:0, z:40, scale: 15, col: 0x8b5cf6 },
+    "sensors": { x:30, y:0, z:0, scale: 35, col: 0x14b8a6 },
+    "shared": { x:-30, y:0, z:0, scale: 35, col: 0x94a3b8 }
+  };
 
-    positions.push(new THREE.Vector3(x, y, z));
-    dummy.position.set(x, y, z);
+  brainRegions.forEach(region => {
+    const meta = regionOffsets[region.name] || {x:0, y:0, z:0, scale:40, col:0xffffff};
     
-    const dist = Math.sqrt(x*x + y*y + z*z);
-    const s = Math.max(0.2, 1 - (dist / 60));
-    dummy.scale.set(s, s, s);
-    
-    dummy.updateMatrix();
-    instancedMesh.setMatrixAt(i, dummy.matrix);
-    
-    const color = new THREE.Color();
-    if(y > 10) color.setHex(0x3b82f6); 
-    else if(dist < 20) color.setHex(0xdc2626); 
-    else color.setHex(0x10b981); 
+    // Distribute nodes spherically around the region offset
+    region.neurons.forEach((neuron) => {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = 2 * Math.PI * u;
+      const phi = Math.acos(2 * v - 1);
+      
+      const r = Math.random() * meta.scale;
+      
+      const px = meta.x + r * Math.sin(phi) * Math.cos(theta);
+      const py = meta.y + r * Math.sin(phi) * Math.sin(theta);
+      const pz = meta.z + r * Math.cos(phi);
+      
+      positions.push(new THREE.Vector3(px, py, pz));
+      dummy.position.set(px, py, pz);
+      
+      // Variable size based on depth
+      const dist = Math.sqrt(px*px + py*py + pz*pz);
+      const s = Math.max(0.3, 1 - (dist / 100));
+      dummy.scale.set(s, s, s);
+      
+      dummy.updateMatrix();
+      instancedMesh.setMatrixAt(i, dummy.matrix);
+      
+      const color = new THREE.Color(meta.col);
+      instancedMesh.setColorAt(i, color);
+      i++;
+    });
+  });
 
-    instancedMesh.setColorAt(i, color);
-    i++;
-  }
+  instancedMesh.instanceMatrix.needsUpdate = true;
+  if(instancedMesh.instanceColor) instancedMesh.instanceColor.needsUpdate = true;
   
   scene.add(instancedMesh);
-
   // --- Generate Axons (Inter-neuron connections) ---
   const linePositions = [];
-  const queryCount = 2000; 
+  // Connect random nodes if they are close
+  const queryCount = Math.min(2000, totalNeurons); 
   for(let j=0; j<queryCount; j++) {
-    const p1 = positions[Math.floor(Math.random() * count)];
-    // Find a near neighbor to form an axon
+    const p1 = positions[Math.floor(Math.random() * totalNeurons)];
     for(let k=0; k<30; k++) {
-      const p2 = positions[Math.floor(Math.random() * count)];
-      if (p1.distanceTo(p2) < 12) {
+      const p2 = positions[Math.floor(Math.random() * totalNeurons)];
+      if (p1 && p2 && p1.distanceTo(p2) < 20) {
         linePositions.push(p1.x, p1.y, p1.z);
         linePositions.push(p2.x, p2.y, p2.z);
         break; 
@@ -232,10 +297,10 @@ function generateOptimizedBrain() {
   
   const lineGeo = new THREE.BufferGeometry();
   lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-  const axonMesh = new THREE.LineSegments(lineGeo, axonMaterial);
+  axonMesh = new THREE.LineSegments(lineGeo, axonMaterial);
   scene.add(axonMesh);
 
-  document.getElementById('gl-stats').innerText = `InstancedMesh | ${count.toLocaleString()} Neurons | ${(linePositions.length/6).toLocaleString()} Axons`;
+  document.getElementById('gl-stats').innerText = `GraphQL InstancedMesh | ${totalNeurons.toLocaleString()} Neurons | ${(linePositions.length/6).toLocaleString()} Axons`;
 }
 
 function onWindowResize() {
