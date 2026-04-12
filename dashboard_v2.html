@@ -237,9 +237,8 @@ async function initData() {
   logTTY("Initializing Autopilot V2 OS...", "info");
   logTTY("Strangler Fig Node Boot Sequence Complete.", "info");
   fetchAutopilotState();
-  fetchOpsData();
+  initSSE();
   setInterval(fetchAutopilotState, 5000);
-  setInterval(fetchOpsData, 3000);
 }
 
 async function fetchAutopilotState() {
@@ -283,15 +282,19 @@ function updateApBtn() {
   }
 }
 
-async function fetchOpsData() {
-  try {
-    const r = await fetch('/api/ops');
-    const d = await r.json();
-    if(d.brain) {
-      document.getElementById('m-neurons').innerText = d.brain.totalNeurons.toLocaleString();
-      document.getElementById('m-act').innerText = d.brain.totalActivation.toLocaleString();
-    }
-  } catch(e) {}
+function initSSE() {
+  const evtSource = new EventSource('/api/stream');
+  evtSource.onmessage = function(e) {
+    try {
+      const d = JSON.parse(e.data);
+      document.getElementById('m-neurons').innerText = d.totalNeurons.toLocaleString();
+      document.getElementById('m-act').innerText = d.totalActivation.toLocaleString();
+    } catch(err) {}
+  };
+  evtSource.onerror = function() {
+    logTTY("Connection lost to Telemetry stream. Reconnecting...", "error");
+  };
+  logTTY("SSE Telemetry Stream Connected.", "success");
 }
 
 initData();

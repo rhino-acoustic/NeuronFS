@@ -339,6 +339,48 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		})
 	}))
 
+	// GET /api/stream — SSE Telemetry Stream
+	mux.HandleFunc("/api/stream", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "Streaming unsupported", http.StatusInternalServerError)
+			return
+		}
+
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-r.Context().Done():
+				return
+			case <-ticker.C:
+				brain := scanBrain(brainRoot)
+				totalNeurons := 0
+				totalActivation := 0
+				for _, r := range brain.Regions {
+					totalNeurons += len(r.Neurons)
+					for _, n := range r.Neurons {
+						totalActivation += n.Counter
+					}
+				}
+
+				data := map[string]interface{}{
+					"ts":              time.Now().Format(time.RFC3339),
+					"totalNeurons":    totalNeurons,
+					"totalActivation": totalActivation,
+				}
+				jsonBytes, _ := json.Marshal(data)
+				fmt.Fprintf(w, "data: %s\n\n", string(jsonBytes))
+				flusher.Flush()
+			}
+		}
+	}))
+
 	// GET /api/ops — 통합 운영 상태 (watchdog metrics + brain state)
 	mux.HandleFunc("/api/ops", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
