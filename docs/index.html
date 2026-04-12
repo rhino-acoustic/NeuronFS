@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NeuronFS — AI Governance via Filesystem</title>
-  <meta name="description" content="NeuronFS: Structure AI behavior with folders. Zero infrastructure. O(1) rule enforcement. 4MB binary. AGPL-3.0.">
-  <meta property="og:title" content="NeuronFS — AI Governance via Filesystem">
-  <meta property="og:description" content="Structure AI behavior with folders. Zero infrastructure. 4MB binary.">
+  <title>NeuronFS — Structured AI Prompt Governance via Filesystem</title>
+  <meta name="description" content="NeuronFS: Structure AI behavior with folders. Minimal infrastructure. Structured prompt generation. 4MB binary. AGPL-3.0.">
+  <meta property="og:title" content="NeuronFS — Structured AI Prompt Governance">
+  <meta property="og:description" content="Structure AI behavior with folders. Minimal infrastructure. 4MB binary.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://neuronfs.vercel.app">
   <meta property="og:image" content="https://neuronfs.vercel.app/dashboard_preview.png">
@@ -159,6 +159,7 @@
         <a href="#workflow">How It Works</a>
         <a href="#benchmark">Benchmarks</a>
         <a href="#comparison">Comparison</a>
+        <a href="docs.html">Docs</a>
       </div>
       <a href="https://github.com/rhino-acoustic/NeuronFS" class="nav-cta">GitHub →</a>
       <a href="ko.html" style="color:var(--text-3); font-size:0.85rem; font-weight:500; margin-left:8px;">🇰🇷 한국어</a>
@@ -198,15 +199,15 @@
       <div class="s-header rv">
         <div class="s-eyebrow">Features</div>
         <h2 class="s-title">Why folders beat vectors</h2>
-        <p class="s-desc">NeuronFS is a prompt governance tool that structures and prioritizes AI rules via the filesystem. Rules are deterministic at the prompt level — final LLM adherence is probabilistic.</p>
+        <p class="s-desc">NeuronFS is a prompt governance tool that structures and prioritizes AI rules via the filesystem. The prompt generation is deterministic; the LLM's response to that prompt is probabilistic.</p>
       </div>
       <div class="feat-grid">
-        <div class="feat-card rv"><div class="feat-icon">📁</div><h3>Folders = Rules</h3><p>mkdir a rule. rm a rule. git diff your governance. Every change is auditable, version-controlled, and human-readable.</p></div>
-        <div class="feat-card rv"><div class="feat-icon">⚡</div><h3>O(1) Lookup</h3><p>Rules are resolved via the OS dentry cache at the prompt generation stage. No embedding computation. No similarity search. No API calls.</p></div>
-        <div class="feat-card rv"><div class="feat-icon">🔒</div><h3>Air-Gap Ready</h3><p>Zero network calls. Zero telemetry. Deploy on a USB stick. Military, healthcare, finance — anywhere data cannot leave the premises.</p></div>
+        <div class="feat-card rv"><div class="feat-icon">📁</div><h3>Folders = Rules</h3><p>mkdir a rule. rm a rule. git diff your governance. Every change is auditable, version-controlled, and human-readable. <a href="docs.html#architecture" style="font-size:0.82rem">Learn more →</a></p></div>
+        <div class="feat-card rv"><div class="feat-icon">⚡</div><h3>Fast Lookup</h3><p>Individual rules resolve via the OS dentry cache. The full emit pipeline walks all neurons (O(n)), but with 420 neurons completes in &lt;40ms. <a href="docs.html#benchmark" style="font-size:0.82rem">Learn more →</a></p></div>
+        <div class="feat-card rv"><div class="feat-icon">🔒</div><h3>Air-Gap Ready</h3><p>No network calls. No telemetry. Runs from a USB stick. Suitable for restricted environments where data cannot leave the premises. <a href="docs.html#comparison" style="font-size:0.82rem">Learn more →</a></p></div>
         <div class="feat-card rv"><div class="feat-icon">🎯</div><h3>Multi-Emit</h3><p>One brain, six outputs: GEMINI.md, .cursorrules, CLAUDE.md, AGENTS.md, COPILOT.md, .windsurfrules. Same governance, every tool.</p></div>
         <div class="feat-card rv"><div class="feat-icon">🧬</div><h3>Self-Evolution</h3><p>Hebbian learning: neurons that fire get reinforced. TTL decay: unused neurons fade. Closed Learning Loop: skills auto-accumulate.</p></div>
-        <div class="feat-card rv"><div class="feat-icon">💰</div><h3>$0 Forever</h3><p>No cloud. No subscription. No vendor lock-in. A single 4MB Go binary. AGPL-3.0 open source. The most expensive part is the USB drive.</p></div>
+        <div class="feat-card rv"><div class="feat-icon">💰</div><h3>$0 Forever</h3><p>No cloud. No subscription. No vendor lock-in. A single 4MB Go binary. AGPL-3.0 open source. Minimal infrastructure compared to vector DB alternatives.</p></div>
       </div>
     </div>
   </section>
