@@ -3,517 +3,298 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuronFS — Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>NeuronFS V2: Autopilot Nerve Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f5f5f4;--surface:#ffffff;--border:#e7e5e4;
-  --text:#1c1917;--text-2:#57534e;--text-3:#a8a29e;
-  --accent:#dc2626;--accent-bg:#fef2f2;
-  --black:#0c0a09;
+  --bg: #030305; --surface: rgba(15, 20, 30, 0.6); --border: rgba(255,255,255,0.08);
+  --accent: #10b981; --accent-glow: rgba(16, 185, 129, 0.3);
+  --danger: #ef4444; --text: #f8fafc; --text-muted: #94a3b8;
+  --font-ui: 'Inter', sans-serif; --font-mono: 'JetBrains Mono', monospace;
 }
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased;display:grid;grid-template-rows:48px 40px 1fr;grid-template-columns:1fr}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-ui); overflow: hidden; display: flex; height: 100vh; }
 
-/* Header */
-header{background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:16px;z-index:10}
-header .logo{font-weight:700;font-size:15px;letter-spacing:-0.02em}
-header .logo span{color:var(--accent)}
-header .version{font-size:10px;font-weight:600;color:var(--text-3);border:1px solid var(--border);padding:2px 7px;letter-spacing:0.06em;text-transform:uppercase}
-header .spacer{flex:1}
-header .stats{display:flex;gap:12px}
-header .stat{text-align:center}
-header .stat .val{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
-header .stat .lbl{font-size:9px;font-weight:500;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;margin-top:1px}
-header .actions{display:flex;gap:4px;margin-left:16px}
-.btn{border:none;padding:6px 14px;font-size:10px;font-weight:700;font-family:Inter,sans-serif;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase;transition:opacity 0.15s}
-.btn:hover{opacity:0.8}
-.btn-black{background:var(--black);color:#fff}
-.btn-red{background:var(--accent);color:#fff}
-.btn-outline{background:var(--surface);color:var(--text);border:1px solid var(--border)}
-.btn-outline:hover{border-color:var(--text-3)}
+/* Left: Holographic 3D WebGL Map */
+#gl-container { flex: 1; position: relative; border-right: 1px solid var(--border); background: radial-gradient(circle at center, #0a0a14 0%, #030305 100%); }
+canvas { display: block; width: 100%; height: 100%; outline: none; }
 
-/* Tabs */
-.tabs{background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding:0 20px;gap:0}
-.tab{background:none;border:none;border-bottom:2px solid transparent;padding:0 16px;font-size:11px;font-weight:600;font-family:Inter,sans-serif;color:var(--text-3);cursor:pointer;letter-spacing:0.02em;transition:all 0.15s;line-height:40px}
-.tab:hover{color:var(--text)}
-.tab.active{color:var(--text);border-bottom-color:var(--accent)}
+/* Right: Nerve Center Console */
+#console-container { width: 450px; background: var(--surface); display: flex; flex-direction: column; backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); position: relative; z-index: 10; }
+.header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.brand h1 { font-size: 18px; font-weight: 800; letter-spacing: 0.1em; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+.brand span { color: var(--accent); }
+.ver { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
 
-/* Main */
-main{display:grid;grid-template-columns:1fr 340px;overflow:hidden}
-.main-view{position:relative;overflow:hidden;background:var(--bg)}
-.view-container{width:100%;height:100%;display:block}
-.view-container.hidden{display:none}
+/* Autopilot Status */
+.ap-status { padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.status-indicator { display: flex; align-items: center; gap: 10px; }
+.pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 15px var(--accent); }
+.pulse-dot.pulsing { animation: pulse 2s infinite; }
+.pulse-dot.off { background: var(--text-muted); box-shadow: none; animation: none; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 var(--accent-glow); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
-/* Sidebar */
-.sidebar{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.sidebar-scroll{flex:1;overflow-y:auto;padding:16px}
-.sidebar-scroll::-webkit-scrollbar{width:3px}
-.sidebar-scroll::-webkit-scrollbar-thumb{background:var(--border)}
+.toggle-btn { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); color: var(--accent); padding: 8px 16px; border-radius: 4px; font-size: 11px; font-weight: 800; cursor: pointer; transition: all 0.2s; font-family: var(--font-mono); }
+.toggle-btn:hover { background: rgba(16, 185, 129, 0.2); box-shadow: 0 0 15px var(--accent-glow); }
+.toggle-btn.off { background: rgba(148, 163, 184, 0.1); border-color: var(--text-muted); color: var(--text-muted); }
+.toggle-btn.off:hover { background: rgba(148, 163, 184, 0.2); box-shadow: none; }
 
-/* Sections */
-.section{margin-bottom:16px}
-.section-head{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.section-head .dot{width:6px;height:6px;border-radius:50%}
+/* TTY Feed / Metrics */
+.tty-feed { flex: 1; padding: 20px; font-family: var(--font-mono); font-size: 11px; overflow-y: auto; color: #a1a1aa; line-height: 1.6; }
+.tty-feed::-webkit-scrollbar { width: 4px; }
+.tty-feed::-webkit-scrollbar-thumb { background: var(--border); }
+.log-line { margin-bottom: 6px; display: flex; gap: 8px; }
+.log-ts { color: #52525b; flex-shrink: 0; }
+.log-info { color: #60a5fa; }
+.log-warn { color: #fbbf24; }
+.log-error { color: #ef4444; }
 
-/* Principles */
-.principle-row{display:flex;gap:4px;margin-bottom:4px}
-.principle-row input{flex:1;background:var(--accent-bg);border:1px solid var(--border);padding:8px 10px;font-size:12px;font-family:Inter,sans-serif;color:var(--text);outline:none;transition:border-color 0.15s}
-.principle-row input:focus{border-color:var(--accent)}
-.principle-row .del{background:none;border:1px solid var(--border);color:var(--text-3);width:32px;font-size:13px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center}
-.principle-row .del:hover{border-color:var(--accent);color:var(--accent)}
+.metrics-panel { padding: 20px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: rgba(0,0,0,0.3); }
+.metric { display: flex; flex-direction: column; gap: 4px; }
+.m-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+.m-value { font-size: 16px; font-weight: 800; color: #fff; font-family: var(--font-mono); }
 
-/* Regions */
-.region-item{border:1px solid var(--border);padding:10px 12px;margin-bottom:4px;cursor:pointer;transition:all 0.15s}
-.region-item:hover{border-color:var(--text-3);background:var(--bg)}
-.region-item.active{border-color:var(--accent);background:var(--accent-bg)}
-.region-head{display:flex;align-items:center;gap:8px}
-.region-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.region-name{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em}
-.region-count{margin-left:auto;font-size:10px;color:var(--text-3)}
-.region-kind{font-size:10px;color:var(--text-3)}
-.neuron-list{margin-top:6px;max-height:200px;overflow-y:auto}
-.neuron-item{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px;color:var(--text-2);border-bottom:1px solid var(--border)}
-.neuron-item:last-child{border:none}
-.neuron-path{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.neuron-counter{font-weight:700;min-width:20px;text-align:right;color:var(--text)}
-.neuron-bar{width:32px;height:3px;background:var(--border);overflow:hidden;flex-shrink:0}
-.neuron-bar-fill{height:100%}
+/* Debounce Overlay */
+#debounce-overlay { position: absolute; top: 20px; left: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 8px; font-family: var(--font-mono); color: var(--accent); display: none; align-items: center; gap: 12px; box-shadow: 0 0 20px var(--accent-glow); z-index: 20; }
+.db-spinner { width: 14px; height: 14px; border: 2px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* Emotion */
-.emo-grid{display:flex;flex-wrap:wrap;gap:4px}
-.emo-btn2{background:var(--surface);border:1px solid var(--border);padding:6px 12px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;transition:all 0.15s}
-.emo-btn2:hover{border-color:var(--text-3)}
-.emo-btn2.active{border-color:var(--accent);background:var(--accent-bg)}
-.emo-reset{background:var(--black);color:#fff;border:none;padding:6px 12px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif}
-
-/* Sandbox */
-.sandbox-area{width:100%;background:var(--bg);border:1px solid var(--border);padding:8px 10px;font-size:11px;font-family:Inter,monospace;color:var(--text);resize:vertical;line-height:1.6;outline:none;transition:border-color 0.15s}
-.sandbox-area:focus{border-color:var(--accent)}
-
-/* Soul */
-.soul-item{font-size:11px;color:var(--text-2);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.4}
-.soul-item:last-child{border:none}
-.soul-item strong{color:var(--text);font-weight:600}
-
-/* Toast */
-@keyframes slideIn{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
-.toast-wrap{position:fixed;top:12px;left:12px;z-index:300;display:flex;flex-direction:column;gap:4px;pointer-events:none}
-.toast{pointer-events:auto;background:var(--surface);border:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;align-items:flex-start;animation:slideIn 0.25s ease-out;box-shadow:0 2px 8px rgba(0,0,0,0.06);max-width:280px}
-.toast.error{border-left:3px solid var(--accent)}
-.toast.success{border-left:3px solid #16a34a}
-.toast .t-title{font-size:11px;font-weight:700;color:var(--text)}
-.toast .t-desc{font-size:10px;color:var(--text-2)}
-
-/* Loading */
-#loader{position:fixed;z-index:999;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.6s}
-#loader.done{opacity:0;pointer-events:none}
-#loader h2{font-weight:700;font-size:18px;letter-spacing:-0.02em;margin-bottom:6px}
-#loader h2 span{color:var(--accent)}
-#loader p{font-size:10px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase}
+/* Overlay UI */
+.overlay-stats { position: absolute; bottom: 20px; left: 20px; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); pointer-events: none; z-index: 20; }
 </style>
 </head>
 <body>
-<div id="loader"><h2><span>Neuron</span>FS</h2><p>Loading brain topology...</p></div>
 
-<header>
-  <div class="logo"><span>Neuron</span>FS</div>
-  <div class="version">v4.0</div>
-  <div class="spacer"></div>
-  <div class="stats" id="hdr-stats"></div>
-  <div class="actions">
-    <button class="btn btn-black" onclick="doInject()">INJECT</button>
-    <button class="btn btn-outline" onclick="doEvolve()">EVOLVE</button>
-    <button class="btn btn-red" onclick="doBomb()">BOMB</button>
+<div id="gl-container">
+  <div id="debounce-overlay">
+    <div class="db-spinner"></div>
+    <div>CDP INJECTION COOLDOWN: <span id="db-timer" style="font-weight:700">60s</span></div>
   </div>
-</header>
-
-<div class="tabs">
-  <button class="tab active" data-tab="brain" onclick="switchTab('brain',this)">Brain</button>
-  <button class="tab" data-tab="flow" onclick="switchTab('flow',this)">System Flow</button>
+  <div class="overlay-stats" id="gl-stats">InstancedMesh | 0 Draw Calls</div>
 </div>
 
-<main>
-  <div class="main-view">
-    <div id="brain-container" class="view-container" style="width:100%;height:100%"></div>
-    <div id="flow-container" class="view-container hidden" style="width:100%;height:100%"></div>
+<div id="console-container">
+  <div class="header">
+    <div class="brand"><h1><span>Neuron</span>FS V2</h1><span class="ver">Autopilot Nerve Center</span></div>
+    <button class="toggle-btn" id="btn-autopilot" onclick="toggleAutopilot()">AUTOPILOT: ON</button>
   </div>
-
-  <div class="sidebar">
-    <div class="sidebar-scroll">
-      <!-- Core Principles -->
-      <div class="section">
-        <div class="section-head"><div class="dot" style="background:var(--accent)"></div>CORE PRINCIPLES</div>
-        <div id="principles-list"></div>
-        <div style="display:flex;gap:4px;margin-top:6px">
-          <button class="btn btn-outline" onclick="addPrinciple()" style="font-size:10px;padding:5px 10px">+ Add</button>
-          <button class="btn btn-black" onclick="savePrinciples()" style="flex:1;font-size:10px;padding:5px 10px">Save</button>
-          <span id="p-status" style="font-size:10px;color:var(--text-3);align-self:center"></span>
-        </div>
-      </div>
-
-      <!-- Regions -->
-      <div class="section">
-        <div class="section-head">REGIONS</div>
-        <div id="region-list"></div>
-      </div>
-
-      <!-- Emotion -->
-      <div class="section">
-        <div class="section-head"><div class="dot" style="background:#78716c"></div>LIMBIC STATE</div>
-        <div id="emo-current" style="font-size:11px;color:var(--text-2);margin-bottom:6px">neutral</div>
-        <canvas id="emo-chart" width="308" height="60" style="width:100%;height:60px;border:1px solid var(--border);margin-bottom:6px;background:var(--bg)"></canvas>
-        <div class="emo-grid">
-          <button class="emo-btn2" onclick="setEmotion('anger')">Anger</button>
-          <button class="emo-btn2" onclick="setEmotion('urgent')">Urgent</button>
-          <button class="emo-btn2" onclick="setEmotion('focus')">Focus</button>
-          <button class="emo-btn2" onclick="setEmotion('anxiety')">Anxiety</button>
-          <button class="emo-btn2" onclick="setEmotion('satisfied')">Satisfied</button>
-          <button class="emo-reset" onclick="setEmotion('neutral')">Reset</button>
-        </div>
-      </div>
-
-      <!-- Sandbox -->
-      <div class="section">
-        <div class="section-head">SANDBOX</div>
-        <p style="font-size:10px;color:var(--text-3);margin-bottom:4px">One rule per line. Write to apply, clear to delete.</p>
-        <textarea class="sandbox-area" id="sb-text" rows="3" oninput="onSandboxInput()" placeholder="never use var in js&#10;always verify before commit"></textarea>
-        <div id="sb-status" style="font-size:10px;color:var(--text-3);margin-top:3px"></div>
-      </div>
-
-      <!-- Soul -->
-      <div class="section">
-        <div class="section-head">SOUL</div>
-        <div class="soul-item"><strong>"Real?"</strong> Not simulation</div>
-        <div class="soul-item"><strong>"Sigh?"</strong> Missing core</div>
-        <div class="soul-item"><strong>"Easy?"</strong> No fallback</div>
-        <div class="soul-item"><strong>"Repeat?"</strong> Check memory</div>
-        <div class="soul-item"><strong>"Premium?"</strong> $150k level</div>
-      </div>
+  
+  <div class="ap-status">
+    <div class="status-indicator">
+      <div class="pulse-dot pulsing" id="ap-dot"></div>
+      <div style="font-size:12px; font-weight:600; color:#fff" id="ap-text">System Listening...</div>
     </div>
   </div>
-</main>
 
-<div class="toast-wrap" id="toasts"></div>
+  <div class="tty-feed" id="tty">
+    <!-- Live logs injected here -->
+  </div>
 
-<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
-<script src="https://unpkg.com/3d-force-graph@1.73.3/dist/3d-force-graph.min.js"></script>
+  <div class="metrics-panel">
+    <div class="metric">
+      <span class="m-label">Active Neurons</span>
+      <span class="m-value" id="m-neurons">---</span>
+    </div>
+    <div class="metric">
+      <span class="m-label">Total Activation</span>
+      <span class="m-value" id="m-act">---</span>
+    </div>
+    <div class="metric">
+      <span class="m-label">Node Daemon</span>
+      <span class="m-value" style="color:var(--accent)">ONLINE</span>
+    </div>
+    <div class="metric">
+      <span class="m-label">Go Supervisor</span>
+      <span class="m-value" style="color:var(--accent)">ONLINE</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-const RC={brainstem:'#dc2626',limbic:'#78716c',hippocampus:'#a8a29e',sensors:'#64748b',cortex:'#475569',ego:'#57534e',prefrontal:'#334155'};
-const RK={brainstem:'Conscience',limbic:'Emotion',hippocampus:'Memory',sensors:'Environment',cortex:'Knowledge',ego:'Persona',prefrontal:'Goals'};
-const SUB=['brainstem','limbic','hippocampus','sensors','cortex','ego','prefrontal'];
-let BD=null,BrainGraph=null,FlowGraph=null;
+let scene, camera, renderer, controls;
+let instancedMesh;
+const dummy = new THREE.Object3D();
 
-function toast(title,desc,type='info'){
-  const el=document.createElement('div');el.className='toast '+type;
-  el.innerHTML=`<div><div class="t-title">${title}</div><div class="t-desc">${desc}</div></div>`;
-  document.getElementById('toasts').appendChild(el);
-  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity 0.3s';setTimeout(()=>el.remove(),300)},4000);
+function init3D() {
+  const container = document.getElementById('gl-container');
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x030305, 0.003);
+
+  camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 1000);
+  camera.position.set(100, 80, 150);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.5;
+
+  generateOptimizedBrain();
+
+  scene.add(new THREE.AmbientLight(0x10b981, 0.2));
+  const pLight = new THREE.PointLight(0x3b82f6, 1, 300);
+  pLight.position.set(0, 50, 0);
+  scene.add(pLight);
+
+  window.addEventListener('resize', onWindowResize);
+  animate();
 }
 
-function switchTab(tab,btn){
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('brain-container').classList.toggle('hidden',tab!=='brain');
-  document.getElementById('flow-container').classList.toggle('hidden',tab!=='flow');
-  if(tab==='flow'&&!FlowGraph)renderFlow();
-}
-
-async function loadBrain(){
-  try{
-    const r=await fetch('/api/brain');BD=await r.json();
-    document.getElementById('loader').classList.add('done');
-    renderStats();renderRegions();renderBrain();
-  }catch(e){
-    document.getElementById('loader').classList.add('done');
-    toast('Connection Error','neuronfs.exe --supervisor','error');
-    setTimeout(loadBrain,3000);
-  }
-}
-
-function renderStats(){
-  if(!BD)return;
-  let tN=0,tC=0;
-  BD.regions.forEach(r=>{const ns=r.neurons||[];tN+=ns.length;ns.forEach(n=>tC+=n.counter)});
-  document.getElementById('hdr-stats').innerHTML=`
-    <div class="stat"><div class="val">${BD.regions.length}</div><div class="lbl">Regions</div></div>
-    <div class="stat"><div class="val">${tN}</div><div class="lbl">Neurons</div></div>
-    <div class="stat"><div class="val">${tC}</div><div class="lbl">Fires</div></div>
-    <div class="stat"><div class="val">${(BD.edges||[]).length}</div><div class="lbl">Axons</div></div>`;
-}
-
-function renderRegions(){
-  if(!BD)return;const el=document.getElementById('region-list');el.innerHTML='';
-  let gMax=0;BD.regions.forEach(r=>(r.neurons||[]).forEach(n=>{if(n.counter>gMax)gMax=n.counter}));
-  const gM=Math.max(gMax,1);
-  BD.regions.forEach(region=>{
-    const ns=region.neurons||[];const div=document.createElement('div');div.className='region-item';
-    div.innerHTML=`<div class="region-head"><div class="region-dot" style="background:${RC[region.name]}"></div><span class="region-name">${region.name}</span><span class="region-kind">${RK[region.name]||''}</span><span class="region-count">${ns.length}</span></div><div class="neuron-list" style="display:none">${ns.map(n=>{const pct=Math.round(n.counter/gM*100);const parts=n.path.split('/');const label=parts.length>=2?parts.slice(-2).join('/'):parts[parts.length-1];return`<div class="neuron-item"><span class="neuron-path" title="${n.path}">${label}</span><div class="neuron-bar"><div class="neuron-bar-fill" style="width:${pct}%;background:${RC[region.name]}"></div></div><span class="neuron-counter">${n.counter}</span></div>`}).join('')}</div>`;
-    div.onclick=e=>{if(e.target.closest('.neuron-item'))return;const nl=div.querySelector('.neuron-list');const o=nl.style.display!=='none';el.querySelectorAll('.neuron-list').forEach(l=>l.style.display='none');el.querySelectorAll('.region-item').forEach(r=>r.classList.remove('active'));if(!o){nl.style.display='block';div.classList.add('active')}};
-    el.appendChild(div);
-  });
-}
-
-/* ── Brain 3D (scale 3x for thin lines) ── */
-function renderBrain(){
-  if(!BD)return;
-  const container=document.getElementById('brain-container');
-  const nodes=[],links=[];
-  let gMin=Infinity,gMax=0;
-  BD.regions.forEach(r=>(r.neurons||[]).forEach(n=>{if(n.counter<gMin)gMin=n.counter;if(n.counter>gMax)gMax=n.counter}));
-  const gRange=Math.max(gMax-gMin,1);
-
-  // Region center nodes — large
-  SUB.forEach(name=>{nodes.push({id:'__r__'+name,name:name.toUpperCase(),group:name,isRegion:true,val:200})});
-  // Neuron nodes — scaled 3x
-  BD.regions.forEach(region=>{
-    (region.neurons||[]).forEach(n=>{
-      const str=(n.counter-gMin)/gRange;
-      const parts=n.path.split('/');
-      const label=parts.length>=2?parts.slice(-2).join('/'):parts[parts.length-1];
-      nodes.push({id:n.path,name:label,group:region.name,counter:n.counter,val:10+str*80,str});
-      links.push({source:n.path,target:'__r__'+region.name,color:RC[region.name],opacity:0.02});
-    });
-  });
-  // Subsumption cascade
-  for(let i=0;i<SUB.length-1;i++){
-    links.push({source:'__r__'+SUB[i],target:'__r__'+SUB[i+1],color:'#a8a29e',opacity:0.12,width:0.5});
-  }
-  // Axon cross-links: neuron-to-neuron (not region center)
-  if(BD.edges){
-    const regionNeuronIds={};
-    BD.regions.forEach(r=>{regionNeuronIds[r.name]=(r.neurons||[]).map(n=>n.path)});
-    const seen=new Set();
-    BD.edges.forEach(e=>{
-      const k=[e.from,e.to].sort().join('|');if(seen.has(k))return;seen.add(k);
-      const fromIds=regionNeuronIds[e.from]||[];
-      const toIds=regionNeuronIds[e.to]||[];
-      if(!fromIds.length||!toIds.length)return;
-      // Connect up to 2 random neuron pairs
-      for(let c=0;c<Math.min(2,fromIds.length,toIds.length);c++){
-        const fId=fromIds[Math.floor(Math.random()*fromIds.length)];
-        const tId=toIds[Math.floor(Math.random()*toIds.length)];
-        links.push({source:fId,target:tId,color:RC[e.from],opacity:0.06,width:0});
-      }
-    });
-  }
-
-  BrainGraph=ForceGraph3D()(container)
-    .graphData({nodes,links})
-    .backgroundColor('#f5f5f4')
-    .nodeLabel(n=>n.isRegion?`<b>${n.name}</b> — ${RK[n.id.replace('__r__','')]||''}`:`<b>${n.name}</b> | counter: ${n.counter}`)
-    .nodeColor(n=>RC[n.group]||'#94a3b8')
-    .nodeVal(n=>n.val)
-    .nodeOpacity(0.85)
-    .nodeResolution(12)
-    .linkColor(l=>l.color||'#e7e5e4')
-    .linkOpacity(l=>l.opacity||0.02)
-    .linkWidth(l=>l.width||0)
-    .linkCurvature(0.2)
-    .linkCurveRotation(Math.PI/4)
-    .enableNodeDrag(false)
-    .onNodeClick(n=>{if(!n.isRegion)toast(n.name,'counter: '+n.counter+' | '+n.group)})
-    .d3AlphaDecay(0.03)
-    .d3VelocityDecay(0.25)
-    .warmupTicks(80)
-    .cooldownTicks(150);
-  setTimeout(()=>BrainGraph.cameraPosition({x:0,y:0,z:350}),600);
-}
-
-/* ── System Flow 3D — architecture as neural graph ── */
-function renderFlow(){
-  const container=document.getElementById('flow-container');
-  const nodes=[],links=[];
-
-  // P0-P6 layer nodes
-  SUB.forEach((name,i)=>{
-    nodes.push({id:'layer_'+name,name:'P'+i+' '+name.toUpperCase(),group:name,isLayer:true,val:50,desc:RK[name]});
+function generateOptimizedBrain() {
+  const count = 30000; 
+  document.getElementById('gl-stats').innerText = `InstancedMesh | ${count.toLocaleString()} Neurons | 1 Draw Call`;
+  
+  const geometry = new THREE.OctahedronGeometry(0.8, 0);
+  const material = new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.7,
+    shininess: 100,
+    blending: THREE.AdditiveBlending
   });
 
-  // Signal type nodes
-  const signals=[
-    {id:'sig_dopamine',name:'DOPAMINE',group:'brainstem',val:25},
-    {id:'sig_bomb',name:'BOMB',group:'brainstem',val:20},
-    {id:'sig_memory',name:'MEMORY',group:'hippocampus',val:20},
-  ];
-  signals.forEach(s=>nodes.push({...s,isSignal:true}));
+  instancedMesh = new THREE.InstancedMesh(geometry, material, count);
+  
+  let i = 0;
+  while(i < count) {
+    const t = Math.random() * Math.PI * 2;
+    const p = Math.acos(2 * Math.random() - 1);
+    
+    let rx=55, ry=42, rz=48;
+    const f=1+0.2*Math.pow(Math.max(0,Math.sin(t)*Math.cos(p)),2);
+    const tm=1+0.12*Math.pow(Math.sin(t),2)*Math.pow(Math.sin(p),2);
+    const bt=t>Math.PI*0.75?1-0.3*(t-Math.PI*0.75)/(Math.PI*0.25):1;
+    const gr=1-0.08*Math.pow(Math.max(0,Math.cos(p)),4)*Math.pow(Math.sin(t),2);
+    const r=f*tm*bt*gr * (0.5 + Math.random()*0.5); 
+    
+    const x = rx*r*Math.sin(t)*Math.cos(p);
+    const y = ry*r*Math.cos(t);
+    const z = rz*r*Math.sin(t)*Math.sin(p);
 
-  // Process nodes
-  const processes=[
-    {id:'proc_request',name:'REQUEST',group:'sensors',val:30,isProcess:true},
-    {id:'proc_response',name:'RESPONSE',group:'prefrontal',val:30,isProcess:true},
-    {id:'proc_emit',name:'EMIT.GO',group:'cortex',val:20,isProcess:true},
-    {id:'proc_rules',name:'_RULES.MD',group:'cortex',val:20,isProcess:true},
-  ];
-  processes.forEach(p=>nodes.push(p));
+    dummy.position.set(x, y, z);
+    
+    const dist = Math.sqrt(x*x + y*y + z*z);
+    const s = Math.max(0.2, 1 - (dist / 60));
+    dummy.scale.set(s, s, s);
+    
+    dummy.updateMatrix();
+    instancedMesh.setMatrixAt(i, dummy.matrix);
+    
+    const color = new THREE.Color();
+    if(y > 10) color.setHex(0x3b82f6); 
+    else if(dist < 20) color.setHex(0xdc2626); 
+    else color.setHex(0x10b981); 
 
-  // Subsumption cascade links
-  for(let i=0;i<SUB.length-1;i++){
-    links.push({source:'layer_'+SUB[i],target:'layer_'+SUB[i+1],color:'#78716c',opacity:0.15,width:1.5});
+    instancedMesh.setColorAt(i, color);
+    i++;
   }
+  
+  scene.add(instancedMesh);
+}
 
-  // Signal connections
-  links.push({source:'sig_dopamine',target:'layer_brainstem',color:'#16a34a',opacity:0.2,width:1});
-  links.push({source:'sig_dopamine',target:'layer_cortex',color:'#16a34a',opacity:0.15});
-  links.push({source:'sig_bomb',target:'layer_brainstem',color:'#dc2626',opacity:0.2,width:1});
-  links.push({source:'sig_memory',target:'layer_hippocampus',color:'#2563eb',opacity:0.2,width:1});
+function onWindowResize() {
+  const container = document.getElementById('gl-container');
+  camera.aspect = container.clientWidth / container.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(container.clientWidth, container.clientHeight);
+}
 
-  // Process connections
-  links.push({source:'proc_request',target:'layer_brainstem',color:'#64748b',opacity:0.12,width:1});
-  links.push({source:'layer_prefrontal',target:'proc_response',color:'#334155',opacity:0.12,width:1});
-  links.push({source:'proc_emit',target:'layer_cortex',color:'#475569',opacity:0.1});
-  links.push({source:'proc_emit',target:'layer_limbic',color:'#475569',opacity:0.1});
-  links.push({source:'proc_rules',target:'layer_cortex',color:'#475569',opacity:0.1});
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
 
-  // Data nodes from actual brain if available
-  if(BD){
-    BD.regions.forEach(region=>{
-      const ns=region.neurons||[];
-      // Add top 3 neurons per region
-      ns.sort((a,b)=>b.counter-a.counter).slice(0,3).forEach(n=>{
-        const parts=n.path.split('/');
-        const label=parts.length>=2?parts.slice(-2).join('/'):parts[parts.length-1];
-        nodes.push({id:'fn_'+n.path,name:label,group:region.name,val:5+n.counter/10,counter:n.counter});
-        links.push({source:'fn_'+n.path,target:'layer_'+region.name,color:RC[region.name],opacity:0.04});
-      });
+  const time = performance.now() * 0.001;
+  scene.rotation.y = Math.sin(time * 0.1) * 0.1;
+  
+  renderer.render(scene, camera);
+}
+
+window.onload = init3D;
+
+function logTTY(msg, type='info') {
+  const tty = document.getElementById('tty');
+  const d = new Date();
+  const ts = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+  
+  const el = document.createElement('div');
+  el.className = 'log-line';
+  el.innerHTML = `<span class="log-ts">[${ts}]</span><span class="log-${type}">${msg}</span>`;
+  tty.appendChild(el);
+  tty.scrollTop = tty.scrollHeight;
+  if(tty.children.length > 100) tty.removeChild(tty.firstChild);
+}
+
+let autopilotEnabled = true;
+
+async function initData() {
+  logTTY("Initializing Autopilot V2 OS...", "info");
+  logTTY("Strangler Fig Node Boot Sequence Complete.", "info");
+  fetchAutopilotState();
+  fetchOpsData();
+  setInterval(fetchAutopilotState, 5000);
+  setInterval(fetchOpsData, 3000);
+}
+
+async function fetchAutopilotState() {
+  try {
+    const r = await fetch('/api/autopilot');
+    const d = await r.json();
+    autopilotEnabled = d.autopilot;
+    updateApBtn();
+  } catch(e) {}
+}
+
+async function toggleAutopilot() {
+  try {
+    const r = await fetch('/api/autopilot', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({enabled: !autopilotEnabled})
     });
+    const d = await r.json();
+    autopilotEnabled = d.autopilot;
+    updateApBtn();
+    logTTY(`Autopilot state forced: ${autopilotEnabled ? 'ONLINE' : 'HALTED'}`, autopilotEnabled ? 'success' : 'warn');
+  } catch(e) { logTTY("Toggle failed", "error"); }
+}
+
+function updateApBtn() {
+  const btn = document.getElementById('btn-autopilot');
+  const dot = document.getElementById('ap-dot');
+  const txt = document.getElementById('ap-text');
+  
+  if(autopilotEnabled) {
+    btn.innerHTML = 'AUTOPILOT: ON';
+    btn.className = 'toggle-btn';
+    dot.className = 'pulse-dot pulsing';
+    txt.innerHTML = 'System Listening & Ready';
+  } else {
+    btn.innerHTML = 'AUTOPILOT: OFF';
+    btn.className = 'toggle-btn off';
+    dot.className = 'pulse-dot off';
+    txt.innerHTML = 'Autopilot Overridden (Manual)';
   }
-
-  FlowGraph=ForceGraph3D()(container)
-    .graphData({nodes,links})
-    .backgroundColor('#f5f5f4')
-    .nodeLabel(n=>{
-      if(n.isLayer)return`<b>${n.name}</b> — ${n.desc||''}`;
-      if(n.isSignal)return`<b>Signal: ${n.name}</b>`;
-      if(n.isProcess)return`<b>Process: ${n.name}</b>`;
-      return`<b>${n.name}</b> | counter: ${n.counter||0}`;
-    })
-    .nodeColor(n=>{
-      if(n.isSignal){
-        if(n.id.includes('dopamine'))return'#16a34a';
-        if(n.id.includes('bomb'))return'#dc2626';
-        return'#2563eb';
-      }
-      if(n.isProcess)return'#1c1917';
-      return RC[n.group]||'#94a3b8';
-    })
-    .nodeVal(n=>n.val)
-    .nodeOpacity(0.9)
-    .nodeResolution(12)
-    .linkColor(l=>l.color||'#e7e5e4')
-    .linkOpacity(l=>l.opacity||0.04)
-    .linkWidth(l=>l.width||0.3)
-    .linkCurvature(0.15)
-    .enableNodeDrag(true)
-    .d3AlphaDecay(0.04)
-    .d3VelocityDecay(0.3)
-    .warmupTicks(60)
-    .cooldownTicks(100);
-  setTimeout(()=>FlowGraph.cameraPosition({x:0,y:0,z:300}),400);
 }
 
-/* ── Principles ── */
-function addPrinciple(value=''){
-  const list=document.getElementById('principles-list');
-  const row=document.createElement('div');row.className='principle-row';
-  row.innerHTML=`<input type="text" value="${value.replace(/"/g,'&quot;')}" placeholder="Enter principle"><button class="del" onclick="this.parentElement.remove()">x</button>`;
-  list.appendChild(row);
-}
-async function savePrinciples(){
-  const inputs=document.querySelectorAll('.principle-row input');
-  const principles=Array.from(inputs).map(i=>i.value.trim()).filter(p=>p);
-  const st=document.getElementById('p-status');
-  st.textContent='...';st.style.color='#d97706';
-  try{
-    const r=await fetch('/api/principles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({principles})});
-    const d=await r.json();
-    if(d.status==='cleared'){st.textContent='cleared';st.style.color='var(--text-3)'}
-    else{st.textContent='Applied';st.style.color='#16a34a';toast('Principles Applied','Injected to GEMINI.md','success')}
-    loadBrain();
-  }catch(e){st.textContent='error';st.style.color='var(--accent)'}
-}
-(async function(){
-  try{
-    const r=await fetch('/api/principles');const d=await r.json();
-    if(d.principles&&d.principles.length>0){
-      d.principles.forEach(p=>addPrinciple(p));
-      document.getElementById('p-status').textContent=d.principles.length+' active';
-      document.getElementById('p-status').style.color='#16a34a';
-    }else{addPrinciple()}
-  }catch(e){addPrinciple()}
-})();
-
-/* ── Emotion with history chart ── */
-const EMO_LEVELS={neutral:0.5,satisfied:0.85,focus:0.7,anxiety:0.3,urgent:0.15,anger:0.05};
-const EMO_COLORS={neutral:'#a8a29e',satisfied:'#16a34a',focus:'#475569',anxiety:'#d97706',urgent:'#dc2626',anger:'#dc2626'};
-const emoHistory=[];
-const MAX_EMO_PTS=30;
-
-function drawEmoChart(){
-  const cv=document.getElementById('emo-chart');if(!cv)return;
-  const ctx=cv.getContext('2d');
-  const W=cv.width,H=cv.height;
-  ctx.clearRect(0,0,W,H);
-  if(emoHistory.length<2)return;
-  // Grid lines
-  ctx.strokeStyle='#e7e5e4';ctx.lineWidth=0.5;
-  for(let y=0.25;y<1;y+=0.25){ctx.beginPath();ctx.moveTo(0,H*y);ctx.lineTo(W,H*y);ctx.stroke()}
-  // Draw path
-  ctx.beginPath();
-  const step=W/(MAX_EMO_PTS-1);
-  emoHistory.forEach((pt,i)=>{
-    const x=i*step;const y=H-(pt.level*H);
-    if(i===0)ctx.moveTo(x,y);else{
-      // Smooth curve
-      const prev=emoHistory[i-1];const px=(i-1)*step;const py=H-(prev.level*H);
-      const cx=(px+x)/2;
-      ctx.bezierCurveTo(cx,py,cx,y,x,y);
+async function fetchOpsData() {
+  try {
+    const r = await fetch('/api/ops');
+    const d = await r.json();
+    if(d.brain) {
+      document.getElementById('m-neurons').innerText = d.brain.totalNeurons.toLocaleString();
+      document.getElementById('m-act').innerText = d.brain.totalActivation.toLocaleString();
     }
-  });
-  ctx.strokeStyle=EMO_COLORS[emoHistory[emoHistory.length-1].emo]||'#a8a29e';
-  ctx.lineWidth=2;ctx.stroke();
-  // Current dot
-  const last=emoHistory[emoHistory.length-1];
-  const lx=(emoHistory.length-1)*step;const ly=H-(last.level*H);
-  ctx.beginPath();ctx.arc(lx,ly,3,0,Math.PI*2);
-  ctx.fillStyle=EMO_COLORS[last.emo]||'#a8a29e';ctx.fill();
-}
-// Initialize with neutral
-emoHistory.push({emo:'neutral',level:0.5,t:Date.now()});
-
-async function setEmotion(emo){
-  try{
-    await fetch('/api/emotion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emotion:emo})});
-    document.getElementById('emo-current').textContent=emo;
-    document.querySelectorAll('.emo-btn2').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(emo)));
-    // Record history
-    const level=EMO_LEVELS[emo]||0.5;
-    emoHistory.push({emo,level,t:Date.now()});
-    if(emoHistory.length>MAX_EMO_PTS)emoHistory.shift();
-    drawEmoChart();
-    toast('Emotion',emo,'success');
-  }catch(e){toast('Error',e.message,'error')}
+  } catch(e) {}
 }
 
-/* ── Sandbox ── */
-let sbT=null;
-function onSandboxInput(){
-  clearTimeout(sbT);
-  sbT=setTimeout(async()=>{
-    const rules=document.getElementById('sb-text').value.split('\n').map(l=>l.trim()).filter(l=>l);
-    try{
-      await fetch('/api/sandbox',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rules})});
-      document.getElementById('sb-status').textContent=rules.length?rules.length+' rules applied':'cleared';
-    }catch(e){}
-  },800);
-}
-
-/* ── Actions ── */
-async function doInject(){try{await fetch('/api/inject',{method:'POST'});toast('Inject','emit.go executed','success');loadBrain()}catch(e){toast('Error',e.message,'error')}}
-async function doEvolve(){try{await fetch('/api/evolve',{method:'POST'});toast('Evolve','Autonomous evolution','success');loadBrain()}catch(e){toast('Error',e.message,'error')}}
-async function doBomb(){const r=prompt('Region to bomb:');if(!r)return;try{await fetch('/api/bomb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({region:r})});toast('Bomb',r+' bombed','error');loadBrain()}catch(e){toast('Error',e.message,'error')}}
-
-loadBrain();
+initData();
 </script>
 </body>
 </html>

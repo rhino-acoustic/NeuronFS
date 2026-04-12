@@ -131,6 +131,7 @@ func main() {
 	router.Register(&HtmlCmd{})
 	router.Register(&GrowCmd{})
 	router.Register(&FireCmd{})
+	router.Register(&DashboardV2Cmd{})
 
 	// Check if any arguments match our new router
 	routed := false
