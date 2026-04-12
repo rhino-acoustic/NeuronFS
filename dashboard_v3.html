@@ -194,6 +194,7 @@ function init() {
     <button class="layout-btn" onclick="switchLayout(8, this)">9. Triangular Plane (2D 면 삼각 에너지)</button>
     <button class="layout-btn" onclick="switchLayout(9, this)">10. Cochlea Triangle (달팽이관 롤)</button>
     <button class="layout-btn" onclick="switchLayout(10, this)">11. Dense Solid Snail (무간극 고밀도 연속체)</button>
+    <button class="layout-btn" onclick="switchLayout(11, this)">12. Organic Chaos Snail (유기적 파동 변형)</button>
   `;
   
   setTimeout(() => loadLayout(0), 100);
@@ -386,6 +387,37 @@ function loadLayout(idx) {
         
         tArr[i*3]   = finalR * Math.cos(theta);
         tArr[i*3+1] = yPos - 50; // Center tip lowered slightly 
+        tArr[i*3+2] = finalR * Math.sin(theta);
+    }
+  } else if(idx === 11) { // Organic Chaos Snail (유기적 파동 변형)
+    // Same tight shell but organically warped and distorted
+    const coils = 12.0; 
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+        const tScale = Math.pow(Math.random(), 2.0); 
+        
+        let theta = (1.0 - tScale) * Math.PI * 2.0 * coils;
+        
+        // Base uniform radius and width
+        let r = Math.pow(tScale, 1.2) * 250; 
+        const maxWidth = tScale * 450; 
+        
+        let yPos = (Math.random() - 0.5) * maxWidth;
+        
+        // ORGANIC DISTORTION
+        // We distort the spiral heavily so it is asymmetric and fluid.
+        // E.g. one side bulges out, the other side pinches in.
+        const bulge = Math.sin(theta * 1.5 + yPos * 0.01) * 40.0 * Math.pow(tScale, 0.8);
+        r += bulge;
+        
+        // Twist distortion: bend the funnel itself!
+        const twistY = Math.cos(theta * 0.5) * 30.0 * tScale;
+        yPos += twistY;
+        
+        const thickness = (Math.random() - 0.5) * 25; 
+        const finalR = r + thickness;
+        
+        tArr[i*3]   = finalR * Math.cos(theta);
+        tArr[i*3+1] = yPos - 50; 
         tArr[i*3+2] = finalR * Math.sin(theta);
     }
   }
