@@ -220,27 +220,31 @@ function renderDemoLayer() {
       float time = iTime;
       vec4 col = vec4(0.0);
       float dots = clamp(neuronCount, 8.0, 512.0);
-      float glowAmt = 0.003 * (64.0 / max(dots, 1.0)); // dimmer with more dots
+      float glowAmt = 0.002 * (64.0 / max(dots, 1.0));
       
       for(float i = 0.0; i < 512.0; i++) {
         if(i >= dots) break;
         
-        // Each neuron gets unique Lissajous orbit
-        float seed = i * 1.618033; // golden ratio spacing
+        float seed = i * 1.618033;
         float speed = 0.3 + mod(seed, 0.4);
         float radius = 0.1 + mod(seed * 3.17, 0.2);
         float phase = seed * 2.399;
-        
-        float xFreq = 1.0 + mod(i, 3.0); // 1x, 2x, 3x frequency variants
+        float xFreq = 1.0 + mod(i, 3.0);
         float yFreq = 1.0 + mod(i + 1.0, 4.0);
         
-        vec2 pos = vec2(
-          radius * cos(speed * time * xFreq + phase) * 2.0,
-          radius * sin(speed * time * yFreq + phase)
-        );
-        
-        float d = length(uv - pos);
-        col += vec4(regionColor(i) * glowAmt, glowAmt) / d;
+        // Current position + 5 trail positions (fading)
+        for(float k = 0.0; k < 6.0; k++) {
+          float t = time - k * 0.04; // 40ms spacing per trail segment
+          float fade = pow(0.65, k); // exponential decay
+          
+          vec2 pos = vec2(
+            radius * cos(speed * t * xFreq + phase) * 2.0,
+            radius * sin(speed * t * yFreq + phase)
+          );
+          
+          float d = length(uv - pos);
+          col += vec4(regionColor(i) * glowAmt * fade, glowAmt * fade) / d;
+        }
       }
       
       col = clamp(col, 0.0, 1.0);
