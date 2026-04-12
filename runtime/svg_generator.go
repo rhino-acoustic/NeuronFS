@@ -54,19 +54,23 @@ func GenerateDashboardSVG(brain Brain, totalNeurons int, totalActivation int) st
 	// Separator line
 	sb.WriteString(fmt.Sprintf(`<line x1="%d" y1="0" x2="%d" y2="%d" class="border" />`, panelX, panelX, height))
 
-	// ── 2. HOLOGRAPHIC BRAIN (Procedural Scatter) ──
-	// Simulate the 3D geometry of the V2 dashboard on a 2D plane
-	nodesToDraw := 1500 // SVG performance limit
-	if totalNeurons < 1500 && totalNeurons > 0 {
-		nodesToDraw = totalNeurons
+	// ── 2. HOLOGRAPHIC BRAIN (Two-Pass Rendering) ──
+	// Pass 1: Grey dummy nodes showing full brain structure (skeleton)
+	// Pass 2: Colored actual neurons overlaid on top
+	dummyNodes := 1500 // Full brain skeleton
+	realNodes := totalNeurons
+	if realNodes > 1500 {
+		realNodes = 1500
 	}
 	
 	centerX := float64(panelX) / 2.0
 	centerY := float64(height) / 2.0
 
-	for i := 0; i < nodesToDraw; i++ {
-		t := rand.Float64() * math.Pi * 2
-		p := math.Acos(2*rand.Float64() - 1)
+	// Helper closure for sphere projection
+	projectNode := func(seed int64) (px, py, y float64) {
+		localRand := rand.New(rand.NewSource(seed))
+		t := localRand.Float64() * math.Pi * 2
+		p := math.Acos(2*localRand.Float64() - 1)
 		
 		rx, ry, rz := 220.0, 160.0, 190.0
 		f := 1 + 0.2*math.Pow(math.Max(0, math.Sin(t)*math.Cos(p)), 2)
@@ -76,26 +80,38 @@ func GenerateDashboardSVG(brain Brain, totalNeurons int, totalActivation int) st
 			bt = 1 - 0.3*(t-math.Pi*0.75)/(math.Pi*0.25)
 		}
 		gr := 1 - 0.08*math.Pow(math.Max(0, math.Cos(p)), 4)*math.Pow(math.Sin(t), 2)
-		r := f * tm * bt * gr * (0.5 + rand.Float64()*0.5)
+		r := f * tm * bt * gr * (0.5 + localRand.Float64()*0.5)
 
 		x := rx * r * math.Sin(t) * math.Cos(p)
-		y := ry * r * math.Cos(t)
+		y = ry * r * math.Cos(t)
 		z := rz * r * math.Sin(t) * math.Sin(p)
 
-		// Simple perspective projection
 		scale := 800.0 / (800.0 + z)
-		px := centerX + x*scale
-		py := centerY - y*scale
+		px = centerX + x*scale
+		py = centerY - y*scale
+		return
+	}
 
-		// Determine color based on Y height (Cortex vs Brainstem)
-		color := "#10b981" // Emerald
+	// Pass 1: Grey skeleton (all 1500 nodes as dim structure)
+	for i := 0; i < dummyNodes; i++ {
+		px, py, _ := projectNode(int64(i * 7919)) // deterministic seed
+		opacity := 0.06 + rand.Float64()*0.08
+		radius := 0.8 + rand.Float64()*0.6
+		sb.WriteString(fmt.Sprintf(`<circle cx="%.2f" cy="%.2f" r="%.2f" fill="#64748b" opacity="%.2f" />`, px, py, radius, opacity))
+	}
+
+	// Pass 2: Colored real neurons (bright overlay)
+	for i := 0; i < realNodes; i++ {
+		px, py, y := projectNode(int64(i * 6271 + 42))
+
+		color := "#10b981" // Emerald (mid-brain)
 		if y > 50 {
-			color = "#3b82f6" // Blue
+			color = "#3b82f6" // Blue (cortex)
 		} else if y < -50 {
-			color = "#dc2626" // Red
+			color = "#dc2626" // Red (brainstem)
 		}
-		opacity := math.Min(1.0, math.Max(0.1, 1.0-(dist(x,y)/250.0)))
-		radius := math.Max(0.5, 2.5*scale*opacity)
+		opacity := math.Min(1.0, math.Max(0.3, 0.5+rand.Float64()*0.5))
+		radius := 1.2 + rand.Float64()*1.8
 
 		sb.WriteString(fmt.Sprintf(`<circle cx="%.2f" cy="%.2f" r="%.2f" fill="%s" opacity="%.2f" />`, px, py, radius, color, opacity))
 	}
