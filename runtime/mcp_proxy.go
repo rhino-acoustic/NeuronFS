@@ -21,7 +21,7 @@ func runMCPProxy(listenPort int, targetPort int) {
 	}
 
 	fmt.Fprintf(os.Stderr, "\033[36m[PROXY] Shielding layer active on :%d -> :%d\033[0m\n", listenPort, targetPort)
-	if err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", listenPort), proxy); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", listenPort), proxy); err != nil {
 		fmt.Fprintf(os.Stderr, "[PROXY] FATAL: %v\n", err)
 	}
 }
