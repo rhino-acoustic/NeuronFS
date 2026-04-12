@@ -195,6 +195,7 @@ function init() {
     <button class="layout-btn" onclick="switchLayout(9, this)">10. Cochlea Triangle (달팽이관 롤)</button>
     <button class="layout-btn" onclick="switchLayout(10, this)">11. Dense Solid Snail (무간극 고밀도 연속체)</button>
     <button class="layout-btn" onclick="switchLayout(11, this)">12. Organic Chaos Snail (유기적 파동 변형)</button>
+    <button class="layout-btn" onclick="switchLayout(12, this)">13. Mobius Pyramid (뫼비우스 삼각뿔)</button>
   `;
   
   setTimeout(() => loadLayout(0), 100);
@@ -419,6 +420,51 @@ function loadLayout(idx) {
         tArr[i*3]   = finalR * Math.cos(theta);
         tArr[i*3+1] = yPos - 50; 
         tArr[i*3+2] = finalR * Math.sin(theta);
+    }
+  } else if(idx === 12) { // Mobius Triangular Pyramid (뫼비우스 삼각뿔)
+    // A single continuous parametric surface with 3 half-twists (Triangular)
+    // Tapering to a perfect point, leaving zero concentric gaps.
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+        // v = vertical axis proxy (0.0 = tip, 1.0 = top wide base)
+        const v = Math.pow(Math.random(), 0.65); 
+        const y = v * 350 - 80; // Height spans from -80 to +270
+        
+        // t = angular sweep around the Mobius strip
+        const t = Math.random() * Math.PI * 2.0;
+        
+        // ribbonWidth = width of the strip at height v. Tapers flawlessly to 0
+        const ribbonWidth = v * 180;
+        
+        // s = horizontal position across the ribbon cross-section
+        const s = (Math.random() - 0.5) * ribbonWidth * 2.0; // [-ribbonWidth, ribbonWidth]
+        
+        // 3 half-twists generate a 3-edged (triangular) twisted profile
+        const halfTwists = 3.0; 
+        
+        // Central ring radius also tapers to 0
+        const R = v * 120; 
+        
+        // Exact Mobius Strip parametric mapping
+        const localRadius = R + s * Math.cos(halfTwists * t / 2.0);
+        const x = localRadius * Math.cos(t);
+        const z = localRadius * Math.sin(t);
+        
+        // Ribbon thickness/twist flipping vertically
+        const yTwist = s * Math.sin(halfTwists * t / 2.0);
+        
+        // Apply Global Spin so the whole pyramid aggressively spirals inward
+        const globalTwist = (1.0 - v) * Math.PI * 4.0; // 2 full revolutions top to bottom
+        
+        // Add subtle organic surface noise to make it feel like "Energy"
+        const wave = Math.sin(t * 15.0 + v * 30.0) * 8.0 * v;
+        
+        // Apply the global spin to X and Z
+        const finalX = x * Math.cos(globalTwist) - z * Math.sin(globalTwist);
+        const finalZ = x * Math.sin(globalTwist) + z * Math.cos(globalTwist);
+        
+        tArr[i*3]   = finalX;
+        tArr[i*3+1] = y + yTwist + wave;
+        tArr[i*3+2] = finalZ;
     }
   }
 
