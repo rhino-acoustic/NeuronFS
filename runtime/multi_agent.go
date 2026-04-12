@@ -47,6 +47,9 @@ func RunParallelAgents(brainRoot string, tasks []AgentTask) []AgentResult {
 
 			fmt.Printf("[에이전트 %d] 시작: %s\n", idx+1, t.Name)
 
+			// Inject EmotionPrompt for code quality boost (Phase 53)
+			t.Prompt = WrapWithEmotion(t.Prompt, DefaultEmotionTier("code_write"))
+
 			// Build the Gemini CLI command
 			result := executeGeminiCLI(t)
 			result.Duration = time.Since(start)
