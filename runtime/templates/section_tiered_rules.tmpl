@@ -4,9 +4,7 @@
 {{- end}}
 
 ### 推 WHEN → THEN (조건부 트리거)
-{{- range .WhenRules}}
-- ⚡ WHEN {{.Condition}} → {{.Label}}
-{{- end}}
+{{- range $i, $r := .WhenRules}}{{if $i}} | {{end}}{{$r.Condition}}→{{$r.Label}}{{end}}
 
 ### 禁 NEVER (절대 금지)
 {{- range .NeverRules}}
