@@ -73,6 +73,7 @@ func startAPI(brainRoot string, port int) {
 	go startWebhookDaemon(brainRoot) // <--- Phase 32: B2B Webhook Forwarder
 	go startP2PSyncDaemon(brainRoot) // <--- Phase 36: V8 P2P Knowledge Crossover
 	go startDreamCycleDaemon(brainRoot) // <--- Phase 41: V10 Dream Cycle
+	go func() { BuildSimilarityIndex(brainRoot) }() // <--- Phase 44: V11 TF-IDF Index
 
 	fmt.Printf("  🔄 IDLE ENGINE: auto evolve/snapshot/NAS every %dm idle\n", idleThresholdMinutes)
 
