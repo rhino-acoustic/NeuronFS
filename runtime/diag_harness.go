@@ -106,7 +106,27 @@ func RunHarness(brainRoot string, logger func(string)) {
 	mojibakeCount := 0
 	for _, r := range essentialRegions {
 		filepath.Walk(filepath.Join(brainRoot, r), func(path string, info os.FileInfo, err error) error {
-			if err != nil || info == nil || info.IsDir() {
+			if err != nil || info == nil {
+				return nil
+			}
+			if info.IsDir() {
+				name := info.Name()
+				if strings.HasPrefix(name, ".archive") || strings.HasPrefix(name, "_") || strings.Contains(name, "?") {
+					return filepath.SkipDir
+				}
+				// 한자 옵코드 폴더(必/禁 등)는 통과, 깨진 1~3바이트 비ASCII 폴더명은 스킵
+				if len(name) <= 3 && !strings.ContainsAny(name, RuneChars+"가-힣") {
+					hasWeird := false
+					for _, r := range name {
+						if r > 127 && r < 0x3000 {
+							hasWeird = true
+							break
+						}
+					}
+					if hasWeird {
+						return filepath.SkipDir
+					}
+				}
 				return nil
 			}
 			if !strings.HasSuffix(info.Name(), ".neuron") {
@@ -118,6 +138,9 @@ func RunHarness(brainRoot string, logger func(string)) {
 			}
 			if isMojibake(string(data)) {
 				mojibakeCount++
+				if logger != nil {
+					logger(fmt.Sprintf("    → mojibake: %s", path))
+				}
 			}
 			return nil
 		})
