@@ -191,6 +191,7 @@ function init() {
     <button class="layout-btn" onclick="switchLayout(5, this)">6. Supernova Explosion (초신성 코어)</button>
     <button class="layout-btn" onclick="switchLayout(6, this)">7. Fibonacci Sphere (황금비 넥서스)</button>
     <button class="layout-btn" onclick="switchLayout(7, this)">8. Chaos Gravity Well (응축 깔때기)</button>
+    <button class="layout-btn" onclick="switchLayout(8, this)">9. Triangular Plane (2D 면 삼각 에너지)</button>
   `;
   
   setTimeout(() => loadLayout(0), 100);
@@ -301,6 +302,33 @@ function loadLayout(idx) {
       tArr[i*3] = finalR * Math.cos(finalAng);
       tArr[i*3+1] = finalY;
       tArr[i*3+2] = finalR * Math.sin(finalAng);
+    }
+  } else if(idx === 8) { // Triangular Chaos Plane
+    for(let i=0; i<PARTICLE_COUNT; i++) {
+      // 0.0 is the bottom sharp tip (Origin), 1.0 is the wide top edge
+      const tScale = Math.pow(Math.random(), 0.7); 
+      
+      const y = tScale * 280; // height from 0 to 280
+      const maxWidth = tScale * 600; // width is strictly proportional to height (Triangle V-shape)
+      
+      // Group particles into 80 distinct flowing energy fibers cascading down the face
+      const streamIdx = i % 80;
+      const streamBaseX = (streamIdx / 80.0) - 0.5; // range [-0.5, 0.5]
+      
+      // X coordinates spread across the width of the triangle
+      const scatterX = (Math.random() - 0.5) * (maxWidth * 0.05);
+      const x = (streamBaseX * maxWidth) + scatterX;
+      
+      // Z handles the "flat" but "chaotic surface" characteristic
+      // Create big curving waves across the flat plane so it looks like flowing energy fabric
+      const zWave = Math.sin(x*0.015 - y*0.02) * 50 * tScale 
+                  + Math.cos(streamBaseX * 20.0 + y*0.05) * 20 * tScale;
+                  
+      const scatterZ = (Math.random() - 0.5) * 4 * tScale; // razor thin volume
+      
+      tArr[i*3]   = x;
+      tArr[i*3+1] = y - 40; // tip near origin for intense white/gold Depth Coloring
+      tArr[i*3+2] = zWave + scatterZ;
     }
   }
 
