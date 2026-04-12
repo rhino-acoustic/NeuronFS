@@ -202,45 +202,48 @@ function renderDemoLayer() {
     
     #define PI 3.14159265359
     
+    vec3 regionColor(float idx) {
+      float r = mod(idx, 7.0);
+      if(r < 1.0) return vec3(0.96, 0.75, 0.14);
+      if(r < 2.0) return vec3(0.86, 0.15, 0.15);
+      if(r < 3.0) return vec3(0.06, 0.72, 0.51);
+      if(r < 4.0) return vec3(0.02, 0.71, 0.83);
+      if(r < 5.0) return vec3(0.23, 0.51, 0.96);
+      if(r < 6.0) return vec3(0.55, 0.36, 0.96);
+      return vec3(0.06, 0.72, 0.51);
+    }
+    
     void main() {
       vec2 uv = vUv - 0.5;
       uv.x *= iResolution.x / iResolution.y;
       
       float time = iTime;
-      float radius1 = 0.2;
-      float rotationSpeed1 = -0.5;
-      float glowEffect = 0.00003;
-      float lineSpeed = 3.5;
-      
       vec4 col = vec4(0.0);
+      float dots = clamp(neuronCount, 8.0, 512.0);
+      float glowAmt = 0.003 * (64.0 / max(dots, 1.0)); // dimmer with more dots
       
-      // Lead ball 1 (emerald — NeuronFS accent)
-      vec2 bp1 = vec2(radius1 * cos(rotationSpeed1*time*lineSpeed + 500.0*PI) * 2.0,
-                      radius1 * sin(rotationSpeed1*time*lineSpeed*2.0 + 500.0*PI));
-      col += 0.008 * vec4(vec3(0.06, 0.72, 0.51), 1.0) / length(uv - bp1);
-      
-      // Lead ball 2 (blue — cortex)
-      vec2 bp2 = vec2(radius1 * cos(rotationSpeed1*time*lineSpeed + 500.0*PI + PI) * 2.0,
-                      radius1 * -sin(rotationSpeed1*time*lineSpeed*2.0 + 500.0*PI));
-      col += 0.008 * vec4(vec3(0.23, 0.51, 0.96), 1.0) / length(uv - bp2);
-      
-      // Trails — step 0.003 for performance (~1047 iterations)
-      float trailLen = min(PI, PI * neuronCount / 64.0);
-      for(float i = 0.0; i < PI; i += 0.003) {
-        if(i > trailLen) break;
+      for(float i = 0.0; i < 512.0; i++) {
+        if(i >= dots) break;
         
-        vec2 tp1 = vec2(radius1 * cos(rotationSpeed1*time*lineSpeed + 500.0*PI + i) * 2.0,
-                        radius1 * sin(rotationSpeed1*time*lineSpeed*2.0 + 500.0*PI + i*2.0));
-        col += glowEffect * vec4(vec3(0.06, 0.72, 0.51), 1.0) / length(uv - tp1);
+        // Each neuron gets unique Lissajous orbit
+        float seed = i * 1.618033; // golden ratio spacing
+        float speed = 0.3 + mod(seed, 0.4);
+        float radius = 0.1 + mod(seed * 3.17, 0.2);
+        float phase = seed * 2.399;
         
-        vec2 tp2 = vec2(radius1 * cos(rotationSpeed1*time*lineSpeed + 500.0*PI + PI + i) * 2.0,
-                        radius1 * -sin(rotationSpeed1*time*lineSpeed*2.0 + 500.0*PI + i*2.0));
-        col += glowEffect * vec4(vec3(0.23, 0.51, 0.96), 1.0) / length(uv - tp2);
+        float xFreq = 1.0 + mod(i, 3.0); // 1x, 2x, 3x frequency variants
+        float yFreq = 1.0 + mod(i + 1.0, 4.0);
+        
+        vec2 pos = vec2(
+          radius * cos(speed * time * xFreq + phase) * 2.0,
+          radius * sin(speed * time * yFreq + phase)
+        );
+        
+        float d = length(uv - pos);
+        col += vec4(regionColor(i) * glowAmt, glowAmt) / d;
       }
       
-      // Clamp total brightness to prevent blowout
-      col = clamp(col, 0.0, 1.2);
-      
+      col = clamp(col, 0.0, 1.0);
       gl_FragColor = col;
     }
   `;
