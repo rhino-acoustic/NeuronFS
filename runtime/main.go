@@ -84,6 +84,7 @@ func main() {
 	router.Register(&DiagCmd{})
 	router.Register(&EmitCmd{})
 	router.Register(&ShareDashboardCmd{})
+	router.Register(&EdgeFixCmd{})
 
 	// Check if any arguments match our new router
 	routed := false

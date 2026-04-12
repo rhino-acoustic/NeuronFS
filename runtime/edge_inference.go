@@ -1,0 +1,89 @@
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"net/url"
+	"time"
+)
+
+// ============================================================================
+// Module: Edge Compute (On-Device LLM Pipeline)
+// Fallback local execution when cloud is unavailable or latency is critical.
+// ============================================================================
+
+var OllamaLocalEndpoint = "http://localhost:11434/api/generate"
+
+type OllamaRequest struct {
+	Model  string `json:"model"`
+	Prompt string `json:"prompt"`
+	Stream bool   `json:"stream"`
+}
+
+type OllamaResponse struct {
+	Model     string `json:"model"`
+	Response  string `json:"response"`
+	Done      bool   `json:"done"`
+}
+
+// CheckEdgeAvailability pings the local 11434 port to see if Ollama is running
+func CheckEdgeAvailability() bool {
+	parsed, err := url.Parse(OllamaLocalEndpoint)
+	if err != nil {
+		return false
+	}
+	timeout := 1 * time.Second
+	conn, err := net.DialTimeout("tcp", parsed.Host, timeout)
+	if err != nil {
+		return false
+	}
+	if conn != nil {
+		conn.Close()
+		return true
+	}
+	return false
+}
+
+// InvokeLocalLLM sends a prompt to the local LLM instance
+func InvokeLocalLLM(model, prompt string) (string, error) {
+	if !CheckEdgeAvailability() {
+		return "", fmt.Errorf("edge compute (Ollama) is not running on localhost:11434")
+	}
+
+	reqPayload := OllamaRequest{
+		Model:  model,
+		Prompt: prompt,
+		Stream: false,
+	}
+
+	jsonData, err := json.Marshal(reqPayload)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := http.Post(OllamaLocalEndpoint, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", fmt.Errorf("edge inference failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("edge reading response failed: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("edge HTTP error: status %d, body: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var ollamaResp OllamaResponse
+	if err := json.Unmarshal(bodyBytes, &ollamaResp); err != nil {
+		return "", fmt.Errorf("edge response parsing failed: %w", err)
+	}
+
+	return ollamaResp.Response, nil
+}
