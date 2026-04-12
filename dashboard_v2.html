@@ -7,22 +7,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg: #030305; --surface: rgba(15, 20, 30, 0.6); --border: rgba(255,255,255,0.08);
-  --accent: #10b981; --accent-glow: rgba(16, 185, 129, 0.3);
-  --danger: #ef4444; --text: #f8fafc; --text-muted: #94a3b8;
+  --bg: #f8f9fb; --surface: rgba(255, 255, 255, 0.85); --border: rgba(0,0,0,0.08);
+  --accent: #059669; --accent-glow: rgba(5, 150, 105, 0.15);
+  --danger: #dc2626; --text: #1e293b; --text-muted: #64748b;
   --font-ui: 'Inter', sans-serif; --font-mono: 'JetBrains Mono', monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: var(--font-ui); overflow: hidden; display: flex; height: 100vh; }
 
 /* Left: Holographic 3D WebGL Map */
-#gl-container { flex: 1; position: relative; border-right: 1px solid var(--border); background: radial-gradient(circle at center, #0a0a14 0%, #030305 100%); }
+#gl-container { flex: 1; position: relative; border-right: 1px solid var(--border); background: radial-gradient(circle at center, #e8ecf2 0%, #f0f2f5 100%); }
 canvas { display: block; width: 100%; height: 100%; outline: none; }
 
 /* Right: Nerve Center Console */
 #console-container { width: 450px; background: var(--surface); display: flex; flex-direction: column; backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); position: relative; z-index: 10; }
 .header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-.brand h1 { font-size: 18px; font-weight: 800; letter-spacing: 0.1em; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+.brand h1 { font-size: 18px; font-weight: 800; letter-spacing: 0.1em; color: #0f172a; text-shadow: none; }
 .brand span { color: var(--accent); }
 .ver { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
 
@@ -40,39 +40,39 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 .toggle-btn.off:hover { background: rgba(148, 163, 184, 0.2); box-shadow: none; }
 
 /* TTY Feed / Metrics */
-.tty-feed { flex: 1; padding: 20px; font-family: var(--font-mono); font-size: 11px; overflow-y: auto; color: #a1a1aa; line-height: 1.6; }
+.tty-feed { flex: 1; padding: 20px; font-family: var(--font-mono); font-size: 11px; overflow-y: auto; color: #475569; line-height: 1.6; }
 .tty-feed::-webkit-scrollbar { width: 4px; }
 .tty-feed::-webkit-scrollbar-thumb { background: var(--border); }
 .log-line { margin-bottom: 6px; display: flex; gap: 8px; }
-.log-ts { color: #52525b; flex-shrink: 0; }
-.log-info { color: #60a5fa; }
-.log-warn { color: #fbbf24; }
-.log-error { color: #ef4444; }
+.log-ts { color: #94a3b8; flex-shrink: 0; }
+.log-info { color: #2563eb; }
+.log-warn { color: #d97706; }
+.log-error { color: #dc2626; }
 
-.metrics-panel { padding: 20px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: rgba(0,0,0,0.3); }
+.metrics-panel { padding: 20px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: rgba(241,245,249,0.8); }
 .metric { display: flex; flex-direction: column; gap: 4px; }
 .m-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
-.m-value { font-size: 16px; font-weight: 800; color: #fff; font-family: var(--font-mono); }
+.m-value { font-size: 16px; font-weight: 800; color: #0f172a; font-family: var(--font-mono); }
 
 /* Audit Trail (Phase 43) */
-.audit-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 160px; overflow-y: auto; background: rgba(0,0,0,0.4); }
+.audit-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 160px; overflow-y: auto; background: rgba(241,245,249,0.6); }
 .audit-panel::-webkit-scrollbar { width: 3px; }
 .audit-panel::-webkit-scrollbar-thumb { background: var(--border); }
 .audit-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 8px; font-family: var(--font-mono); }
-.audit-entry { font-size: 10px; font-family: var(--font-mono); color: #71717a; margin-bottom: 4px; display: flex; gap: 6px; }
-.audit-actor { color: #60a5fa; min-width: 90px; }
-.audit-action { color: #a78bfa; }
+.audit-entry { font-size: 10px; font-family: var(--font-mono); color: #64748b; margin-bottom: 4px; display: flex; gap: 6px; }
+.audit-actor { color: #2563eb; min-width: 90px; }
+.audit-action { color: #7c3aed; }
 .audit-ok { color: var(--accent); }
 .audit-fail { color: var(--danger); }
 
 /* Codemap Panel (Quick Win 4) */
-.codemap-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.35); }
+.codemap-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 180px; overflow-y: auto; background: rgba(241,245,249,0.5); }
 .codemap-panel::-webkit-scrollbar { width: 3px; }
 .codemap-panel::-webkit-scrollbar-thumb { background: var(--border); }
 .codemap-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #8b5cf6; margin-bottom: 8px; font-family: var(--font-mono); cursor: pointer; }
-.codemap-entry { font-size: 10px; font-family: var(--font-mono); color: #71717a; margin-bottom: 3px; display: flex; justify-content: space-between; }
-.codemap-name { color: #a78bfa; }
-.codemap-lines { color: #52525b; }
+.codemap-entry { font-size: 10px; font-family: var(--font-mono); color: #64748b; margin-bottom: 3px; display: flex; justify-content: space-between; }
+.codemap-name { color: #7c3aed; }
+.codemap-lines { color: #94a3b8; }
 
 /* Debounce Overlay */
 #debounce-overlay { position: absolute; top: 20px; left: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 8px; font-family: var(--font-mono); color: var(--accent); display: none; align-items: center; gap: 12px; box-shadow: 0 0 20px var(--accent-glow); z-index: 20; }
@@ -80,11 +80,11 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
 /* Overlay UI */
-.overlay-stats { position: absolute; bottom: 20px; left: 20px; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); pointer-events: none; z-index: 20; }
+.overlay-stats { position: absolute; bottom: 20px; left: 20px; font-family: var(--font-mono); font-size: 10px; color: #94a3b8; pointer-events: none; z-index: 20; }
 
 /* Fire Spark CSS */
 .fire-flash { box-shadow: inset 0 0 100px rgba(16, 185, 129, 0.4); transition: box-shadow 0.1s; }
-.fire-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #10b981; font-family: var(--font-mono); font-size: 24px; font-weight: 800; text-shadow: 0 0 20px rgba(16,185,129,0.8); opacity: 0; pointer-events: none; z-index: 30; }
+.fire-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #059669; font-family: var(--font-mono); font-size: 24px; font-weight: 800; text-shadow: 0 0 10px rgba(5,150,105,0.3); opacity: 0; pointer-events: none; z-index: 30; }
 @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -150%) scale(1.5); } }
 </style>
 </head>
@@ -102,10 +102,10 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
   <div class="header">
     <div class="brand"><h1><span>Neuron</span>FS V2</h1><span class="ver">Autopilot Nerve Center</span></div>
     <div style="display:flex;gap:4px;flex-wrap:wrap">
-      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#8b5cf6;color:#8b5cf6;background:rgba(139,92,246,0.1)" onclick="runIntegrity()">🛡️</button>
-      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,0.1)" onclick="runInject()">🔄</button>
-      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#10b981;color:#10b981;background:rgba(16,185,129,0.1)" onclick="runEvolve(true)">🧬</button>
-      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,0.1)" onclick="runDedup()">🧹</button>
+      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#8b5cf6;color:#8b5cf6;background:rgba(139,92,246,0.1)" onclick="runIntegrity()">VERIFY</button>
+      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,0.1)" onclick="runInject()">INJECT</button>
+      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#10b981;color:#10b981;background:rgba(16,185,129,0.1)" onclick="runEvolve(true)">EVOLVE</button>
+      <button class="toggle-btn" style="font-size:9px;padding:5px 8px;border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,0.1)" onclick="runDedup()">DEDUP</button>
       <button class="toggle-btn" id="btn-autopilot" onclick="toggleAutopilot()">AUTOPILOT: ON</button>
     </div>
   </div>
@@ -113,7 +113,7 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
   <div class="ap-status">
     <div class="status-indicator">
       <div class="pulse-dot pulsing" id="ap-dot"></div>
-      <div style="font-size:12px; font-weight:600; color:#fff" id="ap-text">System Listening...</div>
+      <div style="font-size:12px; font-weight:600; color:#0f172a" id="ap-text">System Listening...</div>
     </div>
   </div>
 
@@ -141,11 +141,11 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
   </div>
 
   <div class="audit-panel" id="audit-feed">
-    <div class="audit-title">🔍 Autonomous Audit Trail (Phase 43)</div>
+    <div class="audit-title">AUDIT TRAIL</div>
   </div>
 
   <div class="codemap-panel" id="codemap-feed">
-    <div class="codemap-title">🗺️ Runtime Code Map (Phase 57)</div>
+    <div class="codemap-title">CODE MAP</div>
   </div>
 </div>
 
@@ -160,7 +160,7 @@ const dummy = new THREE.Object3D();
 function init3D() {
   const container = document.getElementById('gl-container');
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x030305, 0.003);
+  scene.fog = new THREE.FogExp2(0xf0f2f5, 0.003);
 
   camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 1000);
   camera.position.set(100, 80, 150);
@@ -178,7 +178,7 @@ function init3D() {
 
   fetchGraphQLBrain();
 
-  scene.add(new THREE.AmbientLight(0x10b981, 0.2));
+  scene.add(new THREE.AmbientLight(0x059669, 0.4));
   const pLight = new THREE.PointLight(0x3b82f6, 1, 300);
   pLight.position.set(0, 50, 0);
   scene.add(pLight);
