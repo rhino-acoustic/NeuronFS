@@ -63,10 +63,14 @@ func startAPI(brainRoot string, port int) {
 	// ── 정적 파일/대시보드 등록 (api_static.go) ──
 	registerStaticRoutes(mux, brainRoot, withCORS)
 
+	// ── GraphQL / B2B Webhook 통합 (Phase 32) ──
+	mux.HandleFunc("/graphql", withCORS(HandleGraphQL(brainRoot)))
+
 	// Start background loops
 	go runInjectionLoop(brainRoot)
 	go runIdleLoop(brainRoot)
 	go startFSWatcherPool(brainRoot) // <--- Phase 31: V7 OS Sensory Monitor
+	go startWebhookDaemon(brainRoot) // <--- Phase 32: B2B Webhook Forwarder
 
 	fmt.Printf("  🔄 IDLE ENGINE: auto evolve/snapshot/NAS every %dm idle\n", idleThresholdMinutes)
 

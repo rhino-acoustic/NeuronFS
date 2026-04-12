@@ -125,4 +125,10 @@ func processSensoryEvent(brainRoot, changedPath, opType string) {
 	if GlobalSSEBroker != nil {
 		GlobalSSEBroker.Broadcast("info", fmt.Sprintf("[Sensory Alert] %s 감지됨 (%s)", filepath.Base(changedPath), opType))
 	}
+
+	// Phase 32: B2B Integration - Push Webhook when OS file changes
+	TriggerWebhook("OS_SENSORY_EVENT", fmt.Sprintf("File %s has been %s", changedPath, opType), map[string]string{
+		"path": changedPath,
+		"op":   opType,
+	})
 }
