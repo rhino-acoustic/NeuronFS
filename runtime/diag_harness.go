@@ -164,6 +164,36 @@ func RunHarness(brainRoot string, logger func(string)) {
 		passes++
 	}
 
+	// ── Check 8: 코드맵 커버리지 (runtime .go vs cortex/dev/_codemap) ──
+	codemapDir := filepath.Join(brainRoot, "cortex", "dev", "_codemap")
+	var codemapNeurons int
+	filepath.Walk(codemapDir, func(path string, info os.FileInfo, err error) error {
+		if err == nil && !info.IsDir() && strings.HasSuffix(info.Name(), ".neuron") {
+			codemapNeurons++
+		}
+		return nil
+	})
+	runtimeDir := filepath.Join(filepath.Dir(brainRoot), "runtime")
+	var goFileCount int
+	if entries, err := os.ReadDir(runtimeDir); err == nil {
+		for _, e := range entries {
+			if !e.IsDir() && strings.HasSuffix(e.Name(), ".go") && !strings.HasSuffix(e.Name(), "_test.go") {
+				goFileCount++
+			}
+		}
+	}
+	if goFileCount > 0 {
+		coverage := float64(codemapNeurons) / float64(goFileCount) * 100
+		if coverage < 70 {
+			fails = append(fails, fmt.Sprintf("코드맵 커버리지 부족: %.0f%% (%d/%d)", coverage, codemapNeurons, goFileCount))
+		} else {
+			passes++
+		}
+		if logger != nil {
+			logger(fmt.Sprintf("  📊 코드맵: %d뉴런/%d파일 (%.0f%%)", codemapNeurons, goFileCount, coverage))
+		}
+	}
+
 	// ── Result ──
 	if len(fails) == 0 {
 		if logger != nil {
