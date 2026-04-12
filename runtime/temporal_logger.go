@@ -64,4 +64,6 @@ func RecordTemporalSnapshot(brainRoot string, targetFilePath string) {
 	_, _ = f.Write(fileData)
 
 	fmt.Printf("[Temporal-4D] Snapshot packed: %s\n", deltaName)
+	// Phase 40: Audit Trail
+	RecordAudit(brainRoot, "temporal_logger", "snapshot", deltaPath, targetFileName, true)
 }

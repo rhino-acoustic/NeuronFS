@@ -92,6 +92,8 @@ func syncP2PCorrections(brainRoot string) {
 			if GlobalSSEBroker != nil {
 				GlobalSSEBroker.Broadcast("info", fmt.Sprintf("[P2P Sync] %d개의 피어 지식이 전역 스웜으로 융합되었습니다.", newEntries))
 			}
+			// Phase 40: Audit Trail
+			RecordAudit(brainRoot, "p2p_sync", "merge", globalInboxFile, fmt.Sprintf("%d new corrections merged", newEntries), true)
 		}
 	}
 }

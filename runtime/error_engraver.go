@@ -77,7 +77,10 @@ System autopilot trapped a runtime error.
 			"module": module,
 			"path":   filePath,
 		})
+		// Phase 40: Audit Trail
+		RecordAudit(brainRoot, "error_engraver", "engrave", filePath, errMessage, true)
 	} else {
 		fmt.Printf("[Self-Healing] Failed to engrave error: %v\n", writeErr)
+		RecordAudit(brainRoot, "error_engraver", "engrave_failed", filePath, writeErr.Error(), false)
 	}
 }
