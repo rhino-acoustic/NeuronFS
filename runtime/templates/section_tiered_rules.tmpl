@@ -1,6 +1,6 @@
 ### 必 ALWAYS (매 응답마다 적용)
 {{- range .AlwaysRules}}
-- ✅ {{.Label}}
+- {{.Label}}
 {{- end}}
 
 ### 推 WHEN → THEN (조건부 트리거)
@@ -8,6 +8,6 @@
 
 ### 禁 NEVER (절대 금지)
 {{- range .NeverRules}}
-- ⛔ {{.Label}}{{if .Why}} (∵ {{.Why}}){{end}}
+- {{.Label}}{{if .Why}} (∵ {{.Why}}){{end}}
 {{- end}}
 

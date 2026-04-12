@@ -274,7 +274,7 @@ func formatCortexBans(sb *strings.Builder, result SubsumptionResult) {
 					banLines = append(banLines, leaf)
 				}
 			}
-			sb.WriteString(fmt.Sprintf("⛔ cortex 금지: %s\n\n", strings.Join(banLines, " | ")))
+			sb.WriteString(fmt.Sprintf("cortex 禁: %s\n\n", strings.Join(banLines, " | ")))
 		}
 		break
 	}
