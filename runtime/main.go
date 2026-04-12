@@ -23,7 +23,6 @@ func main() {
 	}
 
 	mode := "diag"
-	port := APIPort
 	dryRun := false
 	quietMode := false
 	forceAwakening := false
@@ -128,6 +127,8 @@ func main() {
 	router.Register(&EvolveCmd{})
 	router.Register(&WatchCmd{})
 	router.Register(&DashboardCmd{})
+	router.Register(&APICmd{})
+	router.Register(&HtmlCmd{})
 
 	// Check if any arguments match our new router
 	routed := false
@@ -167,10 +168,6 @@ func main() {
 		writeAllTiersForTargets(brainRoot, emitTarget)
 	case "harness":
 		// Handled by router
-	case "html":
-		brain := scanBrain(brainRoot)
-		result := runSubsumption(brain)
-		generateBrainJSON(brainRoot, brain, result)
 	case "grow":
 		neuronPath := getNonFlagArg(1) // brain_v4=0, path=1
 		if neuronPath == "" {
@@ -218,8 +215,6 @@ func main() {
 			days = 30
 		}
 		runDecay(brainRoot, days)
-	case "api":
-		startAPI(brainRoot, port)
 	case "snapshot":
 		gitSnapshot(brainRoot)
 	case "rollback":
