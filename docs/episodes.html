@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuronFS — Episodes</title>
+  <meta name="description" content="22 episodes documenting the NeuronFS journey: from mkdir beats vector to the Jloot Ultraplan.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root { --bg-1:#09090b; --bg-2:#0f0f14; --bg-3:#13131a; --text:#e4e4ec; --text-2:#a1a1b5; --text-3:#6b6b80; --accent:#6366f1; --accent-l:#818cf8; --border:rgba(255,255,255,0.06); }
+    html { scroll-behavior:smooth; }
+    body { font-family:'Inter','Noto Sans KR',sans-serif; background:var(--bg-1); color:var(--text); line-height:1.8; }
+    a { color:var(--accent-l); text-decoration:none; } a:hover { text-decoration:underline; }
+
+    /* TOP NAV */
+    .top-nav { position:fixed; top:0; width:100%; z-index:100; padding:12px 0; background:rgba(9,9,11,0.92); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+    .top-nav-inner { max-width:1400px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; }
+    .top-nav-logo { font-weight:800; font-size:1.05rem; color:#fff; } .top-nav-logo span { color:var(--accent-l); }
+    .top-nav-links { display:flex; gap:16px; align-items:center; }
+    .top-nav-links a { color:var(--text-3); font-size:0.82rem; font-weight:500; }
+    .top-nav-cta { padding:6px 16px; background:var(--accent); color:#fff !important; border-radius:8px; font-weight:600; font-size:0.82rem; }
+
+    /* LAYOUT */
+    .layout { display:grid; grid-template-columns:280px 1fr; min-height:100vh; padding-top:48px; }
+
+    /* SIDEBAR */
+    .sidebar { position:sticky; top:48px; height:calc(100vh - 48px); overflow-y:auto; border-right:1px solid var(--border); background:var(--bg-2); padding:20px 0; }
+    .sidebar::-webkit-scrollbar { width:4px; } .sidebar::-webkit-scrollbar-track { background:transparent; } .sidebar::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+    .sb-section { padding:0 16px; margin-bottom:24px; }
+    .sb-label { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--text-3); margin-bottom:10px; padding:0 8px; }
+    .sb-item { display:block; padding:8px 12px; border-radius:8px; font-size:0.8rem; color:var(--text-2); cursor:pointer; transition:all 0.15s; border:none; background:none; width:100%; text-align:left; font-family:inherit; line-height:1.5; }
+    .sb-item:hover { background:rgba(255,255,255,0.04); color:#fff; text-decoration:none; }
+    .sb-item.active { background:rgba(99,102,241,0.1); color:var(--accent-l); font-weight:600; }
+    .sb-num { display:inline-block; width:24px; font-size:0.7rem; color:var(--text-3); font-weight:700; }
+
+    /* CONTENT */
+    .content { padding:40px 64px 80px; max-width:900px; }
+    .content h1 { font-size:1.8rem; font-weight:800; color:#fff; margin-bottom:8px; letter-spacing:-0.5px; }
+    .content h2 { font-size:1.3rem; font-weight:700; color:#fff; margin:36px 0 12px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+    .content h3 { font-size:1.05rem; font-weight:700; color:#fff; margin:28px 0 8px; }
+    .content p { color:var(--text-2); margin-bottom:16px; font-size:0.92rem; }
+    .content ul, .content ol { color:var(--text-2); margin-bottom:16px; padding-left:24px; font-size:0.92rem; }
+    .content li { margin-bottom:6px; }
+    .content strong { color:var(--text); }
+    .content em { color:var(--accent-l); font-style:normal; }
+    .content code { font-family:'JetBrains Mono',monospace; font-size:0.82em; padding:2px 6px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:4px; color:var(--accent-l); }
+    .content pre { background:#0a0a0e; border:1px solid var(--border); border-radius:12px; padding:20px; margin:20px 0; overflow-x:auto; }
+    .content pre code { padding:0; border:none; background:none; font-size:0.82rem; line-height:1.8; color:#c8c8dc; }
+    .content blockquote { border-left:3px solid var(--accent); padding:12px 20px; margin:20px 0; background:rgba(99,102,241,0.04); border-radius:0 8px 8px 0; color:var(--text-2); font-size:0.9rem; }
+    .content table { width:100%; border-collapse:collapse; margin:20px 0; font-size:0.85rem; }
+    .content th, .content td { padding:10px 14px; border-bottom:1px solid var(--border); text-align:left; }
+    .content th { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-3); }
+    .content td { color:var(--text-2); }
+    .content img { max-width:100%; border-radius:12px; border:1px solid var(--border); margin:16px 0; }
+    .meta-line { font-size:0.78rem; color:var(--text-3); margin-bottom:32px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+
+    .ep-nav { display:flex; justify-content:space-between; margin-top:48px; padding-top:24px; border-top:1px solid var(--border); }
+    .ep-nav a { font-size:0.85rem; padding:8px 16px; border:1px solid var(--border); border-radius:8px; transition:all 0.2s; }
+    .ep-nav a:hover { border-color:var(--accent); text-decoration:none; }
+
+    @media (max-width:768px) {
+      .layout { grid-template-columns:1fr; }
+      .sidebar { position:fixed; left:-300px; z-index:99; transition:left 0.3s; }
+      .sidebar.open { left:0; }
+      .content { padding:24px 16px 60px; }
+      .mob-toggle { display:block !important; }
+    }
+    .mob-toggle { display:none; position:fixed; bottom:20px; left:20px; z-index:101; width:48px; height:48px; border-radius:50%; background:var(--accent); color:#fff; border:none; font-size:1.2rem; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,0.4); }
+  </style>
+</head>
+<body>
+
+  <div class="top-nav"><div class="top-nav-inner">
+    <a href="index.html" class="top-nav-logo" style="text-decoration:none">Neuron<span>FS</span></a>
+    <div class="top-nav-links">
+      <a href="index.html">Home</a>
+      <a href="docs.html">Docs</a>
+      <a href="https://github.com/rhino-acoustic/NeuronFS" class="top-nav-cta">GitHub</a>
+    </div>
+  </div></div>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sb-section">
+        <div class="sb-label">Getting Started</div>
+        <button class="sb-item" data-file="Home">🏠 Home</button>
+        <button class="sb-item" data-file="Getting-Started">📖 Getting Started</button>
+        <button class="sb-item" data-file="Getting-Started-EN">📖 Getting Started (EN)</button>
+      </div>
+      <div class="sb-section">
+        <div class="sb-label">Act I — Foundation</div>
+        <button class="sb-item" data-file="Episode-01-Where-mkdir-Beats-Vector"><span class="sb-num">01</span>mkdir beats vector</button>
+        <button class="sb-item" data-file="Episode-02-When-Text-Becomes-Circuitry"><span class="sb-num">02</span>Text Becomes Circuitry</button>
+        <button class="sb-item" data-file="Episode-03-50-Years-of-Granite-Bedrock"><span class="sb-num">03</span>50 Years of Granite</button>
+        <button class="sb-item" data-file="Episode-04-Quark-to-Organism-Composability"><span class="sb-num">04</span>Quark-to-Organism</button>
+        <button class="sb-item" data-file="Episode-05-Monolith-is-Dead"><span class="sb-num">05</span>Monolith is Dead</button>
+        <button class="sb-item" data-file="Episode-06-Folders-as-Transistors"><span class="sb-num">06</span>Folders as Transistors</button>
+      </div>
+      <div class="sb-section">
+        <div class="sb-label">Act II — Architecture</div>
+        <button class="sb-item" data-file="Episode-07-Palantir-Class-Architecture"><span class="sb-num">07</span>Palantir-Class</button>
+        <button class="sb-item" data-file="Episode-08-12-Rounds-of-Wargaming"><span class="sb-num">08</span>12 Rounds of Wargaming</button>
+        <button class="sb-item" data-file="Episode-09-Quantum-and-Physical-Attack-Vectors"><span class="sb-num">09</span>Quantum Attack Vectors</button>
+        <button class="sb-item" data-file="Episode-10-Explain-Like-Im-Five"><span class="sb-num">10</span>Explain Like I'm Five</button>
+        <button class="sb-item" data-file="Episode-11-From-Self-Doubt-to-Conviction"><span class="sb-num">11</span>Self-Doubt to Conviction</button>
+        <button class="sb-item" data-file="Episode-12-89GB-Model-Beats-70GB"><span class="sb-num">12</span>8.9GB Beats 70GB</button>
+      </div>
+      <div class="sb-section">
+        <div class="sb-label">Act III — Philosophy</div>
+        <button class="sb-item" data-file="Episode-13-30929-Verses-as-Folder-Logic"><span class="sb-num">13</span>30,929 Verses</button>
+        <button class="sb-item" data-file="Episode-14-Multimodal-Solved-by-OS"><span class="sb-num">14</span>Multimodal by OS</button>
+        <button class="sb-item" data-file="Episode-15-Brainwallet-and-Zero-Trace-Encryption"><span class="sb-num">15</span>Brainwallet Encryption</button>
+        <button class="sb-item" data-file="Episode-16-P0-Brainstem-Always-Overrides-P4-Cortex"><span class="sb-num">16</span>P0 Overrides P4</button>
+      </div>
+      <div class="sb-section">
+        <div class="sb-label">Act IV — Vision</div>
+        <button class="sb-item" data-file="Episode-17-First-Markets-Law-and-Medicine"><span class="sb-num">17</span>Law and Medicine</button>
+        <button class="sb-item" data-file="Episode-18-Brain-Marketplace"><span class="sb-num">18</span>Brain Marketplace</button>
+        <button class="sb-item" data-file="Episode-19-Brutally-Honest-Self-Evaluation"><span class="sb-num">19</span>Honest Self-Evaluation</button>
+        <button class="sb-item" data-file="Episode-20-Patent-vs-Open-Source"><span class="sb-num">20</span>Patent vs Open Source</button>
+        <button class="sb-item" data-file="Episode-21-This-Never-Existed-Before"><span class="sb-num">21</span>Never Existed Before</button>
+        <button class="sb-item" data-file="Episode-22-Elegant-The-Jloot-Ultraplan"><span class="sb-num">22</span>The Jloot Ultraplan</button>
+      </div>
+      <div class="sb-section">
+        <div class="sb-label">Reference</div>
+        <button class="sb-item" data-file="The-100-Potentials">💡 100 Potentials</button>
+        <button class="sb-item" data-file="The-100-Potentials-EN">💡 100 Potentials (EN)</button>
+        <button class="sb-item" data-file="Jloot-VFS-Architecture">🏗️ VFS Architecture</button>
+      </div>
+    </aside>
+
+    <main class="content" id="content">
+      <h1>Loading...</h1>
+    </main>
+  </div>
+
+  <button class="mob-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+  <script>
+    const contentEl = document.getElementById('content');
+    const items = document.querySelectorAll('.sb-item');
+    let current = 'Home';
+
+    async function loadPage(name) {
+      try {
+        const res = await fetch(`wiki/${name}.md`);
+        if (!res.ok) throw new Error('Not found');
+        const md = await res.text();
+        contentEl.innerHTML = marked.parse(md);
+        // Fix image paths
+        contentEl.querySelectorAll('img').forEach(img => {
+          const src = img.getAttribute('src');
+          if (src && !src.startsWith('http') && !src.startsWith('wiki/')) {
+            img.setAttribute('src', 'wiki/' + src);
+          }
+        });
+        current = name;
+        items.forEach(i => i.classList.toggle('active', i.dataset.file === name));
+        history.replaceState(null, '', '#' + name);
+        window.scrollTo(0, 0);
+        // Close mobile sidebar
+        document.getElementById('sidebar').classList.remove('open');
+      } catch (e) {
+        contentEl.innerHTML = `<h1>Page not found</h1><p>${name}.md could not be loaded.</p>`;
+      }
+    }
+
+    items.forEach(item => {
+      item.addEventListener('click', () => loadPage(item.dataset.file));
+    });
+
+    // Hash routing
+    const hash = location.hash.slice(1);
+    loadPage(hash || 'Home');
+  </script>
+</body>
+</html>

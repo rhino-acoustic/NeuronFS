@@ -1,0 +1,105 @@
+# Episode 04. Quark-to-Organism Composability
+## "레고에서 영감을 얻었는데 쿼크위에 분자같은 구조"
+
+> **Language Note / 언어 안내**
+>
+> **[ENG]** This document preserves the raw philosophical debates between the creator and AI, kept in the original language (Korean) to protect nuance. Use your browser's translator to explore.
+>
+> **[KOR]** 본 문서는 창안자와 AI의 치열한 논쟁을 원문(한국어) 그대로 보존한 증명 기록입니다. 브라우저 번역 기능을 활용해 주십시오.
+
+---
+
+### 킥
+
+> **"난 레고에서 영감을 얻었는데 레고 구조가 쿼크위에 분자같은 구조고 여기는 이미 고도화가 깊게된거 같아"**
+> — essential L1321
+
+편 1-3에서 **왜** 이 시스템이 필요한지, **왜** 무너지지 않는지를 봤다. 이제 질문이 바뀐다:
+
+*"어떻게 조립하는 거야?"*
+
+---
+
+### 써머리: 쿼크 → 분자 → 유기체
+
+레고 블록이 아무리 다양해도 서로 완벽하게 결합하는 이유는 단 하나다: 블록 위의 **돌기(Stud)**와 밑면의 **홈(Tube)** 규격이 마이크로미터 단위로 표준화되어 있기 때문이다.
+
+NeuronFS의 폴더에도 같은 표준이 있다:
+
+```
+[쿼크 레벨] 0바이트 파일 — 가장 작은 단위
+├── 禁/console_log.neuron     ← NOT 게이트 (절대 금지)
+├── 必/부서장승인.neuron       ← AND 게이트 (필수)
+└── 推/TypeScript권장.neuron   ← 우선순위 (+1)
+
+[분자 레벨] 폴더 — 쿼크를 묶은 논리 단위
+├── cortex/frontend/react/     ← 프론트엔드+React 컨텍스트
+└── brainstem/보안/             ← P0 절대 원칙
+
+[유기체 레벨] 뇌 — 7계층 영역(Region)
+brain_v4/
+├── brainstem/ (P0)
+├── limbic/    (P1)
+├── cortex/    (P4)
+└── ...
+```
+
+#### 3가지 레고 블록 규격
+
+**① 쿼크: 마이크로옵코드 (禁, 必, 推)**
+
+"절대 하지 마시오"라는 긴 텍스트 대신, 폴더 이름 맨 앞에 **禁(금지)** 한 글자. 토큰을 극한으로 아끼면서 AI에게 가장 강렬한 시그널을 주는 기본 블록.
+
+**② 분자 결합: .axon 심링크**
+
+레고를 통짜 덩어리(모노리스)로 만드는 대신, 필요할 때만 서로를 **점프 케이블**로 연결. 코딩 지식(cortex)과 에이전트 성향(ego)을 물리적으로 결합.
+
+**③ 분해 스위치: bomb.neuron**
+
+조립이 잘못되어 무너지려 할 때, 특정 영역의 작동을 완전히 멈추게 하는 **비상 정지 버튼**. AI 3회 연속 실패 → bomb 투하 → 해당 영역 전체 차단.
+
+---
+
+### 파생 FAQ
+
+---
+
+**Q: "서로 호환을 어떻게 구성하냐는거지 마치 비트수와 마찬가지로"** — essential L1348
+
+3가지 표준 규격:
+
+**① 우선순위 레지스터 (Subsumption)**
+
+```
+P0 (brainstem) = 하드웨어 인터럽트 — 절대 원칙
+P1 (limbic)    = 감정 필터
+P2 (hippocampus)= 기억/학습
+P3 (sensors)   = 환경 제약
+P4 (cortex)    = 지식/기술
+P5 (ego)       = 성향/톤
+P6 (prefrontal)= 목표/계획
+```
+
+P0이 P4를 **항상** 이긴다. AI가 "React 훅이 이래요"라고 100번 떠들어도, brainstem에 `禁/보안위반` 하나 있으면 전기가 끊어진다.
+
+**② 같은 계층 충돌 → 禁이 必을 이긴다 (Deny Override)**
+
+P2에 `必/고객요청수행`과 `禁/외부파일실행`이 동시에 있으면? AND(必)와 NOT(禁)이 맞붙으면 **물리학 법칙상 전기가 끊어진다.** 기본 차단(Default Deny).
+
+**③ .axon = I/O 핀**
+
+폴더 안의 내용물을 읽을 필요 없이, 이름의 앞글자(시그니처)만 보고 배치. 외부 도메인 참조가 필요하면 `.axon` 심링크로 점프.
+
+---
+
+**Q: "이 규칙이 공개되어 있으면 우리도 차용?"**
+
+NeuronFS는 **MIT 라이선스** 오픈소스. 이 "레고 조립 설명서"를 마음껏 가져다 쓸 수 있다. 시작점:
+
+1. `禁/` 폴더 3개로 시작 (가장 위험한 실수 3가지 차단)
+2. `.axon` 하나로 프로젝트 간 규칙 공유
+3. `bomb.neuron`으로 비상 정지 설정
+
+---
+
+[Back to Act 1](Act-1) | [Ep.03](Episode-03-50-Years-of-Granite-Bedrock) | [Ep.05](Episode-05-Monolith-is-Dead)
