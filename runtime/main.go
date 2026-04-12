@@ -83,6 +83,7 @@ func main() {
 	router.Register(&ToolCmd{})
 	router.Register(&DiagCmd{})
 	router.Register(&EmitCmd{})
+	router.Register(&ShareDashboardCmd{})
 
 	// Check if any arguments match our new router
 	routed := false

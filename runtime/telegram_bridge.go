@@ -4,12 +4,14 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -106,6 +108,62 @@ func hlTgSafeSend(method string, payload map[string]string) (map[string]interfac
 		}
 	}
 	return resp, nil
+}
+
+// hlTgSendDocument — SVG나 파일 등 Document를 Telegram API로 전송
+func hlTgSendDocument(filePath string, caption string) error {
+	if hlTgToken == "" || hlTgChatID == "" {
+		return fmt.Errorf("no telegram token or chatid")
+	}
+
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return err
+	}
+
+	fileData, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	var requestBody bytes.Buffer
+	writer := multipart.NewWriter(&requestBody)
+
+	// Add chat_id
+	_ = writer.WriteField("chat_id", hlTgChatID)
+	// Add caption
+	if caption != "" {
+		_ = writer.WriteField("caption", caption)
+	}
+
+	// Add document
+	part, err := writer.CreateFormFile("document", fileInfo.Name())
+	if err != nil {
+		return err
+	}
+	part.Write(fileData)
+
+	writer.Close()
+
+	targetURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendDocument", hlTgToken)
+	req, err := http.NewRequest("POST", targetURL, &requestBody)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to send document, status: %d, body: %s", resp.StatusCode, string(body))
+	}
+	return nil
 }
 
 // hlFormatTgMsg — 원본 mjs _formatTgMsg 포팅 (HTML 포맷)
