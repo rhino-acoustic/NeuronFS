@@ -6,7 +6,7 @@
   <title>NeuronFS — 파일시스템 기반 구조화된 AI 프롬프트 거버넌스</title>
   <meta name="description" content="NeuronFS: 폴더로 AI 행동을 구조화합니다. 각 폴더가 규칙이고, 각 경로가 문장이고, 폴더구조 자체가 문맥입니다.">
   <meta property="og:title" content="NeuronFS — 읽히는 동시에 실행되는 가치관">
-  <meta property="og:description" content="법률은 읽히지만 실행 불가. 코드는 실행되지만 읽기 어려움. 뇌 폴더는 둘 다.">
+  <meta property="og:description" content="인류는 수천 년간 가치관을 법률, 종교, 헌법에 저장했습니다. 그 어떤 것도 실행할 수 없었습니다. 이제 하나가 실행됩니다.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://neuronfs.vercel.app/ko">
   <meta property="og:image" content="https://neuronfs.vercel.app/dashboard_preview.png">
@@ -22,7 +22,7 @@
       --border: rgba(255,255,255,0.06);
     }
     html { scroll-behavior: smooth; }
-    body { font-family: 'Noto Sans KR', 'Inter', sans-serif; background: var(--bg-1); color: var(--text); line-height: 1.8; }
+    body { font-family: 'Noto Sans KR', 'Inter', sans-serif; background: var(--bg-1); color: var(--text); line-height: 1.8; overflow-x: hidden; width: 100%; position: relative; }
     a { color: var(--accent-l); text-decoration: none; } a:hover { text-decoration: underline; }
     code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; padding: 2px 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 4px; color: var(--accent-l); }
     nav { position: fixed; top: 0; width: 100%; z-index: 100; padding: 16px 0; background: rgba(9,9,11,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); transition: padding 0.3s; }
@@ -90,9 +90,15 @@
         <a href="https://github.com/rhino-acoustic/NeuronFS" class="btn-p">시작하기 →</a>
         <a href="docs.html" class="btn-s">문서 보기</a>
       </div>
-      <div class="hero-img rv">
-        <img src="dashboard_preview.png" alt="NeuronFS 대시보드 — 7개 뇌 영역, 420개 뉴런">
-      </div>
+    </div>
+  </section>
+
+  <!-- 트위터용 인용구 -->
+  <section style="padding:60px 0; text-align:center;">
+    <div class="container">
+      <blockquote class="rv" style="max-width:700px; margin:0 auto; font-size:1.4rem; font-weight:700; color:#fff; line-height:1.7; border:none; background:none; padding:0; font-style:italic;">
+        “인류는 수천 년간 가치관을 법률, 종교, 헌법에 저장했습니다.<br>그 어떤 것도 실행할 수 없었습니다.<br><span style="color:var(--accent-l)">이제 하나가 실행됩니다.</span>”
+      </blockquote>
     </div>
   </section>
 

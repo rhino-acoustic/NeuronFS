@@ -6,7 +6,7 @@
   <title>NeuronFS — Structured AI Prompt Governance via Filesystem</title>
   <meta name="description" content="NeuronFS: Structure AI behavior with folders. Minimal infrastructure. Structured prompt generation. 4MB binary. AGPL-3.0.">
   <meta property="og:title" content="NeuronFS — Structured AI Prompt Governance">
-  <meta property="og:description" content="Structure AI behavior with folders. Minimal infrastructure. 4MB binary.">
+  <meta property="og:description" content="We've stored human values in laws, religions, and constitutions for thousands of years. None of them could run. Now one can.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://neuronfs.vercel.app">
   <meta property="og:image" content="https://neuronfs.vercel.app/dashboard_preview.png">
@@ -23,7 +23,7 @@
       --border: rgba(255,255,255,0.06);
     }
     html { scroll-behavior: smooth; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg-1); color: var(--text); line-height: 1.7; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-1); color: var(--text); line-height: 1.7; overflow-x: hidden; width: 100%; position: relative; }
     a { color: var(--accent-l); text-decoration: none; }
     a:hover { text-decoration: underline; }
     code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; padding: 2px 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 4px; color: var(--accent-l); }
@@ -180,7 +180,7 @@
       </div>
 
       <!-- LIVE NEURON TREE -->
-      <div class="rv" style="max-width:900px; margin:0 auto; background:var(--bg-2); border:1px solid var(--border); border-radius:16px; overflow:hidden;">
+      <div class="rv" style="max-width:100%; margin:0 auto; background:var(--bg-2); border:1px solid var(--border); border-radius:16px; overflow:hidden;">
         <div style="padding:10px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; font-size:0.75rem; color:var(--text-3);">
           <span style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block;"></span>
           <span style="width:10px;height:10px;border-radius:50%;background:var(--yellow);display:inline-block;"></span>
@@ -201,6 +201,15 @@
         <div class="stat"><div class="stat-num" data-count="39">0</div><div class="stat-label">REST APIs</div></div>
         <div class="stat"><div class="stat-num" data-count="177">0</div><div class="stat-label">Go Source Files</div></div>
       </div>
+    </div>
+  </section>
+
+  <!-- VIRAL QUOTE -->
+  <section style="padding:60px 0; text-align:center;">
+    <div class="container">
+      <blockquote class="rv" style="max-width:700px; margin:0 auto; font-size:1.4rem; font-weight:700; color:#fff; line-height:1.7; border:none; background:none; padding:0; font-style:italic;">
+        “We’ve stored human values in laws, religions, and constitutions for thousands of years.<br>None of them could run.<br><span style="color:var(--accent-l)">Now one can.</span>”
+      </blockquote>
     </div>
   </section>
 
