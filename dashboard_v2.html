@@ -188,7 +188,7 @@ function init3D() {
   window.addEventListener('resize', onWindowResize);
   animate();
 }
-// ── Demo Layer: GLSL neuron orbiting glow (each dot = neuron) ──
+// ── Demo Layer: GLSL Lissajous orbit trail (neuron visualization) ──
 let demoMesh, demoAxonMesh; // keep vars for compat
 let shaderBgMesh;
 function renderDemoLayer() {
@@ -200,34 +200,48 @@ function renderDemoLayer() {
     uniform float neuronCount;
     varying vec2 vUv;
     
-    vec3 regionColor(float idx) {
-      float r = mod(idx, 7.0);
-      if(r < 1.0) return vec3(0.96, 0.75, 0.14);  // brainstem gold
-      if(r < 2.0) return vec3(0.86, 0.15, 0.15);  // limbic red
-      if(r < 3.0) return vec3(0.08, 0.72, 0.65);  // hippocampus teal
-      if(r < 4.0) return vec3(0.02, 0.71, 0.83);  // sensors cyan
-      if(r < 5.0) return vec3(0.23, 0.51, 0.96);  // cortex blue
-      if(r < 6.0) return vec3(0.55, 0.36, 0.96);  // ego purple
-      return vec3(0.06, 0.72, 0.51);               // prefrontal emerald
-    }
+    #define PI 3.14159265359
     
     void main() {
-      vec2 p = (vUv * 2.0 - 1.0) * vec2(iResolution.x/iResolution.y, 1.0);
+      vec2 uv = vUv - 0.5;
+      uv.x *= iResolution.x / iResolution.y;
       
-      vec3 col = vec3(0.0);
-      float dots = clamp(neuronCount, 8.0, 64.0);
+      float time = iTime;
+      float radius1 = 0.2;
+      float rotationSpeed1 = -0.5;
+      float glowEffect = 0.00003;
+      float lineSpeed = 3.5;
       
-      for(float i = 1.0; i <= 64.0; i++) {
-        if(i > dots) break;
-        float speed = 0.3 + i * 0.02;
-        float orbit = 0.15 + mod(i * 7.31, 0.2);
-        float s = sin(speed * iTime + i * 1.618) * orbit;
-        float c = cos(speed * 0.7 * iTime + i * 2.399) * orbit;
-        float glow = 0.006 / abs(length(p * 0.5 + vec2(c, s)));
-        col += regionColor(i) * glow;
+      vec4 col = vec4(0.0);
+      
+      // Lead ball 1 (emerald — NeuronFS accent)
+      vec2 bp1 = vec2(radius1 * cos(rotationSpeed1*time*lineSpeed + 500.0*PI) * 2.0,
+                      radius1 * sin(rotationSpeed1*time*lineSpeed*2.0 + 500.0*PI));
+      col += 0.008 * vec4(vec3(0.06, 0.72, 0.51), 1.0) / length(uv - bp1);
+      
+      // Lead ball 2 (blue — cortex)
+      vec2 bp2 = vec2(radius1 * cos(rotationSpeed1*time*lineSpeed + 500.0*PI + PI) * 2.0,
+                      radius1 * -sin(rotationSpeed1*time*lineSpeed*2.0 + 500.0*PI));
+      col += 0.008 * vec4(vec3(0.23, 0.51, 0.96), 1.0) / length(uv - bp2);
+      
+      // Trails — step 0.003 for performance (~1047 iterations)
+      float trailLen = min(PI, PI * neuronCount / 64.0);
+      for(float i = 0.0; i < PI; i += 0.003) {
+        if(i > trailLen) break;
+        
+        vec2 tp1 = vec2(radius1 * cos(rotationSpeed1*time*lineSpeed + 500.0*PI + i) * 2.0,
+                        radius1 * sin(rotationSpeed1*time*lineSpeed*2.0 + 500.0*PI + i*2.0));
+        col += glowEffect * vec4(vec3(0.06, 0.72, 0.51), 1.0) / length(uv - tp1);
+        
+        vec2 tp2 = vec2(radius1 * cos(rotationSpeed1*time*lineSpeed + 500.0*PI + PI + i) * 2.0,
+                        radius1 * -sin(rotationSpeed1*time*lineSpeed*2.0 + 500.0*PI + i*2.0));
+        col += glowEffect * vec4(vec3(0.23, 0.51, 0.96), 1.0) / length(uv - tp2);
       }
       
-      gl_FragColor = vec4(col, 1.0);
+      // Clamp total brightness to prevent blowout
+      col = clamp(col, 0.0, 1.2);
+      
+      gl_FragColor = col;
     }
   `;
   
@@ -236,7 +250,7 @@ function renderDemoLayer() {
     uniforms: {
       iTime: { value: 0.0 },
       iResolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) },
-      neuronCount: { value: 12.0 } // default demo count, updated by API
+      neuronCount: { value: 12.0 }
     },
     vertexShader: vertShader,
     fragmentShader: fragShader,
