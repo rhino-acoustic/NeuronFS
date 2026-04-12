@@ -2,7 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
 	"net/http"
+	"os"
+	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
@@ -34,6 +40,18 @@ func buildGraphQLSchema(brainRoot string) (graphql.Schema, error) {
 				"name":    &graphql.Field{Type: graphql.String},
 				"neurons": &graphql.Field{Type: graphql.NewList(neuronType)},
 				"count":   &graphql.Field{Type: graphql.Int},
+			},
+		},
+	)
+
+	// Object Type: TemporalDelta (Phase 38)
+	temporalDeltaType := graphql.NewObject(
+		graphql.ObjectConfig{
+			Name: "TemporalDelta",
+			Fields: graphql.Fields{
+				"timestamp": &graphql.Field{Type: graphql.String}, // Stringified unix ms
+				"hash":      &graphql.Field{Type: graphql.String},
+				"content":   &graphql.Field{Type: graphql.String},
 			},
 		},
 	)
@@ -70,6 +88,53 @@ func buildGraphQLSchema(brainRoot string) (graphql.Schema, error) {
 					Type: graphql.String,
 					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 						return "STABLE / GRAPHQL-ENABLED", nil
+					},
+				},
+				"temporalHistory": &graphql.Field{
+					Type: graphql.NewList(temporalDeltaType),
+					Args: graphql.FieldConfigArgument{
+						"filename": &graphql.ArgumentConfig{Type: graphql.NewNonNull(graphql.String)},
+					},
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						filename := p.Args["filename"].(string)
+						temporalDir := filepath.Join(brainRoot, "hippocampus", "temporal_log")
+						
+						var deltas []map[string]interface{}
+						
+						_ = filepath.WalkDir(temporalDir, func(path string, d fs.DirEntry, err error) error {
+							if err != nil || d.IsDir() {
+								return nil
+							}
+							
+							// Format: [timestamp]_[filename]_[hash].delta
+							base := d.Name()
+							if strings.HasSuffix(base, ".delta") && strings.Contains(base, "_"+filename+"_") {
+								parts := strings.Split(base, "_")
+								if len(parts) >= 3 {
+									timestamp := parts[0]
+									hashPart := parts[len(parts)-1]
+									hashPart = strings.TrimSuffix(hashPart, ".delta")
+									
+									contentBytes, _ := os.ReadFile(path)
+									
+									deltas = append(deltas, map[string]interface{}{
+										"timestamp": timestamp,
+										"hash":      hashPart,
+										"content":   string(contentBytes),
+									})
+								}
+							}
+							return nil
+						})
+						
+						// Sort by timestamp descending
+						sort.Slice(deltas, func(i, j int) bool {
+							tsI, _ := strconv.ParseInt(deltas[i]["timestamp"].(string), 10, 64)
+							tsJ, _ := strconv.ParseInt(deltas[j]["timestamp"].(string), 10, 64)
+							return tsI > tsJ
+						})
+						
+						return deltas, nil
 					},
 				},
 			},
