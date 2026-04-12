@@ -2,89 +2,118 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>NeuronFS V3 - Generative Artwork</title>
+  <title>NeuronFS V3 - Subsumption Artwork</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <style>
-    :root { --bg: #030305; --accent: #10b981; --surface: rgba(15, 20, 30, 0.5); }
+    :root { --bg: #030305; --accent: #10b981; --surface: rgba(15, 20, 30, 0.4); }
     body { margin: 0; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
     #gl-container { position: absolute; top:0; left:0; width: 100vw; height: 100vh; z-index: 1; }
-    #ui-panel {
-      position: absolute; top: 30px; left: 30px; z-index: 10; width: 340px;
-      background: var(--surface); backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 25px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    
+    #dashboard-overlay {
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between;
     }
-    h1 { font-size: 18px; margin: 0 0 20px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
-    p { font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 20px; }
-    .layout-btn {
-      display: block; width: 100%; text-align: left; background: rgba(0,0,0,0.3); 
-      border: 1px solid rgba(255,255,255,0.05); color: #94a3b8; padding: 12px 20px; 
-      margin-bottom: 10px; border-radius: 6px; cursor: pointer; transition: all 0.3s;
-      font-size: 13px; font-weight: 500;
+    
+    .header-panel {
+      padding: 30px; background: linear-gradient(180deg, rgba(3,3,5,0.8) 0%, transparent 100%);
+      display: flex; justify-content: space-between; align-items: flex-start;
     }
-    .layout-btn:hover { background: rgba(16, 185, 129, 0.1); color: #fff; }
-    .layout-btn.active {
-      background: rgba(16, 185, 129, 0.15); border-color: var(--accent); color: var(--accent);
-      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    
+    .brand { font-size: 24px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #fff; }
+    .brand span { color: var(--accent); font-weight: 300; }
+    .subtitle { font-size: 11px; color: #64748b; letter-spacing: 2px; margin-top: 5px; }
+    
+    .stats-box { text-align: right; }
+    .stat-row { font-size: 13px; color: #94a3b8; margin-bottom: 8px; font-weight: 500; letter-spacing: 1px; }
+    .stat-row span { color: #fff; font-size: 18px; font-weight: 600; margin-left: 10px; }
+    
+    #tty {
+      height: 180px; margin: 30px; padding: 20px; background: var(--surface); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; overflow-y: auto; pointer-events: auto;
     }
+    .log-line { margin-bottom: 4px; color: #cbd5e1; }
+    .log-ts { color: #64748b; margin-right: 12px; }
+    .log-info { color: #3b82f6; }
+    .log-warn { color: #eab308; }
+    .log-error { color: #e11d48; }
+
+    #layer-legend {
+      position: absolute; left: 30px; top: 120px; 
+    }
+    .legend-item { display: flex; align-items: center; margin-bottom: 8px; font-size: 11px; color: #94a3b8; letter-spacing: 1px;}
+    .legend-box { width: 12px; height: 12px; border-radius: 2px; margin-right: 12px; }
   </style>
 </head>
 <body>
 
 <div id="gl-container"></div>
-<div id="ui-panel">
-  <h1>V3 Generative Art</h1>
-  <p>압도적인 성능의 Vertex Shader 기반 커스텀 입자(Particles) 맵.<br><b>300,000</b>개의 빛 점들을 사용한 아트워크 레이아웃.</p>
-  <button class="layout-btn active" onclick="switchLayout(0, this)">1. Neural Galaxy (나선 은하)</button>
-  <button class="layout-btn" onclick="switchLayout(1, this)">2. Lorenz Attractor (카오스 에너지)</button>
-  <button class="layout-btn" onclick="switchLayout(2, this)">3. Synaptic Core (초정밀 군집)</button>
+
+<div id="dashboard-overlay">
+  <div class="header-panel">
+    <div>
+      <div class="brand">Neuron<span>FS</span></div>
+      <div class="subtitle">7-TIER SUBSUMPTION CASCADE V3</div>
+      <div id="layer-legend"></div>
+    </div>
+    <div class="stats-box">
+      <div class="stat-row">ACTIVE NEURONS <span id="m-neurons">-</span></div>
+      <div class="stat-row">SYNAPTIC ACTIONS <span id="m-act">-</span></div>
+    </div>
+  </div>
+  <div id="tty"></div>
 </div>
 
 <script>
 const PARTICLE_COUNT = 300000;
-let scene, camera, renderer, controls, particleSystem;
+let scene, camera, renderer, controls;
+let bgParticleSystem, activeNeuronSystem;
 
-// GLSL Shaders for 300K smooth transition points
+// Subsumption 7 Layers
+const layers = [
+  { name: 'brainstem',  color: 0xe11d48 }, // 0: Red
+  { name: 'limbic',     color: 0xf97316 }, // 1: Orange
+  { name: 'hippocampus',color: 0xeab308 }, // 2: Yellow/Gold
+  { name: 'sensors',    color: 0x10b981 }, // 3: Emerald
+  { name: 'cortex',     color: 0x3b82f6 }, // 4: Blue
+  { name: 'ego',        color: 0x8b5cf6 }, // 5: Violet
+  { name: 'prefrontal', color: 0xf8fafc }  // 6: White
+];
+
+// GLSL Matrix
 const vertShader = `
   uniform float uTime;
-  uniform float uTransition;
   uniform vec3 uColorCore;
-  uniform vec3 uColorEdge;
-  attribute vec3 targetPos;
   attribute vec3 aColor;
   attribute float aSize;
+  attribute float aWrinkleOffset;
   varying vec3 vColor;
   
   void main() {
-    // Smooth Lerp between current (position) and target (targetPos)
-    vec3 mixedPos = mix(position, targetPos, uTransition);
+    vec3 mixedPos = position;
     
-    // Ambient breathing/floating noise
-    float breath = sin(uTime * 2.0 + mixedPos.x * 0.05) * 2.0;
-    mixedPos.y += breath * uTransition; 
-    
-    // Spinning core effect
-    float angle = uTime * 0.2;
+    // Ambient breathing
+    float breath = sin(uTime * 1.5 + mixedPos.x * 0.02 + aWrinkleOffset) * 2.0;
+    mixedPos.y += breath;
+    mixedPos.z += cos(uTime * 2.0 + mixedPos.y * 0.05) * 1.5;
+
+    // Spinning core effect very slowly
+    float angle = uTime * 0.1;
     float s = sin(angle), c = cos(angle);
     mat2 rot = mat2(c, -s, s, c);
     mixedPos.xz = rot * mixedPos.xz;
 
     vec4 mvPosition = modelViewMatrix * vec4(mixedPos, 1.0);
     
-    // Mathematical depth-based coloring
     float distToCenter = length(mixedPos);
-    // map distance 0..250 to 1.0..0.0
-    float depthFactor = clamp(1.0 - (distToCenter / 200.0), 0.0, 1.0);
-    // Exponential falloff for super bright hot core
+    float depthFactor = clamp(1.0 - (distToCenter / 150.0), 0.0, 1.0);
     depthFactor = pow(depthFactor, 3.0); 
     
-    // Mix individual assigned color with intense core glow based on depth
     vec3 blendedColor = mix(aColor, uColorCore, depthFactor);
     vColor = blendedColor;
     
-    // Size attenuation (closer = bigger)
-    gl_PointSize = (aSize + depthFactor * 4.0) * (150.0 / -mvPosition.z);
+    gl_PointSize = (aSize + depthFactor * 6.0) * (150.0 / -mvPosition.z);
     gl_Position = projectionMatrix * mvPosition;
   }
 `;
@@ -92,30 +121,32 @@ const vertShader = `
 const fragShader = `
   varying vec3 vColor;
   void main() {
-    // Create soft glowing circle texture mathematically
     vec2 p = gl_PointCoord - vec2(0.5);
     float dist = length(p);
     if(dist > 0.5) discard;
-    
-    // Soft gaussian-like falloff
     float alpha = exp(-dist * dist * 10.0);
-    gl_FragColor = vec4(vColor * 1.5, alpha); // x1.5 for extra bloom brightness
+    gl_FragColor = vec4(vColor * 1.8, alpha); 
   }
 `;
 
-let targetPositions = [];
-let currentPositions = [];
-let geometry;
-let transStart = 0;
-let isTransitioning = false;
+function buildLegend() {
+  const legend = document.getElementById('layer-legend');
+  layers.forEach((l, i) => {
+    const div = document.createElement('div');
+    div.className = 'legend-item';
+    div.innerHTML = \`<div class="legend-box" style="background: #\${l.color.toString(16).padStart(6,'0')}"></div> P\${i} \${l.name.toUpperCase()}\`;
+    legend.appendChild(div);
+  });
+}
 
 function init() {
+  buildLegend();
   const container = document.getElementById('gl-container');
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x030305, 0.002);
+  scene.fog = new THREE.FogExp2(0x030305, 0.0025);
 
-  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
-  camera.position.set(250, 180, 350);
+  camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 3000);
+  camera.position.set(0, 100, 500); // Stand back to view the triangle plane
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -125,455 +156,190 @@ function init() {
 
   controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.autoRotate = true; controls.autoRotateSpeed = 0.5;
+  controls.autoRotate = true; controls.autoRotateSpeed = 0.3;
 
-  // Initialize buffers
+  // 1. Build Background 300K Particles (Triangular Wrinkles)
   const posArr = new Float32Array(PARTICLE_COUNT * 3);
-  const targetArr = new Float32Array(PARTICLE_COUNT * 3);
   const colorArr = new Float32Array(PARTICLE_COUNT * 3);
   const sizeArr = new Float32Array(PARTICLE_COUNT);
-
-  const colors = [
-    new THREE.Color(0x10b981), // Emerald
-    new THREE.Color(0x3b82f6), // Blue
-    new THREE.Color(0x06b6d4), // Cyan
-    new THREE.Color(0x8b5cf6), // Violet
-    new THREE.Color(0x2dd4bf)  // Teal
-  ];
+  const wrinkleArr = new Float32Array(PARTICLE_COUNT);
 
   for(let i=0; i<PARTICLE_COUNT; i++) {
-    const x = (Math.random()-0.5) * 800;
-    const y = (Math.random()-0.5) * 800;
-    const z = (Math.random()-0.5) * 800;
+    // Triangle constraints
+    const tScale = Math.pow(Math.random(), 0.7); // 0 = origin tip, 1 = wide top
+    const y = tScale * 350; 
+    const maxWidth = tScale * 700; 
     
-    posArr[i*3] = x; posArr[i*3+1] = y; posArr[i*3+2] = z;
-    targetArr[i*3] = x; targetArr[i*3+1] = y; targetArr[i*3+2] = z;
+    // 7 Layers / Folds (idx 0 to 6)
+    const streamCount = 7.0;
+    const uRand = Math.random(); 
+    const layerIdx = Math.min(6, Math.floor(uRand * streamCount));
     
-    sizeArr[i] = Math.random() < 0.05 ? 3.0 + Math.random()*2.0 : Math.random() * 1.5;
+    const layerCenterBase = ((layerIdx + 0.5) / streamCount); // 0.0 to 1.0 mapping across face
+    const scatter = (Math.random() - 0.5) * (1.0 / streamCount); // fill the gap fully to touch next layer
+    const nx = layerCenterBase + scatter; 
     
-    const col = colors[Math.floor(Math.random()*colors.length)];
+    const x = (nx - 0.5) * maxWidth;
+    
+    // Z creates the deep folds/wrinkles based on nx clustering
+    const zWave = Math.sin((nx - 0.5) * Math.PI * 2.0 * streamCount) * 40 * tScale;
+    const zScatter = (Math.random() - 0.5) * 6 * tScale;
+    const z = zWave + zScatter;
+
+    posArr[i*3] = x;
+    posArr[i*3+1] = y - 100; // Drop the tip below origin slightly
+    posArr[i*3+2] = z;
+    
+    sizeArr[i] = Math.random() < 0.05 ? 3.0 + Math.random()*2.0 : 1.0 + Math.random() * 1.5;
+    wrinkleArr[i] = layerIdx * 10.0;
+    
+    const col = new THREE.Color(layers[layerIdx].color);
     colorArr[i*3] = col.r; colorArr[i*3+1] = col.g; colorArr[i*3+2] = col.b;
   }
 
-  geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
-  geometry.setAttribute('targetPos', new THREE.BufferAttribute(targetArr, 3));
-  geometry.setAttribute('aColor', new THREE.BufferAttribute(colorArr, 3));
-  geometry.setAttribute('aSize', new THREE.BufferAttribute(sizeArr, 1));
+  const bgGeo = new THREE.BufferGeometry();
+  bgGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+  bgGeo.setAttribute('aColor', new THREE.BufferAttribute(colorArr, 3));
+  bgGeo.setAttribute('aSize', new THREE.BufferAttribute(sizeArr, 1));
+  bgGeo.setAttribute('aWrinkleOffset', new THREE.BufferAttribute(wrinkleArr, 1));
 
-  const material = new THREE.ShaderMaterial({
+  const bgMat = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0.0 },
-      uTransition: { value: 1.0 },
-      uColorCore: { value: new THREE.Color(0xfffbcc) }, // super bright warm white/gold core
-      uColorEdge: { value: new THREE.Color(0x10b981) }
+      uColorCore: { value: new THREE.Color(0xfffbcc) }
     },
     vertexShader: vertShader,
     fragmentShader: fragShader,
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
   });
 
-  particleSystem = new THREE.Points(geometry, material);
-  scene.add(particleSystem);
+  bgParticleSystem = new THREE.Points(bgGeo, bgMat);
+  scene.add(bgParticleSystem);
+
+  // 2. Build Active Neurons (Data Points) Layer
+  initActiveNeurons();
 
   window.addEventListener('resize', onResize);
-  
-  // Re-generate UI buttons properly
-  const ui = document.getElementById('ui-panel');
-  ui.innerHTML = `
-    <h1>V3 Generative Art</h1>
-    <p>중심으로 말려들어갈수록 초고온(화이트+골드)으로 색이 변하며, 깊이감이 극대화된 구조체들.</p>
-    <button class="layout-btn active" onclick="switchLayout(0, this)">1. Neural Spiral Galaxy</button>
-    <button class="layout-btn" onclick="switchLayout(1, this)">2. Lorenz Chaos Energy</button>
-    <button class="layout-btn" onclick="switchLayout(2, this)">3. Synaptic Brain Core</button>
-    <button class="layout-btn" onclick="switchLayout(3, this)">4. Quantum Torus (도넛형 에너지)</button>
-    <button class="layout-btn" onclick="switchLayout(4, this)">5. Clifford Attractor (비단결 리본)</button>
-    <button class="layout-btn" onclick="switchLayout(5, this)">6. Supernova Explosion (초신성 코어)</button>
-    <button class="layout-btn" onclick="switchLayout(6, this)">7. Fibonacci Sphere (황금비 넥서스)</button>
-    <button class="layout-btn" onclick="switchLayout(7, this)">8. Chaos Gravity Well (응축 깔때기)</button>
-    <button class="layout-btn" onclick="switchLayout(8, this)">9. Triangular Plane (2D 면 삼각 에너지)</button>
-    <button class="layout-btn" onclick="switchLayout(9, this)">10. Cochlea Triangle (달팽이관 롤)</button>
-    <button class="layout-btn" onclick="switchLayout(10, this)">11. Dense Solid Snail (무간극 고밀도 연속체)</button>
-    <button class="layout-btn" onclick="switchLayout(11, this)">12. Organic Chaos Snail (유기적 파동 변형)</button>
-    <button class="layout-btn" onclick="switchLayout(12, this)">13. Mobius Pyramid (뫼비우스 삼각뿔)</button>
-    <button class="layout-btn" onclick="switchLayout(13, this)">14. Klein Bottle (4차원 항아리)</button>
-    <button class="layout-btn" onclick="switchLayout(14, this)">15. 4D Klein Pyramid (자가투과 삼각뿔)</button>
-  `;
-  
-  setTimeout(() => loadLayout(0), 100);
+  initDataPolling();
   animate();
+  
+  logTTY("NeuronFS V3 OS Booting...", "info");
+  logTTY("7-Tier Subsumption Art Engine Online", "info");
 }
 
-function loadLayout(idx) {
-  const tArr = geometry.attributes.targetPos.array;
-  
-  if(idx === 0) { // Neural Galaxy
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-      const radius = Math.pow(Math.random(), 3) * 220;
-      const angle = radius * 0.15 + Math.random() * Math.PI * 2;
-      const spread = Math.max(0, 50 - radius*0.2); 
-      tArr[i*3] = Math.cos(angle) * (radius + Math.random()*spread);
-      tArr[i*3+1] = (Math.random()-0.5) * spread * 2.0;
-      tArr[i*3+2] = Math.sin(angle) * (radius + Math.random()*spread);
-    }
-  } else if(idx === 1) { // Lorenz Attractor
-    let x = 0.1, y = 0, z = 0, dt = 0.005;
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-      const dx = 10.0 * (y - x) * dt;
-      const dy = (28.0 * x - y - x * z) * dt;
-      const dz = (x * y - 8.0/3.0 * z) * dt;
-      x += dx; y += dy; z += dz;
-      tArr[i*3] = x * 4.0 + (Math.random()-0.5)*2.0;
-      tArr[i*3+1] = y * 4.0 - 80.0 + (Math.random()-0.5)*2.0;
-      tArr[i*3+2] = z * 4.0 - 80.0 + (Math.random()-0.5)*2.0;
-    }
-  } else if(idx === 2) { // Synaptic Brain Core
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-      const u = Math.random() * Math.PI * 2;
-      const v = Math.acos(2 * Math.random() - 1);
-      const isLeft = Math.random() > 0.5;
-      const offset = isLeft ? -45 : 45;
-      const r = 30 + Math.pow(Math.random(), 1.5) * 60; // Denser core
-      tArr[i*3] = r * Math.sin(v) * Math.cos(u) * 0.6 + offset + (Math.random()-0.5)*12;
-      tArr[i*3+1] = r * Math.cos(v) * 0.9 + 20 + (Math.random()-0.5)*12;
-      tArr[i*3+2] = r * Math.sin(v) * Math.sin(u) * 1.5 + (Math.random()-0.5)*12;
-    }
-  } else if(idx === 3) { // Quantum Torus
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-      const u = Math.random() * Math.PI * 2;
-      const v = Math.random() * Math.PI * 2;
-      const R = 80; // Distance to center of tube
-      const r = 40 * Math.pow(Math.random(), 0.5); // Density towards tube center
-      tArr[i*3] = (R + r * Math.cos(v)) * Math.cos(u);
-      tArr[i*3+1] = r * Math.sin(v);
-      tArr[i*3+2] = (R + r * Math.cos(v)) * Math.sin(u);
-    }
-  } else if(idx === 4) { // Clifford Attractor
-    let x = 0, y = 0, a = -1.4, b = 1.6, c = 1.0, d = 0.7;
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-      let xn = Math.sin(a * y) + c * Math.cos(a * x);
-      let yn = Math.sin(b * x) + d * Math.cos(b * y);
-      x = xn; y = yn;
-      // Map 2D attractor to 3D with a twist
-      tArr[i*3] = x * 60 + (Math.random()-0.5)*1.5;
-      tArr[i*3+1] = y * 60 + (Math.random()-0.5)*1.5;
-      tArr[i*3+2] = Math.sin(x*y) * 40 + (Math.random()-0.5)*1.5;
-    }
-  } else if(idx === 5) { // Supernova Form
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-      const dist = Math.pow(Math.random(), 6.0) * 300; // Extreme density near 0
-      const u = Math.random() * Math.PI * 2;
-      const v = Math.acos(2 * Math.random() - 1);
-      tArr[i*3] = dist * Math.sin(v) * Math.cos(u);
-      tArr[i*3+1] = dist * Math.cos(v);
-      tArr[i*3+2] = dist * Math.sin(v) * Math.sin(u);
-    }
-  } else if(idx === 6) { // Fibonacci Sphere Layering
-    const phi = Math.PI * (3 - Math.sqrt(5));
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-      const y = 1 - (i / (PARTICLE_COUNT - 1)) * 2;
-      const radius = Math.sqrt(1 - y*y);
-      const theta = phi * i;
-      const layerDist = 50 + Math.pow((i % 100)/100, 2) * 100; // distinct shells
-      tArr[i*3] = Math.cos(theta) * radius * layerDist;
-      tArr[i*3+1] = y * layerDist;
-      tArr[i*3+2] = Math.sin(theta) * radius * layerDist;
-    }
-  } else if(idx === 7) { // Chaos Gravity Well (응축 깔때기)
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-      // tScale goes from 1.0 (top wide edge) to 0.0 (bottom singularity)
-      // Use power curve so majority of particles exist in the elegant sweeping tail
-      const tScale = Math.pow(Math.random(), 0.6); 
-      
-      // Radius drastically shrinks: wide at top, extremely tight at bottom
-      const r = 300 * Math.pow(tScale, 2.5) + 2; 
-      
-      // 7 distinct chaos ribbons wrapping around the funnel
-      const stream = i % 7;
-      const streamAngle = (stream / 7.0) * Math.PI * 2;
-      
-      // Twisting speed aggressively increases near the center
-      const spin = 25.0 * (1.0 - tScale); 
-      
-      // Surface Area vs Thinness: 
-      // Top is very thick/spread out, Core is razor thin
-      const spreadR = (Math.random() - 0.5) * 150 * tScale; 
-      const spreadAngle = (Math.random() - 0.5) * 2.0 * tScale;
-      // Y height maps from -80 (core) to +150 (top edge)
-      const finalY = tScale * 230 - 80 + (Math.random() - 0.5) * 60 * tScale;
-      
-      const finalR = r + spreadR;
-      const finalAng = streamAngle + spin + spreadAngle;
-      
-      tArr[i*3] = finalR * Math.cos(finalAng);
-      tArr[i*3+1] = finalY;
-      tArr[i*3+2] = finalR * Math.sin(finalAng);
-    }
-  } else if(idx === 8) { // Triangular Chaos Plane
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-      // 0.0 is the bottom sharp tip (Origin), 1.0 is the wide top edge
-      const tScale = Math.pow(Math.random(), 0.7); 
-      
-      const y = tScale * 280; // height from 0 to 280
-      const maxWidth = tScale * 600; // width is strictly proportional to height (Triangle V-shape)
-      
-      // Group particles into 80 distinct flowing energy fibers cascading down the face
-      const streamIdx = i % 80;
-      const streamBaseX = (streamIdx / 80.0) - 0.5; // range [-0.5, 0.5]
-      
-      // X coordinates spread across the width of the triangle
-      const scatterX = (Math.random() - 0.5) * (maxWidth * 0.05);
-      const x = (streamBaseX * maxWidth) + scatterX;
-      
-      // Z handles the "flat" but "chaotic surface" characteristic
-      // Create big curving waves across the flat plane so it looks like flowing energy fabric
-      const zWave = Math.sin(x*0.015 - y*0.02) * 50 * tScale 
-                  + Math.cos(streamBaseX * 20.0 + y*0.05) * 20 * tScale;
-                  
-      const scatterZ = (Math.random() - 0.5) * 4 * tScale; // razor thin volume
-      
-      tArr[i*3]   = x;
-      tArr[i*3+1] = y - 40; // tip near origin for intense white/gold Depth Coloring
-      tArr[i*3+2] = zWave + scatterZ;
-    }
-  } else if(idx === 9) { // Cochlea Triangle Shell
-    // Roll the 2D triangular plane into a 3D Snail Shell
-    const coils = 5.0; // 5 full wraps
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-        const tScale = Math.pow(Math.random(), 0.5); // 0=tip(origin), 1=wide edge
-        
-        // Wrap angle: as tScale approaches 0, it wraps deep inside
-        const theta = (1.0 - tScale) * Math.PI * 2.0 * coils;
-        
-        // Radius: logarithmic/exponential shrink to origin
-        const r = Math.pow(tScale, 1.3) * 220; 
-        
-        // The Y-axis height is derived from the "width" of the original triangle
-        const maxWidth = tScale * 350; 
-        
-        // Group into 100 vertical streams flowing along the wall of the shell
-        const streamIdx = i % 100;
-        const streamBase = (streamIdx / 100.0) - 0.5;
-        
-        // Add random scatter to form an energy wall
-        const yPos = streamBase * maxWidth + (Math.random()-0.5)*5;
-        
-        // Add waving fabric texture to the shell wall
-        const wallWave = Math.sin(theta * 10.0 + yPos * 0.05) * 10.0 * tScale;
-        
-        // Final radius includes the wave
-        const finalR = r + wallWave;
-        
-        tArr[i*3]   = finalR * Math.cos(theta);
-        tArr[i*3+1] = yPos; // Width of triangle becomes the height of the shell wall
-        tArr[i*3+2] = finalR * Math.sin(theta);
-    }
-  } else if(idx === 10) { // Dense Solid Snail
-    // 15 tight wraps, dense center bias, fully contiguous surface (no streams)
-    const coils = 15.0; 
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-        // Heavy density bias towards the center (power 3.0 or 2.5)
-        const tScale = Math.pow(Math.random(), 2.5); 
-        
-        const theta = (1.0 - tScale) * Math.PI * 2.0 * coils;
-        const r = Math.pow(tScale, 1.2) * 220; 
-        
-        // Triangle width
-        const maxWidth = tScale * 400; 
-        
-        // Completely solid random distribution across the width, no stream gaps
-        const yPos = (Math.random() - 0.5) * maxWidth;
-        
-        // Add thickness so consecutive coils physically touch and merge
-        const thickness = (Math.random() - 0.5) * 18; 
-        const finalR = r + thickness;
-        
-        tArr[i*3]   = finalR * Math.cos(theta);
-        tArr[i*3+1] = yPos - 50; // Center tip lowered slightly 
-        tArr[i*3+2] = finalR * Math.sin(theta);
-    }
-  } else if(idx === 11) { // Organic Chaos Snail (유기적 파동 변형)
-    // Same tight shell but organically warped and distorted
-    const coils = 12.0; 
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-        const tScale = Math.pow(Math.random(), 2.0); 
-        
-        let theta = (1.0 - tScale) * Math.PI * 2.0 * coils;
-        
-        // Base uniform radius and width
-        let r = Math.pow(tScale, 1.2) * 250; 
-        const maxWidth = tScale * 450; 
-        
-        let yPos = (Math.random() - 0.5) * maxWidth;
-        
-        // ORGANIC DISTORTION
-        // We distort the spiral heavily so it is asymmetric and fluid.
-        // E.g. one side bulges out, the other side pinches in.
-        const bulge = Math.sin(theta * 1.5 + yPos * 0.01) * 40.0 * Math.pow(tScale, 0.8);
-        r += bulge;
-        
-        // Twist distortion: bend the funnel itself!
-        const twistY = Math.cos(theta * 0.5) * 30.0 * tScale;
-        yPos += twistY;
-        
-        const thickness = (Math.random() - 0.5) * 25; 
-        const finalR = r + thickness;
-        
-        tArr[i*3]   = finalR * Math.cos(theta);
-        tArr[i*3+1] = yPos - 50; 
-        tArr[i*3+2] = finalR * Math.sin(theta);
-    }
-  } else if(idx === 12) { // Mobius Triangular Pyramid (뫼비우스 삼각뿔)
-    // A single continuous parametric surface with 3 half-twists (Triangular)
-    // Tapering to a perfect point, leaving zero concentric gaps.
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-        // v = vertical axis proxy (0.0 = tip, 1.0 = top wide base)
-        const v = Math.pow(Math.random(), 0.65); 
-        const y = v * 350 - 80; // Height spans from -80 to +270
-        
-        // t = angular sweep around the Mobius strip
-        const t = Math.random() * Math.PI * 2.0;
-        
-        // ribbonWidth = width of the strip at height v. Tapers flawlessly to 0
-        const ribbonWidth = v * 180;
-        
-        // s = horizontal position across the ribbon cross-section
-        const s = (Math.random() - 0.5) * ribbonWidth * 2.0; // [-ribbonWidth, ribbonWidth]
-        
-        // 3 half-twists generate a 3-edged (triangular) twisted profile
-        const halfTwists = 3.0; 
-        
-        // Central ring radius also tapers to 0
-        const R = v * 120; 
-        
-        // Exact Mobius Strip parametric mapping
-        const localRadius = R + s * Math.cos(halfTwists * t / 2.0);
-        const x = localRadius * Math.cos(t);
-        const z = localRadius * Math.sin(t);
-        
-        // Ribbon thickness/twist flipping vertically
-        const yTwist = s * Math.sin(halfTwists * t / 2.0);
-        
-        // Apply Global Spin so the whole pyramid aggressively spirals inward
-        const globalTwist = (1.0 - v) * Math.PI * 4.0; // 2 full revolutions top to bottom
-        
-        // Add subtle organic surface noise to make it feel like "Energy"
-        const wave = Math.sin(t * 15.0 + v * 30.0) * 8.0 * v;
-        
-        // Apply the global spin to X and Z
-        const finalX = x * Math.cos(globalTwist) - z * Math.sin(globalTwist);
-        const finalZ = x * Math.sin(globalTwist) + z * Math.cos(globalTwist);
-        
-        tArr[i*3]   = finalX;
-        tArr[i*3+1] = y + yTwist + wave;
-        tArr[i*3+2] = finalZ;
-    }
-  } else if(idx === 13) { // Klein Bottle (4차원 항아리)
-    // Classic 3D immersion of the 4D Klein Bottle (Paul Bourke parameterization)
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-        const u = Math.random() * Math.PI * 2.0; 
-        const v = Math.random() * Math.PI * 2.0; 
-        
-        const cosU = Math.cos(u);
-        const sinU = Math.sin(u);
-        const cosV = Math.cos(v);
-        const sinV = Math.sin(v);
-        
-        const rFactor = 4.0 * (1.0 - cosU / 2.0);
-        
-        let x, y;
-        if (u < Math.PI) {
-            x = 6.0 * cosU * (1.0 + sinU) + rFactor * cosU * cosV;
-            y = 16.0 * sinU + rFactor * sinU * cosV;
-        } else {
-            x = 6.0 * cosU * (1.0 + sinU) - rFactor * cosV;
-            y = 16.0 * sinU;
-        }
-        let z = rFactor * sinV;
-        
-        // Add subtle thickness/energy vibration
-        const thickness = (Math.random() - 0.5) * 1.5;
-        const wave = Math.sin(u * 15.0 + v * 15.0) * 0.4;
-        
-        const scale = 11.0;
-        
-        tArr[i*3]   = x * scale + thickness + wave;
-        
-        // y naturally spans from approx -16 to +16. Center it perfectly so the intersection tube hits the hot Origin(0,0,0)
-        tArr[i*3+1] = y * scale + thickness + wave - 40.0; 
-        tArr[i*3+2] = z * scale + thickness + wave;
-    }
-  } else if(idx === 14) { // 4D Klein Pyramid (자가투과 삼각뿔)
-    // A true PLANAR structure forming 3 flat faces (Triangular Pyramid)
-    // The surface rolls inside itself like a 4D jar.
-    for(let i=0; i<PARTICLE_COUNT; i++) {
-        // v = surface travel parameter from Base/Outer (v=0) up to Lip (v=0.45) 
-        //   and then plunging down the exact interior center to Tip (v=1.0)
-        const v = Math.pow(Math.random(), 0.7); 
-        
-        // u = angle around the pyramid
-        const u = Math.random() * Math.PI * 2.0; 
-        
-        // Mathematical Flat-Face Triangle profile in polar coordinates
-        // 120-degree angular slices to form perfect flat walls, not circles/omni
-        const angleMod = (u + Math.PI * 6.0) % (Math.PI * 2.0 / 3.0);
-        const uMod = angleMod - (Math.PI / 3.0);
-        const sharpTriangle = 0.5 / Math.cos(uMod); 
-        
-        let R, Y;
-        // The surface rolls UP and OVER the lip, then DOWN INTO its own core smoothly
-        if (v < 0.45) {
-            // OUTSIDE SURFACE: climbing up the 3 flat walls to the top lip
-            const t = v / 0.45; // 0 to 1
-            // Radius goes from very wide base (t=0) to slightly narrower lip (t=1)
-            R = (350 - 50 * t) * sharpTriangle;
-            // Height climbs
-            Y = -120 + 320 * t; // up to +200
-        } else {
-            // INSIDE SURFACE (4D Klein Plunge): Dives straight down the middle
-            const t = (v - 0.45) / 0.55; // 0 to 1
-            // Radius rapidly converges to exactly 0 to form the center singularity spike
-            R = 300 * Math.pow(1.0 - t, 2.0) * sharpTriangle;
-            // Height plunges from top lip (+200) all the way down into the hot origin tip
-            Y = 200 - 350 * t; 
-        }
-        
-        // Continuous inner twist: The inner plunging faces swirl like a mobius drain
-        let twist = 0;
-        if (v >= 0.45) {
-            const t = (v - 0.45) / 0.55;
-            twist = t * Math.PI * 1.5; // Inner funnel twists 270 degrees
-        }
-        
-        const finalU = u + twist;
-        
-        const thickness = (Math.random() - 0.5) * 8.0; 
-        
-        tArr[i*3]   = (R + thickness) * Math.cos(finalU);
-        tArr[i*3+1] = Y;
-        tArr[i*3+2] = (R + thickness) * Math.sin(finalU);
-    }
-  }
+let activeNeuronsData = []; // Pure physics tracking
+const MAX_NEURONS = 1000;
+let nGeo, nPosArr, nColorArr;
 
-  geometry.attributes.targetPos.needsUpdate = true;
+function initActiveNeurons() {
+  nPosArr = new Float32Array(MAX_NEURONS * 3);
+  nColorArr = new Float32Array(MAX_NEURONS * 3);
+  nGeo = new THREE.BufferGeometry();
+  
+  // Initialize clear/empty
+  for(let i=0; i<MAX_NEURONS; i++) {
+    nPosArr[i*3+1] = 9999; // hide
+  }
+  
+  nGeo.setAttribute('position', new THREE.BufferAttribute(nPosArr, 3));
+  nGeo.setAttribute('color', new THREE.BufferAttribute(nColorArr, 3));
+  
+  const nMat = new THREE.PointsMaterial({
+    size: 6.0, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+    map: createGlowTexture()
+  });
+  
+  activeNeuronSystem = new THREE.Points(nGeo, nMat);
+  scene.add(activeNeuronSystem);
 }
 
-function switchLayout(idx, btnEl) {
-  document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
-  btnEl.classList.add('active');
-  
-  const posArr = geometry.attributes.position.array;
-  const tarArr = geometry.attributes.targetPos.array;
-  for(let i=0; i<PARTICLE_COUNT*3; i++) {
-    posArr[i] = tarArr[i]; 
+function createGlowTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+  gradient.addColorStop(0.5, 'rgba(255,255,255,0.2)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(canvas);
+}
+
+// Map real region names to the 7 folds
+function getLayerIndex(regionName) {
+  const name = (regionName || "").toLowerCase();
+  const idx = layers.findIndex(l => name.includes(l.name));
+  return idx !== -1 ? idx : 4; // Default cortex
+}
+
+async function fetchGraphQLBrain() {
+  try {
+    const res = await fetch('/api/brain');
+    if(!res.ok) throw new Error('API down');
+    const json = await res.json();
+    
+    document.getElementById('m-neurons').innerText = (json.totalNeurons || 0).toLocaleString();
+    document.getElementById('m-act').innerText = (json.totalCounter || 0).toLocaleString();
+    
+    // Parse pure active neurons
+    let loadedNeurons = [];
+    if(json.regions) {
+      json.regions.forEach(r => {
+        const lIdx = getLayerIndex(r.name);
+        if(r.neurons) {
+          r.neurons.forEach(n => {
+            loadedNeurons.push({ path: n.path, layerIdx: lIdx });
+          });
+        }
+      });
+    }
+    
+    syncNeurons(loadedNeurons);
+    
+  } catch(e) {
+    // Mock simulation for missing API
+    if(activeNeuronsData.length === 0) {
+      const mock = [];
+      for(let i=0; i<420; i++) mock.push({ path: 'mock.go', layerIdx: i % 7 });
+      syncNeurons(mock);
+      document.getElementById('m-neurons').innerText = "420 (SIM)";
+      document.getElementById('m-act').innerText = "9121";
+    }
   }
-  geometry.attributes.position.needsUpdate = true;
+}
+
+function syncNeurons(loadedList) {
+  // Merge or just replace simply
+  // For fluid visuals, randomly stagger the drop
+  let newList = [];
+  const minLen = Math.min(loadedList.length, MAX_NEURONS);
+  for(let i=0; i<minLen; i++) {
+    const n = loadedList[i];
+    // Start them at random heights
+    newList.push({
+      tScale: Math.random(), 
+      layerIdx: n.layerIdx,
+      speed: 0.001 + Math.random() * 0.003
+    });
+    
+    const col = new THREE.Color(layers[n.layerIdx].color);
+    nColorArr[i*3] = col.r; nColorArr[i*3+1] = col.g; nColorArr[i*3+2] = col.b;
+  }
   
-  loadLayout(idx);
+  // Hide remaining
+  for(let i=minLen; i<MAX_NEURONS; i++) {
+    nPosArr[i*3+1] = 9999;
+  }
   
-  isTransitioning = true;
-  transStart = performance.now();
-  particleSystem.material.uniforms.uTransition.value = 0.0;
+  activeNeuronsData = newList;
+  nGeo.attributes.color.needsUpdate = true;
+}
+
+function initDataPolling() {
+  fetchGraphQLBrain();
+  setInterval(fetchGraphQLBrain, 5000);
 }
 
 function animate() {
@@ -581,15 +347,45 @@ function animate() {
   controls.update();
 
   const time = performance.now();
-  particleSystem.material.uniforms.uTime.value = time * 0.001;
-
-  if (isTransitioning) {
-    let progress = (time - transStart) / 2500; 
-    if(progress >= 1.0) { progress = 1.0; isTransitioning = false; }
-    const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-    particleSystem.material.uniforms.uTransition.value = ease;
+  bgParticleSystem.material.uniforms.uTime.value = time * 0.001;
+  
+  // Simulate Neuron flow physics along the 7 folds
+  const dt = 0.016; 
+  for(let i=0; i<activeNeuronsData.length; i++) {
+    let n = activeNeuronsData[i];
+    
+    n.tScale -= n.speed * dt * 60; // fall down towards tip
+    if(n.tScale < 0.02) { 
+      n.tScale = 1.0; 
+      // Emulate action trigger
+      if(Math.random() < 0.05) logTTY("Pulse action detected in layer " + n.layerIdx, "info");
+    }
+    
+    const y = n.tScale * 350;
+    const maxWidth = n.tScale * 700;
+    
+    const layerCenterBase = ((n.layerIdx + 0.5) / 7.0);
+    const nx = layerCenterBase; 
+    const x = (nx - 0.5) * maxWidth;
+    
+    // Exactly ride the Z wave ridge
+    const zWave = Math.sin((nx - 0.5) * Math.PI * 2.0 * 7.0) * 40 * n.tScale;
+    
+    // Add pulsing spin that aligns with the shader math
+    const angle = time * 0.0001;
+    let rx = x * Math.cos(angle) - zWave * Math.sin(angle);
+    let rz = x * Math.sin(angle) + zWave * Math.cos(angle);
+    
+    nPosArr[i*3] = rx;
+    nPosArr[i*3+1] = y - 100 + Math.sin(time*0.005 + i)*5; // hover
+    nPosArr[i*3+2] = rz + 10; // hover slightly off the plane
   }
-
+  nGeo.attributes.position.needsUpdate = true;
+  
+  // Rotate the discrete neurons identically to the background particle spinning core effect?
+  // Actually, shader rotates entirely. Our CPU neurons must match shader rotation.
+  // Done via rx, rz calculating above exactly like shader!
+  
   renderer.render(scene, camera);
 }
 
@@ -597,6 +393,19 @@ function onResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function logTTY(msg, type='info') {
+  const tty = document.getElementById('tty');
+  const d = new Date();
+  const ts = \`\${String(d.getHours()).padStart(2,'0')}:\${String(d.getMinutes()).padStart(2,'0')}:\${String(d.getSeconds()).padStart(2,'0')}\`;
+  
+  const el = document.createElement('div');
+  el.className = 'log-line';
+  el.innerHTML = \`<span class="log-ts">[\${ts}]</span><span class="log-\${type}">\${msg}</span>\`;
+  tty.appendChild(el);
+  tty.scrollTop = tty.scrollHeight;
+  if(tty.children.length > 50) tty.removeChild(tty.firstChild);
 }
 
 window.onload = init;
