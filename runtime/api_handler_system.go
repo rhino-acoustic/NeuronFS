@@ -18,18 +18,20 @@ type LogMessage struct {
 	Message string `json:"message"`
 }
 
+type EventMessage map[string]interface{}
+
 type SSEBroker struct {
 	mu      sync.Mutex
-	clients map[chan LogMessage]bool
+	clients map[chan EventMessage]bool
 }
 
-func (b *SSEBroker) AddClient(c chan LogMessage) {
+func (b *SSEBroker) AddClient(c chan EventMessage) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	b.clients[c] = true
 }
 
-func (b *SSEBroker) RemoveClient(c chan LogMessage) {
+func (b *SSEBroker) RemoveClient(c chan EventMessage) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	delete(b.clients, c)
@@ -38,10 +40,21 @@ func (b *SSEBroker) RemoveClient(c chan LogMessage) {
 func (b *SSEBroker) Broadcast(level, msg string) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	logObj := LogMessage{Level: level, Message: msg}
+	logObj := EventMessage{"type": "log", "level": level, "message": msg}
 	for c := range b.clients {
 		select {
 		case c <- logObj:
+		default:
+		}
+	}
+}
+
+func (b *SSEBroker) BroadcastEvent(data EventMessage) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	for c := range b.clients {
+		select {
+		case c <- data:
 		default:
 		}
 	}
@@ -52,7 +65,7 @@ func (b *SSEBroker) Broadcastf(level, format string, args ...interface{}) {
 	b.Broadcast(level, msg)
 }
 
-var GlobalSSEBroker = &SSEBroker{clients: make(map[chan LogMessage]bool)}
+var GlobalSSEBroker = &SSEBroker{clients: make(map[chan EventMessage]bool)}
 
 func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http.HandlerFunc) http.HandlerFunc) {
 	// GET /api/integrity?region=cortex
@@ -396,7 +409,7 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()
 
-		clientChan := make(chan LogMessage, 100)
+		clientChan := make(chan EventMessage, 100)
 		GlobalSSEBroker.AddClient(clientChan)
 		defer GlobalSSEBroker.RemoveClient(clientChan)
 
@@ -404,13 +417,8 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 			select {
 			case <-r.Context().Done():
 				return
-			case logMsg := <-clientChan:
-				data := map[string]interface{}{
-					"type":    "log",
-					"level":   logMsg.Level,
-					"message": logMsg.Message,
-				}
-				jsonBytes, _ := json.Marshal(data)
+			case eventData := <-clientChan:
+				jsonBytes, _ := json.Marshal(eventData)
 				fmt.Fprintf(w, "data: %s\n\n", string(jsonBytes))
 				flusher.Flush()
 			case <-ticker.C:

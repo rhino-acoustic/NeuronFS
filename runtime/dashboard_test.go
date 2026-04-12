@@ -66,9 +66,18 @@ func TestRollbackNeuron_NotFound(t *testing.T) {
 
 // ━━━ TEST 23: EmitTarget — mapping validation ━━━
 func TestEmitTarget_Mapping(t *testing.T) {
-	expected := []string{"gemini", "cursor", "claude", "copilot", "generic"}
+	dir := setupTestBrain(t)
+	// We must mock the cortex/llm folder since setupTestBrain creates a temporary brain dir without it.
+	llmDir := filepath.Join(dir, "cortex", "llm")
+	os.MkdirAll(llmDir, 0750)
+	os.WriteFile(filepath.Join(llmDir, "gemini.json"), []byte(`{"name":"Gemini","fileName":"GEMINI.md","subDir":".gemini","isGlobal":true,"detectPaths":[".gemini"]}`), 0600)
+	os.WriteFile(filepath.Join(llmDir, "copilot.json"), []byte(`{"name":"Copilot","fileName":"copilot-instructions.md","subDir":".github","isGlobal":false,"detectPaths":[".github"]}`), 0600)
+
+	targetMap := loadLLMProviders(dir)
+
+	expected := []string{"gemini", "copilot"}
 	for _, key := range expected {
-		et, ok := emitTargetMap[key]
+		et, ok := targetMap[key]
 		if !ok {
 			t.Fatalf("missing emit target: %s", key)
 		}
@@ -78,20 +87,24 @@ func TestEmitTarget_Mapping(t *testing.T) {
 	}
 
 	// Verify Gemini has SubDir
-	if emitTargetMap["gemini"].SubDir != ".gemini" {
-		t.Fatalf("gemini SubDir should be .gemini, got: %s", emitTargetMap["gemini"].SubDir)
+	if targetMap["gemini"].SubDir != ".gemini" {
+		t.Fatalf("gemini SubDir should be .gemini, got: %s", targetMap["gemini"].SubDir)
 	}
 	// Verify Copilot has SubDir
-	if emitTargetMap["copilot"].SubDir != ".github" {
-		t.Fatalf("copilot SubDir should be .github, got: %s", emitTargetMap["copilot"].SubDir)
+	if targetMap["copilot"].SubDir != ".github" {
+		t.Fatalf("copilot SubDir should be .github, got: %s", targetMap["copilot"].SubDir)
 	}
 
-	t.Logf("OK: all 5 emit targets correctly mapped")
+	t.Logf("OK: dynamic emit targets correctly loaded")
 }
 
 // ━━━ TEST 24: EmitTarget — writeAllTiersForTargets cursor ━━━
 func TestEmitTarget_CursorOutput(t *testing.T) {
 	dir := setupTestBrain(t)
+	// Create mock cursor provider
+	llmDir := filepath.Join(dir, "cortex", "llm")
+	os.MkdirAll(llmDir, 0750)
+	os.WriteFile(filepath.Join(llmDir, "cursor.json"), []byte(`{"name":"Cursor","fileName":".cursorrules","subDir":"","isGlobal":false,"detectPaths":[".cursorrules"]}`), 0600)
 
 	// Write to cursor target
 	writeAllTiersForTargets(dir, "cursor")
@@ -120,6 +133,15 @@ func TestEmitTarget_CursorOutput(t *testing.T) {
 func TestEmitTarget_AllOutput(t *testing.T) {
 	dir := setupTestBrain(t)
 	projectRoot := filepath.Dir(dir)
+
+	// Create mock providers
+	llmDir := filepath.Join(dir, "cortex", "llm")
+	os.MkdirAll(llmDir, 0750)
+	os.WriteFile(filepath.Join(llmDir, "gemini.json"), []byte(`{"name":"Gemini","fileName":"GEMINI.md","subDir":".gemini","isGlobal":true,"detectPaths":[".gemini"]}`), 0600)
+	os.WriteFile(filepath.Join(llmDir, "cursor.json"), []byte(`{"name":"Cursor","fileName":".cursorrules","subDir":"","isGlobal":false,"detectPaths":[".cursorrules"]}`), 0600)
+	os.WriteFile(filepath.Join(llmDir, "claude.json"), []byte(`{"name":"Claude","fileName":"CLAUDE.md","subDir":"","isGlobal":false,"detectPaths":["CLAUDE.md"]}`), 0600)
+	os.WriteFile(filepath.Join(llmDir, "copilot.json"), []byte(`{"name":"Copilot","fileName":"copilot-instructions.md","subDir":".github","isGlobal":false,"detectPaths":[".github"]}`), 0600)
+	os.WriteFile(filepath.Join(llmDir, "generic.json"), []byte(`{"name":"Generic","fileName":".neuronrc","subDir":"","isGlobal":false,"detectPaths":[".neuronrc"]}`), 0600)
 
 	// Set mock home to projectRoot to prevent polluting the real ~/.gemini
 	os.Setenv("NEURONFS_MOCK_HOME", filepath.Join(projectRoot, "mock_home"))

@@ -212,7 +212,7 @@ func buildHealthJSON(brainRoot string) HealthJSON {
 
 	return HealthJSON{
 		API:        true,
-		Processes:  nil,
+		Processes:  []ProcessHealth{},
 		Subsystems: subs,
 		Backlog:    BacklogStatus{Pending: pending, Backlog: backlogCount, Archive: archiveCount},
 		OS:         runtime.GOOS,

@@ -152,70 +152,7 @@ func activationBar(counter int) string {
 	return "░░░░░"
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// INJECT: Write rules into GEMINI.md
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-func injectToGemini(brainRoot string, rules string) {
-	// 테스트 격리: brainRoot 내부에만 쓴다
-	if os.Getenv("NEURONFS_TEST_ISOLATION") != "" {
-		safePath := filepath.Join(brainRoot, ".gemini", "GEMINI.md")
-		os.MkdirAll(filepath.Dir(safePath), 0750)
-		os.WriteFile(safePath, []byte(rules), 0600)
-		fmt.Printf("[OK] Rules injected → %s (test isolation)\n", safePath)
-		return
-	}
 
-	// 글로벌 단일 경로: USERPROFILE/.gemini/GEMINI.md (전체 덮어쓰기)
-	home := os.Getenv("USERPROFILE")
-	if home == "" {
-		fmt.Println("[WARN] USERPROFILE not set, outputting to stdout:")
-		fmt.Print(rules)
-		return
-	}
-
-	geminiPath := filepath.Join(home, ".gemini", "GEMINI.md")
-	os.MkdirAll(filepath.Dir(geminiPath), 0750)
-	// 전체 덮어쓰기 — doInject 금지 (중복 누적 원인)
-	if err := os.WriteFile(geminiPath, []byte(rules), 0600); err != nil {
-		fmt.Printf("[ERROR] Cannot write %s: %v\n", geminiPath, err)
-		return
-	}
-	fmt.Printf("[OK] Rules injected → %s\n", geminiPath)
-}
-
-// doInject executes the injection of aggregated rules into target AI configuration files.
-func doInject(geminiPath string, rules string) {
-	existing, err := os.ReadFile(geminiPath)
-	if err != nil {
-		fmt.Printf("[ERROR] Cannot read %s: %v\n", geminiPath, err)
-		return
-	}
-
-	content := string(existing)
-	startMarker := "<!-- NEURONFS:START -->"
-	endMarker := "<!-- NEURONFS:END -->"
-
-	startIdx := strings.Index(content, startMarker)
-	endIdx := strings.Index(content, endMarker)
-
-	if startIdx >= 0 && endIdx >= 0 {
-		after := strings.TrimRight(content[endIdx+len(endMarker):], "\r\n\t ")
-		content = content[:startIdx] + rules + after
-	} else {
-		content = rules + "\n\n" + content
-	}
-
-	err = os.WriteFile(geminiPath, []byte(content), 0600)
-	if err != nil {
-		fmt.Printf("[ERROR] Cannot write %s: %v\n", geminiPath, err)
-		return
-	}
-
-	// Count active neurons
-	activeCount := strings.Count(rules, "- **")
-	fmt.Printf("[OK] Rules injected → %s\n", geminiPath)
-	fmt.Printf("[OK] %d neurons active\n", activeCount)
-}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // WATCH: fsnotify Event-Driven Monitor + auto-inject

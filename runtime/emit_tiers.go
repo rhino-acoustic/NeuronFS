@@ -25,6 +25,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -38,45 +39,10 @@ import (
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 func writeAllTiers(brainRoot string) {
-	brain := scanBrain(brainRoot)
-	result := runSubsumption(brain)
-
-	dropped := applyOOMProtection(brainRoot, &result)
-	if dropped > 0 {
-		fmt.Printf("\033[33m[WARNING] OOM Limit. Dropped %d low-weight neurons.\033[0m\n", dropped)
-	}
-
-	// Tier 1: GEMINI.md
-	bootstrap := emitBootstrap(result, brainRoot)
-	injectToGemini(brainRoot, bootstrap)
-
-	// Tier 1b: AGENTS.md (업계 표준 — 모든 AI 코딩 에이전트 호환)
-	agentsPath := filepath.Join(filepath.Dir(brainRoot), "AGENTS.md")
-	if err := os.WriteFile(agentsPath, []byte(bootstrap), 0600); err == nil {
-		// 성공 시 로그 않음 (30초마다 실행되므로 노이즈 방지)
-	}
-
-	// Tier 2: _index.md
-	indexContent := emitIndex(brain, result)
-	indexPath := filepath.Join(brainRoot, "_index.md")
-	if err := os.WriteFile(indexPath, []byte(indexContent), 0600); err != nil {
-		fmt.Printf("[WARN] Cannot write %s: %v\n", indexPath, err)
-	}
-
-	// Tier 3: per-region _rules.md (with Attention Residuals cross-referencing)
-	for _, region := range brain.Regions {
-		content := emitRegionRules(region, brain)
-		rulesPath := filepath.Join(region.Path, "_rules.md")
-		if err := os.WriteFile(rulesPath, []byte(content), 0600); err != nil {
-			fmt.Printf("[WARN] Cannot write %s: %v\n", rulesPath, err)
-		}
-	}
-
-	// Also update brain_state.json
-	generateBrainJSON(brainRoot, brain, result)
-
-	fmt.Printf("[SYNC] ♻️  3-tier emit complete: GEMINI.md + _index.md + 7x _rules.md (%d neurons, activation: %d)\n",
-		result.FiredNeurons, result.TotalCounter)
+	// [Phase 16 - LLM Agnostic]
+	// Instead of hardcoding injectToGemini & AGENTS.md,
+	// we now delegate to the unified dynamic dispatcher targeting auto-detected IDEs.
+	writeAllTiersForTargets(brainRoot, "auto")
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -176,19 +142,36 @@ func applyOOMProtection(brainRoot string, result *SubsumptionResult) int {
 
 // EmitTarget defines a target editor configuration file
 type EmitTarget struct {
-	Name     string // Human-readable name
-	FileName string // Relative file path from project root
-	SubDir   string // Subdirectory to create if needed (e.g. ".github")
+	Name        string   `json:"name"`
+	FileName    string   `json:"fileName"`
+	SubDir      string   `json:"subDir"`
+	IsGlobal    bool     `json:"isGlobal"`
+	DetectPaths []string `json:"detectPaths"`
 }
 
-// emitTargetMap maps CLI values to target configurations
-var emitTargetMap = map[string]EmitTarget{
-	"gemini":  {Name: "Gemini", FileName: "GEMINI.md", SubDir: ".gemini"},
-	"cursor":  {Name: "Cursor", FileName: ".cursorrules"},
-	"claude":  {Name: "Claude", FileName: "CLAUDE.md"},
-	"copilot": {Name: "Copilot", FileName: "copilot-instructions.md", SubDir: ".github"},
-	"agents":  {Name: "Agents (Universal)", FileName: "AGENTS.md"},
-	"generic": {Name: "Generic", FileName: ".neuronrc"},
+// loadLLMProviders dynamically builds emit targets from cortex/llm/*.json
+func loadLLMProviders(brainRoot string) map[string]EmitTarget {
+	targets := make(map[string]EmitTarget)
+	llmDir := filepath.Join(brainRoot, "cortex", "llm")
+	
+	files, err := filepath.Glob(filepath.Join(llmDir, "*.json"))
+	if err != nil {
+		return targets
+	}
+	
+	for _, f := range files {
+		data, err := os.ReadFile(f)
+		if err != nil {
+			continue
+		}
+		var target EmitTarget
+		if err := json.Unmarshal(data, &target); err == nil {
+			base := filepath.Base(f)
+			key := strings.TrimSuffix(base, ".json")
+			targets[key] = target
+		}
+	}
+	return targets
 }
 
 // backupExistingRule backs up an existing rule file before overwriting.
@@ -242,23 +225,31 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 	// Find project root (parent of brain)
 	projectRoot := filepath.Dir(brainRoot)
 
+	// Load dynamic targets from JSON
+	targetMap := loadLLMProviders(brainRoot)
+
 	// Determine which targets to write
 	var targets []string
 	if target == "all" {
-		for k := range emitTargetMap {
+		for k := range targetMap {
 			targets = append(targets, k)
 		}
 		sort.Strings(targets)
 	} else if target == "auto" {
 		// Auto-detect: only emit to editors whose config files already exist
-		autoDetectMap := map[string][]string{
-			"cursor":  {filepath.Join(projectRoot, ".cursorrules"), filepath.Join(projectRoot, ".cursor")},
-			"claude":  {filepath.Join(projectRoot, "CLAUDE.md")},
-			"gemini":  {filepath.Join(homeDir(), ".gemini")},
-			"copilot": {filepath.Join(projectRoot, ".github", "copilot-instructions.md"), filepath.Join(projectRoot, ".github")},
-			"agents":  {filepath.Join(projectRoot, "AGENTS.md")},
-			"generic": {filepath.Join(projectRoot, ".neuronrc")},
+		autoDetectMap := make(map[string][]string)
+		for k, t := range targetMap {
+			var resolvedPaths []string
+			for _, dp := range t.DetectPaths {
+				if t.IsGlobal {
+					resolvedPaths = append(resolvedPaths, filepath.Join(homeDir(), dp))
+				} else {
+					resolvedPaths = append(resolvedPaths, filepath.Join(projectRoot, dp))
+				}
+			}
+			autoDetectMap[k] = resolvedPaths
 		}
+
 		for key, paths := range autoDetectMap {
 			for _, p := range paths {
 				if _, err := os.Stat(p); err == nil {
@@ -271,7 +262,7 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 		if len(targets) == 0 {
 			// Nothing detected — fall back to all
 			fmt.Printf("[AUTO] No existing editor configs detected. Emitting all targets.\n")
-			for k := range emitTargetMap {
+			for k := range targetMap {
 				targets = append(targets, k)
 			}
 			sort.Strings(targets)
@@ -287,31 +278,32 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 
 	// Write to each target
 	for _, t := range targets {
-		et, ok := emitTargetMap[t]
+		et, ok := targetMap[t]
 		if !ok {
+			// fallback check
 			fmt.Printf("[WARN] Unknown emit target: %s\n", t)
 			continue
 		}
 
 		var targetPath string
-		if t == "gemini" {
-			// Gemini는 글로벌 ~/.gemini/GEMINI.md에 직접 출력 (워크스페이스별 중복 방지)
+		var baseDir string
+		
+		if et.IsGlobal {
 			homeDir, _ := os.UserHomeDir()
 			if mock := os.Getenv("NEURONFS_MOCK_HOME"); mock != "" {
 				homeDir = mock
 			}
-			geminiDir := filepath.Join(homeDir, ".gemini")
-			os.MkdirAll(geminiDir, 0750)
-			targetPath = filepath.Join(geminiDir, "GEMINI.md")
+			baseDir = homeDir
 		} else {
-			// 다른 에디터: 프로젝트 로컬에 직접 쓰기
-			if et.SubDir != "" {
-				subDir := filepath.Join(projectRoot, et.SubDir)
-				os.MkdirAll(subDir, 0750)
-				targetPath = filepath.Join(subDir, et.FileName)
-			} else {
-				targetPath = filepath.Join(projectRoot, et.FileName)
-			}
+			baseDir = projectRoot
+		}
+
+		if et.SubDir != "" {
+			subDir := filepath.Join(baseDir, et.SubDir)
+			os.MkdirAll(subDir, 0750)
+			targetPath = filepath.Join(subDir, et.FileName)
+		} else {
+			targetPath = filepath.Join(baseDir, et.FileName)
 		}
 
 		// ── Auto-backup existing file before overwrite ──

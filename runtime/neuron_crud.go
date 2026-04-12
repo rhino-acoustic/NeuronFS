@@ -196,6 +196,12 @@ func fireNeuron(brainRoot string, neuronPath string) {
 	}
 
 	fmt.Printf("[FIRE] 🔥 %s → %d → %d\n", neuronPath, currentCounter, newCounter)
+	GlobalSSEBroker.BroadcastEvent(EventMessage{
+		"type": "fire",
+		"path": neuronPath,
+		"old":  currentCounter,
+		"new":  newCounter,
+	})
 
 	logEpisode(brainRoot, "FIRE", fmt.Sprintf("%s (%d→%d)", neuronPath, currentCounter, newCounter))
 

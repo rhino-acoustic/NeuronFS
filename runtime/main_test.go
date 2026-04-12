@@ -22,7 +22,7 @@ func setupTestBrain(t *testing.T) string {
 		path    string
 		counter int
 	}{
-		{"brainstem/canon/절대_폴백_금지", 103},
+		{"brainstem/必/절대_폴백_금지", 103},
 		{"brainstem/canon/no_simulation", 100},
 		{"brainstem/reflexes/self_debug", 100},
 		{"limbic/emotion_parser/긴급_상황_감지", 50},
@@ -79,7 +79,7 @@ func TestNormal_AllRegionsActive(t *testing.T) {
 func TestP0Bomb_AllBlocked(t *testing.T) {
 	dir := setupTestBrain(t)
 
-	bombDir := filepath.Join(dir, "brainstem", "canon", "절대_폴백_금지")
+	bombDir := filepath.Join(dir, "brainstem", "必", "절대_폴백_금지")
 	os.WriteFile(filepath.Join(bombDir, "bomb.neuron"), []byte{}, 0600)
 
 	brain := scanBrain(dir)
@@ -197,22 +197,22 @@ func TestEmitFormat_MarkersAndOrder(t *testing.T) {
 	if !strings.Contains(rules, "<!-- NEURONFS:END -->") {
 		t.Fatal("missing end marker")
 	}
-	if !strings.Contains(rules, "TOP 5") {
-		t.Fatal("missing TOP 5 section")
+	if !strings.Contains(rules, "ALWAYS") {
+		t.Fatal("missing ALWAYS section")
 	}
 	if !strings.Contains(rules, "절대 폴백 금지") {
 		t.Logf("GENERATED RULES:\n%s\n", rules)
-		t.Fatal("expected brainstem '절대 폴백 금지' neuron in TOP 5")
+		t.Fatal("expected brainstem '절대 폴백 금지' neuron in ALWAYS")
 	}
 
-	t.Logf("OK: markers present, brainstem TOP 5 rendered")
+	t.Logf("OK: markers present, brainstem ALWAYS rendered")
 }
 
 // ━━━ TEST 7: bomb and restore recovery flow ━━━
 func TestRecoveryFlow_BombAndRestore(t *testing.T) {
 	dir := setupTestBrain(t)
 
-	bombDir := filepath.Join(dir, "brainstem", "canon", "절대_폴백_금지")
+	bombDir := filepath.Join(dir, "brainstem", "必", "절대_폴백_금지")
 	bombFile := filepath.Join(bombDir, "bomb.neuron")
 	os.WriteFile(bombFile, []byte{}, 0600)
 

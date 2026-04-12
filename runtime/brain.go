@@ -291,10 +291,29 @@ func scanBrain(root string) Brain {
 				}
 			}
 
-			neuronFiles, _ := vfsGlob(filepath.Join(path, "*.neuron"))
-			contraFiles, _ := vfsGlob(filepath.Join(path, "*.contra"))
-			neuronFiles = append(neuronFiles, contraFiles...)
-			goalFiles, _ := vfsGlob(filepath.Join(path, "*.goal"))
+			entries, _ := vfsReadDir(path)
+			var neuronFiles []string
+			var goalFiles []string
+			var geofenceFiles []string
+			var dormantFiles []string
+
+			for _, e := range entries {
+				if e.IsDir() {
+					continue
+				}
+				name := e.Name()
+				fullf := filepath.Join(path, name)
+				
+				if strings.HasSuffix(name, ".neuron") || strings.HasSuffix(name, ".contra") {
+					neuronFiles = append(neuronFiles, fullf)
+				} else if strings.HasSuffix(name, ".goal") {
+					goalFiles = append(goalFiles, fullf)
+				} else if strings.HasSuffix(name, ".geofence") {
+					geofenceFiles = append(geofenceFiles, fullf)
+				} else if strings.HasSuffix(name, ".dormant") {
+					dormantFiles = append(dormantFiles, fullf)
+				}
+			}
 
 			for _, nf := range neuronFiles {
 				fname := filepath.Base(nf)
@@ -339,14 +358,12 @@ func scanBrain(root string) Brain {
 				}
 			}
 
-			geofenceFiles, _ := vfsGlob(filepath.Join(path, "*.geofence"))
 			if len(geofenceFiles) > 0 {
 				if content, err := vfsReadFile(geofenceFiles[0]); err == nil && len(content) > 0 {
 					n.Geofence = strings.TrimSpace(string(content))
 				}
 			}
 
-			dormantFiles, _ := vfsGlob(filepath.Join(path, "*.dormant"))
 			if len(dormantFiles) > 0 {
 				n.IsDormant = true
 			}

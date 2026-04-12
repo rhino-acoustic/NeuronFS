@@ -61,6 +61,11 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 
 /* Overlay UI */
 .overlay-stats { position: absolute; bottom: 20px; left: 20px; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); pointer-events: none; z-index: 20; }
+
+/* Fire Spark CSS */
+.fire-flash { box-shadow: inset 0 0 100px rgba(16, 185, 129, 0.4); transition: box-shadow 0.1s; }
+.fire-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #10b981; font-family: var(--font-mono); font-size: 24px; font-weight: 800; text-shadow: 0 0 20px rgba(16,185,129,0.8); opacity: 0; pointer-events: none; z-index: 30; }
+@keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -150%) scale(1.5); } }
 </style>
 </head>
 <body>
@@ -142,6 +147,7 @@ function init3D() {
   const pLight = new THREE.PointLight(0x3b82f6, 1, 300);
   pLight.position.set(0, 50, 0);
   scene.add(pLight);
+  window.pLight = pLight; // expose for sparks
 
   window.addEventListener('resize', onWindowResize);
   animate();
@@ -264,6 +270,32 @@ function logTTY(msg, type='info') {
   if(tty.children.length > 100) tty.removeChild(tty.firstChild);
 }
 
+function triggerSparkEffect(path) {
+  if(window.pLight) {
+    window.pLight.color.setHex(0x10b981);
+    window.pLight.intensity = 4;
+    let dec = setInterval(() => {
+      window.pLight.intensity -= 0.2;
+      if(window.pLight.intensity <= 1) {
+        window.pLight.intensity = 1;
+        window.pLight.color.setHex(0x3b82f6);
+        clearInterval(dec);
+      }
+    }, 50);
+  }
+
+  const container = document.getElementById('gl-container');
+  container.classList.add('fire-flash');
+  setTimeout(() => container.classList.remove('fire-flash'), 150);
+
+  const txt = document.createElement('div');
+  txt.className = 'fire-text';
+  txt.innerText = "🔥 " + path.split('/').pop().replace(".neuron","");
+  txt.style.animation = 'floatUp 1s ease-out forwards';
+  container.appendChild(txt);
+  setTimeout(() => { if(txt.parentNode) txt.remove(); }, 1000);
+}
+
 let autopilotEnabled = true;
 
 async function initData() {
@@ -325,6 +357,9 @@ function initSSE() {
         document.getElementById('m-act').innerText = d.totalActivation.toLocaleString();
       } else if (d.type === 'log') {
         logTTY(d.message, d.level);
+      } else if (d.type === 'fire') {
+        logTTY(`🔥 NEURON FIRED: ${d.path} (${d.old} → ${d.new})`, 'info');
+        triggerSparkEffect(d.path);
       }
     } catch(err) {}
   };

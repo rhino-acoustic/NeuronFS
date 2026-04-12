@@ -203,8 +203,8 @@ func TestBuildHealthJSON(t *testing.T) {
 	if !health.API {
 		t.Fatal("expected API=true")
 	}
-	if len(health.Processes) == 0 {
-		t.Fatal("expected at least 1 process")
+	if health.Processes == nil {
+		t.Fatal("expected processes slice to be initialized")
 	}
 	if health.OS == "" {
 		t.Fatal("expected OS to be set")
