@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NeuronFS V3 Concepts Showcase</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    :root {
+      --bg: #030305; --surface: rgba(15, 20, 30, 0.7);
+      --border: rgba(255,255,255,0.08); --accent: #10b981; 
+      --text: #f8fafc; --text-muted: #94a3b8;
+    }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
+    #gl-container { width: 100vw; height: 100vh; position: absolute; top:0; left:0; z-index: 1; }
+    #ui-panel {
+      position: absolute; top: 20px; left: 20px; z-index: 10; width: 320px; height: calc(100vh - 40px); overflow-y: auto;
+      background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+    #ui-panel::-webkit-scrollbar { width: 6px; }
+    #ui-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    h1 { font-size: 18px; margin: 0 0 15px 0; color: #fff; font-weight: 600; }
+    .layout-btn {
+      display: block; width: 100%; text-align: left; background: transparent; 
+      border: 1px solid var(--border); color: var(--text-muted); padding: 10px 15px; 
+      margin-bottom: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s;
+    }
+    .layout-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .layout-btn.active {
+      background: rgba(16, 185, 129, 0.15); border-color: var(--accent); color: var(--accent);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+    }
+    #desc { margin-top: 15px; font-size: 13px; color: var(--accent); line-height: 1.5; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 6px; }
+  </style>
+</head>
+<body>
+
+<div id="gl-container"></div>
+<div id="ui-panel">
+  <h1>V3 Topology Concepts</h1>
+  <div id="desc">Select a layout...</div>
+  <br>
+  <div id="buttons"></div>
+</div>
+
+<script>
+const layouts = [
+  { name: "1. Cosmic Web", desc: "은하계 암흑물질 필라멘트처럼 노드들이 거점(Hub)을 중심으로 거미줄처럼 이어지는 구조." },
+  { name: "2. Astrolabe Rings", desc: "태양계나 천문 시계처럼 거대한 동심원 링들을 따라 궤도를 도는 정밀한 체계." },
+  { name: "3. Hypercube Lattice", desc: "사이버네틱스 코어처럼 3D 직교 매트릭스에 정확히 정렬된 양자 격자망." },
+  { name: "4. Magnetic Dipole", desc: "양극(N/S)을 있는 지구 자기장 선처럼 에너지의 흐름이 수직으로 퍼지는 플로우." },
+  { name: "5. Anatomical Brain", desc: "NeuronFS 본연의 의미에 충실하게 좌/우반구, 피질, 뇌간 등 실제 뇌 형태 모방." },
+  { name: "6. Fractal Tree", desc: "뿌리(시스템)에서 자라나 가지(기능)를 펼치는 빛의 거대한 유기적 프랙탈 분재." },
+  { name: "7. Starburst", desc: "코어에서 밖으로 에너지가 방사형 극초음속 폭발하듯 뻗어나가는 민들레 홀씨 형태." },
+  { name: "8. Particle Swarm", desc: "새떼나 연기처럼 구역 안에서 형태 없이 유동적으로 소용돌이치는 유체역학 군집." },
+  { name: "9. Cyberpunk City", desc: "2D 평면 위에 데이터 빈도에 따라 기둥(마천루)이 높게 솟아나는 디렉토리 폴더 맵." },
+  { name: "10. Topo Heatmap", desc: "밀집도가 고저차를 만드는 지형도(Landscape). 활성화될 때마다 땅이 일렁이는 맵." },
+  { name: "11. Multi-tier Layers", desc: "수직(Y축)에 7개의 평면 유리가 떠 있고, 각 유리층에 뉴런이 분포하는 아키텍처." },
+  { name: "12. Double Helix", desc: "두 개의 거대한 나선형 기둥이 꼬이며 올라가는 DNA 스크립트 메타포." }
+];
+
+let scene, camera, renderer, controls;
+const NODE_COUNT = 1200;
+let pointsData = [];
+let currentLayout = -1;
+let mesh;
+
+// Palette
+const PALETTE = [0x10b981, 0x3b82f6, 0x8b5cf6, 0x06b6d4, 0xa78bfa, 0x14b8a6, 0xfbbf24];
+
+function init() {
+  const container = document.getElementById('gl-container');
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x030305, 0.003);
+
+  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+  camera.position.set(100, 80, 150);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(renderer.domElement);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.autoRotate = true; controls.autoRotateSpeed = 0.5;
+
+  // Initialize Point Data Array (holding current, target, color)
+  for(let i=0; i<NODE_COUNT; i++) {
+    pointsData.push({
+      current: new THREE.Vector3((Math.random()-0.5)*100, (Math.random()-0.5)*100, (Math.random()-0.5)*100),
+      target: new THREE.Vector3(0,0,0),
+      color: new THREE.Color(PALETTE[i % PALETTE.length])
+    });
+  }
+
+  // Setup InstancedMesh
+  const geo = new THREE.SphereGeometry(0.8, 8, 8);
+  const mat = new THREE.MeshPhongMaterial({
+    color: 0xffffff, emissive: 0x10b981, emissiveIntensity: 0.5,
+    transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending
+  });
+  mesh = new THREE.InstancedMesh(geo, mat, NODE_COUNT);
+  
+  for(let i=0; i<NODE_COUNT; i++) {
+    mesh.setColorAt(i, pointsData[i].color);
+  }
+  scene.add(mesh);
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x222222));
+  const pLight = new THREE.PointLight(0x10b981, 1, 300);
+  pLight.position.set(0, 50, 0);
+  scene.add(pLight);
+
+  // UI
+  const bContainer = document.getElementById('buttons');
+  layouts.forEach((lay, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'layout-btn';
+    btn.innerText = lay.name;
+    btn.onclick = () => setLayout(idx, btn);
+    bContainer.appendChild(btn);
+  });
+
+  window.addEventListener('resize', onResize);
+  setLayout(0, bContainer.firstChild); // default layout
+  animate();
+}
+
+// ── LAYOUT MATH GENERATORS ──
+function generateLayout(index) {
+  const t = [];
+  
+  if(index === 0) { // 1. Cosmic Web (Hubs and filaments)
+    const hubs = Array.from({length: 6}, () => new THREE.Vector3((Math.random()-0.5)*100, (Math.random()-0.5)*80, (Math.random()-0.5)*100));
+    for(let i=0; i<NODE_COUNT; i++) {
+      const hub = hubs[Math.floor(Math.random()*hubs.length)];
+      if(Math.random() < 0.25) t.push(hub.clone().add(new THREE.Vector3((Math.random()-0.5)*15, (Math.random()-0.5)*15, (Math.random()-0.5)*15))); // Node cluster
+      else {
+        const hub2 = hubs[Math.floor(Math.random()*hubs.length)];
+        const lerpAmt = Math.random();
+        t.push(hub.clone().lerp(hub2, lerpAmt).add(new THREE.Vector3((Math.random()-0.5)*5, (Math.random()-0.5)*5, (Math.random()-0.5)*5))); // Filament
+      }
+    }
+  } 
+  else if(index === 1) { // 2. Astrolabe Rings
+    const ringCount = 7;
+    for(let i=0; i<NODE_COUNT; i++) {
+      const ring = (i % ringCount) + 1;
+      const angle = Math.random() * Math.PI * 2;
+      const radius = ring * 12;
+      t.push(new THREE.Vector3(Math.cos(angle)*radius, (Math.random()-0.5)*8, Math.sin(angle)*radius));
+    }
+  }
+  else if(index === 2) { // 3. Hypercube Lattice
+    const edge = Math.ceil(Math.pow(NODE_COUNT, 1/3)); 
+    for(let i=0; i<NODE_COUNT; i++) {
+      const x = (i % edge) - edge/2;
+      const y = (Math.floor(i / edge) % edge) - edge/2;
+      const z = (Math.floor(i / (edge*edge))) - edge/2;
+      t.push(new THREE.Vector3(x*12, y*12, z*12));
+    }
+  }
+  else if(index === 3) { // 4. Magnetic Dipole
+    for(let i=0; i<NODE_COUNT; i++) {
+      const u = Math.random();
+      const v = Math.random() * Math.PI * 2;
+      const r = 40 * Math.sin(u * Math.PI); // flux tube radius expands in middle
+      const y = 60 * Math.cos(u * Math.PI) * (Math.random() > 0.5 ? 1 : -1); // flows top to bottom
+      t.push(new THREE.Vector3(r * Math.cos(v), y, r * Math.sin(v)));
+    }
+  }
+  else if(index === 4) { // 5. Anatomical Brain
+    for(let i=0; i<NODE_COUNT; i++) {
+      const u = Math.random() * Math.PI * 2;
+      const v = Math.acos(2 * Math.random() - 1);
+      const isLeft = Math.random() > 0.5;
+      const offset = isLeft ? -15 : 15;
+      const r = 30 + Math.random() * 10;
+      const x = r * Math.sin(v) * Math.cos(u) * 0.7 + offset; // Squash width slightly
+      const y = r * Math.cos(v) * 0.9 + 15;
+      const z = r * Math.sin(v) * Math.sin(u) * 1.3; // Elongate depth
+      t.push(new THREE.Vector3(x, y, z));
+    }
+  }
+  else if(index === 5) { // 6. Fractal Tree
+    for(let i=0; i<NODE_COUNT; i++) {
+      const h = Math.random();
+      const y = -50 + h * 90;
+      const radius = (y < -10) ? 6 : 6 + Math.pow(h, 2) * 50; // trunk flares into branches
+      const angle = h * 10 + Math.random() * Math.PI * 2;
+      t.push(new THREE.Vector3(Math.cos(angle)*radius, y, Math.sin(angle)*radius));
+    }
+  }
+  else if(index === 6) { // 7. Starburst
+    for(let i=0; i<NODE_COUNT; i++) {
+      const dist = Math.pow(Math.random(), 3) * 90; // bias to center
+      const u = Math.random() * Math.PI * 2;
+      const v = Math.acos(2 * Math.random() - 1);
+      t.push(new THREE.Vector3(dist*Math.sin(v)*Math.cos(u), dist*Math.cos(v), dist*Math.sin(v)*Math.sin(u)));
+    }
+  }
+  else if(index === 7) { // 8. Particle Swarm (Perlin-like blobs)
+    for(let i=0; i<NODE_COUNT; i++) {
+      const x = (Math.random()-0.5) * 120;
+      const y = Math.sin(x*0.05) * 20 + (Math.random()-0.5)*30;
+      const z = Math.cos(x*0.05) * 20 + (Math.random()-0.5)*30;
+      t.push(new THREE.Vector3(x, y, z));
+    }
+  }
+  else if(index === 8) { // 9. Cyberpunk City
+    const size = Math.sqrt(NODE_COUNT);
+    for(let i=0; i<NODE_COUNT; i++) {
+      const x = ((i % size) - size/2) * 6;
+      const z = ((Math.floor(i / size)) - size/2) * 6;
+      const density = Math.sin(x*0.1) * Math.cos(z*0.1);
+      const yHeight = Math.max(0, density * 50 + Math.random()*15);
+      t.push(new THREE.Vector3(x, (Math.random() * yHeight) - 25, z)); // fill pillars
+    }
+  }
+  else if(index === 9) { // 10. Topo Heatmap
+    const size = Math.sqrt(NODE_COUNT);
+    for(let i=0; i<NODE_COUNT; i++) {
+      const x = ((i % size) - size/2) * 5;
+      const z = ((Math.floor(i / size)) - size/2) * 5;
+      const y = Math.sin(x*0.15) * Math.cos(z*0.15) * 20; // wavy terrain
+      t.push(new THREE.Vector3(x, y, z));
+    }
+  }
+  else if(index === 10) { // 11. Multi-tier Layers
+    for(let i=0; i<NODE_COUNT; i++) {
+      const tierIndex = i % 7;
+      const y = -45 + tierIndex * 15;
+      const r = Math.random() * 40;
+      const ang = Math.random() * Math.PI*2;
+      t.push(new THREE.Vector3(r*Math.cos(ang), y, r*Math.sin(ang)));
+    }
+  }
+  else if(index === 11) { // 12. Double Helix
+    for(let i=0; i<NODE_COUNT; i++) {
+      const y = -60 + (i / NODE_COUNT) * 120;
+      const strand = i % 2;
+      const phase = y * 0.15 + (strand * Math.PI);
+      const isStrut = Math.random() < 0.15;
+      
+      if(isStrut) { // connections between strands
+        const lerpT = Math.random();
+        const px = Math.cos(phase)*25*lerpT + Math.cos(phase+Math.PI)*25*(1-lerpT);
+        const pz = Math.sin(phase)*25*lerpT + Math.sin(phase+Math.PI)*25*(1-lerpT);
+        t.push(new THREE.Vector3(px, y, pz));
+      } else {
+        const px = Math.cos(phase) * 25 + (Math.random()-0.5)*4;
+        const pz = Math.sin(phase) * 25 + (Math.random()-0.5)*4;
+        t.push(new THREE.Vector3(px, y, pz));
+      }
+    }
+  }
+
+  return t;
+}
+
+function setLayout(idx, btnEl) {
+  currentLayout = idx;
+  const newTargets = generateLayout(idx);
+  for(let i=0; i<NODE_COUNT; i++) {
+    pointsData[i].target.copy(newTargets[i]);
+  }
+  
+  document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+  if(btnEl) btnEl.classList.add('active');
+  document.getElementById('desc').innerText = layouts[idx].desc;
+}
+
+const dummy = new THREE.Object3D();
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+
+  const time = performance.now() * 0.001;
+  const isBreathing = (currentLayout === 7 || currentLayout === 9); // swarm or topo
+  
+  // Transition logic (spring interpolation)
+  for(let i=0; i<NODE_COUNT; i++) {
+    const p = pointsData[i];
+    p.current.lerp(p.target, 0.035); // smooth motion
+    
+    dummy.position.copy(p.current);
+    
+    // Add some organic breathing based on layout
+    if(isBreathing) { 
+      dummy.position.y += Math.sin(time*1.5 + p.current.x*0.1) * 1.5;
+    }
+    
+    // Size pulse
+    const s = 0.5 + Math.sin(time*2 + i)*0.2;
+    dummy.scale.set(s,s,s);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+  }
+  
+  mesh.instanceMatrix.needsUpdate = true;
+  renderer.render(scene, camera);
+}
+
+function onResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
