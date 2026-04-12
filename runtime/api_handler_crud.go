@@ -210,8 +210,42 @@ func registerCRUDRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http
 			"uptime":  time.Since(startTime).Round(time.Second).String(),
 		})
 	}))
+
+	// GET /api/skills — list all learned skills
+	// POST /api/skills — learn a new skill {category, name, pattern, source}
+	mux.HandleFunc("/api/skills", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method == "POST" {
+			var req struct {
+				Category string `json:"category"`
+				Name     string `json:"name"`
+				Pattern  string `json:"pattern"`
+				Source   string `json:"source"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
+				http.Error(w, `{"error":"name required"}`, 400)
+				return
+			}
+			if req.Category == "" {
+				req.Category = "general"
+			}
+			if err := LearnSkill(brainRoot, req.Category, req.Name, req.Pattern, req.Source); err != nil {
+				http.Error(w, fmt.Sprintf(`{"error":"%s"}`, err.Error()), 500)
+				return
+			}
+			json.NewEncoder(w).Encode(map[string]string{"status": "learned", "category": req.Category, "name": req.Name})
+			return
+		}
+		// GET
+		skills, _ := RecallAllSkills(brainRoot)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"total":  len(skills),
+			"skills": skills,
+		})
+	}))
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Config Routes: principles, emotion, sandbox
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
