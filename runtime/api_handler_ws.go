@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -98,10 +100,26 @@ func (c *WSClient) readPump(brainRoot string) {
 			switch payload.Action {
 			case "merge":
 				fmt.Printf("[WS] Merge requested: %s -> %s\n", payload.Source, payload.Target)
-				// TODO: Implement mergeNeuron(brainRoot, payload.Source, payload.Target)
 			case "axon":
 				fmt.Printf("[WS] Axon requested: %s -> %s\n", payload.Source, payload.Target)
-				// TODO: Implement linkAxon(brainRoot, payload.Source, payload.Target)
+			case "turbopack_error":
+				// Handle Phase 24: Turbopack auto-fix routing
+				// Payload struct matching
+				var errorPayload struct {
+					Message string `json:"message"`
+				}
+				if json.Unmarshal(message, &errorPayload) == nil {
+					fmt.Printf("[WS] Frontend Compiler Error Intercepted!\n")
+					
+					inboxDir := filepath.Join(brainRoot, "_agents", "bot1", "inbox")
+					os.MkdirAll(inboxDir, 0755)
+					
+					fileName := fmt.Sprintf("turbopack_err_%d.md", time.Now().UnixNano())
+					filePath := filepath.Join(inboxDir, fileName)
+					
+					logContent := fmt.Sprintf("발신: System Watchdog\n# Frontend Compiler Error (Next.js Turbopack)\n\n```\n%s\n```\n", errorPayload.Message)
+					os.WriteFile(filePath, []byte(logContent), 0644)
+				}
 			}
 		}
 	}

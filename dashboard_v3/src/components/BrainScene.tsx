@@ -5,6 +5,9 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { forceSimulation, forceLink, forceManyBody, forceCenter } from 'd3-force-3d';
+import { XR, createXRStore } from '@react-three/xr';
+
+const xrStore = createXRStore();
 
 // Data fetching and Graph initialization
 function useBrainGraph() {
@@ -213,20 +216,27 @@ export default function BrainScene() {
           camera={{ position: [150, 100, 200], fov: 50 }}
           gl={{ antialias: true, alpha: true }}
         >
-          <SceneLighting />
-          <InstancedGraph nodes={data.nodes} links={data.links} />
-          <OrbitControls 
-            enableDamping 
-            dampingFactor={0.05} 
-            // autoRotate 
-            // autoRotateSpeed={0.5} 
-          />
+          <XR store={xrStore}>
+            <SceneLighting />
+            <InstancedGraph nodes={data.nodes} links={data.links} />
+            <OrbitControls 
+              enableDamping 
+              dampingFactor={0.05} 
+            />
+          </XR>
         </Canvas>
       )}
       
       {data && (
-        <div className="absolute bottom-5 left-5 font-mono text-[10px] text-slate-400 pointer-events-none z-20">
-          Force-Directed Graph | {data.nodes.length.toLocaleString()} Nodes | {data.links.length.toLocaleString()} Edges
+        <div className="absolute bottom-5 left-5 font-mono text-[10px] text-slate-400 pointer-events-none z-20 flex flex-col gap-2">
+          <div>Force-Directed Graph | {data.nodes.length.toLocaleString()} Nodes | {data.links.length.toLocaleString()} Edges</div>
+          <button 
+            tabIndex={-1}
+            onClick={() => xrStore.enterVR()} 
+            className="pointer-events-auto bg-[var(--accent)] text-black px-3 py-1 font-bold rounded-sm w-max hover:bg-emerald-400 transition-colors shadow-[0_0_10px_var(--accent)]"
+          >
+            ENTER VR EXPERIMENT
+          </button>
         </div>
       )}
     </div>
