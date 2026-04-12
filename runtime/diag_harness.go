@@ -130,13 +130,13 @@ func RunHarness(brainRoot string, logger func(string)) {
 
 	// ── Check 7: MCP 서버 health ──
 	mcpHealthOK := false
-	conn, err := net.DialTimeout("tcp", "127.0.0.1:9247", 2*time.Second)
+	conn, err := net.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", MCPStreamPort), 2*time.Second)
 	if err == nil {
 		conn.Close()
 		mcpHealthOK = true
 	}
 	if !mcpHealthOK {
-		fails = append(fails, "MCP 서버(9247) 응답 없음 — 좀비 또는 비활성")
+		fails = append(fails, fmt.Sprintf("MCP 서버(%d) 응답 없음 — 좀비 또는 비활성", MCPStreamPort))
 	} else {
 		passes++
 	}
