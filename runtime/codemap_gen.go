@@ -1,6 +1,6 @@
 // codemap_gen.go — 소스 코드에서 코드맵 뉴런 자동 생성
 //
-// PROVIDES: generateCodemap, parseCodeHeaders
+// PROVIDES: generateCodemap, parseCodeHeaders, collectStaleCodemaps
 // DEPENDS ON: emit_helpers.go (collectCodemapPaths — freshness 소비자)
 //
 // 워크스페이스 루트의 모든 Go 소스 파일에서 PROVIDES/DEPENDS 헤더를 파싱하여
@@ -171,4 +171,49 @@ func parseCodeHeaders(content string) (provides, depends string) {
 	}
 
 	return strings.Join(provLines, "\n"), strings.Join(depLines, "\n")
+}
+
+// collectStaleCodemaps scans all codemap neurons and returns
+// entries where source file is newer than the neuron (STALE).
+// Used by emitBootstrap to inject STALE warnings into GEMINI.md.
+func collectStaleCodemaps(brainRoot string) []string {
+	codemapRoot := filepath.Join(brainRoot, "cortex", "dev", "_codemap")
+	if _, err := os.Stat(codemapRoot); os.IsNotExist(err) {
+		return nil
+	}
+
+	var stale []string
+	entries, _ := os.ReadDir(codemapRoot)
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		neuronFile := filepath.Join(codemapRoot, entry.Name(), "1.neuron")
+		neuronInfo, err := os.Stat(neuronFile)
+		if err != nil {
+			continue
+		}
+
+		content, err := os.ReadFile(neuronFile)
+		if err != nil {
+			continue
+		}
+
+		// Extract source: field
+		for _, line := range strings.Split(string(content), "\n") {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "source:") {
+				srcPath := strings.TrimSpace(strings.TrimPrefix(line, "source:"))
+				srcInfo, err := os.Stat(srcPath)
+				if err != nil {
+					continue
+				}
+				if srcInfo.ModTime().After(neuronInfo.ModTime()) {
+					stale = append(stale, fmt.Sprintf("`%s` → 뉴런: `%s`", filepath.Base(srcPath), entry.Name()))
+				}
+				break
+			}
+		}
+	}
+	return stale
 }
