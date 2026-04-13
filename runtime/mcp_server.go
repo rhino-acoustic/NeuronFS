@@ -22,10 +22,40 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
+
+// activeMCPServers tracks live MCP server instances for resource update notifications.
+// When brain changes, we notify all active servers so IDE re-reads neuronfs://rules/current.
+var (
+	activeMCPServersMu sync.Mutex
+	activeMCPServers   []*mcp.Server
+)
+
+// registerActiveMCPServer adds a server to the active list for notifications.
+func registerActiveMCPServer(s *mcp.Server) {
+	activeMCPServersMu.Lock()
+	defer activeMCPServersMu.Unlock()
+	activeMCPServers = append(activeMCPServers, s)
+}
+
+// notifyMCPResourceUpdated sends ResourceUpdated notification to all active MCP servers.
+// Called when brain state changes (via markBrainDirty) so IDE re-reads the rules resource.
+func notifyMCPResourceUpdated() {
+	activeMCPServersMu.Lock()
+	servers := make([]*mcp.Server, len(activeMCPServers))
+	copy(servers, activeMCPServers)
+	activeMCPServersMu.Unlock()
+
+	for _, s := range servers {
+		_ = s.ResourceUpdated(context.Background(), &mcp.ResourceUpdatedNotificationParams{
+			URI: "neuronfs://rules/current",
+		})
+	}
+}
 
 // startMCPServer bootstraps the MCP stdio server using os.Stdin/os.Stdout.
 // WARNING: Only use this when os.Stdout is clean (not redirected).
@@ -231,6 +261,7 @@ func buildFreshMCPServer(brainRoot string) *mcp.Server {
 		},
 	)
 
+	registerActiveMCPServer(server)
 	return server
 }
 

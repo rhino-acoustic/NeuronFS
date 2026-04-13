@@ -40,6 +40,9 @@ func markBrainDirty() {
 	case triggerChan <- struct{}{}:
 	default:
 	}
+
+	// MCP: 리소스 변경 알림 → IDE가 neuronfs://rules/current 재읽기
+	go notifyMCPResourceUpdated()
 }
 
 // consumeDirty checks and clears the brain's dirty state flag.
