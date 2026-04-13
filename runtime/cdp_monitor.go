@@ -23,9 +23,32 @@ func hlStartCDPWorker() {
 	for job := range CDPQueue {
 		if job.TargetRoom == "IDLE_INJECT" {
 			injectIdleResultSync(job.Payload)
-		} else {
-			hlCDPInjectSync(job.TargetRoom, job.Payload)
+			continue
 		}
+
+		// 배치 합침: 500ms 내 같은 targetRoom의 메시지를 하나로
+		batch := job.Payload
+		batchRoom := job.TargetRoom
+		batchDone := false
+		for !batchDone {
+			select {
+			case next := <-CDPQueue:
+				if next.TargetRoom == batchRoom {
+					batch += "\\n" + next.Payload
+				} else {
+					// 다른 room → 현재 배치 처리 후 다시 큐에
+					go func(j CDPJob) { CDPQueue <- j }(next)
+					batchDone = true
+				}
+			case <-time.After(500 * time.Millisecond):
+				batchDone = true
+			}
+		}
+
+		hlCDPInjectSync(batchRoom, batch)
+
+		// 쿨다운: AI가 응답 시작할 때까지 대기 (이전 인젝션 간섭 방지)
+		time.Sleep(5 * time.Second)
 	}
 }
 
