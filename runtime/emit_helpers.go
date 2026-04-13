@@ -715,3 +715,21 @@ func collectCodemapPaths(regionPath string) []string {
 
 	return entries
 }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Pulse Emoji: 시간 기반 동적 이모지
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// pulseEmojis: 매 분마다 순환하는 12개 이모지 풀
+var pulseEmojis = []string{
+	"🐤", "🦊", "🐙", "🌀", "⚡", "🔮",
+	"🎯", "🧊", "🌿", "💎", "🦋", "🔥",
+}
+
+// pulseEmoji returns a time-rotating emoji that changes every minute.
+// Used as a "freshness beacon" — if the AI prefixes its response with this emoji,
+// the user can confirm the latest rules were injected.
+func pulseEmoji() string {
+	idx := time.Now().Unix() / 60 % int64(len(pulseEmojis))
+	return pulseEmojis[idx]
+}

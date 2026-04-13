@@ -66,6 +66,11 @@ func buildPreamble(sb *strings.Builder, result SubsumptionResult, brainRoot stri
 		return false
 	}
 
+	// ━━━ Pulse Emoji: 매 분마다 변경 → 최신 규칙 주입 확인용 ━━━
+	pulse := pulseEmoji()
+	sb.WriteString(fmt.Sprintf("<!-- Pulse: %s -->\n", pulse))
+	sb.WriteString(fmt.Sprintf("**Pulse: %s** (모든 응답 첫 줄에 이 이모지를 붙여라. 변하면 최신 규칙 주입 확인.)\n\n", pulse))
+
 	sb.WriteString("## NeuronFS Active Rules\n\n")
 	return true
 }
