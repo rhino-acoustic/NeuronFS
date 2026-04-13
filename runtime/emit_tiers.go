@@ -171,6 +171,17 @@ func loadLLMProviders(brainRoot string) map[string]EmitTarget {
 			targets[key] = target
 		}
 	}
+	
+	// Fallback if no providers found
+	if len(targets) == 0 {
+		targets["gemini"] = EmitTarget{
+			Name:        "Gemini",
+			FileName:    "GEMINI.md",
+			SubDir:      ".gemini",
+			IsGlobal:    true,
+			DetectPaths: []string{".gemini"},
+		}
+	}
 	return targets
 }
 
@@ -328,11 +339,47 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 		fmt.Printf("[WARN] Cannot write %s: %v\n", indexPath, err)
 	}
 
+	tier4Count := 0
 	for _, region := range brain.Regions {
 		content := emitRegionRules(region, brain)
 		rulesPath := filepath.Join(region.Path, "_rules.md")
 		if err := os.WriteFile(rulesPath, []byte(content), 0600); err != nil {
 			fmt.Printf("[WARN] Cannot write %s: %v\n", rulesPath, err)
+		}
+
+		// ━━━ Tier 4: Subcategory _rules.md for large categories ━━━
+		// 10+ 뉴런을 가진 하위 카테고리에 독립 _rules.md 생성
+		subMap := make(map[string][]Neuron) // subcategory name → neurons
+		for _, n := range region.Neurons {
+			if n.IsDormant {
+				continue
+			}
+			// n.Path = "dev/禁/하드코딩" → subcat = "dev"
+			relPath := n.Path
+			parts := strings.Split(relPath, string(filepath.Separator))
+			if len(parts) < 2 {
+				// Also handle forward slash
+				parts = strings.Split(relPath, "/")
+			}
+			if len(parts) >= 2 {
+				subMap[parts[0]] = append(subMap[parts[0]], n)
+			}
+		}
+		for subName, neurons := range subMap {
+			if len(neurons) < 10 {
+				continue // 소규모 카테고리는 영역 _rules.md만으로 충분
+			}
+			// 하위 카테고리에 대한 미니 Region을 생성하여 Tier 4 _rules.md 작성
+			subRegion := Region{
+				Name:    region.Name + "/" + subName,
+				Path:    filepath.Join(region.Path, subName),
+				Neurons: neurons,
+			}
+			subContent := emitRegionRules(subRegion)
+			subRulesPath := filepath.Join(region.Path, subName, "_rules.md")
+			if err := os.WriteFile(subRulesPath, []byte(subContent), 0600); err == nil {
+				tier4Count++
+			}
 		}
 	}
 
@@ -343,8 +390,8 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 			len(backedUp), filepath.Join(brainRoot, ".neuronfs_backup"))
 		fmt.Printf("\033[33m[WARNING] To restore: copy .bak files back to their original locations.\033[0m\n")
 	}
-	fmt.Printf("[SYNC] ♻️  emit complete: %d target(s) + _index.md + 7x _rules.md (%d neurons, activation: %d)\n",
-		len(targets), result.FiredNeurons, result.TotalCounter)
+	fmt.Printf("[SYNC] ♻️  emit complete: %d target(s) + _index.md + 7x _rules.md + %dx tier4 (%d neurons, activation: %d)\n",
+		len(targets), tier4Count, result.FiredNeurons, result.TotalCounter)
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
