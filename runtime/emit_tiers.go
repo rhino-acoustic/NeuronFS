@@ -215,6 +215,9 @@ func homeDir() string {
 // writeAllTiersForTargets writes brain rules to specific editor target(s)
 // target can be a single key (e.g. "cursor") or "all" for all targets
 func writeAllTiersForTargets(brainRoot string, target string) {
+	// Tier 4.5: 코드맵 자동 갱신 (scanBrain 전에 실행해야 새 뉴런 반영)
+	generateCodemap(brainRoot)
+
 	brain := scanBrain(brainRoot)
 	result := runSubsumption(brain)
 
