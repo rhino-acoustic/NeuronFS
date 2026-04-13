@@ -319,7 +319,6 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 			fmt.Printf("\033[33m[BACKUP] 💾 %s → %s\033[0m\n", filepath.Base(targetPath), bkPath)
 		}
 
-		// 전체 덮어쓰기
 		if err := os.WriteFile(targetPath, []byte(bootstrap), 0600); err != nil {
 			fmt.Printf("[ERROR] Cannot write %s: %v\n", targetPath, err)
 			continue
