@@ -196,10 +196,9 @@ func logWriter() *os.File {
 	return os.Stderr
 }
 
-// startMCPHTTPServer bootstraps the MCP server over Streamable HTTP transport.
-// Unlike stdio, this survives IDE restarts — the server runs independently.
-// Clients connect via HTTP POST/GET to http://localhost:MCPStreamPort/mcp
-func startMCPHTTPServer(brainRoot string, port int) {
+// buildFreshMCPServer creates a new MCP server with latest brain state.
+// Called per-session in HTTP mode so each conversation gets fresh Instructions.
+func buildFreshMCPServer(brainRoot string) *mcp.Server {
 	server := mcp.NewServer(
 		&mcp.Implementation{
 			Name:    "neuronfs",
@@ -232,8 +231,16 @@ func startMCPHTTPServer(brainRoot string, port int) {
 		},
 	)
 
+	return server
+}
+
+// startMCPHTTPServer bootstraps the MCP server over Streamable HTTP transport.
+// Unlike stdio, this survives IDE restarts — the server runs independently.
+// Clients connect via HTTP POST/GET to http://localhost:MCPStreamPort/mcp
+func startMCPHTTPServer(brainRoot string, port int) {
+	// Factory: 매 세션(대화)마다 새 서버를 생성하여 최신 Instructions 주입
 	handler := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
-		return server
+		return buildFreshMCPServer(brainRoot)
 	}, &mcp.StreamableHTTPOptions{})
 
 	mux := http.NewServeMux()
