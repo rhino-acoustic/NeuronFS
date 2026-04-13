@@ -49,7 +49,7 @@ func registerConfigRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		var clean []string
 		for _, p := range req.Principles {
 			p = strings.TrimSpace(p)
-			if p != "" && len(clean) < 2 {
+			if p != "" && len(clean) < 10 {
 				clean = append(clean, p)
 			}
 		}
