@@ -42,7 +42,9 @@ func startMCPServerWithStdout(brainRoot string, stdout *os.File) {
 			Name:    "neuronfs",
 			Version: "1.0.0",
 		},
-		nil,
+		&mcp.ServerOptions{
+			Instructions: buildMCPInstructions(brainRoot),
+		},
 	)
 
 	registerMCPTools(server, brainRoot)
@@ -181,6 +183,14 @@ func boolPtr(b bool) *bool {
 	return &b
 }
 
+// buildMCPInstructions generates the server instructions from current brain state.
+// These instructions are injected into the LLM's context on every session initialize.
+func buildMCPInstructions(brainRoot string) string {
+	brain := scanBrain(brainRoot)
+	result := runSubsumption(brain)
+	return emitBootstrap(result, brainRoot)
+}
+
 // logWriter returns stderr for MCP mode (stdout is reserved for JSON-RPC)
 func logWriter() *os.File {
 	return os.Stderr
@@ -195,7 +205,9 @@ func startMCPHTTPServer(brainRoot string, port int) {
 			Name:    "neuronfs",
 			Version: "1.0.0",
 		},
-		nil,
+		&mcp.ServerOptions{
+			Instructions: buildMCPInstructions(brainRoot),
+		},
 	)
 
 	registerMCPTools(server, brainRoot)
