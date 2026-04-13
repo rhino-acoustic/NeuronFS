@@ -45,18 +45,6 @@ func emitBootstrap(result SubsumptionResult, brainRoot string) string {
 		sb.WriteString(agentInbox)
 	}
 
-	// ━━━ STALE CODEMAP INJECTION ━━━
-	// 코드맵 STALE이 감지되면 GEMINI.md에 직접 주입 → AI가 즉시 갱신
-	staleEntries := collectStaleCodemaps(brainRoot)
-	if len(staleEntries) > 0 {
-		sb.WriteString("### ⚠️ STALE 코드맵 — 즉시 갱신 필요\n")
-		sb.WriteString("아래 코드맵이 소스보다 오래됨. `view_file`로 소스 확인 후 코드맵 뉴런 갱신하라.\n\n")
-		for _, entry := range staleEntries {
-			sb.WriteString(fmt.Sprintf("- %s\n", entry))
-		}
-		sb.WriteString("\n")
-	}
-
 	// ━━━ SESSION TRANSCRIPT LOCATION (절대경로 강제) ━━━
 	transcriptDir := filepath.Join(brainRoot, "_transcripts")
 	if _, err := os.Stat(transcriptDir); err == nil {
