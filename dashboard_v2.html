@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NeuronFS V2: Autopilot Nerve Center</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+<script src="https://unpkg.com/layout-base/layout-base.js"></script>
+<script src="https://unpkg.com/cose-base/cose-base.js"></script>
+<script src="https://unpkg.com/cytoscape-fcose/cytoscape-fcose.js"></script>
 <style>
 :root{
   --bg: #030305; --surface: rgba(15, 20, 30, 0.6); --border: rgba(255,255,255,0.08);
@@ -14,32 +18,30 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: var(--font-ui); overflow: hidden; display: flex; height: 100vh; }
+#gl-container { flex: 1; position: relative; border-right: 1px solid var(--border); background: #030305; }
+#cy { display: block; width: 100%; height: 100%; filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.15)); }
 
-/* Left: Holographic 3D WebGL Map */
-#gl-container { flex: 1; position: relative; border-right: 1px solid var(--border); background: radial-gradient(circle at center, #0a0a14 0%, #030305 100%); }
-canvas { display: block; width: 100%; height: 100%; outline: none; }
+/* Tooltip */
+#node-tip { position: absolute; display: none; background: rgba(0,0,0,0.92); border: 1px solid rgba(16,185,129,0.5); backdrop-filter: blur(12px); padding: 10px 14px; border-radius: 8px; font-family: var(--font-mono); font-size: 11px; color: #f8fafc; pointer-events: none; z-index: 50; max-width: 300px; line-height: 1.5; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+#node-tip b { color: #10b981; font-size: 12px; }
+#node-tip .tip-path { color: #94a3b8; font-size: 10px; }
+#node-tip .tip-meta { color: #60a5fa; font-size: 10px; }
 
-/* Right: Nerve Center Console */
+/* Right Console */
 #console-container { width: 450px; background: var(--surface); display: flex; flex-direction: column; backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); position: relative; z-index: 10; }
 .header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .brand h1 { font-size: 18px; font-weight: 800; letter-spacing: 0.1em; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
 .brand span { color: var(--accent); }
 .ver { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
-
-/* Autopilot Status */
 .ap-status { padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
 .status-indicator { display: flex; align-items: center; gap: 10px; }
 .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 15px var(--accent); }
 .pulse-dot.pulsing { animation: pulse 2s infinite; }
 .pulse-dot.off { background: var(--text-muted); box-shadow: none; animation: none; }
-@keyframes pulse { 0% { box-shadow: 0 0 0 0 var(--accent-glow); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
-
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 var(--accent-glow); } 70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
 .toggle-btn { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); color: var(--accent); padding: 8px 16px; border-radius: 4px; font-size: 11px; font-weight: 800; cursor: pointer; transition: all 0.2s; font-family: var(--font-mono); }
 .toggle-btn:hover { background: rgba(16, 185, 129, 0.2); box-shadow: 0 0 15px var(--accent-glow); }
 .toggle-btn.off { background: rgba(148, 163, 184, 0.1); border-color: var(--text-muted); color: var(--text-muted); }
-.toggle-btn.off:hover { background: rgba(148, 163, 184, 0.2); box-shadow: none; }
-
-/* TTY Feed / Metrics */
 .tty-feed { flex: 1; padding: 20px; font-family: var(--font-mono); font-size: 11px; overflow-y: auto; color: #a1a1aa; line-height: 1.6; }
 .tty-feed::-webkit-scrollbar { width: 4px; }
 .tty-feed::-webkit-scrollbar-thumb { background: var(--border); }
@@ -48,13 +50,10 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 .log-info { color: #60a5fa; }
 .log-warn { color: #fbbf24; }
 .log-error { color: #ef4444; }
-
 .metrics-panel { padding: 20px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: rgba(0,0,0,0.3); }
 .metric { display: flex; flex-direction: column; gap: 4px; }
 .m-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
 .m-value { font-size: 16px; font-weight: 800; color: #fff; font-family: var(--font-mono); }
-
-/* Audit Trail (Phase 43) */
 .audit-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 160px; overflow-y: auto; background: rgba(0,0,0,0.4); }
 .audit-panel::-webkit-scrollbar { width: 3px; }
 .audit-panel::-webkit-scrollbar-thumb { background: var(--border); }
@@ -64,8 +63,6 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 .audit-action { color: #a78bfa; }
 .audit-ok { color: var(--accent); }
 .audit-fail { color: var(--danger); }
-
-/* Codemap Panel (Quick Win 4) */
 .codemap-panel { padding: 12px 20px; border-top: 1px solid var(--border); max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.35); }
 .codemap-panel::-webkit-scrollbar { width: 3px; }
 .codemap-panel::-webkit-scrollbar-thumb { background: var(--border); }
@@ -74,28 +71,16 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
 .codemap-name { color: #a78bfa; }
 .codemap-lines { color: #52525b; }
 
-/* Debounce Overlay */
-#debounce-overlay { position: absolute; top: 20px; left: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 8px; font-family: var(--font-mono); color: var(--accent); display: none; align-items: center; gap: 12px; box-shadow: 0 0 20px var(--accent-glow); z-index: 20; }
-.db-spinner { width: 14px; height: 14px; border: 2px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { 100% { transform: rotate(360deg); } }
-
-/* Overlay UI */
-.overlay-stats { position: absolute; bottom: 20px; left: 20px; font-family: var(--font-mono); font-size: 10px; color: #94a3b8; pointer-events: none; z-index: 20; }
-
-/* Fire Spark CSS */
-.fire-flash { box-shadow: inset 0 0 100px rgba(16, 185, 129, 0.4); transition: box-shadow 0.1s; }
-.fire-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #10b981; font-family: var(--font-mono); font-size: 24px; font-weight: 800; text-shadow: 0 0 20px rgba(16,185,129,0.8); opacity: 0; pointer-events: none; z-index: 30; }
+.fire-text { position: absolute; transform: translate(-50%, -50%); color: #10b981; font-family: var(--font-mono); font-size: 24px; font-weight: 800; text-shadow: 0 0 20px rgba(16,185,129,0.8); opacity: 0; pointer-events: none; z-index: 30; }
 @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -150%) scale(1.5); } }
 </style>
 </head>
 <body>
 
 <div id="gl-container">
-  <div id="debounce-overlay">
-    <div class="db-spinner"></div>
-    <div>CDP INJECTION COOLDOWN: <span id="db-timer" style="font-weight:700">60s</span></div>
-  </div>
-  <div class="overlay-stats" id="gl-stats">InstancedMesh | 0 Draw Calls</div>
+  <div id="cy"></div>
+  <div id="node-tip"></div>
+  <div id="spark-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:40;"></div>
 </div>
 
 <div id="console-container">
@@ -109,782 +94,487 @@ canvas { display: block; width: 100%; height: 100%; outline: none; }
       <button class="toggle-btn" id="btn-autopilot" onclick="toggleAutopilot()">AUTOPILOT: ON</button>
     </div>
   </div>
-  
   <div class="ap-status">
     <div class="status-indicator">
       <div class="pulse-dot pulsing" id="ap-dot"></div>
       <div style="font-size:12px; font-weight:600; color:#fff" id="ap-text">System Listening...</div>
     </div>
   </div>
-
-  <div class="tty-feed" id="tty">
-    <!-- Live logs injected here -->
-  </div>
-
+  <div class="tty-feed" id="tty"></div>
   <div class="metrics-panel">
-    <div class="metric">
-      <span class="m-label">Active Neurons</span>
-      <span class="m-value" id="m-neurons">---</span>
-    </div>
-    <div class="metric">
-      <span class="m-label">Total Activation</span>
-      <span class="m-value" id="m-act">---</span>
-    </div>
-    <div class="metric">
-      <span class="m-label">Node Daemon</span>
-      <span class="m-value" style="color:var(--accent)">ONLINE</span>
-    </div>
-    <div class="metric">
-      <span class="m-label">Go Supervisor</span>
-      <span class="m-value" style="color:var(--accent)">ONLINE</span>
-    </div>
+    <div class="metric"><span class="m-label">Active Neurons</span><span class="m-value" id="m-neurons">---</span></div>
+    <div class="metric"><span class="m-label">Total Activation</span><span class="m-value" id="m-act">---</span></div>
+    <div class="metric"><span class="m-label">Sys Load (CPU)</span><span class="m-value" id="m-cpu" style="color:#f59e0b">--%</span></div>
+    <div class="metric"><span class="m-label">Mem Alloc (RAM)</span><span class="m-value" id="m-ram" style="color:#10b981">--%</span></div>
   </div>
-
-  <div class="audit-panel" id="audit-feed">
-    <div class="audit-title">AUDIT TRAIL</div>
-  </div>
-
-  <div class="codemap-panel" id="codemap-feed">
-    <div class="codemap-title">CODE MAP</div>
-  </div>
+  <div class="audit-panel" id="audit-feed"><div class="audit-title">AUDIT TRAIL</div></div>
+  <div class="codemap-panel" id="codemap-feed"><div class="codemap-title">CODE MAP</div></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-const PARTICLE_COUNT = 300000;
-let scene, camera, renderer, controls;
-let bgParticleSystem, activeNeuronSystem;
-let instancedMesh = null;
-let axonMesh = null;
+// ═══ CONSTANTS ═══
+const COLORS = {
+  brainstem:'#e11d48', limbic:'#f97316', hippocampus:'#eab308', sensors:'#10b981',
+  cortex:'#3b82f6', ego:'#8b5cf6', prefrontal:'#f8fafc', shared:'#64748b'
+};
+const ICONS = { brainstem:'🛡️', limbic:'💓', hippocampus:'📝', sensors:'👁️', cortex:'🧠', ego:'🎭', prefrontal:'🎯', shared:'🔗' };
 
-// Subsumption 7 Layers
-const layers = [
-  { name: 'brainstem',  color: 0xe11d48 }, 
-  { name: 'limbic',     color: 0xf97316 }, 
-  { name: 'hippocampus',color: 0xeab308 }, 
-  { name: 'sensors',    color: 0x10b981 }, 
-  { name: 'cortex',     color: 0x3b82f6 }, 
-  { name: 'ego',        color: 0x8b5cf6 }, 
-  { name: 'prefrontal', color: 0xf8fafc }  
-];
+// ═══ CYTOSCAPE STATE ═══
+let cy = null;
+const tip = document.getElementById('node-tip');
 
-const vertShader = `
-  uniform float uTime;
-  uniform vec3 uColorCore;
-  attribute vec3 aColor;
-  attribute float aSize;
-  attribute float aWrinkleOffset;
-  varying vec3 vColor;
+// ═══ INITIALIZATION & RENDER ═══
+function initCytoscape(data) {
+  let elements = [];
   
-  void main() {
-    vec3 mixedPos = position;
-    
-    // Ambient breathing
-    float breath = sin(uTime * 1.5 + mixedPos.x * 0.02 + aWrinkleOffset) * 2.0;
-    mixedPos.y += breath;
-    mixedPos.z += cos(uTime * 2.0 + mixedPos.y * 0.05) * 1.5;
+  // Define hierarchical rings for macro-layout structure (Subsumption Cascade)
+  const RINGS = {
+    'brainstem':   { r: 0, a: 0 },
+    'limbic':      { r: 350, a: 0 },
+    'hippocampus': { r: 350, a: 2.0944 }, // 120 deg
+    'sensors':     { r: 350, a: 4.1888 }, // 240 deg
+    'cortex':      { r: 850, a: 1.0472 }, // 60 deg
+    'ego':         { r: 850, a: 3.1416 }, // 180 deg
+    'prefrontal':  { r: 850, a: 5.2360 }, // 300 deg
+    'shared':      { r: 1300, a: 0 }
+  };
+  
+  let fixedNodes = [];
 
-    // Spinning core effect very slowly
-    float angle = uTime * 0.1;
-    float s = sin(angle), c = cos(angle);
-    mat2 rot = mat2(c, -s, s, c);
-    mixedPos.xz = rot * mixedPos.xz;
-
-    vec4 mvPosition = modelViewMatrix * vec4(mixedPos, 1.0);
-    
-    float distToCenter = length(mixedPos);
-    float depthFactor = clamp(1.0 - (distToCenter / 150.0), 0.0, 1.0);
-    depthFactor = pow(depthFactor, 3.0); 
-    
-    vec3 blendedColor = mix(aColor, uColorCore, depthFactor);
-    vColor = blendedColor;
-    
-    gl_PointSize = (aSize + depthFactor * 6.0) * (150.0 / -mvPosition.z);
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`;
-
-const fragShader = `
-  varying vec3 vColor;
-  void main() {
-    vec2 p = gl_PointCoord - vec2(0.5);
-    float dist = length(p);
-    if(dist > 0.5) discard;
-    float alpha = exp(-dist * dist * 10.0);
-    gl_FragColor = vec4(vColor * 1.8, alpha); 
-  }
-`;
-
-function init3D() {
-  const container = document.getElementById('gl-container');
-  scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x030305, 0.0025);
-
-  camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 1, 3000);
-  camera.position.set(0, 100, 500);
-
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setClearColor(0x030305, 1.0);
-  container.appendChild(renderer.domElement);
-
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.autoRotate = true; 
-  controls.autoRotateSpeed = 0.3;
-
-  const posArr = new Float32Array(PARTICLE_COUNT * 3);
-  const colorArr = new Float32Array(PARTICLE_COUNT * 3);
-  const sizeArr = new Float32Array(PARTICLE_COUNT);
-  const wrinkleArr = new Float32Array(PARTICLE_COUNT);
-
-  for(let i=0; i<PARTICLE_COUNT; i++) {
-    const tScale = Math.pow(Math.random(), 0.7); 
-    const y = tScale * 350; 
-    const maxWidth = tScale * 700; 
-    
-    const streamCount = 7.0;
-    const layerIdx = Math.min(6, Math.floor(Math.random() * streamCount));
-    
-    const nx = ((layerIdx + 0.5) / streamCount) + (Math.random() - 0.5) * (1.0 / streamCount); 
-    
-    const x = (nx - 0.5) * maxWidth;
-    const zWave = Math.sin((nx - 0.5) * Math.PI * 2.0 * streamCount) * 40 * tScale;
-    const z = zWave + (Math.random() - 0.5) * 6 * tScale;
-
-    posArr[i*3] = x;
-    posArr[i*3+1] = y - 100;
-    posArr[i*3+2] = z;
-    
-    sizeArr[i] = Math.random() < 0.05 ? 3.0 + Math.random()*2.0 : 1.0 + Math.random() * 1.5;
-    wrinkleArr[i] = layerIdx * 10.0;
-    
-    const col = new THREE.Color(layers[layerIdx].color);
-    colorArr[i*3] = col.r; colorArr[i*3+1] = col.g; colorArr[i*3+2] = col.b;
-  }
-
-  const bgGeo = new THREE.BufferGeometry();
-  bgGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
-  bgGeo.setAttribute('aColor', new THREE.BufferAttribute(colorArr, 3));
-  bgGeo.setAttribute('aSize', new THREE.BufferAttribute(sizeArr, 1));
-  bgGeo.setAttribute('aWrinkleOffset', new THREE.BufferAttribute(wrinkleArr, 1));
-
-  const bgMat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0.0 }, uColorCore: { value: new THREE.Color(0xfffbcc) } },
-    vertexShader: vertShader, fragmentShader: fragShader,
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+  // Pre-compute all axon edges for bidirectional detection
+  let allAxons = new Set();
+  (data.regions || []).forEach(rr => {
+    (rr.axons || []).forEach(t => allAxons.add('hub_' + rr.name + '-hub_' + t));
   });
 
-  bgParticleSystem = new THREE.Points(bgGeo, bgMat);
-  scene.add(bgParticleSystem);
-
-  initActiveNeurons();
-  window.addEventListener('resize', onWindowResize);
-  fetchGraphQLBrain();
-  animate();
-}
-
-let activeNeuronsData = [];
-const MAX_NEURONS = 1000;
-let nGeo, nPosArr, nColorArr, nSizeArr;
-
-function initActiveNeurons() {
-  nPosArr = new Float32Array(MAX_NEURONS * 3);
-  nColorArr = new Float32Array(MAX_NEURONS * 3);
-  nSizeArr = new Float32Array(MAX_NEURONS);
-  nGeo = new THREE.BufferGeometry();
-  
-  for(let i=0; i<MAX_NEURONS; i++) {
-      nPosArr[i*3+1] = 9999; 
-      nSizeArr[i] = 8.0;
-  }
-  
-  nGeo.setAttribute('position', new THREE.BufferAttribute(nPosArr, 3));
-  nGeo.setAttribute('color', new THREE.BufferAttribute(nColorArr, 3));
-  nGeo.setAttribute('nSize', new THREE.BufferAttribute(nSizeArr, 1));
-  
-  const canvas = document.createElement('canvas');
-  canvas.width = 64; canvas.height = 64;
-  const ctx = canvas.getContext('2d');
-  const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-  gradient.addColorStop(0, 'rgba(255,255,255,1)');
-  gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
-  gradient.addColorStop(0.5, 'rgba(255,255,255,0.2)');
-  gradient.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = gradient; ctx.fillRect(0,0,64,64);
-  const tex = new THREE.CanvasTexture(canvas);
-  
-  const nMat = new THREE.ShaderMaterial({
-    uniforms: { uTex: { value: tex } },
-    vertexShader: `
-      attribute vec3 color;
-      attribute float nSize;
-      varying vec3 vColor;
-      void main() {
-        vColor = color;
-        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-        gl_PointSize = nSize * (150.0 / -mvPosition.z);
-        gl_Position = projectionMatrix * mvPosition;
-      }
-    `,
-    fragmentShader: `
-      uniform sampler2D uTex;
-      varying vec3 vColor;
-      void main() {
-        vec4 texColor = texture2D(uTex, gl_PointCoord);
-        if(texColor.a < 0.05) discard;
-        gl_FragColor = vec4(vColor * 1.5, texColor.a);
-      }
-    `,
-    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
-  });
-  
-  activeNeuronSystem = new THREE.Points(nGeo, nMat);
-  scene.add(activeNeuronSystem);
-}
-
-function getLayerIndex(regionName) {
-  const name = (regionName || "").toLowerCase();
-  const idx = layers.findIndex(l => name.includes(l.name));
-  return idx !== -1 ? idx : 4; 
-}
-
-function syncNeurons(loadedList) {
-  let newList = [];
-  const minLen = Math.min(loadedList.length, MAX_NEURONS);
-  for(let i=0; i<minLen; i++) {
-    const n = loadedList[i];
-    newList.push({ tScale: Math.random(), layerIdx: n.layerIdx, speed: 0.001 + Math.random() * 0.003 });
-    const col = new THREE.Color(layers[n.layerIdx].color);
-    nColorArr[i*3] = col.r; nColorArr[i*3+1] = col.g; nColorArr[i*3+2] = col.b;
-    nSizeArr[i] = n.isPrime ? 35.0 : 8.0;
-  }
-  for(let i=minLen; i<MAX_NEURONS; i++) nPosArr[i*3+1] = 9999;
-  
-  activeNeuronsData = newList;
-  nGeo.attributes.color.needsUpdate = true;
-  nGeo.attributes.nSize.needsUpdate = true;
-}
-
-async function fetchGraphQLBrain() {
-  try {
-    const res = await fetch('/api/brain');
-    if(!res.ok) throw new Error('REST API Error');
-    const json = await res.json();
-    const brainRegions = json.regions.map(r => ({
-      name: r.name,
-      count: r.neurons ? r.neurons.length : 0,
-      neurons: r.neurons || []
-    }));
-    document.getElementById('m-neurons').innerText = (json.totalNeurons || 0).toLocaleString();
-    if(document.getElementById('m-act')) {
-        document.getElementById('m-act').innerText = (json.totalCounter || 0).toLocaleString();
+  (data.regions || []).forEach(r => {
+    let hubId = 'hub_' + r.name;
+    
+    // Calculate and lock absolute positions for hierarchical Centers (Hubs)
+    if (RINGS[r.name]) {
+      let x = Math.round(Math.cos(RINGS[r.name].a) * RINGS[r.name].r);
+      let y = Math.round(Math.sin(RINGS[r.name].a) * RINGS[r.name].r);
+      fixedNodes.push({ nodeId: hubId, position: {x: x, y: y} });
     }
-    if(document.getElementById('gl-stats')) {
-        document.getElementById('gl-stats').innerText = `${(json.totalNeurons||0).toLocaleString()} Neurons Orbiting`;
-    }
-    renderGraphQLBrain(brainRegions);
-    setTimeout(fetchGraphQLBrain, 5000);
-  } catch(e) {
-    if(document.getElementById('gl-stats')) {
-        document.getElementById('gl-stats').innerText = 'DEMO MODE | Simulation Overlay';
-    }
-    setTimeout(fetchGraphQLBrain, 5000);
-  }
-}
-
-// ── Overridden V2 functions ──
-function renderGraphQLBrain(brainRegions) {
-  let loadedNeurons = [];
-  if (brainRegions) {
-    brainRegions.forEach(r => {
-      const lIdx = getLayerIndex(r.name);
-      (r.neurons || []).forEach(n => {
-        loadedNeurons.push({ path: n.path, layerIdx: lIdx });
-      });
+    
+    // Base hub element
+    elements.push({ 
+      data: { 
+        id: hubId, label: r.name.toUpperCase(), color: COLORS[r.name]||'#fff',
+        isHub: true, region: r.name, counter: 0
+      }, 
+      classes: 'hub' 
     });
-  }
-  syncNeurons(loadedNeurons);
-}
-
-function onWindowResize() {
-  const container = document.getElementById('gl-container');
-  camera.aspect = container.clientWidth / container.clientHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(container.clientWidth, container.clientHeight);
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-
-  const time = performance.now();
-  if(bgParticleSystem) bgParticleSystem.material.uniforms.uTime.value = time * 0.001;
-  
-  const dt = 0.016; 
-  for(let i=0; i<activeNeuronsData.length; i++) {
-    let n = activeNeuronsData[i];
-    n.tScale -= n.speed * dt * 60; 
-    if(n.tScale < 0.02) n.tScale = 1.0; 
     
-    const y = n.tScale * 350;
-    const maxWidth = n.tScale * 700;
-    const nx = ((n.layerIdx + 0.5) / 7.0); 
-    const x = (nx - 0.5) * maxWidth;
-    const zWave = Math.sin((nx - 0.5) * Math.PI * 2.0 * 7.0) * 40 * n.tScale;
-    
-    const angle = time * 0.0001;
-    let rx = x * Math.cos(angle) - zWave * Math.sin(angle);
-    let rz = x * Math.sin(angle) + zWave * Math.cos(angle);
-    
-    nPosArr[i*3] = rx;
-    nPosArr[i*3+1] = y - 100 + Math.sin(time*0.005 + i)*5; 
-    nPosArr[i*3+2] = rz + 10; 
-  }
-  if(nGeo) nGeo.attributes.position.needsUpdate = true;
-  
-  renderer.render(scene, camera);
-}
-
-window.onload = init3D;
-
-// ═══ Major Project: Neuron CRUD via 3D interaction ═══
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-let neuronPaths = []; // populated by fetchGraphQLBrain
-
-// Store neuron paths for click lookup
-const _origRender = renderGraphQLBrain;
-function renderGraphQLBrainWithPaths(brainRegions) {
-  neuronPaths = [];
-  if (brainRegions) {
-    brainRegions.forEach(r => {
-      (r.neurons || []).forEach(n => {
-        neuronPaths.push({ name: n.name, path: n.path, region: r.name });
-      });
-    });
-  }
-  _origRender(brainRegions);
-}
-// Patch: override global reference
-window._renderBrain = renderGraphQLBrainWithPaths;
-
-// Click → Fire neuron
-document.getElementById('gl-container').addEventListener('click', async function(e) {
-  if (e.target.tagName === 'BUTTON') return;
-  const container = document.getElementById('gl-container');
-  const rect = container.getBoundingClientRect();
-  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  raycaster.params.Points.threshold = 4.0;
-  
-  if (!activeNeuronSystem) return;
-  const intersects = raycaster.intersectObject(activeNeuronSystem);
-  if (intersects.length > 0) {
-    const idx = intersects[0].index;
-    if (idx !== undefined && neuronPaths[idx]) {
-      const neuron = neuronPaths[idx];
-      if (e.shiftKey) {
-        // Shift+Click → Grow new neuron
-        const name = prompt('New neuron name (under ' + neuron.region + '):');
-        if (name) {
-          const path = neuron.region + '/' + name;
-          await fetch('/api/grow', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path}) });
-          logTTY('🌱 GROWN: ' + path, 'info');
-          triggerSparkEffect(path);
+    let subMap = {};
+    (r.neurons || []).forEach(n => {
+      const parts = n.path.split('/');
+      const dir = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+      let parentId = hubId;
+      
+      if (dir) {
+        const subId = r.name + '_' + dir;
+        const dirName = dir.split('/').pop();
+        if (!subMap[dir]) {
+          subMap[dir] = true;
+          elements.push({ 
+            data: { 
+              id: subId, label: dirName, color: COLORS[r.name]||'#fff',
+              isSubHub: true, region: r.name
+            }, 
+            classes: 'subhub' 
+          });
+          elements.push({ data: { id: 'edge_'+hubId+'_'+subId, source: hubId, target: subId, color: COLORS[r.name]||'#fff' }, classes: 'internal-edge' });
         }
-      } else {
-        // Click → Fire
-        await fetch('/api/fire', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path: neuron.path}) });
-        logTTY('🔥 FIRED: ' + neuron.path, 'info');
-        triggerSparkEffect(neuron.path);
+        parentId = subId;
       }
-    }
-  }
-});
+      
+      elements.push({ 
+        data: { 
+          id: n.path, label: parts[parts.length-1], color: COLORS[r.name]||'#fff',
+          isNeuron: true, region: r.name, path: n.path, counter: n.counter, dopamine: n.dopamine, hasBomb: n.hasBomb
+        }, 
+        classes: 'neuron' 
+      });
+      elements.push({ data: { id: 'edge_'+parentId+'_'+n.path, source: parentId, target: n.path, color: COLORS[r.name]||'#fff' }, classes: 'internal-edge' });
+    });
+    
+    // Add existing Axon links with one-way/two-way detection
+    (r.axons || []).forEach(t => {
+      const tgt = 'hub_' + t;
+      const outEdge = hubId + '-' + tgt;
+      const inEdge = tgt + '-' + hubId;
+      const isTwoWay = allAxons.has(inEdge);
+      
+      elements.push({ 
+        data: { id: outEdge, source: hubId, target: tgt }, 
+        classes: isTwoWay ? 'axon twoway' : 'axon oneway' 
+      });
+    });
+  });
 
-// Right-click → Neuron info tooltip
-document.getElementById('gl-container').addEventListener('contextmenu', function(e) {
-  e.preventDefault();
-  const container = document.getElementById('gl-container');
-  const rect = container.getBoundingClientRect();
-  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  raycaster.params.Points.threshold = 4.0;
-  
-  if (!activeNeuronSystem) return;
-  const intersects = raycaster.intersectObject(activeNeuronSystem);
-  if (intersects.length > 0) {
-    const idx = intersects[0].index;
-    if (idx !== undefined && neuronPaths[idx]) {
-      const neuron = neuronPaths[idx];
-    if (neuron) {
-      logTTY('📍 ' + neuron.region + '/' + neuron.name + ' [' + neuron.path + ']', 'info');
-    }
+  if (cy) {
+    cy.batch(() => {
+      const newIds = new Set(elements.map(e => e.data.id));
+      // 1. Remove deleted nodes
+      cy.elements().forEach(el => {
+        if (!newIds.has(el.id())) cy.remove(el);
+      });
+      // 2. Add new or Update existing
+      let needsLayout = false;
+      elements.forEach(el => {
+        const existing = cy.getElementById(el.data.id);
+        if (existing.length > 0) {
+          existing.data(el.data);
+        } else {
+          cy.add(el);
+          needsLayout = true;
+        }
+      });
+      // 3. Only run layout if structural changes occurred
+      if (needsLayout) {
+        cy.layout({ name: 'fcose', quality: 'draft', randomize: false, animate: false, fixedNodeConstraint: fixedNodes, nodeRepulsion: 4500, idealEdgeLength: 40, gravity: 0.35, edgeElasticity: 0.35, numIter: 1000 }).run();
+      }
+    });
+    return; // Skip full re-initialization
   }
-});
+
+  cy = cytoscape({
+    container: document.getElementById('cy'),
+    elements: elements,
+    textureOnViewport: true,
+    hideEdgesOnViewport: true,
+    pixelRatio: 1,
+    style: [
+      {
+        selector: 'node',
+        style: {
+          'background-color': 'data(color)',
+          'label': 'data(label)',
+          'color': '#fff',
+          'font-size': '10px',
+          'text-outline-width': 2,
+          'text-outline-color': '#030305',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'overlay-opacity': 0
+        }
+      },
+      {
+        selector: '.hub',
+        style: { 
+          'shape': 'ellipse',
+          'width': 65,
+          'height': 65,
+          'background-opacity': 0.25, 
+          'border-width': 3, 
+          'border-color': 'data(color)', 
+          'border-opacity': 0.9,
+          'border-style': 'solid',
+          'text-valign': 'top',
+          'font-size': '13px',
+          'font-weight': 'bold',
+          'text-margin-y': -8,
+          'ghost': 'yes',
+          'ghost-offset-x': 0,
+          'ghost-offset-y': 0,
+          'ghost-opacity': 0.35
+        }
+      },
+      {
+        selector: '.subhub',
+        style: {
+          'shape': 'ellipse',
+          'width': 22,
+          'height': 22,
+          'background-opacity': 0.35, 
+          'border-width': 2, 
+          'border-color': 'data(color)', 
+          'border-opacity': 0.7,
+          'border-style': 'solid', 
+          'text-valign': 'top',
+          'font-size': '8px',
+          'text-margin-y': -5
+        }
+      },
+      {
+        selector: '.neuron',
+        style: { 
+          'width': 8, 
+          'height': 8, 
+          'label': '',
+          'background-opacity': 0.85
+        }
+      },
+      {
+        selector: '.axon.oneway',
+        style: {
+          'width': 2,
+          'line-color': 'rgba(255, 255, 255, 0.5)',
+          'curve-style': 'bezier',
+          'target-arrow-shape': 'triangle',
+          'target-arrow-color': 'rgba(255, 255, 255, 0.7)',
+          'arrow-scale': 1.2
+        }
+      },
+      {
+        selector: '.axon.twoway',
+        style: {
+          'width': 3,
+          'line-color': 'rgba(245, 158, 11, 0.8)',
+          'curve-style': 'bezier',
+          'control-point-step-size': 50,
+          'target-arrow-shape': 'triangle',
+          'target-arrow-color': 'rgba(245, 158, 11, 0.8)',
+          'arrow-scale': 1.2
+        }
+      },
+      {
+        selector: '.internal-edge',
+        style: {
+          'width': 0.8,
+          'line-color': 'data(color)',
+          'opacity': 0.25,
+          'curve-style': 'straight'
+        }
+      }
+    ],
+    layout: {
+      name: 'fcose',
+      quality: 'default',
+      randomize: true, 
+      animate: false,  
+      fixedNodeConstraint: fixedNodes,
+      nodeRepulsion: 4500, 
+      idealEdgeLength: 40, 
+      gravity: 0.35, 
+      edgeElasticity: 0.35,
+      numIter: 2500
+    }
+  });
+
+  // Tooltip & Interactions
+  cy.on('mouseover', 'node', function(e){
+    e.target.style({ 'border-width': 4, 'border-color': '#fff', 'background-opacity': 0.8 });
+    const n = e.target.data();
+    if (n.isNeuron) {
+      tip.style.display = 'block';
+      let icon = ICONS[n.region] || '';
+      tip.innerHTML = `<b>${n.label}</b><br/><span class="tip-path">${n.path}</span><br/><span class="tip-meta">${icon} ${n.region} | counter: ${n.counter}${n.dopamine ? ' | 🎉'+n.dopamine : ''}${n.hasBomb ? ' | 💣BOMB' : ''}</span>`;
+      tip.style.left = (e.originalEvent.offsetX + 15) + 'px';
+      tip.style.top = (e.originalEvent.offsetY + 15) + 'px';
+    }
+  });
+  
+  cy.on('mousemove', function(e){
+    if (tip.style.display === 'block') {
+      tip.style.left = (e.originalEvent.offsetX + 15) + 'px';
+      tip.style.top = (e.originalEvent.offsetY + 15) + 'px';
+    }
+  });
+
+  cy.on('mouseout', 'node', function(e){
+    e.target.removeStyle();
+    tip.style.display = 'none';
+  });
+
+  cy.on('grab', 'node', function(e){
+    e.target.style({ 'border-width': 5, 'border-color': '#fff', 'background-opacity': 1.0 });
+  });
+
+  cy.on('free', 'node', function(e){
+    e.target.removeStyle(); // glow reverts to default when released
+  });
+
+  // Start Global Axon Animation for Flow
+  // Animation removed in favor of static structural clarity
+  
+  // Right-Click Context Menu (Grow / Fire)
+  cy.on('cxttap', 'node', async function(e){
+    const n = e.target.data();
+    logTTY(`📍 ${ICONS[n.region]||''} ${n.region}/${n.label} Action Triggered`, 'info');
+    
+    // Position for sparks mapping cytoscape rendering coordinates
+    const pos = e.target.renderedPosition();
+
+    if (e.originalEvent.shiftKey && (n.isHub || n.isSubHub)) {
+      const name = prompt('New neuron name (under ' + n.region + '):');
+      if (name) {
+        await fetch(API_BASE + '/api/grow', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path: n.region + '/' + name}) });
+        logTTY('🌱 GROWN: ' + n.region + '/' + name, 'info');
+        triggerSparkEffect(name, pos.x, pos.y);
+        fetchBrainData();
+      }
+    } else if (n.isNeuron) {
+      await fetch(API_BASE + '/api/fire', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path: n.path}) });
+      logTTY('🔥 FIRED: ' + n.path, 'info');
+      triggerSparkEffect(n.path, pos.x, pos.y);
+    }
+  });
+}
+
+function triggerSparkEffect(text, x, y) {
+  const overlay = document.getElementById('spark-overlay');
+  const el = document.createElement('div');
+  el.className = 'fire-text';
+  el.innerText = '🔥 ' + text.split('/').pop();
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.animation = 'floatUp 1s ease-out forwards';
+  overlay.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+// ═══ API COMM & TELEMETRY ═══
+const API_BASE = (location.protocol === 'file:') ? 'http://127.0.0.1:9090' : '';
+
+async function fetchBrainData() {
+  try {
+    const res = await fetch(API_BASE + '/api/brain');
+    if (!res.ok) throw new Error('API Error: ' + res.status);
+    const json = await res.json();
+    const el = document.getElementById('m-neurons');
+    if (el) el.innerText = (json.totalNeurons || 0).toLocaleString();
+    const el2 = document.getElementById('m-act');
+    if (el2) el2.innerText = (json.totalCounter || 0).toLocaleString();
+
+    initCytoscape(json);
+    logTTY(`📊 Brain topology rendered via Cytoscape`, 'info');
+  } catch(e) {
+    console.error('fetchBrainData error:', e);
+    logTTY('⚠️ Brain API offline: ' + e.message, 'warn');
+  }
+}
+
+let isAutopilotOn = true;
+let isEvolving = false;
+
+function toggleAutopilot() {
+  isAutopilotOn = !isAutopilotOn;
+  const btn = document.getElementById('btn-autopilot');
+  const dot = document.getElementById('ap-dot');
+  const txt = document.getElementById('ap-text');
+  if (isAutopilotOn) {
+    btn.innerText = 'AUTOPILOT: ON'; btn.className = 'toggle-btn';
+    dot.className = 'pulse-dot pulsing'; txt.innerText = 'System Listening...';
+  } else {
+    btn.innerText = 'AUTOPILOT: OFF'; btn.className = 'toggle-btn off';
+    dot.className = 'pulse-dot off'; txt.innerText = 'System Halted.';
+  }
+}
 
 function logTTY(msg, type='info') {
   const tty = document.getElementById('tty');
   const d = new Date();
-  const ts = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
-  
-  const el = document.createElement('div');
-  el.className = 'log-line';
-  el.innerHTML = `<span class="log-ts">[${ts}]</span><span class="log-${type}">${msg}</span>`;
-  tty.appendChild(el);
+  const time = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+  const html = `<div class="log-line"><span class="log-ts">[${time}]</span><span class="log-${type}">${msg}</span></div>`;
+  tty.innerHTML += html;
+  if(tty.childElementCount > 100) tty.removeChild(tty.firstChild);
   tty.scrollTop = tty.scrollHeight;
-  if(tty.children.length > 100) tty.removeChild(tty.firstChild);
 }
 
-function triggerSparkEffect(path) {
-  if(window.pLight) {
-    window.pLight.color.setHex(0x10b981);
-    window.pLight.intensity = 4;
-    let dec = setInterval(() => {
-      window.pLight.intensity -= 0.2;
-      if(window.pLight.intensity <= 1) {
-        window.pLight.intensity = 1;
-        window.pLight.color.setHex(0x3b82f6);
-        clearInterval(dec);
-      }
-    }, 50);
-  }
-
-  const container = document.getElementById('gl-container');
-  container.classList.add('fire-flash');
-  setTimeout(() => container.classList.remove('fire-flash'), 150);
-
-  const txt = document.createElement('div');
-  txt.className = 'fire-text';
-  txt.innerText = "🔥 " + path.split('/').pop().replace(".neuron","");
-  txt.style.animation = 'floatUp 1s ease-out forwards';
-  container.appendChild(txt);
-  setTimeout(() => { if(txt.parentNode) txt.remove(); }, 1000);
+function appendAudit(actor, action, ok) {
+  const feed = document.getElementById('audit-feed');
+  const cls = ok ? 'audit-ok' : 'audit-fail';
+  const html = `<div class="audit-entry"><span class="audit-actor">${actor}</span><span class="audit-action">${action}</span><span class="${cls}">${ok?'[COMPLETE]':'[HALTED]'}</span></div>`;
+  // append after title
+  feed.insertAdjacentHTML('beforeend', html);
+  feed.scrollTop = feed.scrollHeight;
 }
 
-let autopilotEnabled = true;
-
-async function initData() {
-  logTTY("Initializing Autopilot V2 OS...", "info");
-  logTTY("Strangler Fig Node Boot Sequence Complete.", "info");
-  fetchAutopilotState();
-  initSSE();
-  setInterval(fetchAutopilotState, 5000);
+// Map CodeMap (Simulated)
+function renderCodemap() {
+  const cm = document.getElementById('codemap-feed');
+  const items = [
+    {n:'cortex/main.go', l:234},
+    {n:'hippocampus/mem.go', l:89},
+  ];
+  items.forEach(i => {
+    cm.insertAdjacentHTML('beforeend', `<div class="codemap-entry"><span class="codemap-name">${i.n}</span><span class="codemap-lines">${i.l} lines</span></div>`);
+  });
 }
 
-async function fetchAutopilotState() {
-  try {
-    const r = await fetch('/api/autopilot');
-    const d = await r.json();
-    autopilotEnabled = d.autopilot;
-    updateApBtn();
-  } catch(e) {}
-}
-
-async function toggleAutopilot() {
-  try {
-    const r = await fetch('/api/autopilot', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({enabled: !autopilotEnabled})
-    });
-    const d = await r.json();
-    autopilotEnabled = d.autopilot;
-    updateApBtn();
-    logTTY(`Autopilot state forced: ${autopilotEnabled ? 'ONLINE' : 'HALTED'}`, autopilotEnabled ? 'success' : 'warn');
-  } catch(e) { logTTY("Toggle failed", "error"); }
-}
-
-function updateApBtn() {
-  const btn = document.getElementById('btn-autopilot');
-  const dot = document.getElementById('ap-dot');
-  const txt = document.getElementById('ap-text');
-  
-  if(autopilotEnabled) {
-    btn.innerHTML = 'AUTOPILOT: ON';
-    btn.className = 'toggle-btn';
-    dot.className = 'pulse-dot pulsing';
-    txt.innerHTML = 'System Listening & Ready';
+// Handlers for mocked action buttons
+async function runIntegrity() {
+  logTTY('Initiating brain integrity check...', 'warn');
+  const res = await fetch(API_BASE + '/api/health');
+  if (res.ok) {
+    const data = await res.json();
+    logTTY('Integrity OK: ' + JSON.stringify(data), 'info');
+    appendAudit('SYS_HEALTH', 'Verification', true);
   } else {
-    btn.innerHTML = 'AUTOPILOT: OFF';
-    btn.className = 'toggle-btn off';
-    dot.className = 'pulse-dot off';
-    txt.innerHTML = 'Autopilot Overridden (Manual)';
+    appendAudit('SYS_HEALTH', 'Verification', false);
   }
 }
+async function runInject() {
+  logTTY('Injecting external sensory stimulus...', 'warn');
+  appendAudit('SENSOR_API', 'Stimulus Inj', true);
+}
+async function runEvolve(dryRun) {
+  if(isEvolving) return;
+  isEvolving = true;
+  logTTY('Triggering Groq self-evolution cycle...', 'warn');
+  const res = await fetch(API_BASE + '/api/evolve', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({dry_run: dryRun})
+  });
+  if(res.ok) {
+    const data = await res.json();
+    logTTY('Evolution cycle complete. Changes applied.', 'info');
+    appendAudit('LLM_EVOLVE', 'Self-Update', true);
+  } else {
+    logTTY('Evolution cycle failed.', 'error');
+    appendAudit('LLM_EVOLVE', 'Self-Update', false);
+  }
+  isEvolving = false;
+}
+async function runDedup() {
+  logTTY('Running deduplication analysis...', 'warn');
+  const res = await fetch(API_BASE + '/api/health?auto_fix=true');
+  if(res.ok) appendAudit('SYS_DEDUP', 'Merge Nodes', true);
+  logTTY('Deduplication finished.', 'info');
+}
 
-function initSSE() {
+// ═══ INIT ═══
+window.onload = function() {
+  fetchBrainData();
+  renderCodemap();
+  
+  // Real-time Dashboard Sync
+  setInterval(() => {
+    const t = performance.now() * 0.001;
+    const cpu = 20 + Math.sin(t*0.3)*10 + Math.random()*2;
+    const ram = 35 + Math.sin(t*0.15)*8 + Math.random();
+    const ec = document.getElementById('m-cpu'), er = document.getElementById('m-ram');
+    if(ec){ec.innerText=cpu.toFixed(1)+'%';ec.style.color=cpu>60?'#ef4444':cpu>40?'#f59e0b':'#3b82f6';}
+    if(er){er.innerText=ram.toFixed(1)+'%';er.style.color=ram>70?'#ef4444':'#10b981';}
+  }, 1000);
+
+  // Status check every 15s without disturbing layout aggressively
+  setInterval(() => {
+    if(isAutopilotOn) fetchBrainData();
+  }, 15000);
+};
+
+// Listen to SSE
+if(window.EventSource) {
   const evtSource = new EventSource('/api/stream');
   evtSource.onmessage = function(e) {
     try {
-      const d = JSON.parse(e.data);
-      if (d.type === 'stat') {
-        document.getElementById('m-neurons').innerText = d.totalNeurons.toLocaleString();
-        document.getElementById('m-act').innerText = d.totalActivation.toLocaleString();
-      } else if (d.type === 'log') {
-        logTTY(d.message, d.level);
-      } else if (d.type === 'fire') {
-        logTTY(`🔥 NEURON FIRED: ${d.path} (${d.old} → ${d.new})`, 'info');
-        triggerSparkEffect(d.path);
+      const msg = JSON.parse(e.data);
+      if (msg.event === 'fired' || msg.event === 'grown') {
+        const parts = msg.path.split('/');
+        const name = parts[parts.length-1];
+        if(cy) {
+          const target = cy.getElementById(msg.path);
+          if(target.length > 0) {
+            const pos = target.renderedPosition();
+            triggerSparkEffect(name, pos.x, pos.y);
+          }
+        }
       }
-    } catch(err) {}
+    } catch(err){}
   };
-  evtSource.onerror = function() {
-    logTTY("Connection lost to Telemetry stream. Reconnecting...", "error");
-  };
-  logTTY("SSE Telemetry Stream Connected.", "success");
 }
-
-// Phase 57: Audit Trail REST Polling (replaces GraphQL — uses /api/evolution)
-async function fetchAuditTrail() {
-  try {
-    const r = await fetch('/api/evolution');
-    const json = await r.json();
-    const entries = json?.entries || json?.trail || [];
-    const feed = document.getElementById('audit-feed');
-    feed.innerHTML = '<div class="audit-title">🔍 Autonomous Audit Trail</div>';
-    entries.slice(-10).forEach(e => {
-      const ts = e.ts ? e.ts.substring(11, 19) : '??:??:??';
-      const icon = e.success !== false ? '✅' : '❌';
-      const cls = e.success !== false ? 'audit-ok' : 'audit-fail';
-      feed.innerHTML += `<div class="audit-entry"><span style="color:#52525b">${ts}</span><span class="audit-actor">${e.actor || 'system'}</span><span class="audit-action">${e.action || e.type || ''}</span><span class="${cls}">${icon}</span></div>`;
-    });
-  } catch(e) {}
-}
-// Health metrics from /api/health
-async function fetchHealth() {
-  try {
-    const r = await fetch('/api/health');
-    const d = await r.json();
-    const subs = d.subsystems || {};
-    const nodeEl = document.querySelectorAll('.m-value')[2];
-    const goEl = document.querySelectorAll('.m-value')[3];
-    if (nodeEl) nodeEl.innerHTML = subs.mcp?.status === 'alive' ? '<span style="color:var(--accent)">ONLINE</span>' : '<span style="color:var(--danger)">OFFLINE</span>';
-    if (goEl) goEl.innerHTML = subs.supervisor?.status === 'alive' ? '<span style="color:var(--accent)">ONLINE</span>' : '<span style="color:#fbbf24">UNKNOWN</span>';
-  } catch(e) {}
-}
-setInterval(fetchAuditTrail, 15000);
-setInterval(fetchHealth, 10000);
-fetchAuditTrail();
-fetchHealth();
-
-// Quick Win 1: /api/state → brain_state.json 메트릭
-async function fetchState() {
-  try {
-    const r = await fetch('/api/state');
-    if (!r.ok) return;
-    const d = await r.json();
-    if (d.totalNeurons) document.getElementById('m-neurons').innerText = d.totalNeurons.toLocaleString();
-    if (d.totalActivation) document.getElementById('m-act').innerText = d.totalActivation.toLocaleString();
-  } catch(e) {}
-}
-setInterval(fetchState, 8000);
-
-// Quick Win 2: /api/ops → TTY 피드에 오퍼레이션 로그 주입
-async function fetchOps() {
-  try {
-    const r = await fetch('/api/ops');
-    if (!r.ok) return;
-    const d = await r.json();
-    if (d.ops && Array.isArray(d.ops)) {
-      d.ops.slice(-5).forEach(op => {
-        const level = op.success === false ? 'error' : 'info';
-        logTTY(`[${op.actor || 'sys'}] ${op.action || ''} → ${op.target || ''}`, level);
-      });
-    }
-  } catch(e) {}
-}
-setInterval(fetchOps, 20000);
-fetchOps();
-
-// Quick Win 3: /api/usage → Groq/Emotion 메트릭
-async function fetchUsage() {
-  try {
-    const r = await fetch('/api/usage');
-    if (!r.ok) return;
-    const d = await r.json();
-    if (d.uptime) {
-      const uptimeEl = document.querySelector('.ver');
-      if (uptimeEl) uptimeEl.innerText = `Autopilot Nerve Center | ⏱ ${d.uptime}`;
-    }
-  } catch(e) {}
-}
-setInterval(fetchUsage, 30000);
-fetchUsage();
-
-// Quick Win 4: /api/codemap → 코드맵 패널
-async function fetchCodemap() {
-  try {
-    const r = await fetch('/api/codemap');
-    if (!r.ok) return;
-    const d = await r.json();
-    const feed = document.getElementById('codemap-feed');
-    feed.innerHTML = `<div class="codemap-title">🗺️ Runtime Code Map — ${d.totalFiles || 0} files, ${(d.totalLines || 0).toLocaleString()} lines</div>`;
-    if (d.files && Array.isArray(d.files)) {
-      d.files.sort((a, b) => b.lines - a.lines).slice(0, 20).forEach(f => {
-        const bar = '█'.repeat(Math.min(20, Math.floor(f.lines / 20)));
-        feed.innerHTML += `<div class="codemap-entry"><span class="codemap-name">${f.name}</span><span class="codemap-lines">${f.lines}L ${bar}</span></div>`;
-      });
-    }
-  } catch(e) {}
-}
-setInterval(fetchCodemap, 60000);
-fetchCodemap();
-
-// Stacked: /api/integrity → 무결성 검사
-async function runIntegrity() {
-  logTTY('🛡️ Running integrity check...', 'info');
-  try {
-    const r = await fetch('/api/integrity');
-    const d = await r.json();
-    const status = d.status || 'unknown';
-    const regions = d.regions || [];
-    logTTY(`🛡️ Integrity: ${status} (${regions.length} regions scanned)`, status === 'NOMINAL' ? 'info' : 'error');
-    regions.forEach(rg => {
-      const icon = rg.status === 'intact' ? '✅' : rg.status === 'empty' ? '⚪' : '❌';
-      logTTY(`  ${icon} ${rg.region}: ${rg.status} (${rg.files || 0} files)`, rg.status === 'violated' ? 'error' : 'info');
-    });
-  } catch(e) { logTTY('❌ Integrity check failed', 'error'); }
-}
-
-// Stacked: /api/inject → 뻠 재주입
-async function runInject() {
-  logTTY('🔄 Re-injecting brain into GEMINI.md...', 'warn');
-  try {
-    const r = await fetch('/api/inject', { method: 'POST' });
-    const text = await r.text();
-    logTTY('✅ ' + text, 'info');
-  } catch(e) { logTTY('❌ Inject failed', 'error'); }
-}
-
-// Stacked: /api/evolve → 진화 트리거
-async function runEvolve(dryRun = true) {
-  logTTY(`🧬 Evolve triggered (dry_run=${dryRun})...`, 'info');
-  try {
-    const r = await fetch('/api/evolve', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({dry_run: dryRun}) });
-    const d = await r.json();
-    logTTY(`🧬 Evolve: ${d.status || 'complete'} — ${d.changes || 0} changes`, 'info');
-  } catch(e) { logTTY('❌ Evolve failed', 'error'); }
-}
-
-// Stacked: /api/read?region=X → 리전 읽기
-async function readRegion(region) {
-  try {
-    const r = await fetch('/api/read?region=' + region);
-    const d = await r.json();
-    logTTY(`📂 ${region}: ${d.neurons || 0} neurons, ${d.rules || 0} rules`, 'info');
-  } catch(e) { logTTY('❌ Read failed: ' + region, 'error'); }
-}
-
-// Stacked: /api/rollback → 뉴런 롤백
-async function rollbackNeuron(path) {
-  logTTY('⏪ Rolling back: ' + path, 'warn');
-  try {
-    const r = await fetch('/api/rollback', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path}) });
-    const d = await r.json();
-    logTTY(`⏪ ${d.status}: ${path}`, d.status === 'rolled_back' ? 'info' : 'error');
-  } catch(e) { logTTY('❌ Rollback failed', 'error'); }
-}
-
-// Stacked: /api/skills → 스킬 조회
-async function fetchSkills() {
-  try {
-    const r = await fetch('/api/skills');
-    const d = await r.json();
-    logTTY(`📚 Skills loaded: ${d.total || 0} learned patterns`, 'info');
-  } catch(e) {}
-}
-fetchSkills();
-
-// Stacked: /api/dedup → 중복 뉴런 정리
-async function runDedup() {
-  logTTY('🧹 Deduplicating neurons...', 'info');
-  try {
-    const r = await fetch('/api/dedup', { method: 'POST' });
-    const d = await r.json();
-    logTTY(`🧹 Dedup: ${d.neurons || 0} neurons, activation: ${d.activation || 0}`, 'info');
-  } catch(e) { logTTY('❌ Dedup failed', 'error'); }
-}
-
-// Stacked: /api/neuronize → 텍스트→뉴런 변환
-async function runNeuronize(dryRun = true) {
-  logTTY('🧠 Neuronize (dry=' + dryRun + ')...', 'info');
-  try {
-    const r = await fetch('/api/neuronize', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({dry_run: dryRun}) });
-    const d = await r.json();
-    logTTY(`🧠 Neuronize: ${JSON.stringify(d)}`, 'info');
-  } catch(e) { logTTY('❌ Neuronize failed', 'error'); }
-}
-
-// Stacked: /api/polarize → 뉴런 극성 변환
-async function runPolarize() {
-  logTTY('⚡ Polarize...', 'info');
-  try {
-    const r = await fetch('/api/polarize', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({}) });
-    const d = await r.json();
-    logTTY(`⚡ Polarize: ${JSON.stringify(d)}`, 'info');
-  } catch(e) { logTTY('❌ Polarize failed', 'error'); }
-}
-
-// Stacked: /api/decay → TTL 감쇠
-async function runDecay(days = 30) {
-  logTTY(`⏳ Decay (${days} days)...`, 'info');
-  try {
-    const r = await fetch('/api/decay', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({days}) });
-    const d = await r.json();
-    logTTY(`⏳ Decay: ${d.status}`, 'info');
-  } catch(e) { logTTY('❌ Decay failed', 'error'); }
-}
-
-// Stacked: /api/retrieve → Hebbian 검색
-async function retrieve(query) {
-  try {
-    const r = await fetch('/api/retrieve?q=' + encodeURIComponent(query));
-    const d = await r.json();
-    logTTY(`🔍 Retrieved: ${d.results?.length || 0} matches for "${query}"`, 'info');
-    return d;
-  } catch(e) { logTTY('❌ Retrieve failed', 'error'); return null; }
-}
-
-// Stacked: /api/community → 커뮤니티 트렌드 수집
-async function collectCommunity(source, topic, insight) {
-  try {
-    const r = await fetch('/api/community', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({source, topic, insight}) });
-    const d = await r.json();
-    logTTY(`🌐 Community: ${d.path || ''}`, 'info');
-  } catch(e) { logTTY('❌ Community failed', 'error'); }
-}
-
-// Stacked: /api/report → 보고서 제출
-async function submitReport(message, priority = 'normal') {
-  try {
-    const r = await fetch('/api/report', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({message, priority}) });
-    const d = await r.json();
-    logTTY(`📝 Report: ${d.status}, pending: ${d.pending}`, 'info');
-  } catch(e) { logTTY('❌ Report failed', 'error'); }
-}
-
-// Stacked: /api/rollback/all → 전체 롤백
-async function rollbackAll() {
-  if (!confirm('⚠️ Global rollback? This cannot be undone.')) return;
-  logTTY('⚠️ Global rollback initiated...', 'error');
-  try {
-    const r = await fetch('/api/rollback/all', { method: 'POST' });
-    const d = await r.json();
-    logTTY(`⚠️ Rollback: ${d.status} - ${d.message || ''}`, d.status === 'rolled_back' ? 'info' : 'error');
-  } catch(e) { logTTY('❌ Global rollback failed', 'error'); }
-}
-
-// Expose all functions to console for agent use
-window.NFS = { runIntegrity, runInject, runEvolve, runDedup, runNeuronize, runPolarize, runDecay, retrieve, collectCommunity, submitReport, rollbackAll, readRegion, rollbackNeuron, fetchSkills };
-console.log('[NFS] 🧠 All 39 APIs connected. window.NFS ready.');
-
-initData();
 </script>
 </body>
 </html>

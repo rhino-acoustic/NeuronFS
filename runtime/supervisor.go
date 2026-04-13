@@ -89,10 +89,18 @@ var svCheckCount int
 // ── 부트스트랩 (bat에서 마이그레이션) ──
 func svBootstrap(nfsRoot string) {
 	// 1. 좀비 프로세스 정리 (기존 node hijacker + 이전 neuronfs 인스턴스)
+	// (a) 자신을 제외한 모든 고스트/중복 슈퍼바이저 프로세스 처단
+	exeName := filepath.Base(os.Args[0])
+	currentPID := os.Getpid()
+	killGhostsCmd := fmt.Sprintf(`taskkill /F /IM "%s" /FI "PID ne %d"`, exeName, currentPID)
+	exec.Command("cmd", "/c", killGhostsCmd).Run()
+	svLog(fmt.Sprintf("🧹 중복 슈퍼바이저/고스트 프로세스 정리 완료 (PID: %d 생존)", currentPID))
+
+	// (b) 레거시 노드 좀비
 	zombieTargets := []string{"node.exe", "hijack-launcher"}
 	for _, target := range zombieTargets {
 		if killProcessByName(target) {
-			svLog(fmt.Sprintf("🧹 좀비 정리: %s", target))
+			svLog(fmt.Sprintf("🧹 구형 좀비 정리: %s", target))
 		}
 	}
 
@@ -600,6 +608,8 @@ func superviseMCPGoroutine(brainRoot string, port int) {
 
 // svCheckMCPHealth checks MCP /mcp/health endpoint. If zombie (port open but no response),
 // logs warning. The goroutine wrapper handles restart on crash.
+var mcpFails int
+
 func svCheckMCPHealth() {
 	if mcpPort == 0 {
 		return
@@ -607,15 +617,21 @@ func svCheckMCPHealth() {
 	client := http.Client{Timeout: 3 * time.Second}
 	resp, err := client.Get(fmt.Sprintf("http://127.0.0.1:%d/mcp/health", mcpPort))
 	if err != nil {
+		mcpFails++
+		if mcpFails >= 3 {
+			svLog("\033[31m[MCP-FATAL] MCP 서버 L7 헬스체크 3연속 실패 (Session Lost / Deadlock). Auto-Healing을 위해 자폭(Restart)합니다.\033[0m")
+			os.Exit(2)
+		}
 		// Check if port is still listening (zombie detection)
 		if checkPort(mcpPort) {
-			svLog(fmt.Sprintf("\033[33m[MCP-ZOMBIE] port :%d open but /mcp/health timeout — possible deadlock\033[0m", mcpPort))
+			svLog(fmt.Sprintf("\033[33m[MCP-ZOMBIE] port :%d open but /mcp/health timeout (%d/3)\033[0m", mcpPort, mcpFails))
 		} else {
-			svLog(fmt.Sprintf("\033[31m[MCP-DOWN] port :%d not listening\033[0m", mcpPort))
+			svLog(fmt.Sprintf("\033[31m[MCP-DOWN] port :%d not listening (%d/3)\033[0m", mcpPort, mcpFails))
 		}
 		return
 	}
 	resp.Body.Close()
+	mcpFails = 0 // Session alive, reset counter
 	// MCP alive — reset restart counter on sustained health
 	if mcpRestarts > 0 {
 		mcpRestarts = 0
