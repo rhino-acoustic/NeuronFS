@@ -2,7 +2,7 @@ package main
 
 // ━━━ inject.go ━━━
 // PROVIDES: markBrainDirty, consumeDirty, computeMountHash, autoReinject, processInbox, runInjectionLoop
-// DEPENDS ON: brain.go, emit.go, lifecycle.go
+// DEPENDS ON: brain.go, emit.go, lifecycle.go, mcp_server.go (notifyMCPResourceUpdated)
 
 import (
 	"encoding/json"

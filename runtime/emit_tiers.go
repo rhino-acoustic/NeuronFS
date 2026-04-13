@@ -1,25 +1,18 @@
-// emit_tiers.go — Tier 오케스트레이션 (파일 쓰기)
+// emit_tiers.go — 5-Tier 오케스트레이션 (파일 쓰기)
 //
 // PROVIDES: writeAllTiers, writeAllTiersForTargets, applyOOMProtection, doInjectToFile
 // DEPENDS:  brain.go (scanBrain, runSubsumption)
 //           emit_bootstrap.go (emitBootstrap)
 //           emit_helpers.go (emitIndex, emitRegionRules)
-//           main.go (injectToGemini)
 //           diag.go (generateBrainJSON)
 //
 // CALL GRAPH:
-//   writeAllTiers(brainRoot)
-//     ├→ scanBrain → runSubsumption → applyOOMProtection
-//     ├→ emitBootstrap → injectToGemini          (Tier 1)
-//     ├→ emitIndex → _index.md 작성               (Tier 2)
-//     ├→ emitRegionRules × 7 → _rules.md 작성     (Tier 3)
-//     └→ generateBrainJSON
-//
 //   writeAllTiersForTargets(brainRoot, target)
 //     ├→ scanBrain → runSubsumption → applyOOMProtection
-//     ├→ emitBootstrap → IDE 파일 직접 작성        (Tier 1)
-//     ├→ emitIndex → _index.md 작성               (Tier 2)
-//     ├→ emitRegionRules × 7 → _rules.md 작성     (Tier 3)
+//     ├→ emitBootstrap → IDE 파일 직접 작성        (Tier 1: ~190 핵심 뉴런, OOM 50KB)
+//     ├→ emitIndex → _index.md 작성               (Tier 2: 전체 뉴런 인덱스)
+//     ├→ emitRegionRules × 8 → _rules.md 작성     (Tier 3: 영역별 규칙)
+//     ├→ emitRegionRules × N → subcategory _rules.md (Tier 4: 10+ 뉴런 카테고리)
 //     └→ generateBrainJSON
 
 package main

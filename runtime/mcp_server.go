@@ -1,16 +1,16 @@
 // NeuronFS MCP Server — Go Native
 //
+// PROVIDES: startMCPServer, startMCPServerWithStdout, startMCPHTTPServer,
+//           buildFreshMCPServer, buildMCPInstructions,
+//           registerActiveMCPServer, notifyMCPResourceUpdated
+// DEPENDS ON: mcp_tools_native.go (registerMCPTools), emit_bootstrap.go (emitBootstrap),
+//             emit_format_rules.go (buildPreamble), brain.go (scanBrain, runSubsumption)
+//
 // Node.js 래퍼(mcp/index.js)를 대체하여 Go에서 직접 MCP 프로토콜을 서빙한다.
 // AI(Gemini/Claude) ↔ Go(stdio, JSON-RPC 2.0) ↔ Filesystem
 //
-// 도구 7개:
-//   read_region  — 영역의 최신 _rules.md 반환 (읽기 = 발화)
-//   read_brain   — 전체 뇌 상태 JSON
-//   grow         — 뉴런 생성
-//   fire         — 뉴런 발화 (카운터 증가)
-//   signal       — 도파민/bomb/memory 신호
-//   correct      — PD 교정 기록
-//   evolve       — Groq 기반 자율 뇌 진화
+// HTTP 모드: per-session factory → 매 세션마다 최신 brain 스캔 후 Instructions 주입
+// ResourceUpdated: markBrainDirty() → 모든 활성 MCP 서버에 리소스 변경 알림
 
 package main
 
