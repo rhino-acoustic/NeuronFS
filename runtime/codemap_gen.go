@@ -123,7 +123,7 @@ func generateCodemap(brainRoot string) int {
 		for _, s := range stale {
 			msg += "- " + s + "\\n"
 		}
-		hlCDPInject("NeuronFS", msg)
+		hlCDPInject(hlTgMountedRoom, msg)
 	}
 
 	return updated

@@ -86,7 +86,7 @@ func autoReinject(brainRoot string) {
 		for _, s := range stale {
 			msg += "- " + s + "\\n"
 		}
-		hlCDPInject("NeuronFS", msg)
+		hlCDPInject(hlTgMountedRoom, msg)
 	}
 
 	newHash := computeMountHash(brainRoot)
