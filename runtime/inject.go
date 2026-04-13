@@ -78,6 +78,17 @@ func computeMountHash(brainRoot string) string {
 
 // autoReinject checks mount set hash and only writes if changed
 func autoReinject(brainRoot string) {
+	// 코드맵 STALE 체크는 hash와 무관하게 항상 실행
+	generateCodemap(brainRoot)
+	stale := collectStaleCodemaps(brainRoot)
+	if len(stale) > 0 {
+		msg := fmt.Sprintf("⚠️ STALE 코드맵 %d건 감지. view_file로 확인 후 갱신 필요:\\n", len(stale))
+		for _, s := range stale {
+			msg += "- " + s + "\\n"
+		}
+		hlCDPInject("NeuronFS", msg)
+	}
+
 	newHash := computeMountHash(brainRoot)
 	if newHash == lastMountHash {
 		return // mount set unchanged, skip injection
