@@ -115,6 +115,17 @@ func generateCodemap(brainRoot string) int {
 	if updated > 0 {
 		fmt.Printf("[CODEMAP] 🗺️  %d codemap neurons updated\n", updated)
 	}
+
+	// STALE 잔존 검사 → CDP 인젝션 (현재 대화 창에 직접 주입)
+	stale := collectStaleCodemaps(brainRoot)
+	if len(stale) > 0 {
+		msg := fmt.Sprintf("⚠️ STALE 코드맵 %d건 감지. view_file로 확인 후 갱신 필요:\\n", len(stale))
+		for _, s := range stale {
+			msg += "- " + s + "\\n"
+		}
+		hlCDPInject("NeuronFS", msg)
+	}
+
 	return updated
 }
 
