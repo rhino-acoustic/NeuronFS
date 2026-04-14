@@ -115,7 +115,7 @@ func formatPersona(sb *strings.Builder, result SubsumptionResult) {
 		for i, item := range personaItems {
 			if strings.Contains(item, "접두사") {
 				// "🐤접두사: ..." → "{동적이모지}접두사: ..."
-				personaItems[i] = strings.Replace(item, "🐤", currentPulseEmoji, 1)
+				personaItems[i] = strings.ReplaceAll(item, "🐤", currentPulseEmoji)
 			}
 		}
 	}
