@@ -573,7 +573,7 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 				// 禁 접두어 → NEVER
 				desc := strings.ReplaceAll(leaf, "_", " ")
 				if n.Description != "" {
-					desc = n.Description
+					desc = strings.TrimPrefix(n.Description, "description: ")
 				}
 				// brainstem 옵코드 조어: WHY 제거 → AI가 뉴런 직접 읽기 강제
 				why := ""
