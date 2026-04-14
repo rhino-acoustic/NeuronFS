@@ -64,6 +64,18 @@ func registerStaticRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		w.Write(data)
 	}))
 
+	// GET /v3 — Dashboard V3
+	mux.HandleFunc("/v3", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		v3Path := filepath.Join(neuronfsRoot, "dashboard_v3.html")
+		data, err := os.ReadFile(v3Path)
+		if err != nil {
+			http.Error(w, "dashboard_v3.html not found", 404)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(data)
+	}))
+
 	// GET /api/dashboard.svg — Generate dashboard vector snapshot
 	mux.HandleFunc("/api/dashboard.svg", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		brain := scanBrain(brainRoot)
