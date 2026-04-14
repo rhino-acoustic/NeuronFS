@@ -485,6 +485,19 @@ func hlTgPoll(brainRoot string) {
 				continue
 			}
 
+			if text == "/stale" {
+				stale := collectStaleCodemaps(brainRoot)
+				if len(stale) > 0 {
+					msg := fmt.Sprintf("⚠️ STALE %d건:\n", len(stale))
+					for _, s := range stale { msg += "- " + s + "\n" }
+					hlTgSend(chatID, msg)
+					go hlCDPInject(hlTgMountedRoom, msg)
+				} else {
+					hlTgSend(chatID, "✅ 코드맵 전부 최신")
+				}
+				continue
+			}
+
 			if text == "/rooms" {
 				resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/json/list", hlCDPPort))
 				if err == nil {
@@ -574,19 +587,15 @@ func hlTgPoll(brainRoot string) {
 
 		time.Sleep(1 * time.Second)
 
-		// ── STALE 코드맵 주기 체크 (60초마다) ──
-		if time.Since(hlLastStaleCheck) > 60*time.Second {
-			hlLastStaleCheck = time.Now()
-			stale := collectStaleCodemaps(brainRoot)
-			if len(stale) > 0 {
-				msg := fmt.Sprintf("[codemap → %s] ⚠️ STALE 코드맵 %d건:\\n", hlTgMountedRoom, len(stale))
-				for _, s := range stale {
-					msg += "- " + s + "\\n"
-				}
-				go hlCDPInject(hlTgMountedRoom, msg)
+		// ── STALE 코드맵 체크 ──
+		stale := collectStaleCodemaps(brainRoot)
+		if len(stale) > 0 {
+			msg := fmt.Sprintf("[codemap-alert] 아래 코드맵 뉴런이 소스보다 오래됨. view_file로 소스 확인 후 코드맵 갱신 필요:\n")
+			for _, s := range stale {
+				msg += "- " + s + "\n"
 			}
+			msg += fmt.Sprintf("경로: %s", filepath.Join(brainRoot, "cortex", "dev", "_codemap"))
+			go hlCDPInject(hlTgMountedRoom, msg)
 		}
 	}
 }
-
-var hlLastStaleCheck time.Time

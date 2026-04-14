@@ -220,7 +220,10 @@ func collectStaleCodemaps(brainRoot string) []string {
 					continue
 				}
 				if srcInfo.ModTime().After(neuronInfo.ModTime()) {
-					stale = append(stale, fmt.Sprintf("`%s` → 뉴런: `%s`", filepath.Base(srcPath), entry.Name()))
+					stale = append(stale, fmt.Sprintf("%s: source=%s (src: %s, neuron: %s)",
+						entry.Name(), srcPath,
+						srcInfo.ModTime().Format("2006-01-02 15:04"),
+						neuronInfo.ModTime().Format("2006-01-02 15:04")))
 				}
 				break
 			}
