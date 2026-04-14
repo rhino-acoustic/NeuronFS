@@ -314,7 +314,9 @@ func startMCPHTTPServer(brainRoot string, port int) {
 	// Factory: 매 세션(대화)마다 새 서버를 생성하여 최신 Instructions 주입
 	handler := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
 		return buildFreshMCPServer(brainRoot)
-	}, &mcp.StreamableHTTPOptions{})
+	}, &mcp.StreamableHTTPOptions{
+		Stateless: true, // 서버 재시작해도 세션 끊김 없음
+	})
 
 	mux := http.NewServeMux()
 	mux.Handle("/mcp", handler)
