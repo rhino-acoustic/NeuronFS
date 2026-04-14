@@ -557,8 +557,11 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 				} else if n.Description != "" {
 					desc = n.Description
 				}
-				// brainstem 옵코드 조어: 조어명만 라벨 (정의는 뉴런에서 읽기 강제)
-				why := lookupWhyHow(leaf, n.Path, n.Description).Why
+				// brainstem 옵코드 조어: WHY 제거 → AI가 뉴런 직접 읽기 강제
+				why := ""
+				if !isBrainstem {
+					why = lookupWhyHow(leaf, n.Path, n.Description).Why
+				}
 				neverRules = append(neverRules, TieredRule{
 					Label: desc,
 					Why:   why,
