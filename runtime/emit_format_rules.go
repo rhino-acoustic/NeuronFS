@@ -25,6 +25,9 @@ import (
 // TIER 1: GEMINI.md Bootstrap (~500 tokens)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+// currentPulseEmoji — 매 emit마다 변경되는 접두사 이모지 (시간 기반)
+var currentPulseEmoji string
+
 func buildPreamble(sb *strings.Builder, result SubsumptionResult, brainRoot string) bool {
 	// ━━━ 대원칙: brainstem/_principles.txt → _preamble.txt → 기본값 ━━━
 	principlesPath := filepath.Join(brainRoot, "brainstem", "_principles.txt")
@@ -76,9 +79,8 @@ func buildPreamble(sb *strings.Builder, result SubsumptionResult, brainRoot stri
 		"🌍", "🌑", "☄️", "🪐", "🌌", "🔭", "🧭", "⏳", "🗝️", "🏴",
 	}
 	pulseIdx := time.Now().Second() % len(pulseEmojis)
-	pulseEmoji := pulseEmojis[pulseIdx]
-	sb.WriteString("<!-- Pulse: ovrethyn -->\n")
-	sb.WriteString("**Pulse: " + pulseEmoji + " ovrethyn**\n\n")
+	currentPulseEmoji = pulseEmojis[pulseIdx]
+	// Pulse 라인 삭제됨 — 이모지는 접두사 규칙에서 동적 주입
 
 	sb.WriteString("## NeuronFS Active Rules\n\n")
 	return true
@@ -106,6 +108,15 @@ func formatPersona(sb *strings.Builder, result SubsumptionResult) {
 				}
 			}
 			break
+		}
+	}
+	// 접두사 이모지를 매 emit마다 동적으로 교체
+	if currentPulseEmoji != "" {
+		for i, item := range personaItems {
+			if strings.Contains(item, "접두사") {
+				// "🐤접두사: ..." → "{동적이모지}접두사: ..."
+				personaItems[i] = strings.Replace(item, "🐤", currentPulseEmoji, 1)
+			}
 		}
 	}
 	sb.WriteString(renderSection("section_persona.tmpl", BootstrapSection{Persona: personaItems}))
