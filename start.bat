@@ -30,9 +30,15 @@ echo [NeuronFS] Starting...
 REM If _reboot_request exists, auto-restart (telegram 159487 code)
 if exist "%NFSDIR%\_reboot_request" (
     del "%NFSDIR%\_reboot_request"
-    echo [NeuronFS] Reboot requested. Restarting in 3 seconds...
+    echo [NeuronFS] Reboot requested. Upgrading if needed...
     taskkill /F /IM neuronfs.exe >nul 2>&1
     timeout /t 3 /nobreak >nul
+    REM Auto-upgrade binary on reboot too
+    if exist "%NFSDIR%\neuronfs_new.exe" (
+        echo [NeuronFS] New binary found — upgrading...
+        move /Y "%NFSDIR%\neuronfs.exe" "%NFSDIR%\neuronfs.exe~" >nul 2>&1
+        move /Y "%NFSDIR%\neuronfs_new.exe" "%NFSDIR%\neuronfs.exe" >nul 2>&1
+    )
     goto :loop
 )
 echo [NeuronFS] Process exited normally.
