@@ -168,9 +168,15 @@ func mcpWithRules(brainRoot string, text string) *mcp.CallToolResult {
 			log.Printf("[MCP] auto git commit #%d at %s", count, ts)
 		}()
 	}
+	// P7 대응: 호출 카운터 노출 → AI가 도구 호출 빈도 인식
+	// P10 대응: 증거 기반 응답 알림
+	callInfo := fmt.Sprintf("\n[MCP#%d] ", count)
+	if count%5 == 0 {
+		callInfo += "tveroxin: 증거 있는가? "
+	}
 
 	return &mcp.CallToolResult{
-		Content: []mcp.Content{&mcp.TextContent{Text: text + reminder}},
+		Content: []mcp.Content{&mcp.TextContent{Text: text + callInfo + reminder}},
 	}
 }
 
