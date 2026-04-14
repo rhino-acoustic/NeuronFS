@@ -586,16 +586,5 @@ func hlTgPoll(brainRoot string) {
 		}
 
 		time.Sleep(1 * time.Second)
-
-		// ── STALE 코드맵 체크 ──
-		stale := collectStaleCodemaps(brainRoot)
-		if len(stale) > 0 {
-			msg := fmt.Sprintf("[codemap-alert] 아래 코드맵 뉴런이 소스보다 오래됨. view_file로 소스 확인 후 코드맵 갱신 필요:\n")
-			for _, s := range stale {
-				msg += "- " + s + "\n"
-			}
-			msg += fmt.Sprintf("경로: %s", filepath.Join(brainRoot, "cortex", "dev", "_codemap"))
-			go hlCDPInject(hlTgMountedRoom, msg)
-		}
 	}
 }
