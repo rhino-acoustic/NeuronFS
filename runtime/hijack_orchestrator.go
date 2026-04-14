@@ -347,7 +347,7 @@ func hlScrapeCurrentConversation() string {
 
 // appendDebugLog writes TG debug entries to tg_debug.log for troubleshooting
 func appendDebugLog(nfsRoot, msg string) {
-	logPath := filepath.Join(nfsRoot, "dist", "neuronfs", "logs", "tg_debug.log")
+	logPath := filepath.Join(nfsRoot, "logs", "tg_debug.log")
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return

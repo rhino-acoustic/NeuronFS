@@ -111,7 +111,7 @@ func runGoSourceWatcher() {
 	triggerBuild := func() {
 		fmt.Printf("\033[33m[BUILD] Source mutations detected. Initiating auto re-compilation...\033[0m\n")
 		start := time.Now()
-		cmd := exec.Command("go", "build", "-o", filepath.Join("..", "dist", "neuronfs", "neuronfs.exe"), ".")
+		cmd := exec.Command("go", "build", "-o", filepath.Join("..", "dist", "release", "neuronfs.exe"), ".")
 		cmd.Dir = cwd
 		out, err := cmd.CombinedOutput()
 		elapsed := time.Since(start)
@@ -123,6 +123,9 @@ func runGoSourceWatcher() {
 			// Phase 58: Closed Learning Loop — learn from successful builds
 			_ = LearnSkill(brainRoot, "build", fmt.Sprintf("auto_build_%s", time.Now().Format("20060102_150405")),
 				fmt.Sprintf("빌드 성공 %v", elapsed), "watch_src/triggerBuild")
+
+			// ── 자동 중복 감사 (코드 강제) ──
+			go runPostBuildAudit(cwd, brainRoot)
 		}
 
 		// After successful build, sync codemap
@@ -159,5 +162,53 @@ func runGoSourceWatcher() {
 			}
 			fmt.Printf("\033[31m[WATCHER-ERR] %v\033[0m\n", err)
 		}
+	}
+}
+
+// runPostBuildAudit — 빌드 후 자동 중복 감사. 중복 발견 시 CDP 경고.
+func runPostBuildAudit(runtimeDir, brainRoot string) {
+	// 핵심 함수별 호출 횟수 체크
+	critical := map[string]int{
+		"collectStaleCodemaps": 2, // codemap_gen + /stale
+		"generateCodemap":      1, // emit_tiers only
+		"writeAllTiers":        7, // known callers
+	}
+
+	alerts := []string{}
+	entries, _ := os.ReadDir(runtimeDir)
+
+	for fn, maxCalls := range critical {
+		count := 0
+		for _, e := range entries {
+			if !strings.HasSuffix(e.Name(), ".go") || strings.HasSuffix(e.Name(), "_test.go") {
+				continue
+			}
+			data, err := os.ReadFile(filepath.Join(runtimeDir, e.Name()))
+			if err != nil {
+				continue
+			}
+			lines := strings.Split(string(data), "\n")
+			for _, line := range lines {
+				trimmed := strings.TrimSpace(line)
+				if strings.Contains(trimmed, fn+"(") && !strings.HasPrefix(trimmed, "func ") && !strings.HasPrefix(trimmed, "//") {
+					count++
+				}
+			}
+		}
+		if count > maxCalls {
+			alerts = append(alerts, fmt.Sprintf("⚠️ %s: %d곳 호출 (최대 %d)", fn, count, maxCalls))
+		}
+	}
+
+	if len(alerts) > 0 {
+		msg := "[audit-alert] 빌드 후 중복 감사 경고:\n"
+		for _, a := range alerts {
+			msg += a + "\n"
+		}
+		msg += "grep으로 호출자 확인 후 중복 제거 필요."
+		fmt.Printf("\033[31m%s\033[0m\n", msg)
+		go hlCDPInject(hlTgMountedRoom, msg)
+	} else {
+		fmt.Printf("\033[32m[AUDIT] 중복 감사 통과 ✅\033[0m\n")
 	}
 }
