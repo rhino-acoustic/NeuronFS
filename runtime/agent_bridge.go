@@ -129,7 +129,7 @@ func abCheckInboxes(agentsDir, nasAgentsDir, logFile string, processed map[strin
 
 				// 마스터 프롬프트 감지 → 넛지로 변환 또는 생략
 				if strings.Contains(body, "NeuronFS 자율 진화 명령") || strings.Contains(body, "마스터 프롬프트") {
-					brainRoot := filepath.Dir(filepath.Dir(filepath.Dir(fp))) // inbox → agentID → _agents → brain_v4
+					brainRoot := filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(fp)))) // file → inbox → agentID → _agents → brain_v4
 					if nudge, hasWork := hlBuildContextualPrompt(brainRoot); hasWork {
 						injection = nudge
 					} else {
