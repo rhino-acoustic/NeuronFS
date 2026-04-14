@@ -581,8 +581,19 @@ func hlTgPoll(brainRoot string) {
 			os.WriteFile(filepath.Join(inboxDir, fname), []byte(content), 0600)
 			hlTgSend(chatID, fmt.Sprintf("✅ [%s] 전달됨", targetRoom))
 
-			// CDP 인젝션
-			go hlCDPInject(targetRoom, payload)
+			// CDP 인젝션 — 마스터 프롬프트는 넛지형으로 변환
+			cdpPayload := payload
+			if strings.Contains(payload, "NeuronFS 자율 진화 명령") || strings.Contains(payload, "마스터 프롬프트") {
+				// 정적 마스터 프롬프트 감지 → 컨텍스트 인식형 넛지로 교체
+				if nudge, hasWork := hlBuildContextualPrompt(brainRoot); hasWork {
+					cdpPayload = nudge
+				} else {
+					// 할 일 없음 → IDE 주입 생략
+					fmt.Println("[TG→IDE] ✅ 시스템 안정 — 마스터 프롬프트 주입 생략")
+					continue
+				}
+			}
+			go hlCDPInject(targetRoom, cdpPayload)
 		}
 
 		time.Sleep(1 * time.Second)
