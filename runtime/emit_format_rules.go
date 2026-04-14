@@ -66,9 +66,16 @@ func buildPreamble(sb *strings.Builder, result SubsumptionResult, brainRoot stri
 		return false
 	}
 
-	// ━━━ Pulse: 변하는 이모지 + 조어 ovrethyn — 이모지=최신확인, 조어=강제키워드 ━━━
-	pulseEmojis := []string{"⚡", "🔥", "🌀", "💎", "🧠", "⭐"}
-	pulseIdx := time.Now().Minute() % len(pulseEmojis)
+	// ━━━ Pulse: 매 emit마다 변하는 이모지 — 이모지 변화 = 최신 주입 증거 ━━━
+	pulseEmojis := []string{
+		"⚡", "🔥", "🌀", "💎", "🧠", "⭐", "🎯", "🚀", "💫", "🌊",
+		"🦋", "🌸", "🍀", "🎪", "🏔️", "🌅", "🎨", "🔮", "🌙", "☀️",
+		"🐉", "🦅", "🐺", "🦁", "🐋", "🦊", "🐝", "🦈", "🐙", "🦑",
+		"💠", "🔷", "🟣", "🟠", "🔴", "🟢", "🟡", "⬛", "🟤", "⚪",
+		"🎭", "🎬", "🎵", "🎲", "🧩", "🔬", "🧬", "⚙️", "🛡️", "⚔️",
+		"🌍", "🌑", "☄️", "🪐", "🌌", "🔭", "🧭", "⏳", "🗝️", "🏴",
+	}
+	pulseIdx := time.Now().Second() % len(pulseEmojis)
 	pulseEmoji := pulseEmojis[pulseIdx]
 	sb.WriteString("<!-- Pulse: ovrethyn -->\n")
 	sb.WriteString("**Pulse: " + pulseEmoji + " ovrethyn**\n\n")
