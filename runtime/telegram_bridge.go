@@ -573,5 +573,20 @@ func hlTgPoll(brainRoot string) {
 		}
 
 		time.Sleep(1 * time.Second)
+
+		// ── STALE 코드맵 주기 체크 (60초마다) ──
+		if time.Since(hlLastStaleCheck) > 60*time.Second {
+			hlLastStaleCheck = time.Now()
+			stale := collectStaleCodemaps(brainRoot)
+			if len(stale) > 0 {
+				msg := fmt.Sprintf("[codemap → %s] ⚠️ STALE 코드맵 %d건:\\n", hlTgMountedRoom, len(stale))
+				for _, s := range stale {
+					msg += "- " + s + "\\n"
+				}
+				go hlCDPInject(hlTgMountedRoom, msg)
+			}
+		}
 	}
 }
+
+var hlLastStaleCheck time.Time
