@@ -66,9 +66,9 @@ func buildPreamble(sb *strings.Builder, result SubsumptionResult, brainRoot stri
 		return false
 	}
 
-	// ━━━ Pulse: 조어 ovrethyn (O=Observe) — 이모지 대신 조어로 강제 ━━━
+	// ━━━ Pulse: 이모지 + 조어 ovrethyn — 시각 앵커 + 강제 키워드 ━━━
 	sb.WriteString("<!-- Pulse: ovrethyn -->\n")
-	sb.WriteString("**Pulse: ovrethyn** (모든 응답 첫 줄에 이 조어를 붙여라. 변하면 최신 규칙 주입 확인.)\n\n")
+	sb.WriteString("**Pulse: ovrethyn**\n\n")
 
 	sb.WriteString("## NeuronFS Active Rules\n\n")
 	return true
