@@ -137,12 +137,38 @@ func mcpError(msg string) *mcp.CallToolResult {
 	}
 }
 
+// mcpCallCounter tracks tool call count for periodic auto-commit.
+var (
+	mcpCallCounter int
+	mcpCallMu      sync.Mutex
+)
+
+// autoGitCommitInterval: N회 MCP 호출마다 brain_v4 자동 git commit
+const autoGitCommitInterval = 10
+
 // mcpWithRules wraps a tool response with P0 rules reminder.
 // Every MCP tool call response gets P0 rules appended, so rules are
 // continuously re-injected into the LLM's context window.
 // This combats the "Lost in the Middle" attention decay problem.
+// Also triggers auto git commit every N calls.
 func mcpWithRules(brainRoot string, text string) *mcp.CallToolResult {
 	reminder := buildP0Reminder(brainRoot)
+
+	// 자동 로컬 깃 커밋 (N회마다)
+	mcpCallMu.Lock()
+	mcpCallCounter++
+	count := mcpCallCounter
+	mcpCallMu.Unlock()
+	if count%autoGitCommitInterval == 0 {
+		go func() {
+			ts := time.Now().Format("2006-01-02T15:04:05")
+			SafeExecDir(ExecTimeoutGit, brainRoot, "git", "add", "-A")
+			SafeExecDir(ExecTimeoutGit, brainRoot, "git", "commit", "-m",
+				fmt.Sprintf("[auto] MCP call #%d — %s", count, ts))
+			log.Printf("[MCP] auto git commit #%d at %s", count, ts)
+		}()
+	}
+
 	return &mcp.CallToolResult{
 		Content: []mcp.Content{&mcp.TextContent{Text: text + reminder}},
 	}
