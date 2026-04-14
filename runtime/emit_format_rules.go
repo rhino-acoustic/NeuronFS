@@ -553,7 +553,12 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 				// 禁 접두어 → NEVER
 				desc := leaf
 				if n.Description != "" {
-					desc = n.Description
+					// brainstem 옵코드 조어: "xfrondel: 정의" 형식으로 조어명 보존
+					if isBrainstem {
+						desc = leaf + ": " + n.Description
+					} else {
+						desc = n.Description
+					}
 				}
 				why := lookupWhyHow(leaf, n.Path, n.Description).Why
 				neverRules = append(neverRules, TieredRule{
