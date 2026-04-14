@@ -2,8 +2,9 @@
 //
 // 설계 원칙:
 //   - Go 런타임은 인프라일 뿐, AI 에이전트(CLI)의 상관이 아니다
-//   - 직전 대화 맥락 + 시스템 상태를 읽고, 부드러운 넛지만 생성
-//   - "~해라" 명령이 아닌 "~봐봐", "~확인해볼래?" 수준의 제안
+//   - 넛지는 "직전 대화에서 뭘 했는지 요약 + 그 결과 확인해" 수준
+//   - 뭘 해라마라 직접 지시하지 않음 (월권 금지)
+//   - 시스템 이상은 참고 정보로만 첨부
 //   - 할 일이 없으면 아예 주입하지 않음
 package main
 
@@ -15,48 +16,42 @@ import (
 	"time"
 )
 
-// hlBuildContextualPrompt 는 시스템 상태를 수집한 뒤,
-// 할 일이 있으면 부드러운 넛지 프롬프트를 반환한다.
+// hlBuildContextualPrompt 는 직전 대화를 요약하고,
+// 후속 확인 방향만 제시하는 넛지를 생성한다.
 // 할 일이 없으면 ("", false)를 반환하여 주입을 생략한다.
 func hlBuildContextualPrompt(brainRoot string) (string, bool) {
-	var nudges []string
-
 	// ── 1. 직전 대화 맥락 읽기 ──
 	recentContext := hlReadRecentConversation(brainRoot)
-
-	// ── 2. 시스템 건강 체크 (Harness 실패, bomb 등) ──
-	healthNudges := hlCheckHealthNudge(brainRoot)
-	nudges = append(nudges, healthNudges...)
-
-	// ── 3. corrections.jsonl 미처리 항목 ──
-	corrNudge := hlCheckCorrectionsNudge(brainRoot)
-	if corrNudge != "" {
-		nudges = append(nudges, corrNudge)
-	}
-
-	// ── 4. 에러 로그 ──
-	errNudge := hlCheckErrorNudge(brainRoot)
-	if errNudge != "" {
-		nudges = append(nudges, errNudge)
-	}
-
-	// 할 일이 없으면 주입 안 함
-	if len(nudges) == 0 {
+	if recentContext == "" {
+		// 직전 대화가 없으면 넛지 자체가 무의미
 		return "", false
 	}
 
-	// 부드러운 넛지 프롬프트 조립
-	var sb strings.Builder
-	if recentContext != "" {
-		sb.WriteString(recentContext)
-		sb.WriteString("\n\n")
+	// ── 2. 시스템 이상 참고 정보 (있을 때만) ──
+	var refs []string
+	healthRefs := hlCheckHealthNudge(brainRoot)
+	refs = append(refs, healthRefs...)
+	corrRef := hlCheckCorrectionsNudge(brainRoot)
+	if corrRef != "" {
+		refs = append(refs, corrRef)
+	}
+	errRef := hlCheckErrorNudge(brainRoot)
+	if errRef != "" {
+		refs = append(refs, errRef)
 	}
 
-	sb.WriteString("참고로 시스템을 보니까:\n")
-	for _, n := range nudges {
-		sb.WriteString(fmt.Sprintf("- %s\n", n))
+	// 넛지 조립: 직전 대화 요약 + 확인 방향 + (참고 정보)
+	var sb strings.Builder
+	sb.WriteString(recentContext)
+	sb.WriteString("\n\n")
+	sb.WriteString("직전 대화에서 작업한 부분이 개선되었는지 확인해.")
+
+	if len(refs) > 0 {
+		sb.WriteString("\n\n참고:\n")
+		for _, r := range refs {
+			sb.WriteString(fmt.Sprintf("- %s\n", r))
+		}
 	}
-	sb.WriteString("\n시간 될 때 한번 봐줄래?")
 
 	return sb.String(), true
 }
@@ -110,7 +105,7 @@ func hlCheckHealthNudge(brainRoot string) []string {
 	for _, hanja := range []string{"必", "禁"} {
 		hp := filepath.Join(bsPath, hanja)
 		if _, err := os.Stat(hp); err != nil {
-			nudges = append(nudges, fmt.Sprintf("brainstem/%s 폴더가 없는 것 같은데 확인해볼래?", hanja))
+			nudges = append(nudges, fmt.Sprintf("brainstem/%s 폴더 누락", hanja))
 			continue
 		}
 		neuronCount := 0
@@ -124,7 +119,7 @@ func hlCheckHealthNudge(brainRoot string) []string {
 			return nil
 		})
 		if neuronCount == 0 {
-			nudges = append(nudges, fmt.Sprintf("brainstem/%s에 뉴런이 하나도 없어 봐봐", hanja))
+			nudges = append(nudges, fmt.Sprintf("brainstem/%s 뉴런 0개", hanja))
 		}
 	}
 
@@ -134,11 +129,11 @@ func hlCheckHealthNudge(brainRoot string) []string {
 		geminiPath := filepath.Join(home, ".gemini", "GEMINI.md")
 		data, err := os.ReadFile(geminiPath)
 		if err != nil {
-			nudges = append(nudges, "GEMINI.md 파일 접근이 안 되는 것 같아 확인 부탁")
+			nudges = append(nudges, "GEMINI.md 접근 불가")
 		} else {
 			content := string(data)
 			if !strings.Contains(content, "<!-- NEURONFS:START -->") || !strings.Contains(content, "<!-- NEURONFS:END -->") {
-				nudges = append(nudges, "GEMINI.md에 NeuronFS 마커가 깨진 것 같으니 한번 봐줘")
+				nudges = append(nudges, "GEMINI.md NeuronFS 마커 손상")
 			}
 		}
 	}
@@ -152,7 +147,7 @@ func hlCheckHealthNudge(brainRoot string) []string {
 			}
 			if info.Name() == "bomb.neuron" {
 				rel, _ := filepath.Rel(brainRoot, path)
-				nudges = append(nudges, fmt.Sprintf("%s에 bomb이 떠 있어 — 긴급하니까 먼저 봐봐", rel))
+				nudges = append(nudges, fmt.Sprintf("%s bomb 활성", rel))
 			}
 			return nil
 		})
@@ -172,7 +167,7 @@ func hlCheckCorrectionsNudge(brainRoot string) string {
 	if len(lines) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("corrections.jsonl에 %d건 쌓여있는데 시간 나면 정리해봐", len(lines))
+	return fmt.Sprintf("corrections.jsonl 미처리 %d건", len(lines))
 }
 
 // hlCheckErrorNudge 는 최근 에러 로그가 있으면 넛지
@@ -205,5 +200,5 @@ func hlCheckErrorNudge(brainRoot string) string {
 	if len(recentErrors) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("최근 30분 로그에 에러가 %d건 보이는데 한번 확인해볼래?", len(recentErrors))
+	return fmt.Sprintf("최근 30분 에러 %d건", len(recentErrors))
 }
