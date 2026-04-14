@@ -552,14 +552,11 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 			if strings.ContainsAny(n.Path, "禁") {
 				// 禁 접두어 → NEVER
 				desc := leaf
-				if n.Description != "" {
-					// brainstem 옵코드 조어: "xfrondel: 정의" 형식으로 조어명 보존
-					if isBrainstem {
-						desc = leaf + ": " + n.Description
-					} else {
-						desc = n.Description
-					}
+				if n.Description != "" && !isBrainstem {
+					// 비-brainstem: 정의 인라인
+					desc = n.Description
 				}
+				// brainstem 옵코드 조어: 조어명만 라벨 (정의는 뉴런에서 읽기 강제)
 				why := lookupWhyHow(leaf, n.Path, n.Description).Why
 				neverRules = append(neverRules, TieredRule{
 					Label: desc,
@@ -583,11 +580,15 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 				wh := lookupWhyHow(leaf, n.Path, n.Description)
 				
 				labelWithDesc := leaf
-				if n.Description != "" && !strings.HasPrefix(n.Description, leaf) {
-					labelWithDesc = leaf + ": " + n.Description
-				} else if n.Description != "" {
-					labelWithDesc = n.Description
+				if !isBrainstem {
+					// 비-brainstem: 정의 인라인
+					if n.Description != "" && !strings.HasPrefix(n.Description, leaf) {
+						labelWithDesc = leaf + ": " + n.Description
+					} else if n.Description != "" {
+						labelWithDesc = n.Description
+					}
 				}
+				// brainstem 옵코드 조어: 조어명만 (정의는 뉴런에서 읽기 강제)
 
 				if condition != "" {
 					whenRules = append(whenRules, TieredRule{
