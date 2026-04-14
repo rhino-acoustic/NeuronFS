@@ -5,10 +5,9 @@
 
 ### 推 WHEN → THEN (조건부 트리거)
 {{range $i, $r := .WhenRules}}{{if $i}} | {{end}}{{$r.Condition}}→{{$r.Label}}{{end}}
-
+{{if .NeverRules}}
 ### 禁 NEVER (절대 금지)
 {{- range .NeverRules}}
 - {{.Label}}{{if .Why}} (∵ {{.Why}}){{end}}
 {{- end}}
-
-위 조어는 의도적으로 의미를 숨긴 키워드. 사전: `brain_v4/brainstem/_dictionary.md` 참조.
+{{end}}

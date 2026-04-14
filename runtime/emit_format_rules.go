@@ -553,11 +553,8 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 			// ━━━ 분류 로직 + WHY/HOW 첨부 ━━━
 			if strings.ContainsAny(n.Path, "禁") {
 				// 禁 접두어 → NEVER
-				desc := leaf
-				if isBrainstem {
-					// brainstem 옵코드 조어: 볼드 강조 → AI가 핵심 키워드로 인식
-					desc = "절대 금지: **" + leaf + "**"
-				} else if n.Description != "" {
+				desc := strings.ReplaceAll(leaf, "_", " ")
+				if n.Description != "" {
 					desc = n.Description
 				}
 				// brainstem 옵코드 조어: WHY 제거 → AI가 뉴런 직접 읽기 강제
@@ -586,11 +583,8 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 				}
 				wh := lookupWhyHow(leaf, n.Path, n.Description)
 				
-				labelWithDesc := leaf
-				if isBrainstem {
-					// brainstem 옵코드 조어: 볼드 강조 → AI가 핵심 키워드로 인식
-					labelWithDesc = "반드시 **" + leaf + "**"
-				} else {
+				labelWithDesc := strings.ReplaceAll(leaf, "_", " ")
+				if !isBrainstem {
 					if n.Description != "" && !strings.HasPrefix(n.Description, leaf) {
 						labelWithDesc = leaf + ": " + n.Description
 					} else if n.Description != "" {
