@@ -1,5 +1,8 @@
 // evolve_context.go — 컨텍스트 인식형 넛지 프롬프트 빌더
 //
+// PROVIDES: hlBuildContextualPrompt, hlReadRecentConversation, hlCheckHealthNudge, hlCheckCorrectionsNudge, hlCheckErrorNudge
+// DEPENDS ON: api_handler_system.go (hlCDPInject — nudge delivery)
+//
 // 설계 원칙:
 //   - Go 런타임은 인프라일 뿐, AI 에이전트(CLI)의 상관이 아니다
 //   - 넛지는 "직전 대화에서 뭘 했는지 요약 + 그 결과 확인해" 수준
