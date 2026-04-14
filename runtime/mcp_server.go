@@ -189,26 +189,32 @@ func buildP0Reminder(brainRoot string) string {
 
 	brain := scanBrain(brainRoot)
 	var bans []string
+	var musts []string
 	for _, region := range brain.Regions {
 		if region.Name != "brainstem" {
 			continue
 		}
 		for _, n := range region.Neurons {
-			if n.IsDormant || n.Counter < 5 {
+			if n.IsDormant {
 				continue
 			}
+			// brainstem 조어: pathToSentence 대신 leaf(폴더명) 직접 사용
+			parts := strings.Split(n.Path, string(filepath.Separator))
+			leaf := parts[len(parts)-1]
 			if strings.ContainsAny(n.Path, "禁") {
-				sentence := pathToSentence(n.Path)
-				trimmed := strings.TrimSpace(strings.ReplaceAll(sentence, "절대 금지:", ""))
-				if len([]rune(trimmed)) >= 2 {
-					bans = append(bans, trimmed)
-				}
+				bans = append(bans, leaf)
+			} else if strings.ContainsAny(n.Path, "必") {
+				musts = append(musts, leaf)
 			}
 		}
 	}
 
-	if len(bans) > 3 {
-		bans = bans[:3]
+	// P0: 조어만 나열 (최대 8개씩)
+	if len(bans) > 8 {
+		bans = bans[:8]
+	}
+	if len(musts) > 8 {
+		musts = musts[:8]
 	}
 
 	// Read preamble for language rule
@@ -227,7 +233,11 @@ func buildP0Reminder(brainRoot string) string {
 		sb.WriteString(langRule)
 		sb.WriteString(" | ")
 	}
-	sb.WriteString("금지: " + strings.Join(bans, ", "))
+	if len(musts) > 0 {
+		sb.WriteString("必: " + strings.Join(musts, " "))
+		sb.WriteString(" | ")
+	}
+	sb.WriteString("禁: " + strings.Join(bans, " "))
 
 	cachedP0 = sb.String()
 	cachedP0Time = time.Now()
