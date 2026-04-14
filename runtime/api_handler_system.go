@@ -594,15 +594,18 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		}
 		json.NewDecoder(r.Body).Decode(&req)
 
-		// 기본 프롬프트: transcript + 마스터 프롬프트
+		// 기본 프롬프트: 컨텍스트 인식형 넛지 (하드코딩된 마스터 프롬프트 대신)
 		if req.Prompt == "" {
-			transcriptPath := filepath.Join(brainRoot, "_agents", "global_inbox", "transcript_latest.jsonl")
-			transcriptData, _ := os.ReadFile(transcriptPath)
-			transcript := string(transcriptData)
-			if len(transcript) > 3000 {
-				transcript = transcript[len(transcript)-3000:]
+			nudge, hasWork := hlBuildContextualPrompt(brainRoot)
+			if !hasWork {
+				// 할 일 없음 → 주입 생략
+				json.NewEncoder(w).Encode(map[string]interface{}{
+					"status":  "skipped",
+					"reason":  "시스템 안정 — 할 일 없음",
+				})
+				return
 			}
-			req.Prompt = fmt.Sprintf("[자율주행] 직전 대화:\n%s\n\n[NeuronFS 자율 진화]\n1. MCP status 확인\n2. corrections 분석\n3. 개선점 뉴런 기록\n4. 삭제 금지 적층만\n5. 완료 후 결과 요약", transcript)
+			req.Prompt = nudge
 		}
 
 		// 타겟 룸 (기본: NeuronFS 프로젝트)
