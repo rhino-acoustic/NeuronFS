@@ -503,7 +503,9 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 
 	for _, region := range result.ActiveRegions {
 		for _, n := range region.Neurons {
-			if n.IsDormant || (n.Counter+n.Dopamine) < 3 {
+			// brainstem 뉴런은 카운터 무관 항상 포함 (옵코드 조어 강제)
+			isBrainstem := region.Name == "brainstem"
+			if n.IsDormant || (!isBrainstem && (n.Counter+n.Dopamine) < 3) {
 				continue
 			}
 
@@ -559,12 +561,12 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 					Why:   why,
 					Score: score,
 				})
-			} else if strings.ContainsAny(n.Path, "必") || strings.Contains(n.Path, "qorz") || strings.Contains(n.Path, "索") || strings.ContainsAny(n.Path, "推") {
-				// 必/qorz/索 → 조건 확인 후 WHEN 또는 ALWAYS
+			} else if strings.ContainsAny(n.Path, "必") || strings.Contains(n.Path, "索") || strings.ContainsAny(n.Path, "推") {
+				// 必 → ALWAYS (옵코드 조어는 모두 ALWAYS)
 				// 推 → 조건부 추천 → WHEN (조건 없으면 기본 조건 적용)
-				// 세션시작 키워드 → 강제 ALWAYS (WHEN 아님)
 				condition := ""
-				forceAlways := strings.Contains(leaf, "세션시작") || strings.Contains(n.Path, "세션시작")
+				// brainstem/必 뉴런은 모두 ALWAYS 강제 (옵코드 조어)
+				forceAlways := isBrainstem && strings.ContainsAny(n.Path, "必")
 				if !forceAlways {
 					for keyword, cond := range whenConditions {
 						if strings.Contains(leaf, keyword) || strings.Contains(n.Path, keyword) {
@@ -625,8 +627,8 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 	})
 
 	// 각 티어 최대 제한 — 2026 모델(Flash 포함) 기준 완화
-	if len(alwaysRules) > 10 {
-		alwaysRules = alwaysRules[:10]
+	if len(alwaysRules) > 15 {
+		alwaysRules = alwaysRules[:15]
 	}
 	if len(whenRules) > 20 {
 		whenRules = whenRules[:20]
