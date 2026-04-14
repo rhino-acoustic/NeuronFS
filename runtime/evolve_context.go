@@ -113,13 +113,16 @@ func hlCheckHealthNudge(brainRoot string) []string {
 			nudges = append(nudges, fmt.Sprintf("brainstem/%s 폴더가 없는 것 같은데 확인해볼래?", hanja))
 			continue
 		}
-		entries, _ := os.ReadDir(hp)
 		neuronCount := 0
-		for _, e := range entries {
-			if !e.IsDir() && strings.HasSuffix(e.Name(), ".neuron") {
+		filepath.Walk(hp, func(path string, info os.FileInfo, err error) error {
+			if err != nil || info == nil {
+				return nil
+			}
+			if !info.IsDir() && strings.HasSuffix(info.Name(), ".neuron") {
 				neuronCount++
 			}
-		}
+			return nil
+		})
 		if neuronCount == 0 {
 			nudges = append(nudges, fmt.Sprintf("brainstem/%s에 뉴런이 하나도 없어 봐봐", hanja))
 		}
@@ -186,7 +189,7 @@ func hlCheckErrorNudge(brainRoot string) string {
 	cutoff := time.Now().Add(-30 * time.Minute).Format("15:04")
 
 	for _, line := range lines {
-		if strings.Contains(line, "ERROR") || strings.Contains(line, "panic") || strings.Contains(line, "FAIL") {
+		if strings.Contains(line, "ERROR") || strings.Contains(line, "panic") {
 			if len(line) > 9 && line[0] == '[' {
 				end := strings.Index(line, "]")
 				if end > 0 && end < 10 {
