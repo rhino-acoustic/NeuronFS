@@ -127,6 +127,20 @@ func abCheckInboxes(agentsDir, nasAgentsDir, logFile string, processed map[strin
 				}
 				injection := fmt.Sprintf("[%s → %s] %s%s", from, agentID, urgentPrefix, body)
 
+				// 마스터 프롬프트 감지 → 넛지로 변환 또는 생략
+				if strings.Contains(body, "NeuronFS 자율 진화 명령") || strings.Contains(body, "마스터 프롬프트") {
+					brainRoot := filepath.Dir(filepath.Dir(filepath.Dir(fp))) // inbox → agentID → _agents → brain_v4
+					if nudge, hasWork := hlBuildContextualPrompt(brainRoot); hasWork {
+						injection = nudge
+					} else {
+						// 시스템 안정 — inbox 처리만 하고 주입 생략
+						processed[name] = true
+						os.Rename(fp, filepath.Join(inbox, "_"+name))
+						abLog(logFile, fmt.Sprintf("✅ %s 마스터 프롬프트 → 시스템 안정, 주입 생략", name))
+						continue
+					}
+				}
+
 				ok := abInjectToAgent(agentID, injection)
 				if ok {
 					processed[name] = true
