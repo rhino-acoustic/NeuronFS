@@ -574,6 +574,19 @@ func hlTgPoll(brainRoot string) {
 				}
 			}
 
+			// 마스터 프롬프트 감지 → inbox 저장 전에 넛지로 변환 또는 생략
+			cdpPayload := payload
+			if strings.Contains(payload, "NeuronFS 자율 진화 명령") || strings.Contains(payload, "마스터 프롬프트") {
+				if nudge, hasWork := hlBuildContextualPrompt(brainRoot); hasWork {
+					cdpPayload = nudge
+					payload = nudge // inbox에도 넛지로 저장
+				} else {
+					fmt.Println("[TG→IDE] ✅ 시스템 안정 — 마스터 프롬프트 전체 생략 (inbox+CDP)")
+					hlTgSend(chatID, "✅ 시스템 안정 — 주입 생략")
+					continue
+				}
+			}
+
 			inboxDir := filepath.Join(agentsDir, targetRoom, "inbox")
 			os.MkdirAll(inboxDir, 0750)
 			fname := fmt.Sprintf("tg_%d.md", time.Now().UnixMilli())
@@ -581,18 +594,6 @@ func hlTgPoll(brainRoot string) {
 			os.WriteFile(filepath.Join(inboxDir, fname), []byte(content), 0600)
 			hlTgSend(chatID, fmt.Sprintf("✅ [%s] 전달됨", targetRoom))
 
-			// CDP 인젝션 — 마스터 프롬프트는 넛지형으로 변환
-			cdpPayload := payload
-			if strings.Contains(payload, "NeuronFS 자율 진화 명령") || strings.Contains(payload, "마스터 프롬프트") {
-				// 정적 마스터 프롬프트 감지 → 컨텍스트 인식형 넛지로 교체
-				if nudge, hasWork := hlBuildContextualPrompt(brainRoot); hasWork {
-					cdpPayload = nudge
-				} else {
-					// 할 일 없음 → IDE 주입 생략
-					fmt.Println("[TG→IDE] ✅ 시스템 안정 — 마스터 프롬프트 주입 생략")
-					continue
-				}
-			}
 			go hlCDPInject(targetRoom, cdpPayload)
 		}
 
