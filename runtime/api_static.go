@@ -16,8 +16,25 @@ import (
 func registerStaticRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http.HandlerFunc) http.HandlerFunc) {
 	neuronfsRoot := filepath.Dir(brainRoot)
 
+	// Helper: Check if dashboard is disabled
+	isDashboardDisabled := func() bool {
+		dashFlag := filepath.Join(neuronfsRoot, ".dashboard_disabled")
+		_, err := os.Stat(dashFlag)
+		return err == nil
+	}
+
+	dashboardGuard := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			if isDashboardDisabled() {
+				http.Error(w, "Dashboard is currently disabled by configuration.", http.StatusForbidden)
+				return
+			}
+			next(w, r)
+		}
+	}
+
 	// GET /3d — Dashboard HTML
-	mux.HandleFunc("/3d", withCORS(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/3d", withCORS(dashboardGuard(func(w http.ResponseWriter, r *http.Request) {
 		htmlPath := filepath.Join(neuronfsRoot, "brain_dashboard.html")
 		data, err := os.ReadFile(htmlPath)
 		if err != nil {
@@ -26,7 +43,7 @@ func registerStaticRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(data)
-	}))
+	})))
 
 	// GET /brain.obj
 	mux.HandleFunc("/brain.obj", withCORS(func(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +70,7 @@ func registerStaticRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 	}))
 
 	// GET /v2 — Dashboard V2
-	mux.HandleFunc("/v2", withCORS(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v2", withCORS(dashboardGuard(func(w http.ResponseWriter, r *http.Request) {
 		v2Path := filepath.Join(neuronfsRoot, "dashboard_v2.html")
 		data, err := os.ReadFile(v2Path)
 		if err != nil {
@@ -62,10 +79,10 @@ func registerStaticRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(data)
-	}))
+	})))
 
 	// GET /v3 — Dashboard V3
-	mux.HandleFunc("/v3", withCORS(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v3", withCORS(dashboardGuard(func(w http.ResponseWriter, r *http.Request) {
 		v3Path := filepath.Join(neuronfsRoot, "dashboard_v3.html")
 		data, err := os.ReadFile(v3Path)
 		if err != nil {
@@ -74,19 +91,19 @@ func registerStaticRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(data)
-	}))
+	})))
 
 	// GET /api/dashboard.svg — Generate dashboard vector snapshot
-	mux.HandleFunc("/api/dashboard.svg", withCORS(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/dashboard.svg", withCORS(dashboardGuard(func(w http.ResponseWriter, r *http.Request) {
 		brain := scanBrain(brainRoot)
 		res := runSubsumption(brain)
 		svgContent := GenerateDashboardSVG(brain, res.TotalNeurons, res.TotalCounter)
 		w.Header().Set("Content-Type", "image/svg+xml")
 		w.Write([]byte(svgContent))
-	}))
+	})))
 
 	// GET / — Main Dashboard
-	mux.HandleFunc("/", withCORS(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", withCORS(dashboardGuard(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/api/") {
 			http.NotFound(w, r)
 			return
@@ -103,7 +120,7 @@ func registerStaticRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(data)
-	}))
+	})))
 
 	// GET /bible — Bible demo (NeuronFS showcase with real filesystem data)
 	mux.HandleFunc("/bible", withCORS(func(w http.ResponseWriter, r *http.Request) {

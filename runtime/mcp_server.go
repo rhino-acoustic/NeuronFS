@@ -315,7 +315,7 @@ func startMCPHTTPServer(brainRoot string, port int) {
 	handler := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
 		return buildFreshMCPServer(brainRoot)
 	}, &mcp.StreamableHTTPOptions{
-		Stateless: true, // 서버 재시작해도 세션 끊김 없음
+		Stateless: false, // Auto-heal proxy handles restart recovery
 	})
 
 	mux := http.NewServeMux()

@@ -252,6 +252,10 @@ func registerConfigRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 				"mount":      tgMount,
 			}
 
+			dashFlag := filepath.Join(nfsRoot, ".dashboard_disabled")
+			_, errDash := os.Stat(dashFlag)
+			result["dashboardEnabled"] = errDash != nil // exists = disabled
+
 			// Groq 상태 (환경변수 + .secrets 파일)
 			groqKey := os.Getenv("GROQ_API_KEY")
 			if groqKey == "" {
@@ -303,17 +307,28 @@ func registerConfigRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		}
 
 		var req struct {
-			TelegramToken  *string `json:"telegramToken"`
-			TelegramChatID *string `json:"telegramChatId"`
-			TelegramMount  *string `json:"telegramMount"`
-			GroqKey        *string `json:"groqKey"`
-			ClaudeKey      *string `json:"claudeKey"`
+			TelegramToken    *string `json:"telegramToken"`
+			TelegramChatID   *string `json:"telegramChatId"`
+			TelegramMount    *string `json:"telegramMount"`
+			GroqKey          *string `json:"groqKey"`
+			ClaudeKey        *string `json:"claudeKey"`
+			DashboardEnabled *bool   `json:"dashboardEnabled"`
 		}
 		json.NewDecoder(r.Body).Decode(&req)
 
 		os.MkdirAll(tgDir, 0750)
 		os.MkdirAll(secretsDir, 0700) // ★ 비밀키 로컬 전용
 		updated := []string{}
+
+		if req.DashboardEnabled != nil {
+			dashFlag := filepath.Join(nfsRoot, ".dashboard_disabled")
+			if !*req.DashboardEnabled {
+				os.WriteFile(dashFlag, []byte("1"), 0600)
+			} else {
+				os.Remove(dashFlag)
+			}
+			updated = append(updated, "dashboardEnabled")
+		}
 
 		if req.TelegramToken != nil && *req.TelegramToken != "" {
 			os.WriteFile(filepath.Join(tgDir, ".token"), []byte(*req.TelegramToken), 0600)

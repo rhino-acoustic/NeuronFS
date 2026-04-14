@@ -112,6 +112,12 @@ brain_v4/
 !brain_v4/*/_rules.md
 !brain_v4/brainstem/
 !brain_v4/brainstem/**
+!brain_v4/_inbox/
+!brain_v4/_inbox/**
+!brain_v4/_agents/
+!brain_v4/_agents/**
+!brain_v4/hippocampus/
+!brain_v4/hippocampus/**
 .gemini/
 .neuronrc
 

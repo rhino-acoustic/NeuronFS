@@ -1,6 +1,6 @@
 package main
 
-// ━━━ transcript.go ━━━
+// ?????? transcript.go ??????
 // PROVIDES: gitSnapshot, touchActivity, getLastActivity, runIdleLoop, digestTranscripts, writeHeartbeat
 // DEPENDS ON: brain.go, lifecycle.go, emit.go, inject.go
 
@@ -42,12 +42,12 @@ func gitSnapshot(brainRoot string) {
 	gitDir := filepath.Join(brainRoot, ".git")
 	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
 		if err := SafeExecDir(ExecTimeoutGit, brainRoot, "git", "init"); err != nil {
-			fmt.Printf("[GIT] ⚠️ init failed: %v\n", err)
+			fmt.Printf("[GIT] ?? init failed: %v\n", err)
 			return
 		}
 		gitignore := filepath.Join(brainRoot, ".gitignore")
 		os.WriteFile(gitignore, []byte("*.dormant\n"), 0600)
-		fmt.Printf("[GIT] 📂 Initialized git repo in %s\n", brainRoot)
+		fmt.Printf("[GIT] ?? Initialized git repo in %s\n", brainRoot)
 	}
 
 	// Check for changes
@@ -59,7 +59,7 @@ func gitSnapshot(brainRoot string) {
 
 	// Stage all
 	if err := SafeExecDir(ExecTimeoutGit, brainRoot, "git", "add", "-A"); err != nil {
-		fmt.Printf("[GIT] ⚠️ add failed: %v\n", err)
+		fmt.Printf("[GIT] ?? add failed: %v\n", err)
 		return
 	}
 
@@ -68,40 +68,40 @@ func gitSnapshot(brainRoot string) {
 	result := runSubsumption(brain)
 	changes := strings.Count(string(out), "\n")
 	timestamp := time.Now().Format("01-02 15:04")
-	msg := fmt.Sprintf("[%s] %d neurons, act:%d, Δ%d files",
+	msg := fmt.Sprintf("[%s] %d neurons, act:%d, ??%d files",
 		timestamp, result.TotalNeurons, result.TotalCounter, changes)
 
 	if err := SafeExecDir(ExecTimeoutGit, brainRoot, "git", "commit", "-m", msg, "--no-verify"); err != nil {
 		return
 	}
-	fmt.Printf("[GIT] 📸 %s\n", msg)
+	fmt.Printf("[GIT] ?? %s\n", msg)
 
-	// ── git diff 진화판정: 뉴런 순감소이면 자동 rollback ──
+	// ???? git diff ???????: ???? ????????? ??? rollback ????
 	diffOut, err := SafeOutputDir(ExecTimeoutGit, brainRoot, "git", "diff", "HEAD~1", "--stat")
 	if err == nil {
 		diffStr := string(diffOut)
 		deletions := strings.Count(diffStr, "deletion")
 		insertions := strings.Count(diffStr, "insertion")
 		if deletions > insertions*2 && deletions > 5 {
-			// 삭제가 삽입의 2배 이상이고 5건 초과이면 퇴화로 판정
-			fmt.Printf("[GIT] ⚠️ 퇴화 감지 (삭제 %d > 삽입 %d×2) — 자동 rollback\n", deletions, insertions)
+			// ?????? ?????? 2?? ?????? 5?? ?????? ????? ????
+			fmt.Printf("[GIT] ?? ??? ???? (???? %d > ???? %d??2) ? ??? rollback\n", deletions, insertions)
 			if err := SafeExecDir(ExecTimeoutGit, brainRoot, "git", "revert", "HEAD", "--no-edit"); err != nil {
-				fmt.Printf("[GIT] ❌ rollback 실패: %v\n", err)
+				fmt.Printf("[GIT] ? rollback ????: %v\n", err)
 			} else {
-				fmt.Println("[GIT] ✅ 퇴화 commit이 revert 되었습니다")
+				fmt.Println("[GIT] ? ??? commit?? revert ????????")
 			}
 		} else {
-			fmt.Printf("[GIT] ✅ 진화 판정 통과 (ins:%d, del:%d)\n", insertions, deletions)
+			fmt.Printf("[GIT] ? ??? ???? ??? (ins:%d, del:%d)\n", insertions, deletions)
 		}
 	}
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// IDLE ENGINE: Auto evolve → snapshot → NAS sync
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ??????????????????????????????????????????????????????????????????????????????????????????????????????
+// IDLE ENGINE: Auto evolve ?? snapshot ?? NAS sync
+// ??????????????????????????????????????????????????????????????????????????????????????????????????????
 
 const (
-	idleThresholdMinutes = 5  // minutes of no API activity → trigger idle cycle
+	idleThresholdMinutes = 5  // minutes of no API activity ?? trigger idle cycle
 	idleCheckInterval    = 30 // seconds between idle checks
 )
 
@@ -126,9 +126,9 @@ func getLastActivity() time.Time {
 }
 
 // runIdleLoop runs in a goroutine, checking for idle state periodically.
-// When idle is detected: digest transcripts → neuronize → evolve → snapshot → NAS sync
+// When idle is detected: digest transcripts ?? neuronize ?? evolve ?? snapshot ?? NAS sync
 func runIdleLoop(brainRoot string) {
-	lastEvolveTime := time.Now().Add(-1 * time.Hour) // 시작 즉시 첫 idle 사이클 허용
+	lastEvolveTime := time.Now().Add(-1 * time.Hour) // ???? ??? u idle ????? ???
 
 	for {
 		time.Sleep(time.Duration(idleCheckInterval) * time.Second)
@@ -147,14 +147,14 @@ func runIdleLoop(brainRoot string) {
 			continue
 		}
 
-		// 사용자가 자율진화를 끈 경우 (킬 스위치 감지)
+		// ?????? ????????? ?? ??? (? ????? ????)
 		if fileExists(filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".auto_evolve_disabled")) {
-			// 진화 실행하지 않고 타이머만 업데이트하거나 단순 통과
+			// ??? ???????? ??? ????? ??????????? ??? ???
 			continue
 		}
 
 		idleEvolveRunning = true
-		fmt.Printf("\n[IDLE] 💤 %s idle detected — calling stateless core worker...\n", idleDuration.Round(time.Second))
+		fmt.Printf("\n[IDLE] ?? %s idle detected ? calling stateless core worker...\n", idleDuration.Round(time.Second))
 
 		nfsExe := filepath.Join(filepath.Dir(brainRoot), "neuronfs.exe")
 		out, err := exec.Command(nfsExe, brainRoot, "--tool", "idle_core", "{}").CombinedOutput()
@@ -175,13 +175,13 @@ func runIdleLoop(brainRoot string) {
 			}
 		}
 		if summary == "" {
-			summary = "[NeuronFS IDLE] 진화 워커 완료 (전사 파싱 및 휴면 처리 완료)"
+			summary = "[NeuronFS IDLE] ??? ???? ??? (???? ??? ?? ??? o?? ???)"
 		}
 
 		lastEvolveTime = time.Now()
 		idleEvolveRunning = false
 
-		// CDP inject — 연결된 탭을 통해 AI 루프 트리거
+		// CDP inject ? ????? ???? ???? AI ???? ?????
 		injectIdleResult(summary)
 	}
 }
@@ -192,7 +192,7 @@ func injectIdleResult(summary string) {
 	select {
 	case CDPQueue <- CDPJob{TargetRoom: "IDLE_INJECT", Payload: summary}:
 	default:
-		GlobalSSEBroker.Broadcastf("warn", "⚠️ CDP Queue full! Dropping idle result.")
+		GlobalSSEBroker.Broadcastf("warn", "?? CDP Queue full! Dropping idle result.")
 	}
 }
 
@@ -216,7 +216,7 @@ func injectIdleResultSync(summary string) {
 		return "NoTarget";
 	})()`, escaped)
 
-	// 1차: aaAgents (auto-accept 연결)
+	// 1??: aaAgents (auto-accept ????)
 	injected := false
 	aaAgents.Range(func(k, v interface{}) bool {
 		a := v.(*aaAgent)
@@ -225,8 +225,8 @@ func injectIdleResultSync(summary string) {
 			"returnByValue": true,
 		})
 		if err != nil {
-			// 자가수복: 죽은 연결 정리
-			fmt.Printf("[IDLE] 🔧 aaAgent %s 연결 끊김 — 정리\n", a.name)
+			// ???????: ???? ???? ????
+			fmt.Printf("[IDLE] ?? aaAgent %s ???? ???? ? ????\n", a.name)
 			aaAgents.Delete(k)
 			return true
 		}
@@ -237,7 +237,7 @@ func injectIdleResultSync(summary string) {
 		}
 		json.Unmarshal(result, &evalRes)
 		if evalRes.Result.Value == "Injected" {
-			fmt.Printf("[IDLE] 🧬 CDP 인젝션 성공 → [%s]\n", a.name)
+			fmt.Printf("[IDLE] ?? CDP ?????? ???? ?? [%s]\n", a.name)
 			injected = true
 			return false
 		}
@@ -247,21 +247,21 @@ func injectIdleResultSync(summary string) {
 		return
 	}
 
-	// 2차: 자가수복 — aaAgents 재스캔 + 직접 CDP (3회 재시도)
+	// 2??: ??????? ? aaAgents ??? + ???? CDP (3? ??o?)
 	var diagLog []string
 	for retry := 0; retry < 3; retry++ {
 		if retry > 0 {
-			diagLog = append(diagLog, fmt.Sprintf("재시도 %d/3 (5초 대기)", retry+1))
+			diagLog = append(diagLog, fmt.Sprintf("??o? %d/3 (5?? ???)", retry+1))
 			time.Sleep(5 * time.Second)
 		}
 
-		// 자가수복: aaScanTargets 강제 실행으로 새 탭 감지
+		// ???????: aaScanTargets ???? ???????? ?? ?? ????
 		aaScanTargets()
 
-		// 직접 CDP 연결
+		// ???? CDP ????
 		targets, err := cdpListTargets(9000)
 		if err != nil {
-			diagLog = append(diagLog, fmt.Sprintf("CDP:9000 불가 — %v", err))
+			diagLog = append(diagLog, fmt.Sprintf("CDP:9000 ??? ? %v", err))
 			continue
 		}
 
@@ -272,13 +272,13 @@ func injectIdleResultSync(summary string) {
 			}
 			workbenchFound = true
 			if t.WebSocketDebuggerURL == "" {
-				diagLog = append(diagLog, fmt.Sprintf("wsURL 없음 (title=%s)", t.Title))
+				diagLog = append(diagLog, fmt.Sprintf("wsURL ???? (title=%s)", t.Title))
 				continue
 			}
 
 			client, cErr := NewCDPClient(t.WebSocketDebuggerURL)
 			if cErr != nil {
-				diagLog = append(diagLog, fmt.Sprintf("WS 실패 — %v", cErr))
+				diagLog = append(diagLog, fmt.Sprintf("WS ???? ? %v", cErr))
 				continue
 			}
 			client.Call("Runtime.enable", map[string]interface{}{})
@@ -290,7 +290,7 @@ func injectIdleResultSync(summary string) {
 			client.Close()
 
 			if rErr != nil {
-				diagLog = append(diagLog, fmt.Sprintf("evaluate 실패 — %v", rErr))
+				diagLog = append(diagLog, fmt.Sprintf("evaluate ???? ? %v", rErr))
 				continue
 			}
 			if r != nil {
@@ -301,36 +301,36 @@ func injectIdleResultSync(summary string) {
 				}
 				json.Unmarshal(r, &er)
 				if er.Result.Value == "Injected" {
-					fmt.Printf("[IDLE] ✅ 자가수복 성공 (시도 %d)\n", retry+1)
+					fmt.Printf("[IDLE] ? ??????? ???? (?o? %d)\n", retry+1)
 					return
 				}
 				if er.Result.Value == "NoTarget" {
-					diagLog = append(diagLog, "contenteditable 없음 — 대화창 미활성")
+					diagLog = append(diagLog, "contenteditable ???? ? ???a ?????")
 				}
 			}
 		}
 		if !workbenchFound {
-			diagLog = append(diagLog, "workbench.html 없음 — IDE 미기동")
+			diagLog = append(diagLog, "workbench.html ???? ? IDE ???")
 		}
 	}
 
-	// 3회 실패: 진단 로그를 텔레그램으로 전송 + IDE에 인젝션 시도
+	// 3? ????: ???? ????? ?????????? ???? + IDE?? ?????? ?o?
 	diagStr := strings.Join(diagLog, " | ")
-	fmt.Printf("[IDLE] ❌ CDP 3회 실패: %s\n", diagStr)
-	GlobalSSEBroker.Broadcastf("error", "[IDLE] CDP 3회 실패: %s", diagStr)
+	fmt.Printf("[IDLE] ? CDP 3? ????: %s\n", diagStr)
+	GlobalSSEBroker.Broadcastf("error", "[IDLE] CDP 3? ????: %s", diagStr)
 
-	// 텔레그램 알림
+	// ?????? ???
 	if hlTgToken != "" && hlTgChatID != "" {
-		hlTgSend(hlTgChatID, fmt.Sprintf("⚠️ [자가수복 실패] %s\n디버그: %s", summary, diagStr))
+		hlTgSend(hlTgChatID, fmt.Sprintf("?? [??????? ????] %s\n?????: %s", summary, diagStr))
 	}
 
-	// 최후 수단: hlCDPInject로 디버그 결과 인젝션 (대화 진행용)
-	debugMsg := fmt.Sprintf("[NeuronFS 자가수복 실패] %s | 진단: %s — 원인 분석 후 수정 실행", summary, diagStr)
+	// ???? ????: hlCDPInject?? ????? ??? ?????? (??? ?????)
+	debugMsg := fmt.Sprintf("[NeuronFS ??????? ????] %s | ????: %s ? ???? ???? ?? ???? ????", summary, diagStr)
 	go hlCDPInject(hlTgMountedRoom, debugMsg)
 }
 
 // detectFailedEvolutions scans for neurons inactive 30+ days.
-// Only 推 (recommendation) neurons are checked — 禁/必 are immune.
+// Only ?? (recommendation) neurons are checked ? ??/?? are immune.
 // Returns list of paths considered "failed evolution" attempts.
 func detectFailedEvolutions(brainRoot string) []string {
 	var failed []string
@@ -346,12 +346,12 @@ func detectFailedEvolutions(brainRoot string) []string {
 			if !strings.HasSuffix(info.Name(), ".neuron") {
 				return nil
 			}
-			// 禁/必 면역
-			if strings.Contains(path, "禁") || strings.Contains(path, "必") {
+			// ??/?? ??
+			if strings.Contains(path, "??") || strings.Contains(path, "??") {
 				return nil
 			}
-			// 推 뉴런만 + 30일 비활성
-			if strings.Contains(path, "推") && info.ModTime().Before(cutoff) {
+			// ?? ?????? + 30?? ?????
+			if strings.Contains(path, "??") && info.ModTime().Before(cutoff) {
 				rel, _ := filepath.Rel(brainRoot, path)
 				failed = append(failed, rel)
 			}
@@ -361,14 +361,14 @@ func detectFailedEvolutions(brainRoot string) []string {
 	return failed
 }
 
-// digestTranscripts는 _transcripts/ 파일에서 교정/에러 턴을 추출하여
-// corrections_history.jsonl에 추가한다. cursor.json으로 위치 추적.
-// 반환값: 이번에 추출된 교정 턴 수
+// digestTranscripts?? _transcripts/ ??????? ????/???? ???? ???????
+// corrections_history.jsonl?? ??????. cursor.json???? ??? ????.
+// ?????: ????? ????? ???? ?? ??
 func digestTranscripts(brainRoot string) int {
 	transcriptsDir := filepath.Join(brainRoot, "_transcripts")
 	cursorPath := filepath.Join(transcriptsDir, ".cursor.json")
 
-	// cursor 읽기
+	// cursor ????
 	type cursorEntry struct {
 		ByteOffset int64  `json:"byte_offset"`
 		LastProc   string `json:"last_processed"`
@@ -378,7 +378,7 @@ func digestTranscripts(brainRoot string) int {
 		json.Unmarshal(data, &cursors)
 	}
 
-	// 오늘 날짜 파일
+	// ???? ???? ????
 	today := time.Now().Format("2006-01-02") + ".txt"
 	todayPath := filepath.Join(transcriptsDir, today)
 
@@ -388,11 +388,14 @@ func digestTranscripts(brainRoot string) int {
 	}
 
 	cursor := cursors[today]
+	if info.Size() < cursor.ByteOffset {
+		cursor.ByteOffset = 0
+	}
 	if info.Size() <= cursor.ByteOffset {
-		return 0 // 새 내용 없음
+		return 0
 	}
 
-	// 새 내용 읽기 (cursor 위치부터)
+	// ?? ???? ???? (cursor ???????)
 	file, err := os.Open(todayPath)
 	if err != nil {
 		return 0
@@ -400,7 +403,7 @@ func digestTranscripts(brainRoot string) int {
 	defer file.Close()
 
 	file.Seek(cursor.ByteOffset, 0)
-	// 최대 1MB만 읽기 (메모리 절약)
+	// ??? 1MB?? ???? (??? ????)
 	maxRead := int64(1024 * 1024)
 	remaining := info.Size() - cursor.ByteOffset
 	if remaining > maxRead {
@@ -410,16 +413,16 @@ func digestTranscripts(brainRoot string) int {
 	n, _ := file.Read(buf)
 	newContent := string(buf[:n])
 
-	// 교정/에러 키워드 필터링
+	// ????/???? ????? ?????
 	correctionKeywords := []string{
-		"아니", "아냐", "잘못", "다시", "왜 ", "왜또", "안돼", "안됨",
-		"에러", "오류", "실패", "멈춤", "404", "500",
-		"금지", "하지마", "반드시", "항상", "절대",
+		"???", "???", "???", "???", "?? ", "???", "???", "???",
+		"????", "????", "????", "????", "404", "500",
+		"????", "??????", "????", "???", "????",
 	}
 
-	// 감정 감지 키워드 → limbic 자동 fire
-	frustrationKeywords := []string{"?", "!!", "아니", "왜", "답답", "안돼", "뭐야", "다시", "허울"}
-	satisfactionKeywords := []string{"ㅋㅋ", "좋아", "완벽", "굿", "오", "진행", "맞아"}
+	// ???? ???? ????? ?? limbic ??? fire
+	frustrationKeywords := []string{"?", "!!", "???", "??", "???", "???", "????", "???", "???"}
+	satisfactionKeywords := []string{"????", "????", "???", "??", "??", "????", "????"}
 	frustrationCount := 0
 	satisfactionCount := 0
 
@@ -431,7 +434,7 @@ func digestTranscripts(brainRoot string) int {
 			continue
 		}
 
-		// 감정 감지 (사용자 발화 라인만)
+		// ???? ???? (????? ??? ??????)
 		if strings.Contains(line, " PD]") {
 			for _, kw := range frustrationKeywords {
 				if strings.Contains(line, kw) {
@@ -450,8 +453,8 @@ func digestTranscripts(brainRoot string) int {
 		if len(line) < 10 {
 			continue
 		}
-		// [HH:MM:SS PD] 패턴이면 사용자 발화
-		if !strings.Contains(line, " PD]") && !strings.Contains(line, "교정") {
+		// [HH:MM:SS PD] ??????? ????? ???
+		if !strings.Contains(line, " PD]") && !strings.Contains(line, "????") {
 			continue
 		}
 		for _, kw := range correctionKeywords {
@@ -465,9 +468,9 @@ func digestTranscripts(brainRoot string) int {
 		}
 	}
 
-	// 감정 결과 → limbic 뉴런 자동 fire + _state.json 갱신 (EmotionPrompt 자동 전환)
+	// ???? ??? ?? limbic ???? ??? fire + _state.json ???? (EmotionPrompt ??? ???)
 	if frustrationCount >= 3 {
-		fireNeuron(brainRoot, "limbic/긴급_사용자답답함감지")
+		fireNeuron(brainRoot, "limbic/???_????????????")
 		// Auto-switch emotion to urgent (intensity scales with frustration)
 		intensity := 0.5
 		if frustrationCount >= 5 {
@@ -476,25 +479,25 @@ func digestTranscripts(brainRoot string) int {
 		if frustrationCount >= 8 {
 			intensity = 0.9
 		}
-		autoSetEmotion(brainRoot, "긴급", intensity)
-		fmt.Printf("[LIMBIC] 😤 답답함 %d회 감지 → 긴급 모드 (intensity: %.1f)\n", frustrationCount, intensity)
-		GlobalSSEBroker.Broadcastf("warn", "[LIMBIC] 답답함 %d회 감지 → 긴급 모드 (intensity: %.1f)", frustrationCount, intensity)
+		autoSetEmotion(brainRoot, "???", intensity)
+		fmt.Printf("[LIMBIC] ?? ????? %d? ???? ?? ??? ??? (intensity: %.1f)\n", frustrationCount, intensity)
+		GlobalSSEBroker.Broadcastf("warn", "[LIMBIC] ????? %d? ???? ?? ??? ??? (intensity: %.1f)", frustrationCount, intensity)
 	}
 	if satisfactionCount >= 3 {
-		fireNeuron(brainRoot, "limbic/칭찬_사용자만족감지")
-		autoSetEmotion(brainRoot, "만족", 0.6)
-		fmt.Printf("[LIMBIC] 😊 만족 %d회 감지 → 만족 모드\n", satisfactionCount)
-		GlobalSSEBroker.Broadcastf("success", "[LIMBIC] 만족 %d회 감지 → 만족 모드", satisfactionCount)
+		fireNeuron(brainRoot, "limbic/???_????????????")
+		autoSetEmotion(brainRoot, "????", 0.6)
+		fmt.Printf("[LIMBIC] ?? ???? %d? ???? ?? ???? ???\n", satisfactionCount)
+		GlobalSSEBroker.Broadcastf("success", "[LIMBIC] ???? %d? ???? ?? ???? ???", satisfactionCount)
 	}
 
-	// cursor 갱신
+	// cursor ????
 	cursor.ByteOffset = cursor.ByteOffset + int64(n)
 	cursor.LastProc = time.Now().Format(time.RFC3339)
 	cursors[today] = cursor
 	cursorData, _ := json.MarshalIndent(cursors, "", "  ")
 	os.WriteFile(cursorPath, cursorData, 0600)
 
-	// 교정 턴을 corrections_history.jsonl에 추가
+	// ???? ???? corrections_history.jsonl?? ???
 	if len(corrections) > 0 {
 		historyPath := filepath.Join(brainRoot, "_inbox", "corrections_history.jsonl")
 		f, err := os.OpenFile(historyPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
@@ -507,18 +510,18 @@ func digestTranscripts(brainRoot string) int {
 			}
 			f.Close()
 		}
-		fmt.Printf("[DIGEST] 📝 전사에서 %d건 교정 턴 추출\n", len(corrections))
+		fmt.Printf("[DIGEST] ?? ??????? %d?? ???? ?? ????\n", len(corrections))
 	}
 
 	return len(corrections)
 }
 
-// writeHeartbeat는 idle engine 상태를 _heartbeat.json에 기록하고,
-// 뉴런 폭발 감지 시 git snapshot 후 GEMINI.md에 통합 지시를 주입한다.
+// writeHeartbeat?? idle engine ?????? _heartbeat.json?? ??????,
+// ???? ???? ???? ?? git snapshot ?? GEMINI.md?? ???? ?????? ???????.
 func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 	heartbeatPath := filepath.Join(brainRoot, "_heartbeat.json")
 
-	// 이전 heartbeat 읽기
+	// ???? heartbeat ????
 	prevNeurons := 0
 	if prev, err := os.ReadFile(heartbeatPath); err == nil {
 		var prevHB map[string]interface{}
@@ -529,7 +532,7 @@ func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 		}
 	}
 
-	// 현재 상태 기록
+	// ???? ???? ???
 	hb := map[string]interface{}{
 		"last_cycle":   time.Now().Format(time.RFC3339),
 		"neurons":      result.TotalNeurons,
@@ -541,42 +544,43 @@ func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 	data, _ := json.MarshalIndent(hb, "", "  ")
 	os.WriteFile(heartbeatPath, data, 0600)
 
-	// 뉴런 폭발 감지: 20개 이상 증가 시 통합 지시 주입
+	// ???? ???? ????: 20?? ??? ???? ?? ???? ???? ????
 	growth := result.TotalNeurons - prevNeurons
 	if prevNeurons > 0 && growth >= 20 {
-		fmt.Printf("[HEARTBEAT] 🔥 뉴런 폭발 감지: %d→%d (+%d) — 통합 지시 주입\n",
+		fmt.Printf("[HEARTBEAT] ?? ???? ???? ????: %d??%d (+%d) ? ???? ???? ????\n",
 			prevNeurons, result.TotalNeurons, growth)
-		GlobalSSEBroker.Broadcastf("info", "[HEARTBEAT] 뉴런 폭발 감지: %d→%d (+%d) — 통합 지시 주입", prevNeurons, result.TotalNeurons, growth)
+		GlobalSSEBroker.Broadcastf("info", "[HEARTBEAT] ???? ???? ????: %d??%d (+%d) ? ???? ???? ????", prevNeurons, result.TotalNeurons, growth)
 
-		// 1. git snapshot 선행 (롤백 보장)
-		fmt.Println("[HEARTBEAT] 📸 통합 전 git snapshot...")
+		// 1. git snapshot ???? (??? ????)
+		fmt.Println("[HEARTBEAT] ?? ???? ?? git snapshot...")
 		gitSnapshot(brainRoot)
 
-		// 2. GEMINI.md에 통합 지시 주입
+		// 2. GEMINI.md?? ???? ???? ????
 		directive := fmt.Sprintf(
-			"\n\n> [!IMPORTANT]\n> **[HEARTBEAT %s] 뉴런 폭발 감지: %d→%d (+%d)**\n"+
-				"> 유사 뉴런 통합이 필요합니다. `neuronfs --dedup` 실행 또는 수동으로 유사 폴더를 병합하세요.\n"+
-				"> git snapshot이 선행되었으므로 롤백 가능합니다.\n",
+			"\n\n> [!IMPORTANT]\n> **[HEARTBEAT %s] ???? ???? ????: %d??%d (+%d)**\n"+
+				"> ???? ???? ?????? ???????. `neuronfs --dedup` ???? ??? ???????? ???? ?????? ?????????.\n"+
+				"> git snapshot?? ??????????? ??? ????????.\n",
 			time.Now().Format("15:04"),
 			prevNeurons, result.TotalNeurons, growth)
 
-		// brainstem에 통합 지시 뉴런 생성 (임시)
-		consolidateDir := filepath.Join(brainRoot, "brainstem", "뉴런통합_필요")
+		// brainstem?? ???? ???? ???? ???? (???)
+		consolidateDir := filepath.Join(brainRoot, "brainstem", "????????_???")
 		os.MkdirAll(consolidateDir, 0750)
 		counterFile := filepath.Join(consolidateDir, fmt.Sprintf("%d.neuron", growth))
 		os.WriteFile(counterFile, []byte(directive), 0600)
 
-		// writeAllTiers로 GEMINI.md 즉시 갱신
+		// writeAllTiers?? GEMINI.md ??? ????
 		writeAllTiers(brainRoot)
 
-		fmt.Printf("[HEARTBEAT] ✅ 통합 지시 주입 완료 — brainstem/뉴런통합_필요 생성\n")
+		fmt.Printf("[HEARTBEAT] ? ???? ???? ???? ??? ? brainstem/????????_??? ????\n")
 	}
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// DEDUP: 중복 뉴런 폴더 병합 (카운터 합산)
-// ━━━ Deduplication → lifecycle.go ━━━
+// ??????????????????????????????????????????????????????????????????????????????????????????????????????
+// DEDUP: ??? ???? ???? ???? (????? ???)
+// ?????? Deduplication ?? lifecycle.go ??????
 // MOVED: deduplicateNeurons
 
-// ━━━ REST API + Rollback → api_server.go ━━━
+// ?????? REST API + Rollback ?? api_server.go ??????
 // MOVED: startAPI, rollbackAll
+

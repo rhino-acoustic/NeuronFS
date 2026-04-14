@@ -47,7 +47,7 @@ func main() {
 			entries, _ := os.ReadDir(hp)
 			childCount := 0
 			for _, e := range entries {
-				if e.IsDir() && !strings.HasPrefix(e.Name(), "_") {
+				if !e.IsDir() && strings.HasSuffix(e.Name(), ".neuron") {
 					childCount++
 				}
 			}

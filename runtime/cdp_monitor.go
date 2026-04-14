@@ -67,12 +67,8 @@ func hlCDPInjectSync(targetRoom, payload string) {
 		return
 	}
 
-	escaped := strings.ReplaceAll(payload, `\`, `\\`)
-	escaped = strings.ReplaceAll(escaped, `"`, `\"`)
-	escaped = strings.ReplaceAll(escaped, "\n", `\n`)
-
-	// 채팅 입력창 감지 + 인젝션 스크립트 (아티팩트/미리보기 탭에는 채팅창이 없으므로 NoTarget 반환)
-	injectCode := fmt.Sprintf(`(() => {
+	// 채팅 입력창 포커스 스크립트 (텍스트 삽입은 CDP Input.insertText로 분리)
+	focusCode := `(() => {
 		const all = Array.from(document.querySelectorAll("[contenteditable]"));
 		const el = all.reverse().find(e => {
 			const r = e.getBoundingClientRect();
@@ -83,9 +79,9 @@ func hlCDPInjectSync(targetRoom, payload string) {
 			const r = e.getBoundingClientRect();
 			return r.height > 0 && r.height < 300 && r.width > 100;
 		});
-		if(el) { el.focus(); document.execCommand("insertText", false, "[telegram → NeuronFS] %s"); return "Injected"; }
+		if(el) { el.focus(); return "Focused"; }
 		return "NoTarget";
-	})()`, escaped)
+	})()`
 
 	for _, t := range targets {
 		if !strings.Contains(t.URL, "workbench.html") {
@@ -104,22 +100,26 @@ func hlCDPInjectSync(targetRoom, payload string) {
 		client.Call("Runtime.enable", map[string]interface{}{})
 		time.Sleep(300 * time.Millisecond)
 
-		result, err := client.Call("Runtime.evaluate", map[string]interface{}{"expression": injectCode, "returnByValue": true})
+		result, err := client.Call("Runtime.evaluate", map[string]interface{}{"expression": focusCode, "returnByValue": true})
 		if err != nil {
 			client.Close()
 			continue
 		}
 
-		// 결과 확인: "Injected"면 성공 → Enter 전송 후 종료. "NoTarget"이면 다음 탭 시도.
 		resultStr := string(result)
 		if strings.Contains(resultStr, "NoTarget") {
 			client.Close()
-			continue // 이 탭에는 채팅 입력창이 없음 (아티팩트 미리보기 등)
+			continue
 		}
+
+		time.Sleep(300 * time.Millisecond)
+
+		// CDP Input.insertText — UTF-8 한국어 완벽 지원
+		client.Call("Input.insertText", map[string]interface{}{"text": payload})
 
 		time.Sleep(500 * time.Millisecond)
 
-		// CDP 타겟 Enter — 해당 탭에만 키 전송 (활성 창 가로채기 없음)
+		// Enter 전송
 		client.Call("Input.dispatchKeyEvent", map[string]interface{}{
 			"type": "rawKeyDown", "key": "Enter", "code": "Enter",
 			"windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13,

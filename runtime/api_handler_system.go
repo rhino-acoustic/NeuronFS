@@ -580,6 +580,46 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		})
 	}))
 
+	// POST /api/cdp_inject — CDP로 VS Code 채팅에 프롬프트 인젝션 (자율주행 트리거)
+	mux.HandleFunc("/api/cdp_inject", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "POST only", 405)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+
+		var req struct {
+			Prompt     string `json:"prompt"`
+			TargetRoom string `json:"target_room"`
+		}
+		json.NewDecoder(r.Body).Decode(&req)
+
+		// 기본 프롬프트: transcript + 마스터 프롬프트
+		if req.Prompt == "" {
+			transcriptPath := filepath.Join(brainRoot, "_agents", "global_inbox", "transcript_latest.jsonl")
+			transcriptData, _ := os.ReadFile(transcriptPath)
+			transcript := string(transcriptData)
+			if len(transcript) > 3000 {
+				transcript = transcript[len(transcript)-3000:]
+			}
+			req.Prompt = fmt.Sprintf("[자율주행] 직전 대화:\n%s\n\n[NeuronFS 자율 진화]\n1. MCP status 확인\n2. corrections 분석\n3. 개선점 뉴런 기록\n4. 삭제 금지 적층만\n5. 완료 후 결과 요약", transcript)
+		}
+
+		// 타겟 룸 (기본: NeuronFS 프로젝트)
+		if req.TargetRoom == "" {
+			req.TargetRoom = "NeuronFS"
+		}
+
+		// CDP 인젝션 실행 (동기 — 워커 없이도 동작)
+		go hlCDPInjectSync(req.TargetRoom, req.Prompt)
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":      "injected",
+			"target_room": req.TargetRoom,
+			"prompt_len":  len(req.Prompt),
+		})
+	}))
+
 	// Expose pprof
 	mux.HandleFunc("/debug/pprof/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.DefaultServeMux.ServeHTTP(w, r)

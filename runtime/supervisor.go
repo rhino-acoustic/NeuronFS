@@ -292,14 +292,30 @@ func runSupervisor(brainRoot string) {
 	lockTk := time.NewTicker(5 * time.Second)
 	decayTk := time.NewTicker(1 * time.Hour)
 	reportTk := time.NewTicker(30 * time.Minute)
+	ltpTk := time.NewTicker(12 * time.Hour)
 	defer harnessTk.Stop()
 	defer statusTk.Stop()
 	defer lockTk.Stop()
 	defer decayTk.Stop()
 	defer reportTk.Stop()
+	defer ltpTk.Stop()
 
 	// Initial decay run
 	go RunTTLDecay(brainRoot, svLog)
+	
+	// Initial LTP run (Memory Defragmentation)
+	go RunLTP(brainRoot, svLog)
+
+	go func() {
+		rebootFile := filepath.Join(nfsRoot, "dist", "release", "_reboot_request")
+		for {
+			time.Sleep(2 * time.Second)
+			if fileExists(rebootFile) {
+				svLog("🔥 _reboot_request 감지! 현 프로세스 강제 종료 (Hot Reload 주도권 이양)...")
+				os.Exit(0)
+			}
+		}
+	}()
 
 	svLog("━━━ 감시 루프 진입 ━━━")
 	for {
@@ -315,6 +331,8 @@ func runSupervisor(brainRoot string) {
 			return
 		case <-harnessTk.C:
 			go RunHarness(brainRoot, svLog)
+		case <-ltpTk.C:
+			go RunLTP(brainRoot, svLog)
 		case <-statusTk.C:
 			svCheckCount++
 			svStatus(children)
