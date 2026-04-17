@@ -201,8 +201,8 @@ func emitRegionRules(region Region, brainOpt ...Brain) string {
 	// AI가 코드 수정 시 관련 코드맵을 반드시 참조하도록 구조적으로 강제
 	codemapEntries := collectCodemapPaths(region.Path)
 	if len(codemapEntries) > 0 {
-		sb.WriteString("## 🗺️ vorq cartridge (코드 수정 전 必vorq)\n")
-		sb.WriteString("vorq=view_file로 .neuron 읽기 | zelk=작업 후 .neuron 갱신 | mirp=STALE이면 즉시 zelk\n\n")
+		sb.WriteString("## 🗺️ 코드맵 카트리지 (코드 수정 전 必확인)\n")
+		sb.WriteString("코드맵=view_file로 .neuron 읽기 | 갱신=작업 후 .neuron 갱신 | STALE이면 즉시 갱신\n\n")
 		for _, entry := range codemapEntries {
 			sb.WriteString(entry + "\n")
 		}

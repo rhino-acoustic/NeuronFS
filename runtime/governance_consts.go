@@ -117,9 +117,9 @@ var EmotionBehaviors = map[string]EmotionTier{
 	},
 }
 
-// ━━━ Rune System (한자 마이크로옵코드 + 신조어) ━━━
-// 16개 룬 = 12 한자 + 4 신조어(vorq/zelk/mirp/qorz)
-// 디스크에는 한자 1글자(또는 ASCII 신조어), AI 주입 시 한국어로 펼침
+// ━━━ Rune System (한자 마이크로옵코드 + 코드맵 명령어) ━━━
+// 18개 룬 = 14 한자 + 4 코드맵 명령어(장착/갱신/신선도/커뮤니티검색)
+// 디스크에는 한자 1글자(또는 ASCII 키), AI 주입 시 한국어로 펼침
 // 이 map이 유일한 정의 (SSOT) — 다른 곳에서 정의 금지
 
 // RuneToKorean: 룬 → 한국어 번역 (SSOT)

@@ -10,7 +10,7 @@ import (
 // ============================================================================
 // Module: Prompt Rotation Engine — Phase 54
 // Prevents attention decay (immunity) by rotating master prompt structure.
-// Same semantics, different surface form — identical to vorq principle.
+// Same semantics, different surface form — identical to the codemap cartridge principle.
 // ============================================================================
 
 // PromptVariant holds a structural variation of the master prompt
