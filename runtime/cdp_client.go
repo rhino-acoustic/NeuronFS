@@ -221,6 +221,8 @@ func (c *CDPClient) Call(method string, params interface{}) (json.RawMessage, er
 }
 
 func (c *CDPClient) Close() {
+	// 마지막 프레임 전송 보장을 위해 미세한 딜레이 부여
+	time.Sleep(100 * time.Millisecond)
 	c.ws.close()
 }
 

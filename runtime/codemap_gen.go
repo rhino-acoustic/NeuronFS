@@ -139,9 +139,9 @@ func parseCodeHeaders(content string) (provides, depends string) {
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		// Stop at package declaration
+		// Skip package declaration but continue
 		if strings.HasPrefix(line, "package ") {
-			break
+			continue
 		}
 		// Strip comment prefix
 		if strings.HasPrefix(line, "//") {

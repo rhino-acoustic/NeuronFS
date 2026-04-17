@@ -66,10 +66,8 @@ func computeMountHash(brainRoot string) string {
 			if n.IsDormant {
 				continue
 			}
-			// Include neurons that would be mounted
-			if n.Counter >= emitThreshold || time.Since(n.ModTime).Hours() < float64(spotlightDays*24) {
-				parts = append(parts, fmt.Sprintf("%s:%d", n.Path, n.Counter))
-			}
+			// 폴더 존재 = 활성. 모든 비dormant 뉴런을 마운트 해시에 포함.
+			parts = append(parts, fmt.Sprintf("%s:%d", n.Path, n.Counter))
 		}
 	}
 	sort.Strings(parts)

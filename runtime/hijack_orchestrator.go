@@ -1,5 +1,6 @@
 // hijack_orchestrator.go — hijack_launcher 분할 (Orchestrator 파트)
-// 외부 의존성: 0 (cdp_client.go + Go stdlib)
+// PROVIDES: hlAppendTranscript, hlAutoEvolve, runHijackLauncher, hlScrapeCurrentConversation
+// DEPENDS ON: cdp_client.go (hlCDPInjectSync), telegram_bridge.go (hlTgSend), evolve_context.go (hlBuildContextualPrompt), multi_agent.go (executeGeminiCLI)
 
 package main
 
@@ -9,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -245,25 +245,60 @@ func hlAutoEvolve(brainRoot string) {
 			// CLI 오케스트레이터 모델: Go 런타임은 최소 트리거만 발사
 			// 실제 판단과 행동은 CLI(AI 에이전트)가 수행
 			minimalTrigger := "[NeuronFS 시스템 점검 트리거] 시스템 상태를 확인하고 필요시 조치하라."
-			_, hasWork := hlBuildContextualPrompt(brainRoot)
+		_, hasWork := hlBuildContextualPrompt(brainRoot)
 			if !hasWork {
+				// _rules.md stale 방지: 90분마다 자동 re-inject
+				rulesPath := filepath.Join(brainRoot, "brainstem", "_rules.md")
+				if info, err := os.Stat(rulesPath); err == nil {
+					if time.Since(info.ModTime()) > 90*time.Minute {
+						fmt.Println("[HEARTBEAT] ♻️ _rules.md 90분 경과 — 자동 re-inject")
+						go writeAllTiers(brainRoot)
+					}
+				}
 				fmt.Println("[HEARTBEAT] ✅ 시스템 안정 — 트리거 생략")
 				os.Chtimes(growthLog, time.Now(), time.Now())
 				continue
 			}
-			fmt.Println("[HEARTBEAT] 🚨 이상 감지 — 최소 트리거 발사 (CLI가 판단)")
+			fmt.Println("[HEARTBEAT] 🚨 이상 감지 — Gemini CLI 오토파일럿 발동")
 
-			// 최소 트리거만 전송 — 거대한 마스터 프롬프트 대신 한 줄
+			// ── 올바른 자율주행 플로우 ──
+			// 1. 최근대화 + 마스터 프롬프트 조합
+			// 2. Gemini CLI에 전달
+			// 3. Gemini CLI 응답을 CDP로 이 Antigravity 창에 주입
+			// 4. Antigravity 응답 → [EVOLVE:proceed] → 반복
+
+			// 텔레그램 알림
 			hlTgSend(hlTgChatID, minimalTrigger)
-			go hlCDPInjectSync(hlTgMountedRoom, minimalTrigger)
+
+			// Gemini CLI에 최근대화 + 마스터 프롬프트 전달
+			go func() {
+				nudge, _ := hlBuildContextualPrompt(brainRoot)
+				fullPrompt := hlMasterPrompt + "\n\n" + nudge
+
+				nfsRoot2 := filepath.Dir(brainRoot)
+				result := executeGeminiCLI(AgentTask{
+					Name:    "autopilot_evolve",
+					Prompt:  fullPrompt,
+					WorkDir: nfsRoot2,
+				})
+
+				if result.Success && len(result.Output) > 10 {
+					// Gemini CLI 응답을 CDP로 이 Antigravity 창에 주입
+					response := result.Output
+					if len([]rune(response)) > 2000 {
+						response = string([]rune(response)[:2000])
+					}
+					fmt.Println("[AUTOPILOT] ✅ Gemini CLI 응답 → CDP 주입")
+					hlCDPInjectSync(hlTgMountedRoom, response)
+				} else {
+					// Gemini CLI 실패 시 최소 트리거로 fallback
+					fmt.Printf("[AUTOPILOT] ⚠️ Gemini CLI 실패: %s — fallback 트리거\n", result.Output[:min(len(result.Output), 100)])
+					hlCDPInjectSync(hlTgMountedRoom, minimalTrigger)
+				}
+			}()
 
 			// 무한 루프 회피 터치
 			os.Chtimes(growthLog, time.Now(), time.Now())
-
-			nfsExe, _ := os.Executable()
-			cmd := exec.Command(nfsExe, brainRoot, "--evolve")
-			cmd.Dir = nfsRoot
-			go cmd.Run()
 		}
 	}
 }

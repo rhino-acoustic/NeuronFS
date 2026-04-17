@@ -1,5 +1,7 @@
 package main
 
+// PROVIDES: RunHarness
+// DEPENDS ON: brain.go (scanBrain, RegionOrder), utils.go (fileExists)
 import (
 	"fmt"
 	"net"
@@ -41,7 +43,8 @@ func RunHarness(brainRoot string, logger func(string)) {
 			entries, _ := os.ReadDir(hp)
 			childCount := 0
 			for _, e := range entries {
-				if !e.IsDir() && strings.HasSuffix(e.Name(), ".neuron") {
+				// Folder = Neuron 원칙: 하위 폴더가 뉴런이다
+				if e.IsDir() && !strings.HasPrefix(e.Name(), "_") && !strings.HasPrefix(e.Name(), ".") {
 					childCount++
 				}
 			}

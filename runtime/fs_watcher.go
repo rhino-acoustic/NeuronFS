@@ -70,6 +70,22 @@ func startFSWatcherPool(brainRoot string) {
 		addWatchRecursive(watcher, zone)
 	}
 
+	// ── debounceMap GC: 5분마다 오래된 항목 정리 (메모리 누수 방지) ──
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			debounceMu.Lock()
+			now := time.Now()
+			for k, v := range debounceMap {
+				if now.Sub(v) > 5*time.Minute {
+					delete(debounceMap, k)
+				}
+			}
+			debounceMu.Unlock()
+		}
+	}()
+
 	fmt.Println("[Sensory] FS Watcher daemon activated. OS changes are now synaptic triggers.")
 }
 

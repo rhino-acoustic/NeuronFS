@@ -47,7 +47,22 @@ func (c *ChildSpec) stop() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.proc != nil && c.proc.Process != nil {
-		c.proc.Process.Kill()
+		// 1단계: Graceful Shutdown 시도 (os.Interrupt)
+		c.proc.Process.Signal(os.Interrupt)
+		
+		// 2단계: 최대 3초 대기
+		done := make(chan error, 1)
+		go func() {
+			done <- c.proc.Wait()
+		}()
+
+		select {
+		case <-done:
+			// 정상 종료됨
+		case <-time.After(3 * time.Second):
+			// 3단계: 시간 초과 시 강제 종료
+			c.proc.Process.Kill()
+		}
 	}
 	c.running = false
 }

@@ -1,6 +1,6 @@
 // agent_bridge.go — agent-bridge.mjs Go 포팅
-// 에이전트 간 inbox 감시 → CDP로 해당 에이전트 창에 메시지 주입
-// 외부 의존성: 0 (cdp_client.go 사용)
+// PROVIDES: runAgentBridge, abInjectToAgent, abCheckOutboxToTelegram
+// DEPENDS ON: cdp_client.go (cdpListTargets, NewCDPClient), telegram_bridge.go (sendTelegramSafe)
 package main
 
 import (

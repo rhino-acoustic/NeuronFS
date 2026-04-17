@@ -123,8 +123,19 @@ func TestLimbicBomb_BrainstemSurvives(t *testing.T) {
 	if len(result.BlockedRegions) != 6 {
 		t.Fatalf("expected 6 blocked regions, got %d", len(result.BlockedRegions))
 	}
-	if result.FiredNeurons != 3 {
-		t.Fatalf("expected 3 brainstem neurons fired, got %d", result.FiredNeurons)
+	// Folder=Neuron 원칙: brainstem 활성 뉴런 수를 동적 확인
+	bsNeurons := 0
+	for _, r := range result.ActiveRegions {
+		if r.Name == "brainstem" {
+			for _, n := range r.Neurons {
+				if !n.IsDormant {
+					bsNeurons++
+				}
+			}
+		}
+	}
+	if result.FiredNeurons != bsNeurons {
+		t.Fatalf("expected %d brainstem neurons fired, got %d", bsNeurons, result.FiredNeurons)
 	}
 
 	t.Logf("OK: brainstem alive (%d neurons), limbic~prefrontal blocked (%d regions)",

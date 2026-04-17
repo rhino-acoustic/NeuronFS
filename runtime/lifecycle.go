@@ -3,7 +3,7 @@ package main
 // ━━━ lifecycle.go ━━━
 // Module: Neuron Lifecycle Management (prune, decay, dedup, episode logging)
 //
-// PROVIDES:
+// PROVIDES: RunTTLDecay, deduplicateNeurons, logEpisode, runVacuum, softClear
 //   pruneWeakNeurons, runDecay, logEpisode, deduplicateNeurons
 //
 // CONSUMED BY:
@@ -492,6 +492,10 @@ func ttlUpdateWeightFrontmatter(content string, newWeight int) string {
 // RunTTLDecay degrades synaptic weight of neurons
 func RunTTLDecay(brainRoot string, logger func(string)) {
 	for regionName := range regionPriority {
+		// brainstem(P0) 영구 제외 — 거버넌스 규칙은 decay 대상이 아님
+		if regionName == "brainstem" {
+			continue
+		}
 		regionPath := filepath.Join(brainRoot, regionName)
 		if _, err := os.Stat(regionPath); os.IsNotExist(err) {
 			continue

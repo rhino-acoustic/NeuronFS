@@ -1,6 +1,6 @@
-// hijack_launcher.go — hijack-launcher.mjs Go 포팅
-// 통합 브릿지: TG polling + CDP 캡처 + 전사 + Groq 뉴런 추출
-// 외부 의존성: 0 (cdp_client.go + Go stdlib)
+// cdp_monitor.go — CDP DOM/Network 스크래핑 + 전사 캡처
+// PROVIDES: hlStartCDPMonitor, hlAttachDOMScraper, hlAttachNetworkMonitor, hlCDPInject, hlCDPInjectSync, hlStartCDPWorker
+// DEPENDS ON: cdp_client.go (cdpListTargets, NewCDPClient), hijack_orchestrator.go (hlAppendTranscript)
 package main
 
 import (

@@ -190,9 +190,9 @@ func hlFormatTgMsg(role, label, rawText string) string {
 	case "USER":
 		return fmt.Sprintf("👤 %s%s", label, escaped)
 	case "THINK":
-		return fmt.Sprintf("🧠 %s\n<pre><code class=\"language-text\">%s</code></pre>", label, esc.Replace(truncated))
+		return fmt.Sprintf("🧠 %s\n<pre>%s</pre>", label, esc.Replace(truncated))
 	case "CMD":
-		return fmt.Sprintf("⚡ %s\n<pre><code class=\"language-powershell\">%s</code></pre>", label, esc.Replace(truncated))
+		return fmt.Sprintf("⚡ %s\n<pre>%s</pre>", label, esc.Replace(truncated))
 	case "NEURON":
 		return fmt.Sprintf("🧬 %s%s", label, escaped)
 	default: // AI

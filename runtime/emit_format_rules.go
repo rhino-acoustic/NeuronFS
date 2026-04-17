@@ -265,7 +265,7 @@ func formatCortexBans(sb *strings.Builder, result SubsumptionResult) {
 		}
 		var bans []Neuron
 		for _, n := range region.Neurons {
-			if n.IsDormant || (n.Counter+n.Dopamine) < 5 {
+			if n.IsDormant {
 				continue
 			}
 			sentence := pathToSentence(n.Path)
@@ -413,7 +413,7 @@ func formatGrowthAndLimbic(sb *strings.Builder, result SubsumptionResult, brainR
 		}
 		active := 0
 		for _, n := range region.Neurons {
-			if !n.IsDormant && (n.Counter+n.Dopamine) > 0 {
+			if !n.IsDormant {
 				active++
 			}
 		}
@@ -451,7 +451,7 @@ func formatAbsoluteRules(sb *strings.Builder, result SubsumptionResult, top5Sent
 	seenBanLeaf := make(map[string]bool)
 	for _, region := range result.ActiveRegions {
 		for _, n := range region.Neurons {
-			if n.IsDormant || (n.Counter+n.Dopamine) < 5 {
+			if n.IsDormant {
 				continue
 			}
 			if !strings.ContainsAny(n.Path, "禁") {
@@ -523,9 +523,9 @@ func formatTieredRules(sb *strings.Builder, result SubsumptionResult) {
 
 	for _, region := range result.ActiveRegions {
 		for _, n := range region.Neurons {
-			// brainstem 뉴런은 카운터 무관 항상 포함 (옵코드 조어 강제)
+			// 폴더 존재 = 활성 (A folder IS a neuron). Counter는 정렬 우선순위로만 사용.
 			isBrainstem := region.Name == "brainstem"
-			if n.IsDormant || (!isBrainstem && (n.Counter+n.Dopamine) < 3) {
+			if n.IsDormant {
 				continue
 			}
 

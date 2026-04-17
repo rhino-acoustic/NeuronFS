@@ -33,7 +33,9 @@ func runWatch(brainRoot string) {
 					return nil
 				}
 				baseName := filepath.Base(path)
-				if strings.HasPrefix(baseName, ".") || baseName == "node_modules" {
+				if strings.HasPrefix(baseName, ".") || baseName == "node_modules" ||
+					baseName == "_transcripts" || baseName == "_archive" ||
+					baseName == ".neuronfs_backup" || baseName == "_agents" {
 					return filepath.SkipDir
 				}
 				if wErr := watcher.Add(path); wErr == nil {

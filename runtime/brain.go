@@ -3,7 +3,7 @@ package main
 // ━━━ brain.go ━━━
 // Module: Brain Data Structures + Scanner
 //
-// PROVIDES:
+// PROVIDES: scanBrain, runSubsumption, emitBootstrap, growNeuron, fireNeuron, signalNeuron, rollbackNeuron
 //   Neuron, Region, Brain, SubsumptionResult (structs)
 //   regionPriority, regionIcons, regionKo (maps)
 //   counterRegex, dopamineRegex (regex)
@@ -557,7 +557,7 @@ func runSubsumption(brain Brain) SubsumptionResult {
 	for _, region := range brain.Regions {
 		activeNeurons := 0
 		for _, n := range region.Neurons {
-			if !n.IsDormant && (n.Counter+n.Dopamine) > 0 {
+			if !n.IsDormant {
 				activeNeurons++
 				result.TotalCounter += n.Counter
 			}
