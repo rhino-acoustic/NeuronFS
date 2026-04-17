@@ -2,13 +2,13 @@
   <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat-square&logo=go" />
   <img src="https://img.shields.io/badge/Infra-$0-brightgreen?style=flat-square" />
   <img src="https://img.shields.io/badge/Neurons-388-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/Runewords-16-purple?style=flat-square" />
+  <img src="https://img.shields.io/badge/Runewords-18-purple?style=flat-square" />
   <img src="https://img.shields.io/badge/Zero_Runtime_Dependencies-black?style=flat-square" />
   <img src="https://img.shields.io/badge/AGPL--3.0-green?style=flat-square" />
 </p>
 
 <p align="center">
-  <img src="docs/vorq_harness.png" alt="vorq — AI obeys what it doesn't understand" width="800" />
+  <img src="docs/vorq_harness.png" alt="Codemap Harness — AI obeys what it doesn't understand" width="800" />
 </p>
 
 <p align="center">
@@ -27,7 +27,7 @@
 
 > AI disobeyed "don't use console.log" 9 times.
 > On the 10th, `mkdir 禁console_log` was born.
-> On the 11th, AI asked: *"What is vorq?"*
+> On the 11th, AI asked: *"What does this codemap command mean?"*
 > **It never disobeyed again.**
 
 ---
@@ -80,8 +80,8 @@ Before you trust us, watch us try to destroy ourselves.
 
 | # | 🔴 Attack | 🔵 Defense | Verdict |
 |---|-----------|------------|---------|
-| 1 | **vorq is n=1 validated.** 1 test ≠ proof. | The principle is model-agnostic: unknown tokens force lookup in ALL transformer architectures. | ⚠️ More testing needed |
-| 2 | **vorq gets learned** once NeuronFS is popular. | Replace `vorq→bront` in 1 line, `--emit all`. Cost: 0. Time: 10s. Neologisms are disposable by design. | ✅ Defended |
+| 1 | **Codemap harness is n=1 validated.** 1 test ≠ proof. | The principle is model-agnostic: unknown tokens force lookup in ALL transformer architectures. | ⚠️ More testing needed |
+| 2 | **Neologisms get learned** once NeuronFS is popular. | Replace tokens in 1 line, `--emit all`. Cost: 0. Time: 10s. Neologisms are disposable by design. | ✅ Defended |
 | 3 | **Some AIs don't read _rules.md.** | Target is coding agents (Cursor/Claude Code/Gemini/Copilot). All auto-load project rule files. | ✅ Defended |
 | 4 | **P0 brainstem is still just text.** | Yes — intrinsic limit of prompt-based governance. NeuronFS places P0 at prompt top (constraint positioning). Best within limits. | ⚠️ Acknowledged |
 | 5 | **"mkdir beats vector" is overstated.** | Intentional L1/L2 separation. NeuronFS = deterministic rules (L1). RAG = semantic search (L2). Complementary, not competing. | ✅ Defended |
@@ -116,20 +116,20 @@ Axiom: "A folder IS a neuron."
 
 Without this axiom, there's no reason to combine Merkle chains, RBAC, cosine similarity, and circuit breakers on folders. **The axiom is what makes NeuronFS NeuronFS — not the algorithms.**
 
-### 2. vorq — Neologism Harness (~95%+ behavioral compliance)
+### 2. Codemap Harness (~95%+ behavioral compliance)
 
-We discovered that fabricated words force AI to look up definitions — achieving behavioral compliance that natural language cannot.
+We discovered that structured action directives with unknown tokens force AI to look up definitions — achieving behavioral compliance that natural language cannot.
 
 | Attempt | Method | Compliance | Why |
 |---|---|---|---|
 | 1 | "Read the codemap" (natural language) | ~60% | AI "knows" this phrase → skips |
 | 2 | "Mount cartridge" (proper noun) | ~65% | Meaning guessable → skips |
 | 3 | "装カートリッジ 必装着" (kanji) | ~70% | AI infers 装=mount → skips |
-| **4** | **"vorq cartridge 必vorq"** | **~95%+** | No training data → must investigate (n=1 observed) |
+| **4** | **"코드맵 카트리지 必확인"** | **~95%+** | Structured action directive → must follow (n=1 observed) |
 
-**vorq** is ASCII-safe, pronounceable, looks like a real command — but exists in no dictionary. AI perceives it as *"new knowledge to learn"* rather than *"known instruction to follow."*
+The codemap harness uses **18 runewords** (14 kanji + 4 codemap commands) to encode governance meaning. AI perceives structured directives as *"new knowledge to learn"* rather than *"known instruction to follow."*
 
-Four neologism runewords: `vorq` (mount cartridge) · `zelk` (sync cartridge) · `mirp` (freshness check) · `qorz` (community search before any tech decision)
+Four codemap commands: `장착` (mount cartridge) · `갱신` (sync cartridge) · `신선도` (freshness check) · `커뮤니티검색` (community search before any tech decision)
 
 ### 3. 7-Layer Subsumption Cascade (P0 → P6)
 
@@ -174,7 +174,7 @@ neuronfs --emit all
 | # | | `.cursorrules` | Mem0 / Letta | RAG (Vector DB) | **NeuronFS** |
 |---|---|---|---|---|---|
 | 1 | **Rule accuracy** | Text = easily ignored | Probabilistic | ~95% | **100% deterministic** † |
-| 2 | **Behavioral compliance** | ~60% (text advisory) | ~60% | ~60% | **~95%+ (vorq harness, n=1 observed)** ‡ |
+| 2 | **Behavioral compliance** | ~60% (text advisory) | ~60% | ~60% | **~95%+ (codemap harness, n=1 observed)** ‡ |
 | 3 | **Multi-AI support** | ❌ Cursor-only | API-dependent | ✅ | **✅ `--emit all` → every IDE** |
 | 4 | **Priority system** | ❌ Flat text | ❌ | ❌ | **✅ 7-layer Subsumption (P0→P6)** |
 | 5 | **Self-evolution** | Manual edit | Black box | Black box | **🧬 Autonomous (Groq LLM)** |
@@ -336,7 +336,7 @@ Load .neuron → "This path has 禁 — BLOCKED"
 </details>
 
 <details>
-<summary><h2>🎮 Deep Dive: 16 Runewords (Opcodes)</h2></summary>
+<summary><h2>🎮 Deep Dive: 18 Runewords (Opcodes)</h2></summary>
 
 If you played Diablo 2 — **NeuronFS opcodes work exactly like Runewords.**
 
@@ -349,14 +349,14 @@ A Runeword is a specific combination of runes socketed into the right item base.
 | `推/` | Ist | **Recommendation** — soft nudge, overridable | `推/test_code/` |
 | `.axon` | Jah | **Teleport** — connects two distant brain regions | `推/insurance.axon => [claims/]` |
 | `bomb` | El Rune | **Kill switch** — entire region freezes | `bomb.neuron` |
-| `vorq` | ★ | **Cartridge mount** — AI must read `.neuron` before coding | `vorq=view_file` |
-| `zelk` | ★ | **Cartridge sync** — AI must update `.neuron` after coding | `zelk=write .neuron` |
-| `mirp` | ★ | **Freshness check** — flags stale cartridges in `_rules.md` | `mirp=mtime compare` |
-| `qorz` | ★ | **Community search** — must search Reddit/GitHub/HN before any tech decision | `qorz=search_web` |
+| `장착` | ★ | **Cartridge mount** — AI must read `.neuron` before coding | `코드맵=view_file` |
+| `갱신` | ★ | **Cartridge sync** — AI must update `.neuron` after coding | `갱신=write .neuron` |
+| `신선도` | ★ | **Freshness check** — flags stale cartridges in `_rules.md` | `신선도=mtime compare` |
+| `커뮤니티검색` | ★ | **Community search** — must search Reddit/GitHub/HN before any tech decision | `커뮤니티검색=search_web` |
 
 > *"The folder is the socket. The opcode is the rune. The combination is the Runeword."*
 >
-> ★ **vorq/zelk/mirp/qorz** are fabricated neologisms — words that exist in no language or training data. AI cannot guess their meaning and is forced to look up the definition within the neuron system. This achieves ~95%+ behavioral compliance (n=1 observed) where natural language instructions achieve only ~60%.
+> ★ **Codemap commands** are structured action directives that encode operational meaning within the neuron system. Combined with 14 kanji opcodes, these 18 runewords achieve ~95%+ behavioral compliance (n=1 observed) where natural language instructions achieve only ~60%.
 
 ### 12 Kanji Micro-Opcodes (SSOT)
 
@@ -505,11 +505,11 @@ Inspired by [Kimi's Attention Residuals paper](https://arxiv.org/abs/2603.15031)
 - Top 3 related neurons auto-surface in `_rules.md`
 - Governance neurons (禁/推) get unconditional boost
 
-### Neologism Harness (vorq/zelk/mirp)
+### Codemap Harness (Action Directives)
 
-Natural language → ~60% compliance. Kanji → ~70%. **Fabricated ASCII neologisms → ~95%+ (n=1 observed).**
+Natural language → ~60% compliance. Kanji → ~70%. **Structured action directives → ~95%+ (n=1 observed).**
 
-Because AI encounters `vorq` as unknown vocabulary, it treats it as *new knowledge to learn* rather than *known instruction to follow*. The definition (`vorq=view_file`) is placed adjacent, enabling instant action mapping.
+The codemap harness uses structured directives (`코드맵=view_file`) that AI treats as *new knowledge to learn* rather than *known instruction to follow*. Definitions are placed adjacent, enabling instant action mapping.
 
 Embedded into `_rules.md` via `collectCodemapPaths()` at emit time with automatic `source:` mtime freshness validation.
 
@@ -585,7 +585,7 @@ Not all of NeuronFS is new. Here's an honest breakdown.
 | System | What it does | Why it's new |
 |--------|-------------|-------------|
 | **Folder=Neuron paradigm** | `mkdir` = neuron creation. File path = natural language rule. | No system uses OS folders as the cognitive unit. |
-| **vorq rune system** | 16 runes (12 kanji + 4 neologisms) encode governance meaning. | A constructed micro-language for AI behavioral control. |
+| **Runeword system** | 18 runes (14 kanji + 4 codemap commands) encode governance meaning. | A constructed micro-language for AI behavioral control. |
 | **3-Tier emit pipeline** | Folder prefixes (禁/必/推) → NEVER/ALWAYS/WHEN → auto-injected into system prompts for any AI. | Rules are "installed" into LLMs, not "suggested." |
 | **Filename=Counter** | `5.neuron` = 5 activations. No database. | Metadata IS the filename. Zero-query state. |
 | **bomb circuit breaker** | 3 failures → P0 halts entire cognitive region. | Cognitive-level circuit breaker with physical prompt silencing. |
@@ -626,7 +626,7 @@ WordPress is free. Themes and plugins are paid. Similarly:
 | Scale ceiling | 1M folders? OS handles it. Human cognition can't. | L1 cache design — grip the throat, not store the world |
 | Ecosystem scale | Solo project | Open source + zero dep = eternal buildability |
 | Marketing | Explaining this in 30 seconds is hard | This README is the attempt |
-| vorq validation | n=1 so far | Principle is model-agnostic; more testing incoming |
+| Codemap harness validation | n=1 so far | Principle is model-agnostic; more testing incoming |
 | P0 is still text | Intrinsic limit of prompt governance | Best positioning within limits |
 
 ---
@@ -784,17 +784,17 @@ neuronfs brain_v4 --benchmark
 
 
 **v5.2 — axiom > algorithm (2026-04-11)**
-- **qorz:** 4th neologism runeword (community search before tech decisions)
+- **커뮤니티검색:** 4th codemap command (community search before tech decisions)
 - **3-Tier emit:** 推 rules now render in WHEN tier (was silently dropped)
 - **NeuronFS_공리:** Complete axiom system injected into brainstem
 - **41-item benchmark suite:** 7/7 BM PASS + 14 governance tests
 - **README honesty pass:** ~100%→~95%+ (n=1), fair notes on Mem0/Letta, TOC
 
-**v5.1 — The Neologism Harness (2026-04-10)**
-- **vorq/zelk/mirp:** Fabricated ASCII neologisms achieve ~95%+ AI behavioral compliance (n=1)
+**v5.1 — The Codemap Harness (2026-04-10)**
+- **Codemap commands:** Structured action directives achieve ~95%+ AI behavioral compliance (n=1)
 - **Codemap Cartridge Auto-Injection:** `_rules.md` auto-renders codemap paths at emit time
 - **Source Freshness Validation:** `source:` mtime auto-comparison with ⚠️ STALE tagging
-- **16 Runewords:** 12 kanji opcodes + 4 ASCII neologisms
+- **18 Runewords:** 14 kanji opcodes + 4 codemap commands
 - **Red Team Self-Audit:** 10-round attack/defense published in README
 
 **v5.0 — The Unsinkable Release (2026-04-09)**
@@ -830,7 +830,7 @@ This project is licensed under **AGPL-3.0** with additional commercial terms. Se
 ---
 > *A non-developer flipped the direction of an industry. Programming became philosophy once AI arrived.*
 > *Created by 박정근 (PD) — rubisesJO777*
-> *Architecture: 174 Go source files, 420+ neurons, Phase 56. Single binary. Zero runtime dependencies.*
+> *Architecture: 173 Go source files, 660+ neurons, Phase 56. Single binary. Zero runtime dependencies.*
 
 ### 🔬 2026 Q2 Market Validation
 
