@@ -245,21 +245,18 @@ func hlAutoEvolve(brainRoot string) {
 			// CLI 오케스트레이터 모델: Go 런타임은 최소 트리거만 발사
 			// 실제 판단과 행동은 CLI(AI 에이전트)가 수행
 			minimalTrigger := "[NeuronFS 시스템 점검 트리거] 시스템 상태를 확인하고 필요시 조치하라."
-		_, hasWork := hlBuildContextualPrompt(brainRoot)
-			if !hasWork {
-				// _rules.md stale 방지: 90분마다 자동 re-inject
-				rulesPath := filepath.Join(brainRoot, "brainstem", "_rules.md")
-				if info, err := os.Stat(rulesPath); err == nil {
-					if time.Since(info.ModTime()) > 90*time.Minute {
-						fmt.Println("[HEARTBEAT] ♻️ _rules.md 90분 경과 — 자동 re-inject")
-						go writeAllTiers(brainRoot)
-					}
+
+			// _rules.md stale 방지: 90분마다 자동 re-inject (비차단)
+			rulesPath := filepath.Join(brainRoot, "brainstem", "_rules.md")
+			if info, err := os.Stat(rulesPath); err == nil {
+				if time.Since(info.ModTime()) > 90*time.Minute {
+					fmt.Println("[HEARTBEAT] ♻️ _rules.md 90분 경과 — 자동 re-inject")
+					go writeAllTiers(brainRoot)
 				}
-				fmt.Println("[HEARTBEAT] ✅ 시스템 안정 — 트리거 생략")
-				os.Chtimes(growthLog, time.Now(), time.Now())
-				continue
 			}
-			fmt.Println("[HEARTBEAT] 🚨 이상 감지 — Gemini CLI 오토파일럿 발동")
+
+			// 항상 트리거 — 이상 여부 상관없이 오토파일럿 구동
+			fmt.Println("[HEARTBEAT] 🚀 Gemini CLI 오토파일럿 발동")
 
 			// ── 올바른 자율주행 플로우 ──
 			// 1. 최근대화 + 마스터 프롬프트 조합
