@@ -217,7 +217,7 @@ func buildHealthJSON(brainRoot string) HealthJSON {
 		Backlog:    BacklogStatus{Pending: pending, Backlog: backlogCount, Archive: archiveCount},
 		OS:         runtime.GOOS,
 		BrainRoot:  brainRoot,
-		NeuronFile: 0,
+		NeuronFile: countNeuronFiles(brainRoot),
 		Uptime:     time.Since(startTime).Round(time.Second).String(),
 	}
 }
