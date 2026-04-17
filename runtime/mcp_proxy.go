@@ -1,13 +1,17 @@
+// PROVIDES: runMCPProxy, healSession
+// DEPENDS ON: (stdlib net/http only)
 package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -16,10 +20,43 @@ import (
 var (
 	mcpSessionMap   = make(map[string]string)
 	mcpSessionMapMu sync.RWMutex
+	mcpSessionFile  string // set by runMCPProxy
 )
+
+// loadSessionMap reads persisted session mappings from disk
+func loadSessionMap() {
+	if mcpSessionFile == "" {
+		return
+	}
+	data, err := os.ReadFile(mcpSessionFile)
+	if err != nil {
+		return // first run or missing file — normal
+	}
+	mcpSessionMapMu.Lock()
+	defer mcpSessionMapMu.Unlock()
+	_ = json.Unmarshal(data, &mcpSessionMap)
+}
+
+// saveSessionMap writes current session mappings to disk atomically
+func saveSessionMap() {
+	if mcpSessionFile == "" {
+		return
+	}
+	mcpSessionMapMu.RLock()
+	data, _ := json.MarshalIndent(mcpSessionMap, "", "  ")
+	mcpSessionMapMu.RUnlock()
+	_ = os.WriteFile(mcpSessionFile, data, 0600)
+}
+
 
 // runMCPProxy starts a reverse proxy on listenPort that forwards to targetPort.
 func runMCPProxy(listenPort int, targetPort int) {
+	// Persist session map to brain root
+	if mcpBrainRoot != "" {
+		mcpSessionFile = filepath.Join(mcpBrainRoot, ".mcp_sessions.json")
+		loadSessionMap()
+	}
+
 	targetBase := fmt.Sprintf("http://127.0.0.1:%d", targetPort)
 	targetURL, _ := url.Parse(targetBase)
 
@@ -54,6 +91,7 @@ func runMCPProxy(listenPort int, targetPort int) {
 					mcpSessionMapMu.Lock()
 					mcpSessionMap[sess] = sess
 					mcpSessionMapMu.Unlock()
+					saveSessionMap()
 				}
 			}
 			return nil
@@ -138,6 +176,7 @@ func (t *retryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 						mcpSessionMapMu.Lock()
 						mcpSessionMap[clientSess] = newBackendSess
 						mcpSessionMapMu.Unlock()
+						saveSessionMap()
 						
 						fmt.Fprintf(os.Stderr, "\033[35m[PROXY] Auto-healed session mappings: %s -> %s\033[0m\n", clientSess[:8], newBackendSess[:8])
 						
