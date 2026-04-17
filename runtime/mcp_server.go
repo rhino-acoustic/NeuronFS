@@ -318,8 +318,29 @@ func startMCPHTTPServer(brainRoot string, port int) {
 		Stateless: false, // Auto-heal proxy handles restart recovery
 	})
 
+	// CORS 및 SSE 대응을 위한 래퍼 핸들러
+	mcpWrapper := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Accept, MCP-Protocol-Version, MCP-Session-Id")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		// SSE 지원을 위해 Accept 헤더에 따른 추가 설정
+		if r.Header.Get("Accept") == "text/event-stream" {
+			w.Header().Set("Cache-Control", "no-cache")
+			w.Header().Set("Connection", "keep-alive")
+			w.Header().Set("X-Accel-Buffering", "no")
+		}
+
+		handler.ServeHTTP(w, r)
+	})
+
 	mux := http.NewServeMux()
-	mux.Handle("/mcp", handler)
+	mux.Handle("/mcp", mcpWrapper)
 
 	// Health check endpoint for supervisor
 	mux.HandleFunc("/mcp/health", func(w http.ResponseWriter, r *http.Request) {
