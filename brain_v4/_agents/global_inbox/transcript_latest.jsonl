@@ -1,20 +1,21 @@
-hippocampus/session_log/memory37.neuron  
-→ \"기억 영역의 "}
-{"ts":"2026-04-18T22:20:53Z","role":"AI","text":"🟢 추가 완료. 
-neuronfs_overview.md
 
-9가지 독자 기술로 확장:
+hooks 목록:
 
-#	기술	핵심
-1	파일시스템=뇌	폴더가 뉴런
-2	Subsumption Cascade	P0이 P6을 이긴다
-3	자율 진화	논문→실구동 유일
-4	감정 시스템	분노→검증3배
-5	한자 룬	1글자=행동지시
-6	CDP 직접 주입	IDE 제어
-7	역 RAG	질문 전 사전 주입
-8	역경로	경로=의미=검색키
-9	지식 카트리지	벡터DB 제로, 카운터=유사도
+SessionStart: neuron-load (session_start.ps1)
 
-[EVOLVE:proceed]"}
-{"ts":"2026-04-18T22:20:59Z","role":"AI","text":"사용자가 \".\"을 보냄. 특별한 요"}
+SessionEnd: auto-save (session_end.ps1)
+
+BeforeTool: git-snapshot (pre_edit_git.ps1)
+
+BeforeTool: block-delete (block_delete.ps1)
+
+BeforeTool: go-vet-guard (go_vet_guard.ps1)
+
+BeforeTool: encoding-guard (encoding_guard.ps1)
+
+AfterTool: codemap-sync (codemap_sync.ps1)
+
+이제 hooks 디렉토리와 각 PowerShell 스크립트 파일들이 실제로 존재하는지 확인하고, 각 스크립트의 내용을 검증해야 함."}
+{"ts":"2026-04-18T22:21:46Z","role":"AI","text":"7개 스크립트 모두 존재. 핵심인 pre_edit_git.ps1 (git 선행) 내용 확인:"}
+{"ts":"2026-04-18T22:21:49Z","role":"AI","text":"나머지 hooks도 확인:"}
+{"ts":"2026-04-18T22:21:55Z","role":"AI","text":"실제 작동 검증 — git snapshot hook이 마지막으로 작동한 기록:"}
