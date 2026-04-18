@@ -18,6 +18,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"time"
 )
 
@@ -29,6 +30,10 @@ func startAPI(brainRoot string, port int) {
 
 	// Initialize activity tracker
 	touchActivity()
+
+	// Hook 인프라 자동 생성 (매 시작 시)
+	nfsRoot := filepath.Dir(brainRoot)
+	ensureHooksInfra(nfsRoot)
 
 	// CORS middleware with activity tracking
 	withCORS := func(h http.HandlerFunc) http.HandlerFunc {
