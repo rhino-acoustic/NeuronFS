@@ -1,3 +1,5 @@
+﻿// PROVIDES: llmChat, llmQuery, llmStream
+// DEPENDS ON: gemini_api_client.go (GeminiClient), llm_prompts.go (prompts)
 package main
 
 import (

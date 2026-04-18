@@ -1,3 +1,5 @@
+﻿// PROVIDES: handleConfigGet, handleConfigSet
+// DEPENDS ON: brain.go (scanBrain)
 package main
 
 import (

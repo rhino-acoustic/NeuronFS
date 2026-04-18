@@ -1,3 +1,5 @@
+﻿// PROVIDES: handleMCPStatus, handleMCPSignal
+// DEPENDS ON: brain.go (scanBrain), lifecycle.go (runDecay)
 package main
 
 import (

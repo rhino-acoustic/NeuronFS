@@ -1,3 +1,5 @@
+﻿// PROVIDES: buildDashboard, renderSystemGraph
+// DEPENDS ON: brain.go (scanBrain), api_server.go (health)
 package main
 
 import (

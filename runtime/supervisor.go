@@ -1,4 +1,4 @@
-// RULE: ZERO EXTERNAL DEPENDENCY PRESERVED
+﻿// RULE: ZERO EXTERNAL DEPENDENCY PRESERVED
 // supervisor.go — NeuronFS 네이티브 프로세스 매니저
 //
 // watchdog.ps1 + 프로세스 관리를 Go 바이너리로 통합.

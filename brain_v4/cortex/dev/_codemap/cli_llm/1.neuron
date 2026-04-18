@@ -1,11 +1,14 @@
-﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cli_llm.go
-updated: 2026-04-18T20:37:40
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cli_llm.go
+updated: 2026-04-18T20:52:04
 # cli_llm.go
 dir: runtime
-lines: 636
-
-## PROVIDES
-
 
 ## DEPENDS ON
+gemini_api_client.go (GeminiClient), llm_prompts.go (prompts)
+─── runNeuronize: corrections/episodes → Groq → contra neurons ───
+─── runPolarize: 긍정형 뉴런 → 부정형 전환 ───
+─── Main evolve function ───
+Phase 61 Closed Loop: Validation Gate
+Append to corrections.jsonl to learn from this failure
+Phase 66: Procedural Memory Extraction
 

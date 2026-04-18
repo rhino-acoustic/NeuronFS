@@ -1,11 +1,25 @@
-﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\mcp_handler_sys.go
-updated: 2026-04-18T20:37:40
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\mcp_handler_sys.go
+updated: 2026-04-18T20:52:04
 # mcp_handler_sys.go
 dir: runtime
-lines: 376
-
-## PROVIDES
-
 
 ## DEPENDS ON
+brain.go (scanBrain), lifecycle.go (runDecay)
+─── Tool 8: report ───
+Write to _inbox/reports/ as timestamped file
+Count pending reports
+─── Tool 9: pending_reports ───
+If done=true, move oldest report to done
+─── Tool 12: status ───
+Count totals
+Top neurons
+Recent corrections history
+Pending reports
+─── Tool 13: health_check ───
+1. Detect duplicates (Jaccard similarity)
+2. Empty folders
+Quarantine empty neuron folders instead of deleting
+3. Bomb status
+Summary
+─── Register new feature suite ───
 

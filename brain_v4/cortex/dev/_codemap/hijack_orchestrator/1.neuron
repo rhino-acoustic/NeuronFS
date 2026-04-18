@@ -1,5 +1,5 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\hijack_orchestrator.go
-updated: 2026-04-18T20:46:26
+updated: 2026-04-18T20:48:57
 # hijack_orchestrator.go
 dir: runtime
 
@@ -27,7 +27,9 @@ Rolling: 최근 20줄만 유지
 ── CDP DOM 스크래핑 + Network 모니터 ──
 활성 Network scraper 추적
 자율주행 비활성 체크
-growth.log가 5분 이상 미갱신일 때만 (3→5분 확대)
+growth.log 없으면 자동 생성 (이 누락이 오토파일럿 미발동의 근본 원인)
+5분 전 타임스탬프로 설정하여 즉시 트리거 가능
+growth.log가 5분 이상 미갱신일 때만
 전사 파일 체크: 최근 5분 내 전사 갱신이 있어야만 활성 대화 존재
 활성 대화 없음 — 아무도 안 듣고 있으니 주입 무의미
 CLI 오케스트레이터 모델: Go 런타임은 최소 트리거만 발사

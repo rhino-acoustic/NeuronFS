@@ -1,4 +1,4 @@
-// awakening.go — NeuronFS CLI Awakening Sequence v2
+﻿// awakening.go — NeuronFS CLI Awakening Sequence v2
 //
 // ENFP PRD: 20260401_083600_enfp_cli_awakening_ux_prd_v2.md
 //

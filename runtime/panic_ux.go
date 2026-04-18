@@ -1,4 +1,4 @@
-// panic_ux.go — OOM Flatline Death Screen UX v2
+﻿// panic_ux.go — OOM Flatline Death Screen UX v2
 //
 // ENFP PRD v2: 20260401_083800_enfp_oom_flatline_ux_prd_v2.md
 //

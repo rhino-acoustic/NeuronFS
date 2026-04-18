@@ -1,3 +1,5 @@
+﻿// PROVIDES: buildSystemPrompt, buildNudgePrompt
+// DEPENDS ON: brain.go (Brain), emit_helpers.go (helpers)
 package main
 
 import (

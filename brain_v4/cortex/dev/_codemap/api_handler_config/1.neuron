@@ -1,11 +1,19 @@
-﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\api_handler_config.go
-updated: 2026-04-18T20:37:40
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\api_handler_config.go
+updated: 2026-04-18T20:52:04
 # api_handler_config.go
 dir: runtime
-lines: 364
-
-## PROVIDES
-
 
 ## DEPENDS ON
+brain.go (scanBrain)
+GET/POST /api/principles
+GET/POST /api/emotion — 감정 상태 머신
+GET/POST /api/sandbox
+GET/POST /api/integrations — 텔레그램 + Groq + Claude 설정 관리
+텔레그램 상태
+Groq 상태 (환경변수 + .secrets 파일)
+Claude 상태 (환경변수 + .secrets 파일)
+서비스 상태
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+System Routes: integrity, evolution, community, reports, codemap
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
