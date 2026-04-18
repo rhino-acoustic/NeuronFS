@@ -2,9 +2,10 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[23:39:46] AI: 사용자가 두 가지를 말함:
-[23:39:49] AI: 사용자가 두 가지를 말함:
-[23:39:49] AI: 🟢 두 가지 — 실제 하네스 + executor 미처리 감지:
-[23:39:59] AI: ✅ harness PASS (23 checks)! (exit code 1은 PowerShell stderr 파싱 이슈, 실제 결과는 PASS)
-[23:40:11] AI: executor has not processed 메시지는 아직 감지 로직 없음. DOM 스크래핑에서 감지할 수 있는 위치 — hlAttachDOMScraper의 스크래핑 결과에서 패턴 매칭:
-[23:40:26] AI: 적중. L274에서 전사 기록 시점에 executor has not processed 감지 후 Continue 자동 주입. 전사 기록 직후에 패턴 매칭:
+[23:43:32] AI: 여전히 29=29. dormant 파일이 파싱되고 있는지 확인 — brain.go에서 hooks_pattern이 depth 4 (cortex/left/frontend/hooks_pattern)인데 스캔 depth가 맞는지:
+[23:43:56] AI: M-11 실패의 근본 원인: hooks_pattern은 cortex/left/frontend/hooks_pattern으로 depth=3. 뉴런 파일(e.g. 40.neuron)이 그 안에 있음. decay.dormant를 만들면 IsDormant=true가 되고 activeNeurons에서 제외됨.
+[23:43:59] AI: M-11 실패의 근본 원인: hooks_pattern은 cortex/left/frontend/hooks_pattern으로 depth=3. 뉴런 파일(e.g. 40.neuron)이 그 안에 있음. decay.dormant를 만들면 IsDormant=true가 되고 activeNeurons에서 제외됨.
+[23:43:59] AI: 스캔이 동작하는지 직접 확인:
+[23:44:36] AI: 발견! 테스트 brain에서 hooks_pattern은 cortex/left/frontend/hooks_pattern (29개 중 하나). scanBrain이 뉴런 폴더 단위 카운트 → 29개. dormant는 뉴런 폴더 안의 파일이므로 IsDormant=true → activeNeurons에서 제외.
+[23:44:46] AI: 두 곳 함께 수정 — TotalNeurons 비교로:
+[23:45:29] AI: ✅ PASS! 이제 M-11도 확인:

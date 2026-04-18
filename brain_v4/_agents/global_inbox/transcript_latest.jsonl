@@ -1,20 +1,21 @@
-{"ts":"2026-04-18T23:39:46Z","role":"AI","text":"사용자가 두 가지를 말함:
 
-실제 하네스를 실행해라
-[unknown] executor has not processed the previous input yet — 이 메시지가 감지되면 \"continue\" 인젝션이 되어야 한다
+테스트에서 TotalNeurons로 검증하도록 수정:"}
+{"ts":"2026-04-18T23:43:32Z","role":"AI","text":"여전히 29=29. dormant 파일이 파싱되고 있는지 확인 — brain.go에서 hooks_pattern이 depth 4 (cortex/left/frontend/hooks_pattern)인데 스캔 depth가 맞는지:"}
+{"ts":"2026-04-18T23:43:56Z","role":"AI","text":"M-11 실패의 근본 원인: hooks_pattern은 cortex/left/frontend/hooks_pattern으로 depth=3. 뉴런 파일(e.g. 40.neuron)이 그 안에 있음. decay.dormant를 만들면 IsDormant=true가 되고 activeNeurons에서 제외됨.
 
-두 번째는 CDP 주입"}
-{"ts":"2026-04-18T23:39:49Z","role":"AI","text":"사용자가 두 가지를 말함:
+하지만 before=29 after=29. 즉 dormant가 적용되지 않음. 문제는 scanBrain의 vfsReadDir 혹은 setupTestBrain의 brain 구조.
 
-실제 하네스를 실행해라
-[unknown] executor has not processed the previous input yet — 이 메시지가 감지되면 \"continue\" 인젝션이 되어야 한다
+setupTestBrain이 실제 brain_v4를 복사하는지, 아니면 t.TempDir()에 간소한 brain을 만드는지 확인해야 하는데, hooks"}
+{"ts":"2026-04-18T23:43:59Z","role":"AI","text":"M-11 실패의 근본 원인: hooks_pattern은 cortex/left/frontend/hooks_pattern으로 depth=3. 뉴런 파일(e.g. 40.neuron)이 그 안에 있음. decay.dormant를 만들면 IsDormant=true가 되고 activeNeurons에서 제외됨.
 
-두 번째는 CDP 주입 시 IDE가 이전 입력을 아직 처리 중일 때 나오는 메시지. 이걸 텔레그램 브릿지나 agent_bridge에서 감지하여 자동으로 \"Continue\"를 재주입해야 한다는 것.
+하지만 before=29 after=29. 즉 dormant가 적용되지 않음. 문제는 scanBrain의 vfsReadDir 혹은 setupTestBrain의 brain 구조.
 
-이제 실제 하네스 실행과 함께 이 에러 메시지를 감지하는 로직을 추가해야 한다."}
-{"ts":"2026-04-18T23:39:49Z","role":"AI","text":"🟢 두 가지 — 실제 하네스 + executor 미처리 감지:"}
-{"ts":"2026-04-18T23:39:59Z","role":"AI","text":"✅ harness PASS (23 checks)! (exit code 1은 PowerShell stderr 파싱 이슈, 실제 결과는 PASS)
+setupTestBrain이 실제 brain_v4를 복사하는지, 아니면 t.TempDir()에 간소한 brain을 만드는지 확인해야 하는데, hooks_pattern 폴더 구조가 제대로 설정되어 있는지 살펴봐야 할 것 같음."}
+{"ts":"2026-04-18T23:43:59Z","role":"AI","text":"스캔이 동작하는지 직접 확인:"}
+{"ts":"2026-04-18T23:44:36Z","role":"AI","text":"발견! 테스트 brain에서 hooks_pattern은 cortex/left/frontend/hooks_pattern (29개 중 하나). scanBrain이 뉴런 폴더 단위 카운트 → 29개. dormant는 뉴런 폴더 안의 파일이므로 IsDormant=true → activeNeurons에서 제외.
 
-이제 executor 미처리 감지 → 자동 Continue 인젝션 구현:"}
-{"ts":"2026-04-18T23:40:11Z","role":"AI","text":"executor has not processed 메시지는 아직 감지 로직 없음. DOM 스크래핑에서 감지할 수 있는 위치 — hlAttachDOMScraper의 스크래핑 결과에서 패턴 매칭:"}
-{"ts":"2026-04-18T23:40:26Z","role":"AI","text":"적중. L274에서 전사 기록 시점에 executor has not processed 감지 후 Continue 자동 주입. 전사 기록 직후에 패턴 매칭:"}
+하지만 문제는 initVFS(dir)! VFS가 초기화되면 lower cartridge도 적용될 수 있음. 핵심: TotalNeurons와 FiredNeurons가 둘 다 dormant 제외인데 bomb 없으면 항상 같음.
+
+해결: Report의 M-11도 같은 로직이므로 함께 수정:"}
+{"ts":"2026-04-18T23:44:46Z","role":"AI","text":"두 곳 함께 수정 — TotalNeurons 비교로:"}
+{"ts":"2026-04-18T23:45:29Z","role":"AI","text":"✅ PASS! 이제 M-11도 확인:"}

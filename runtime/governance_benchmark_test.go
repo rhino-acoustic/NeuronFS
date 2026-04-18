@@ -392,16 +392,16 @@ func TestMLA_LifecycleTransitions(t *testing.T) {
 		dir := setupTestBrain(t)
 		brain1 := scanBrain(dir)
 		result1 := runSubsumption(brain1)
-		before := result1.FiredNeurons
+		before := result1.TotalNeurons
 
 		// Mark a neuron dormant
 		os.WriteFile(filepath.Join(dir, "cortex", "left", "frontend", "hooks_pattern", "decay.dormant"), []byte{}, 0600)
 		brain2 := scanBrain(dir)
 		result2 := runSubsumption(brain2)
-		after := result2.FiredNeurons
+		after := result2.TotalNeurons
 
 		if after >= before {
-			t.Errorf("expected fewer fired after dormant, before=%d after=%d", before, after)
+			t.Errorf("expected fewer neurons after dormant, before=%d after=%d", before, after)
 		}
 	})
 
@@ -633,7 +633,7 @@ func TestGovernanceBenchmarkReport(t *testing.T) {
 	os.WriteFile(filepath.Join(dormDir, "cortex", "left", "frontend", "hooks_pattern", "decay.dormant"), []byte{}, 0600)
 	brain2 := scanBrain(dormDir)
 	r2 := runSubsumption(brain2)
-	if r2.FiredNeurons < r1.FiredNeurons {
+	if r2.TotalNeurons < r1.TotalNeurons {
 		mlaPassed++
 	}
 
