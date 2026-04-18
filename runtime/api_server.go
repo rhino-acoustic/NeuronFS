@@ -18,6 +18,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 )
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -73,7 +74,7 @@ func startAPI(brainRoot string, port int) {
 	go startWebhookDaemon(brainRoot) // <--- Phase 32: B2B Webhook Forwarder
 	// go startP2PSyncDaemon(brainRoot) // <--- Replaced by explicit Phase 60 NeuronFS --sync command
 	go startDreamCycleDaemon(brainRoot) // <--- Phase 41: V10 Dream Cycle
-	go func() { BuildSimilarityIndex(brainRoot) }() // <--- Phase 44: V11 TF-IDF Index
+	go func() { time.Sleep(3 * time.Minute); BuildSimilarityIndex(brainRoot) }() // Phase 44: 3분 후 TF-IDF (메모리 보호)
 	go runTranscriptCategorizer(brainRoot) // <--- 전사 자동 카테고리 분류 (1시간 주기, Gemini CLI 위임)
 
 	fmt.Printf("  🔄 IDLE ENGINE: auto evolve/snapshot/NAS every %dm idle\n", idleThresholdMinutes)
