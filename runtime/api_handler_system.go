@@ -445,7 +445,7 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 			return
 		}
 
-		ticker := time.NewTicker(1 * time.Second)
+		ticker := time.NewTicker(30 * time.Second) // 30초 (메모리 보호: scanBrain 664뉴런)
 		defer ticker.Stop()
 
 		clientChan := make(chan EventMessage, 100)
