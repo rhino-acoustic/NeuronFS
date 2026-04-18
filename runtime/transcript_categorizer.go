@@ -31,7 +31,11 @@ var transcriptCategories = []string{
 	"12_Business_비즈니스",
 }
 
-// runTranscriptCategorizer runs every hour, categorizing recent transcripts
+// runTranscriptCategorizer runs every hour as a cron cycle:
+// 1. git snapshot (선행)
+// 2. 전사 백업 (24시간 경과분 이관)
+// 3. 정황 수집 (세션, git push, 빌드 상태)
+// 4. Gemini CLI 위임 카테고리 분류
 // via Gemini CLI. Stacked on top of existing transcript system.
 func runTranscriptCategorizer(brainRoot string) {
 	// 초기 대기: 서버 안정화 후 시작
@@ -46,9 +50,101 @@ func runTranscriptCategorizer(brainRoot string) {
 			continue
 		}
 
-		categorizeRecentTranscripts(brainRoot, 1) // 최근 1시간
+		fmt.Println("[CRON] ⏰ 전사 크론 사이클 시작")
+
+		// ── Step 1: git 선행 ──
+		cronGitSnapshot(nfsRoot)
+
+		// ── Step 2: 전사 백업 (24시간 경과분) ──
+		archiveOldTranscripts(brainRoot)
+
+		// ── Step 3: 정황 수집 ──
+		ctx := collectCronContext(brainRoot, nfsRoot)
+		fmt.Printf("[CRON] 📋 정황: %s\n", ctx)
+
+		// ── Step 4: 카테고리 분류 (Gemini CLI 위임) ──
+		categorizeRecentTranscripts(brainRoot, 1)
+
+		// ── Step 5: 정황 기록 ──
+		writeCronLog(brainRoot, ctx)
+
+		fmt.Println("[CRON] ✅ 전사 크론 사이클 완료")
 		time.Sleep(1 * time.Hour)
 	}
+}
+
+// cronGitSnapshot performs a quick git add+commit before transcript processing
+func cronGitSnapshot(nfsRoot string) {
+	if err := SafeExecDir(ExecTimeoutGit, nfsRoot, "git", "add", "-A"); err != nil {
+		return
+	}
+	msg := fmt.Sprintf("[cron] hourly snapshot %s", time.Now().Format("01-02 15:04"))
+	SafeExecDir(ExecTimeoutGit, nfsRoot, "git", "commit", "-m", msg, "--no-verify", "--allow-empty-message")
+	fmt.Println("[CRON] 📸 git snapshot 완료")
+}
+
+// collectCronContext gathers system state for transcript enrichment
+func collectCronContext(brainRoot, nfsRoot string) string {
+	var parts []string
+
+	// 1. 활성 세션 수 (CDP 타겟)
+	targets, err := cdpListTargets(9000)
+	if err == nil {
+		pages := 0
+		for _, t := range targets {
+			if strings.Contains(t.URL, "workbench") {
+				pages++
+			}
+		}
+		parts = append(parts, fmt.Sprintf("세션:%d", pages))
+	}
+
+	// 2. git push 여부
+	out, err := SafeOutputDir(ExecTimeoutQuery, nfsRoot, "git", "log", "--oneline", "origin/main..HEAD")
+	if err == nil {
+		unpushed := strings.Count(strings.TrimSpace(string(out)), "\n") + 1
+		if len(strings.TrimSpace(string(out))) == 0 {
+			unpushed = 0
+		}
+		parts = append(parts, fmt.Sprintf("미push:%d", unpushed))
+	}
+
+	// 3. 빌드 상태 (neuronfs.exe 최종 빌드 시각)
+	exe := filepath.Join(nfsRoot, "neuronfs.exe")
+	if info, err := os.Stat(exe); err == nil {
+		age := time.Since(info.ModTime())
+		parts = append(parts, fmt.Sprintf("빌드:%s전", age.Round(time.Minute)))
+	}
+
+	// 4. 전사 파일 수
+	transcriptsDir := filepath.Join(brainRoot, "_transcripts")
+	entries, _ := os.ReadDir(transcriptsDir)
+	txtCount := 0
+	for _, e := range entries {
+		if !e.IsDir() && strings.HasSuffix(e.Name(), ".txt") {
+			txtCount++
+		}
+	}
+	parts = append(parts, fmt.Sprintf("전사:%d건", txtCount))
+
+	// 5. corrections 상태
+	corrPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
+	if info, err := os.Stat(corrPath); err == nil {
+		parts = append(parts, fmt.Sprintf("교정:%dKB", info.Size()/1024))
+	}
+
+	return strings.Join(parts, " | ")
+}
+
+// writeCronLog appends a line to the cron log for audit trail
+func writeCronLog(brainRoot, context string) {
+	logPath := filepath.Join(brainRoot, "_inbox", "cron.log")
+	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	f.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format("2006-01-02 15:04:05"), context))
 }
 
 // categorizeRecentTranscripts categorizes transcript files from the last N hours
