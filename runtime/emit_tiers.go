@@ -380,6 +380,9 @@ func writeAllTiersForTargets(brainRoot string, target string) {
 
 	generateBrainJSON(brainRoot, brain, result)
 
+	// ── KI 동기화: emit 시 Antigravity KI 자동 갱신 (적층) ──
+	syncKnowledgeItem(brainRoot, result)
+
 	if len(backedUp) > 0 {
 		fmt.Printf("\033[33m[WARNING] ⚠️  %d existing rule file(s) were backed up to: %s\033[0m\n",
 			len(backedUp), filepath.Join(brainRoot, ".neuronfs_backup"))
