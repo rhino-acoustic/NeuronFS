@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-18T20:52:10 | Neurons: 386/386 | Activation: 4
+Generated: 2026-04-18T20:57:13 | Neurons: 394/394 | Activation: 4
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
@@ -21,7 +21,7 @@ Generated: 2026-04-18T20:52:10 | Neurons: 386/386 | Activation: 4
 10. 🛡️ **절대 금지: > MCP연결실패무시** (0)
 
 <details>
-<summary>🆕 신규 (probation) — 386 neurons (7d window)</summary>
+<summary>🆕 신규 (probation) — 394 neurons (7d window)</summary>
 
 ### 🛡️ brainstem (30)
 - **반드시 > EVOLVE proceed 강제** (0) — 7d남음
@@ -60,9 +60,17 @@ Generated: 2026-04-18T20:52:10 | Neurons: 386/386 | Activation: 4
 - **긴급 사용자답답함감지** (0) — 7d남음
 - **칭찬 사용자만족감지** (0) — 7d남음
 
-### 📝 hippocampus (2)
+### 📝 hippocampus (10)
 - **session log** (0) — 7d남음
 - **전사분석** (0) — 7d남음
+- **전사분석 > 06 Troubleshooting 디버그** (0) — 7d남음
+- **전사분석 > 06 Troubleshooting 디버그 > 4월18일 NeuronFS 뉴런 손실 장애 복구 및 git 추적 기반 재발 방지** (0) — 7d남음
+- **전사분석 > 06 UI UX 디자인** (0) — 7d남음
+- **전사분석 > 06 UI UX 디자인 > 4월18일 3D 조인트 데이터 JSON 변환 및 포즈 GUI 실행 지원** (0) — 7d남음
+- **전사분석 > 10 Benchmark 벤치마크** (0) — 7d남음
+- **전사분석 > 10 Benchmark 벤치마크 > 4월18일 Gemini CLI 시스템 프롬프트 제어 기법 및 독자 발견 검증** (0) — 7d남음
+- **전사분석 > 13 Vision 포즈추출** (0) — 7d남음
+- **전사분석 > 13 Vision 포즈추출 > 4월18일 convert final.py 기반 3D 포즈 데이터 JSON 변환 대기** (0) — 7d남음
 
 ### 👁️ sensors (0)
 (없음)
@@ -436,7 +444,7 @@ Generated: 2026-04-18T20:52:10 | Neurons: 386/386 | Activation: 4
 |------|------|--------|------|
 | 🛡️ brainstem — 양심/본능 | 30 | 0 | `brainstem/_rules.md` |
 | 💓 limbic — 감정 필터 | 3 | 0 | `limbic/_rules.md` |
-| 📝 hippocampus — 기록/기억 | 2 | 0 | `hippocampus/_rules.md` |
+| 📝 hippocampus — 기록/기억 | 10 | 0 | `hippocampus/_rules.md` |
 | 👁️ sensors — 환경 제약 | 0 | 0 | `sensors/_rules.md` |
 | 🧠 cortex — 지식/기술 | 339 | 4 | `cortex/_rules.md` |
 | 🎭 ego — 성향/톤 | 12 | 0 | `ego/_rules.md` |

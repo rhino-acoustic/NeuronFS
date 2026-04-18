@@ -1,0 +1,1 @@
+{"detail":"[FIXED 2026-04-18] benchmark Phase 2 taskkill+restart caused 549 neuron folders deleted. Recovered 384 neurons via git restore. Added 'Immediate Git Track' rule to brainstem and improved start.bat graceful shutdown.","timestamp":"2026-04-18T21:10:12","severity":"INFO","event":"DATA_RECOVERY_COMPLETE","cause":"System hardening implemented"}

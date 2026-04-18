@@ -8,8 +8,16 @@ set "NEURONFS_AG_WORKSPACE=%NFSROOT%"
 if exist "%NFSROOT%\.secrets\groq_api_key" set /p GROQ_API_KEY=<"%NFSROOT%\.secrets\groq_api_key"
 if exist "%NFSROOT%\.secrets\anthropic_api_key" set /p ANTHROPIC_API_KEY=<"%NFSROOT%\.secrets\anthropic_api_key"
 
-REM Kill ALL previous neuronfs processes (clean slate)
-taskkill /F /IM neuronfs.exe >nul 2>&1
+REM Check if NeuronFS is already running
+tasklist /FI "IMAGENAME eq neuronfs.exe" 2>NUL | find /I /N "neuronfs.exe">NUL
+if "%ERRORLEVEL%"=="0" (
+    echo [NeuronFS] neuronfs.exe is already running. 
+    echo [NeuronFS] Attempting graceful shutdown...
+    timeout /t 5 /nobreak
+)
+
+REM Kill ALL previous neuronfs processes (only if necessary)
+taskkill /IM neuronfs.exe >nul 2>&1
 timeout /t 2 /nobreak >nul
 taskkill /F /IM neuronfs.exe >nul 2>&1
 
