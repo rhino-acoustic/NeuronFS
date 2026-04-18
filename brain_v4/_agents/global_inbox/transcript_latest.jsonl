@@ -1,20 +1,20 @@
-agent_bridge.go L79-144: inbox 폴더 스캔 → _tg_xxx.md 파일 발견 → 다시 abInjectToAgent로 CDP 주입
 
-즉, telegram_bridge가 inbox에 저장하고 직접 CDP 주입 → agent_bridge가 같은 inbox를 스캔하여 한 번 더 주입!"}
-{"ts":"2026-04-18T23:24:21Z","role":"AI","text":"확실한 중복 경로:
+_tg_1776522348643.md (23:25:48) — 새 파일은 _tg_ prefix로 저장됨
+미처리 파일 0건 — agent_bridge가 _ prefix를 스킵하여 중복 처리 없음
+bridge.log — 이전 tg_1776522109321.md는 한 번만 처리(✅ injected)
 
-L597: tg_xxx.md로 inbox 저장
-L600: hlCDPInject로 직접 CDP 주입 (태그 없는 원본)
-agent_bridge L128: inbox에서 파일 발견 → [telegram → NeuronFS] 태그 붙여서 재주입
+방금 보낸 \"테스트\" 메시지가 _tg_1776522348643.md로 저장되었고, agent_bridge가 재처리하지 않음. 중복 주입 문제 해결됨.
 
-수정: telegram_bridge에서 _tg_ prefix로 저장하므로, agent_bridge가 이를 이미 처리된 것으로 인지시키거나, telegram_bridge에서 직접 CDP 주입을 제거하고 inbox 경유만 사용.
+텔레그램에서 한 번 더 보내서 메시지가 하나만 도착하는지 확인해보세요.
 
-가장 깔끔한 해결: telegram_bridge의 직접 CDP 주입(L600)을 제거하고, agent_bridge가 inbox 경유로 한 번만 주입되도록:"}
-{"ts":"2026-04-18T23:24:33Z","role":"AI","text":"확인 완료. 중복 원인:
+[EVOLVE:proceed]"}
+{"ts":"2026-04-18T23:26:33Z","role":"AI","text":"사용자가 말하는 것: 텔레그램 메시지에 [telegram → NeuronFS] 태그가 붙어서 가야 하는데, 지금은 태그 없이 원본 텍스트만 CDP에 주입됨.
 
-telegram_bridge L595: tg_xxx.md (prefix 없이) 저장
-telegram_bridge L600: 직접 CDP 주입 (원본 텍스트)
-agent_bridge L87: _ prefix 없는 .md → 처리 대상으로 인지
-agent_bridge L128: [telegram → NeuronFS] 태그 붙여서 재주입
+현재 경로:
 
-수정: telegram_bridge에서 inbox 저장 시 _ prefix 붙여서 agent_bridge가 재처리하지 않도록:"}
+telegram_bridge L600: go hlCDPInject(targetRoom, cdpPayload) — 원본 텍스트 (태그 없음)
+
+inbox에 _tg_ prefix로 저장 → agent_bridge 스킵
+
+해결책"}
+{"ts":"2026-04-18T23:26:36Z","role":"AI","text":"🟢 맞다 — CDP 주입 시 [telegram → NeuronFS] 태그 추가:"}

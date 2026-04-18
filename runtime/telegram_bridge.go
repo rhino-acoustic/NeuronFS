@@ -597,7 +597,7 @@ func hlTgPoll(brainRoot string) {
 			os.WriteFile(filepath.Join(inboxDir, fname), []byte(content), 0600)
 			hlTgSend(chatID, fmt.Sprintf("✅ [%s] 전달됨", targetRoom))
 
-			go hlCDPInject(targetRoom, cdpPayload)
+			go hlCDPInject(targetRoom, fmt.Sprintf("[telegram → %s] %s", targetRoom, cdpPayload))
 		}
 
 		time.Sleep(1 * time.Second)
