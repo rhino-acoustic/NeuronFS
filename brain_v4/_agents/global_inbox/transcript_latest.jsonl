@@ -1,20 +1,20 @@
+{"ts":"2026-04-19T07:54:51Z","role":"AI","text":"🟢 현재 문제: [EVOLVE:proceed] → heartbeat 터치 → 5분+3분 대기 → 최대 8분 지연
 
-alternate_email
-content_copy
-타임라인:
-07:43:01 — heartbeat 터치 (EVOLVE:proceed)
-07:46:xx — hlAutoEvolve 체크 → 3분 경과 (< 5분) →"}
-{"ts":"2026-04-19T07:49:33Z","role":"AI","text":"🟢 [07:49:11] [HEARTBEAT] 🚀 Gemini CLI 오토파일럿 발동!
+수정: 채널 시그널로 즉시 재발동:"}
+{"ts":"2026-04-19T07:54:51Z","role":"AI","text":"사용자가 원하는 건:
 
-heartbeat 갱신: 07:49:12 (방금!)
+오토파일럿이 한번 돌면 idle 대기 없이 계속 연속 실행
+사용자가 개입해도 오토파일럿을 이어할지 물어보고 즉각 실행
 
-alternate_email
-content_copy
-타임라인:
-07:43:01 — heartbeat 터치 (EVOLVE:proceed)
-07:46:xx — hlAutoEvolve 체크 → 3분 경과 (< 5분) → skip
-07:49:11 — hlAutoEvolve 체크 → 6분 경과 (> 5분) → 🚀 발동!
+현재 문제: hlAutoEvolve가 3분 sleep + 5분 heartbeat 대기 = 최대 8분 지연
 
-정상 동작. 3분 sleep + 5분 heartbeat = 최대 8분 지연 발생 가능 (설계상).
+수정 방향:
 
-[EVOLVE:proceed]"}
+[EVOLVE:proceed] 감지 시 heartbeat를 터치하지 않고 바로 즉시 재발동
+
+또는 heartbeat 대기 시간을 0으로 설정하거나 사용자 개입 감지 시 오토파일럿 이어하기 프롬프트 표시
+
+코드 흐름을 보니 [EVOLVE:proceed]가 감지되면 heartbeat를 갱신하는데, 이게 5분 대기를 트리거하는 원인이 되고 있다.
+
+더 나은 방식은 heartbeat를 건드리지 말고 대신 evolve 신호 채널을 만들어서 [EVOLVE:proceed] 감지 시 hlAutoEvolve를 즉시 깨우는 것이다."}
+{"ts":"2026-04-19T07:55:04Z","role":"AI","text":"수정 — 채널 기반 즉시 재발동:"}

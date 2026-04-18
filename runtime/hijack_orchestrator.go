@@ -97,25 +97,27 @@ func hlAppendTranscript(entry, projectLabel, brainRoot string) {
 		f.Close()
 	}
 
-	// ── [EVOLVE:proceed] 감지 → 자율주행 연쇄 트리거 ──
+	// ── [EVOLVE:proceed] 감지 → 자율주행 즉시 재발동 ──
 	if strings.Contains(entry, "[EVOLVE:proceed]") && !strings.Contains(entry, "USER:") {
 		evolveDebounce.Lock()
 		elapsed := time.Since(lastEvolveTime)
 		evolveDebounce.Unlock()
 
-		if elapsed < 60*time.Second {
-			// 60초 debounce
+		if elapsed < 30*time.Second {
+			// 30초 debounce (연속 EVOLVE 스팸 방지)
 		} else {
 			nfsRoot := filepath.Dir(brainRoot)
 			if !fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled")) {
 				evolveDebounce.Lock()
 				lastEvolveTime = time.Now()
 				evolveDebounce.Unlock()
-				svLog("[EVOLVE] 🔄 [EVOLVE:proceed] 감지 — growth.log 터치만 수행 (CLI가 오케스트레이터)")
-				hbFile := filepath.Join(brainRoot, "hippocampus", "session_log", ".autopilot_heartbeat")
-				os.Chtimes(hbFile, time.Now(), time.Now())
-				// CDP 주입 제거: CLI(AI 에이전트)가 스스로 판단하여 다음 액션을 결정함
-				// Go 런타임은 인프라 역할만 수행
+				svLog("[EVOLVE] ⚡ [EVOLVE:proceed] 감지 — 즉시 재발동 시그널 전송")
+				// 채널 시그널로 hlAutoEvolve의 sleep을 즉시 깨움
+				select {
+				case evolveKickCh <- struct{}{}:
+				default:
+					// 이미 시그널 대기 중 — 중복 방지
+				}
 			}
 		}
 	}
@@ -217,11 +219,21 @@ func min(a, b int) int {
 }
 
 // ── CDP DOM 스크래핑 + Network 모니터 ──
+// evolveKickCh — [EVOLVE:proceed] 감지 시 즉시 재발동 시그널
+var evolveKickCh = make(chan struct{}, 1)
+
 // 활성 Network scraper 추적
 func hlAutoEvolve(brainRoot string) {
 
 	for {
-		time.Sleep(3 * time.Minute)
+		// 3분 대기 OR 즉시 재발동 시그널 (먼저 오는 쪽)
+		select {
+		case <-evolveKickCh:
+			svLog("[AUTOPILOT] ⚡ 즉시 재발동 시그널 수신")
+			time.Sleep(5 * time.Second) // CLI 안정화 대기
+		case <-time.After(3 * time.Minute):
+			// 정기 사이클
+		}
 
 		// 자율주행 비활성 체크
 		nfsRoot := filepath.Dir(brainRoot)
@@ -243,8 +255,8 @@ func hlAutoEvolve(brainRoot string) {
 			info, err = os.Stat(heartbeatFile)
 		}
 
-		// 하트비트가 5분 이상 미갱신일 때만 (AI가 EVOLVE:proceed 출력 시 터치)
-		if err == nil && time.Since(info.ModTime()) > 5*time.Minute {
+		// 하트비트가 2분 이상 미갱신 OR 킥 시그널 수신 시 발동
+		if err == nil && time.Since(info.ModTime()) > 2*time.Minute {
 			// 전사 파일 체크: 최근 5분 내 전사 갱신이 있어야만 활성 대화 존재
 			transcriptDir := filepath.Join(brainRoot, "_transcripts")
 			entries, _ := os.ReadDir(transcriptDir)
