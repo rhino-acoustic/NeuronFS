@@ -1,20 +1,20 @@
-파일 수정/개선?
 
-[EVOLVE:proceed]"}
-{"ts":"2026-04-18T21:36:06Z","role":"AI","text":"EVOLVE:proceed 감지 시 터치 대상도 변경:"}
-{"ts":"2026-04-18T21:36:06Z","role":"AI","text":"🟢 growth.log 터치 원인 + hlAutoEvolve 디버그 즉시 추가:"}
-{"ts":"2026-04-18T21:36:06Z","role":"AI","text":"idle_worker.go L40, L90이 매 사이클 growth.log에 APPEND! 이게 growth.log를 계속 터치해서 mtime이 갱신됨 → hlAutoEvolve 조건 불충족.
+MCP 서버 포트 9091이 연결 거부! NeuronFS가 재시작된 직후라 MCP 서버가 아직 안 올라왔거나, MCP HTTP 서버가 9091에서 안 돌고 있음.
 
-idle_worker의 \"IDLE ENGINE\" 로그가 계속 나오고 있었음. 이놈이 growth.log를 계속 쓰고 있어서 hlAutoEvolve가 절대 발동 안 됨."}
-{"ts":"2026-04-18T21:36:06Z","role":"AI","text":"근본 원인 확정! idle_worker.go가 매 사이클 growth.log에 APPEND (L90) → mtime 갱신 → hlAutoEvolve의 \"5분 이상 미갱신\" 조건 영원히 불충족.
+또한 xterm.js parsing error — 이건 CDP 인젝션 시 특수 문자/이스케이프 시퀀스 문제."}
+{"ts":"2026-04-18T21:41:24Z","role":"AI","text":"핵심 에러:
 
-수정: hlAutoEvolve에서 growth.log 대신 전용 heartbeat 파일 사용:"}
-{"ts":"2026-04-18T21:36:12Z","role":"AI","text":"이제 3분 후 오토파일럿 발동:"}
-{"ts":"2026-04-18T21:36:42Z","role":"AI","text":"🟢 대기 결과 확인:"}
-{"ts":"2026-04-18T21:40:22Z","role":"AI","text":"🟢 바로 확인:"}
-{"ts":"2026-04-18T21:40:23Z","role":"AI","text":".autopilot_heartbeat age: 0.8분 — 또 뭔가가 터치하고 있음! [EVOLVE:proceed] 감지 때문. DOM scraper가 이 응답의 [EVOLVE:proceed]를 캡처하면 heartbeat가 터치됨.
+alternate_email
+content_copy
+[MCP error] Error during discovery for MCP server 'neuronfs': fetch failed
+connect ECONNREFUSED 127.0.0.1:9091
 
-핵심: 내(Antigravity)가 대화 중이면 오토파일럿 발동 안 되는 게 맞는 설계. 하지만 사용자는 지금 바로 테스트하고 싶음. 강제 테스트:"}
-{"ts":"2026-04-18T21:40:47Z","role":"AI","text":"CLI가 YOLO 모드로 실행됨! 하지만 출력이 잘려서 실제 응답이 안 보임. -p 옵션으로 headless 모드에서 실행했고 \"Loaded cached credentials\" + \"YOLO mode\" — 동작은 하는데 출력이 truncated됨.
+MCP 서버 포트 9091이 연결 거부! NeuronFS가 재시작된 직후라 MCP 서버가 아직 안 올라왔거나, MCP HTTP 서버가 9091에서 안 돌고 있음.
 
-핵심: CLI 자체는 동작함. 오토파일럿에서 호출하면 되는 것. 문제는 내가 대화 중이면 .autopilot_heartbeat가 계속 터치되어 발동 안 되는 설계."}
+또한 xterm.js parsing error — 이건 CDP 인젝션 시 특수 문자/이스케이프 시퀀스 문제.
+
+지금 9091 포트가 실제로 열려있는지 확인해봐야겠다."}
+{"ts":"2026-04-18T21:41:24Z","role":"AI","text":"🟢 MCP 포트 9091 연결 거부! 즉시 확인:"}
+{"ts":"2026-04-18T21:41:43Z","role":"AI","text":"9091 DEAD! MCP Streamable HTTP 서버가 안 돌고 있음. supervisor.go에서 MCP 시작 코드 확인:"}
+{"ts":"2026-04-18T21:42:10Z","role":"AI","text":"MCPStreamPort = 9247 — MCP 서버가 9247에서 돌고 있는데, .gemini/settings.json은 9091로 설정됨!"}
+{"ts":"2026-04-18T21:42:22Z","role":"AI","text":"9247 ALIVE + MCP 응답! .gemini/settings.json의 포트가 잘못됨:"}
