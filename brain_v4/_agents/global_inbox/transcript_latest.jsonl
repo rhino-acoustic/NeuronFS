@@ -1,21 +1,20 @@
+HookSystem	4 이벤트 + 7 스크립트
+Cartridges	13개 .jloot
+GitProtection	brain_v4 추적
+SelfHealing	corrections.jsonl
+Memory	hippocampus 에피소드
+
+9/9 PASS — 커밋 467ef52.
 
 [EVOLVE:proceed]"}
-{"ts":"2026-04-18T20:26:54Z","role":"AI","text":"go vet ✅ / go build ✅ (43MB). 재시작 + 전사분류 실측 + 코드맵 확인:"}
-{"ts":"2026-04-18T20:26:54Z","role":"AI","text":"이제 전체 그림:
+{"ts":"2026-04-18T20:30:31Z","role":"AI","text":"사용자 요점:
 
-오늘 이 세션에서 한 작업 (task.md 기반)
-상태	수
-✅ 완료	18건
-🔴 미이행	1건 (README vorq 정리)
-⚠️ 장기	3건
+AI가 문맥을 잃어도 지속적으로 체크할 수 있는 방법
+스모크 테스트보다 더 빡센 검증
 
-이렇게 많은 작업이 실제로 완료됨. A5 \"오토파일럿 항상 구동\"도 커밋 97a1dea로 수정됨.
+이건 스모크 테스트를 NeuronFS 크론에 넣어서 매시간 자동 실행하고, 결과를 brain_v4에 기록하면 됨. AI가 새 세션 시작해도 이 결과를 읽으면 현재 상태를 즉시 파악 가능.
 
-그런데 이 모든 작업 결과(폴더와 파일)가 벤치마크 Phase 2에서 날아간 것. dist/release에서 복원했지만 이 세션 오전 작업(MCP 세션 영속화, LLM JSON 5개 복원, vorq 정리, codemap 갱신 등) 중 brain_v4에 생성된 새 뉴런들은 git 커밋으로만 남아있고 폴더는 복원됨.
-
-현재 전사 분류가 안 도는 건 Gemini CLI가 GEMINI.md 규칙 간섭으로 유효하지 않은 JSON을 출력하기 때문. 별도 디렉토리에서 CLI 구동하는 방식으로 해결 필요.
-
-[EVOLVE:proceed]"}
-{"ts":"2026-04-18T20:27:12Z","role":"AI","text":"재시작 성공, 502 뉴런. 코드맵 연동 확인:"}
-{"ts":"2026-04-18T20:27:17Z","role":"USER","text":"각 코드들 비대화는 없는지 모듈화 해야하고 각 코드의 연동이 문제없는지"}
-{"ts":"2026-04-18T20:27:30Z","role":"AI","text":"Go 파일 150개, 코드맵 44개. 106개 누락. 코드맵 자동 갱신 트리거:"}
+더 자세히 조사해봐야겠다."}
+{"ts":"2026-04-18T20:30:56Z","role":"AI","text":"핵심 발견: Verification-on-Resume + Progress Summarization 패턴. NeuronFS 크론에 스모크 테스트를 넣어서 AI가 문맥을 잃어도 _rules.md에 최근 검증 결과가 항상 있게 만든다."}
+{"ts":"2026-04-18T20:31:05Z","role":"AI","text":"크론 루프에 Step 8로 스모크 테스트 자동 실행 + _rules.md 기록 추가:"}
+{"ts":"2026-04-18T20:31:20Z","role":"AI","text":"이제 runHealthReport 함수 구현:"}

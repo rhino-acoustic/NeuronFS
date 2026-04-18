@@ -89,6 +89,9 @@ func runTranscriptCategorizer(brainRoot string) {
 			lastNeuronCleanup = time.Now()
 		}
 
+		// ── Step 8: 자동 헬스 체크 (Verification-on-Resume 패턴) ──
+		runHealthReport(brainRoot, nfsRoot)
+
 		svLog("[CRON] ✅ 전사 크론 사이클 완료")
 		time.Sleep(1 * time.Hour)
 	}
