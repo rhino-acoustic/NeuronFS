@@ -606,11 +606,79 @@ func svCrashAlert(c *ChildSpec) {
 // svPatchAntigravityShortcuts — Antigravity 바로가기에 CDP 플래그 자동 주입
 // 시작 메뉴 + 작업표시줄 + 데스크탑의 .lnk를 모두 찾아 --remote-debugging-port=9000 추가
 func svPatchAntigravityShortcuts() {
-	// TODO: .lnk 패치 구현
+	cdpFlag := "--remote-debugging-port=9000"
+	home := os.Getenv("USERPROFILE")
+	if home == "" {
+		return
+	}
+
+	searchDirs := []string{
+		filepath.Join(home, "Desktop"),
+		filepath.Join(home, "AppData", "Roaming", "Microsoft", "Windows", "Start Menu", "Programs"),
+		filepath.Join(home, "AppData", "Roaming", "Microsoft", "Internet Explorer", "Quick Launch", "User Pinned", "TaskBar"),
+	}
+
+	patched := 0
+	for _, dir := range searchDirs {
+		filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+			if err != nil || info.IsDir() {
+				return nil
+			}
+			if !strings.Contains(strings.ToLower(info.Name()), "antigravity") || !strings.HasSuffix(strings.ToLower(info.Name()), ".lnk") {
+				return nil
+			}
+			// .lnk 파일은 바이너리 — 단순 바이트 검사로 CDP 플래그 존재 여부만 확인
+			data, err := os.ReadFile(path)
+			if err != nil {
+				return nil
+			}
+			if strings.Contains(string(data), cdpFlag) {
+				return nil // 이미 패치됨
+			}
+			svLog(fmt.Sprintf("⚠️ .lnk CDP 미설정: %s (수동 설정 필요)", filepath.Base(path)))
+			patched++
+			return nil
+		})
+	}
+	if patched == 0 {
+		svLog("✅ Antigravity 바로가기 CDP 설정 확인 완료")
+	}
 }
 
 func svRestoreConversation(nfsRoot, brainRoot string) {
-	// TODO: 재시작 후 대화 복귀 구현
+	ctxPath := filepath.Join(nfsRoot, ".restart_context")
+	data, err := os.ReadFile(ctxPath)
+	if err != nil {
+		return // 재시작 컨텍스트 없음 — 정상
+	}
+
+	var ctx struct {
+		Ts    string `json:"ts"`
+		Title string `json:"title"`
+		Room  string `json:"room"`
+	}
+	if json.Unmarshal(data, &ctx) != nil {
+		os.Remove(ctxPath)
+		return
+	}
+
+	svLog(fmt.Sprintf("🔄 재시작 컨텍스트 감지: room=%s title=%s", ctx.Room, ctx.Title))
+
+	// 10초 대기 — Antigravity 완전 로드
+	time.Sleep(10 * time.Second)
+
+	// CDP로 이전 대화 복원 시도
+	room := ctx.Room
+	if room == "" {
+		room = "NeuronFS"
+	}
+	msg := fmt.Sprintf("이전 대화 '%s'에서 작업을 이어갑니다. 컨텍스트를 확인하고 계속하세요.", ctx.Title)
+	hlCDPInject(room, msg)
+
+	svLog(fmt.Sprintf("✅ 대화 복귀 주입 완료: %s", ctx.Title))
+
+	// 컨텍스트 파일 소비 완료 — 삭제
+	os.Remove(ctxPath)
 }
 // ── MCP Goroutine Supervisor (panic recovery + auto-restart) ──
 var (

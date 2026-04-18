@@ -1,21 +1,20 @@
 
-hooks 목록:
+실제 기능은 구현됨 (AES-256-GCM 암복호화). 이 줄만 정리 필요.
 
-SessionStart: neuron-load (session_start.ps1)
+9. npu_dispatcher.go — NPU 하드웨어 감지만 구현
 
-SessionEnd: auto-save (session_end.ps1)
+DirectML/CUDA/MLX 프로파일 감지는 되지만 실제 NPU 연산 디스패치는 미구현.
+현재는 zero-copy 버퍼 풀만 제공.
 
-BeforeTool: git-snapshot (pre_edit_git.ps1)
+10. 하드코딩 경로 = 0건 ✅
 
-BeforeTool: block-delete (block_delete.ps1)
+모든 경로가 nfsRoot, brainRoot 변수 기반. 이식성 확보됨.
 
-BeforeTool: go-vet-guard (go_vet_guard.ps1)
-
-BeforeTool: encoding-guard (encoding_guard.ps1)
-
-AfterTool: codemap-sync (codemap_sync.ps1)
-
-이제 hooks 디렉토리와 각 PowerShell 스크립트 파일들이 실제로 존재하는지 확인하고, 각 스크립트의 내용을 검증해야 함."}
-{"ts":"2026-04-18T22:21:46Z","role":"AI","text":"7개 스크립트 모두 존재. 핵심인 pre_edit_git.ps1 (git 선행) 내용 확인:"}
-{"ts":"2026-04-18T22:21:49Z","role":"AI","text":"나머지 hooks도 확인:"}
-{"ts":"2026-04-18T22:21:55Z","role":"AI","text":"실제 작동 검증 — git snapshot hook이 마지막으로 작동한 기록:"}
+요약
+심각도	건수	내용
+🔴 P0	3	스텁 2개 + vacuum 플레이스홀더
+🟡 P1	4	TG 토큰, 테스트 18%, 대드코드 4개, 환경변수 문서화
+🟢"}
+{"ts":"2026-04-18T22:26:44Z","role":"AI","text":"P0: svPatchAntigravityShortcuts 구현:"}
+{"ts":"2026-04-18T22:26:59Z","role":"AI","text":"P0: svRestoreConversation 구현:"}
+{"ts":"2026-04-18T22:27:17Z","role":"AI","text":"빌드 + 검증 + 커밋:"}

@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-18T22:16:17 | Neurons: 395/395 | Activation: 10
+Generated: 2026-04-18T22:23:35 | Neurons: 397/397 | Activation: 11
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
@@ -12,16 +12,16 @@ Generated: 2026-04-18T22:16:17 | Neurons: 395/395 | Activation: 10
 1. 🧠 **dev > dev** (4)
 2. 🧠 **methodology > methodology** (4)
 3. 🧠 **dev > e2e test** (2)
-4. 🛡️ **반드시 > EVOLVE proceed 강제** (0)
-5. 🛡️ **반드시 > NeuronFS 공리** (0)
-6. 🛡️ **반드시 > bat재시작** (0)
-7. 🛡️ **반드시 > 커뮤니티검색필수: 세션시작** (0)
-8. 🛡️ **반드시 > 반드시 누락자문** (0)
-9. 🛡️ **반드시 > 반드시 빌드경로 SSOT** (0)
-10. 🛡️ **반드시 > 코드맵 참조생성갱신** (0)
+4. 📝 **episodes > 2026-04-18 Pose 데이터 변환 분석** (1)
+5. 🛡️ **반드시 > EVOLVE proceed 강제** (0)
+6. 🛡️ **반드시 > NeuronFS 공리** (0)
+7. 🛡️ **반드시 > bat재시작** (0)
+8. 🛡️ **반드시 > 커뮤니티검색필수: 세션시작** (0)
+9. 🛡️ **반드시 > 반드시 누락자문** (0)
+10. 🛡️ **반드시 > 반드시 빌드경로 SSOT** (0)
 
 <details>
-<summary>🆕 신규 (probation) — 395 neurons (7d window)</summary>
+<summary>🆕 신규 (probation) — 397 neurons (7d window)</summary>
 
 ### 🛡️ brainstem (30)
 - **반드시 > EVOLVE proceed 강제** (0) — 7d남음
@@ -60,7 +60,9 @@ Generated: 2026-04-18T22:16:17 | Neurons: 395/395 | Activation: 10
 - **긴급 사용자답답함감지** (0) — 7d남음
 - **칭찬 사용자만족감지** (0) — 7d남음
 
-### 📝 hippocampus (10)
+### 📝 hippocampus (12)
+- **episodes > 2026-04-18 Pose 데이터 변환 분석** (1) — 7d남음
+- **episodes** (0) — 7d남음
 - **session log** (0) — 7d남음
 - **전사분석** (0) — 7d남음
 - **전사분석 > 06 Troubleshooting 디버그** (0) — 7d남음
@@ -445,7 +447,7 @@ Generated: 2026-04-18T22:16:17 | Neurons: 395/395 | Activation: 10
 |------|------|--------|------|
 | 🛡️ brainstem — 양심/본능 | 30 | 0 | `brainstem/_rules.md` |
 | 💓 limbic — 감정 필터 | 3 | 0 | `limbic/_rules.md` |
-| 📝 hippocampus — 기록/기억 | 10 | 0 | `hippocampus/_rules.md` |
+| 📝 hippocampus — 기록/기억 | 12 | 1 | `hippocampus/_rules.md` |
 | 👁️ sensors — 환경 제약 | 0 | 0 | `sensors/_rules.md` |
 | 🧠 cortex — 지식/기술 | 340 | 10 | `cortex/_rules.md` |
 | 🎭 ego — 성향/톤 | 12 | 0 | `ego/_rules.md` |

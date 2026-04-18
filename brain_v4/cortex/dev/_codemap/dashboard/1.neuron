@@ -1,5 +1,5 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\dashboard.go
-updated: 2026-04-18T22:16:00
+updated: 2026-04-18T22:27:27
 # dashboard.go
 dir: runtime
 
@@ -18,7 +18,7 @@ portAlive — TCP 포트 연결 가능 여부 (500ms 타임아웃)
 Go 네이티브: supervisor goroutine 상태 추적
 MCP check (9247)
 CDP check (9000)
-Telegram
+Telegram — 토큰 파일 존재 여부로 판단 (hlTgToken은 hijack goroutine에서만 로드)
 Process-level services (별도 프로세스 — sync.Map 접근 불가)
 API 프로세스가 이 코드를 실행 중이므로 api는 항상 alive
 API가 살아있으면 supervisor도 살아있음 (supervisor가 api를 spawn)

@@ -1,6 +1,6 @@
 {
   "root": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "last_updated": 1776518516295077400,
+  "last_updated": 1776518837934423900,
   "regions": {
     "brainstem": {
       "region": {
@@ -8586,6 +8586,50 @@
         "Path": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus",
         "Neurons": [
           {
+            "Name": "episodes",
+            "Path": "episodes",
+            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\episodes",
+            "Counter": 0,
+            "Contra": 0,
+            "Dopamine": 0,
+            "Intensity": 0,
+            "Polarity": 0.5,
+            "HasBomb": false,
+            "HasMemory": false,
+            "HasGoal": false,
+            "GoalText": "",
+            "Geofence": "",
+            "Description": "",
+            "Globs": "",
+            "Author": "",
+            "IsDormant": false,
+            "Depth": 0,
+            "ModTime": "2026-04-18T22:22:31.012743+09:00",
+            "BirthTime": "2026-04-18T22:22:31.0122229+09:00"
+          },
+          {
+            "Name": "2026-04-18_Pose_데이터_변환_분석",
+            "Path": "episodes\\2026-04-18_Pose_데이터_변환_분석",
+            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\episodes\\2026-04-18_Pose_데이터_변환_분석",
+            "Counter": 1,
+            "Contra": 0,
+            "Dopamine": 0,
+            "Intensity": 1,
+            "Polarity": 1,
+            "HasBomb": false,
+            "HasMemory": false,
+            "HasGoal": false,
+            "GoalText": "",
+            "Geofence": "",
+            "Description": "",
+            "Globs": "",
+            "Author": "",
+            "IsDormant": false,
+            "Depth": 1,
+            "ModTime": "2026-04-18T22:22:31.0209024+09:00",
+            "BirthTime": "2026-04-18T22:22:31.012743+09:00"
+          },
+          {
             "Name": "session_log",
             "Path": "session_log",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\session_log",
@@ -8599,12 +8643,12 @@
             "HasGoal": false,
             "GoalText": "",
             "Geofence": "",
-            "Description": "2026-04-18T20:26:47 | BOOT | NeuronFS Supervisor 부팅 (PID 27804)",
+            "Description": "2026-04-18T21:51:09 | FIRE | cortex\\dev\\e2e_test (1→2)",
             "Globs": "",
             "Author": "",
             "IsDormant": false,
             "Depth": 0,
-            "ModTime": "2026-04-18T20:57:07.2533067+09:00",
+            "ModTime": "2026-04-18T22:22:31.0197448+09:00",
             "BirthTime": "2026-04-18T19:24:57.3234206+09:00"
           },
           {
@@ -8809,7 +8853,7 @@
         "Axons": null,
         "HasBomb": false
       },
-      "max_mod_time": 1776513427253306700
+      "max_mod_time": 1776518551020902400
     },
     "limbic": {
       "region": {

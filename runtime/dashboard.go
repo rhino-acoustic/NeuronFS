@@ -179,11 +179,14 @@ func buildHealthJSON(brainRoot string) HealthJSON {
 		subs["cdp"] = SubsystemStatus{Status: "dead", Detail: fmt.Sprintf("port %d unreachable", hlCDPPort)}
 	}
 
-	// Telegram
-	if hlTgToken != "" {
+	// Telegram — 토큰 파일 존재 여부로 판단 (hlTgToken은 hijack goroutine에서만 로드)
+	tgTokenPath := filepath.Join(filepath.Dir(brainRoot), "telegram-bridge", ".token")
+	if fileExists(tgTokenPath) {
+		subs["telegram"] = SubsystemStatus{Status: "alive", Detail: "token file exists"}
+	} else if hlTgToken != "" {
 		subs["telegram"] = SubsystemStatus{Status: "alive", Detail: fmt.Sprintf("offset=%d", hlTgOffset)}
 	} else {
-		subs["telegram"] = SubsystemStatus{Status: "no_token"}
+		subs["telegram"] = SubsystemStatus{Status: "no_token", Detail: "telegram-bridge/.token not found"}
 	}
 
 	// Process-level services (별도 프로세스 — sync.Map 접근 불가)
