@@ -1496,16 +1496,16 @@ function buildUnifiedPanel(){
   const root={};
   BD.regions.forEach(r=>{
     const rn=r.name;
-    if(!root[rn])root[rn]={_c:RC[rn],_icon:r.icon,_ko:r.ko,_p:r.priority,_axons:r.axons,_files:[],_dirs:{}};
+    if(!root[rn])root[rn]={_c:RC[rn],_icon:r.icon,_ko:r.ko,_p:r.priority,_axons:r.axons,_files:[],_dirs:{},_regionName:rn};
     (r.neurons||[]).forEach(n=>{
       const parts=n.path.split(/[\\\/]+/);
       let cur=root[rn];
       for(let i=0;i<parts.length-1;i++){
         const dir=parts[i];
-        if(!cur._dirs[dir])cur._dirs[dir]={_c:RC[rn],_files:[],_dirs:{}};
+        if(!cur._dirs[dir])cur._dirs[dir]={_c:RC[rn],_files:[],_dirs:{},_regionName:rn};
         cur=cur._dirs[dir];
       }
-      cur._files.push({name:parts[parts.length-1],counter:n.counter,dopamine:n.dopamine,hasBomb:n.hasBomb,memory:n.memory});
+      cur._files.push({name:parts[parts.length-1],counter:n.counter,dopamine:n.dopamine,hasBomb:n.hasBomb,memory:n.memory,fullPath:n.path});
     });
   });
 
@@ -1561,7 +1561,9 @@ function buildUnifiedPanel(){
       node._files.sort((a,b)=>b.counter-a.counter).forEach(f=>{
         const fc2=f.counter>=80?'#4ade80':f.counter>=40?color:'#666';
         const ext=f.counter+'.neuron';
-        h+='<li><div class="ft-row">';
+        const npath=f.fullPath||f.name;
+        const nregion=node._regionName||'';
+        h+='<li><div class="ft-row ft-neuron" data-npath="'+npath+'" data-nregion="'+nregion+'" onmouseenter="selectNeuron(this)" onmouseleave="deselectNeuron(this)">';
         h+='<div class="ft-toggle empty">▶</div>';
         h+='<div class="ft-icon" style="font-size:9px;color:#888">📄</div>';
         h+='<div class="ft-label" style="color:#888">'+f.name.replace(/_/g,' ');
@@ -1657,6 +1659,48 @@ function focusR(name){
   allPts.forEach(pt=>{pt.spr.material.opacity=pt.region===name?1:0.03});
   setTimeout(()=>{allPts.forEach(pt=>{pt.spr.material.opacity=pt.spr.userData.baseOp})},2500);
   document.querySelectorAll('.ft-row[data-region]').forEach(r=>{r.classList.toggle('ft-selected',r.dataset.region===name)});
+}
+
+// ── Neuron hover select ──
+let selectedNeuronEl=null;
+function selectNeuron(el){
+  if(selectedNeuronEl)selectedNeuronEl.classList.remove('ft-selected');
+  el.classList.add('ft-selected');
+  selectedNeuronEl=el;
+  // 3D highlight: find matching point and pulse
+  const npath=el.dataset.npath||'';
+  const nregion=el.dataset.nregion||'';
+  const nname=npath.replace(/_/g,' ');
+  allPts.forEach(pt=>{
+    const ptName=(pt.name||'').replace(/_/g,' ');
+    if(ptName===nname || pt.region===nregion && ptName.includes(nname.split('/').pop())){
+      pt.spr.material.opacity=1;
+      pt.spr.scale.set(pt.baseScale*1.8, pt.baseScale*1.8, 1);
+    }
+  });
+  // Show tooltip
+  const tt=document.getElementById('tt');
+  const label=el.querySelector('.ft-label');
+  const badge=el.querySelector('.ft-badge');
+  if(tt && label){
+    tt.querySelector('.ttr').textContent=nregion.toUpperCase();
+    tt.querySelector('.ttn').textContent=label.textContent.trim();
+    tt.querySelector('.ttd').textContent=badge?badge.textContent:'';
+    const rect=el.getBoundingClientRect();
+    tt.style.left=(rect.right+8)+'px';
+    tt.style.top=rect.top+'px';
+    tt.style.display='block';
+  }
+}
+function deselectNeuron(el){
+  el.classList.remove('ft-selected');
+  selectedNeuronEl=null;
+  // Restore 3D
+  allPts.forEach(pt=>{
+    pt.spr.material.opacity=pt.spr.userData.baseOp||0.8;
+    pt.spr.scale.set(pt.baseScale, pt.baseScale, 1);
+  });
+  document.getElementById('tt').style.display='none';
 }
 
 // Initialize autopilot state on render
