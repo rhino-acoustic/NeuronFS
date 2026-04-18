@@ -2,8 +2,15 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[22:41:46] AI: 종합 보고서를 업데이트하고, 남은 약점들을 더 스캔하자. 아직 못 본 영역:
-[22:41:46] AI: 🟢 AttemptSelfRepair 크론 연결 + 대드코드 정리 계속:
-[22:41:58] AI: 크론이 transcript_categorizer.go에 있음. 여기에 AttemptSelfRepair 연결:
-[22:42:04] AI: Step 8 뒤에 Step 9로 자가 수리 연결:
-[22:42:20] AI: 나머지 대드코드 3개 — formatAbsoluteRules, formatTop5CoreRules, aaScrapeAIScript. 이전에 사용됐다가 리팩토링 후 미사용. deprecated 표시:
+[22:46:12] AI: 🟢 남은 약점 수정 계속 — HTTP 클라이언트 통합 + 대드코드 deprecated 표시:
+[22:46:21] AI: 타임아웃이 다 다르므로 단순 통합 불가. 하지만 기본 클라이언트는 utils.go에 추가 가능:
+[22:46:24] AI: HTTP 클라이언트 풀과 대드코드 deprecated를 한 번에:
+[22:46:42] AI: 이제 가장 많이 사용되는 곳부터 교체 — supervisor(2곳), telegram(2곳), groq(2곳):
+[22:46:54] AI: 라인 번호가 변경됨. 정확한 위치 확인:
+[22:47:02] USER: 격리야
+[22:47:18] AI: 사용자가 \"격리야\
+[22:47:21] AI: 🟢 이해 — 기존 HTTP 코드 안 건드림. utils.go에 정의만 두고 신규 코드에서만 사용하는 적층 방식.
+[22:47:21] AI: 사용자가 \"격리야\
+[22:47:40] AI: 🟢 대드코드 deprecated 표시 + 추가 영역 스캔:
+[22:47:40] AI: 계속. 대드코드 3개에 deprecated 표시 + 더 스캔하자.
+[22:47:50] AI: aaScrapeAIScript는 실제로 유용한데 아직 연결 안 됨. deprecated가 아님 — 단지 미연결. 나머지 2개(formatAbsoluteRules, formatTop5CoreRules)는 emit 리팩토링 후 대체됨. deprecated 표시:

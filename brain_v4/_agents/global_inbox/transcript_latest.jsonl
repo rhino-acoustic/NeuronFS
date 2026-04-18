@@ -1,21 +1,20 @@
+HTTP 클라이언트 통합
+headerRe/roleRe 중복
 
-AttemptSelfRepair 미연결 — 크론에 연결
-formatAbsoluteRules/formatTop5CoreRules 대드코드
-aaScrapeAIScript 대드코드
-에러 무시 66건
-HTTP"}
-{"ts":"2026-04-18T22:41:46Z","role":"AI","text":"종합 보고서를 업데이트하고, 남은 약점들을 더 스캔하자. 아직 못 본 영역:
-
-AttemptSelfRepair 미연결 — 크론에 연결
-formatAbsoluteRules/formatTop5CoreRules 대드코드
-aaScrapeAIScript 대드코드
-에러 무시 66건
-HTTP 클라이언트 10곳
-
-AttemptSelfRepair를 크론에 연결하는 것이 가장 가치 있음.
-
-이제 크론 루프가 어디에 있는지 찾아야겠다."}
-{"ts":"2026-04-18T22:41:46Z","role":"AI","text":"🟢 AttemptSelfRepair 크론 연결 + 대드코드 정리 계속:"}
-{"ts":"2026-04-18T22:41:58Z","role":"AI","text":"크론이 transcript_categorizer.go에 있음. 여기에 AttemptSelfRepair 연결:"}
-{"ts":"2026-04-18T22:42:04Z","role":"AI","text":"Step 8 뒤에 Step 9로 자가 수리 연결:"}
-{"ts":"2026-04-18T22:42:20Z","role":"AI","text":"나머지 대드코드 3개 — formatAbsoluteRules, formatTop5CoreRules, aaScrapeAIScript. 이전에 사용됐다가 리팩토링 후 미사용. deprecated 표시:"}
+빠르게 할 수 있는 것부터."}
+{"ts":"2026-04-18T22:46:12Z","role":"AI","text":"🟢 남은 약점 수정 계속 — HTTP 클라이언트 통합 + 대드코드 deprecated 표시:"}
+{"ts":"2026-04-18T22:46:21Z","role":"AI","text":"타임아웃이 다 다르므로 단순 통합 불가. 하지만 기본 클라이언트는 utils.go에 추가 가능:"}
+{"ts":"2026-04-18T22:46:24Z","role":"AI","text":"HTTP 클라이언트 풀과 대드코드 deprecated를 한 번에:"}
+{"ts":"2026-04-18T22:46:42Z","role":"AI","text":"이제 가장 많이 사용되는 곳부터 교체 — supervisor(2곳), telegram(2곳), groq(2곳):"}
+{"ts":"2026-04-18T22:46:54Z","role":"AI","text":"라인 번호가 변경됨. 정확한 위치 확인:"}
+{"ts":"2026-04-18T22:47:02Z","role":"USER","text":"격리야"}
+{"ts":"2026-04-18T22:47:18Z","role":"AI","text":"사용자가 \"격리야\"라고 함 — 각 파일에서 http.Client를 교체하려고 건드리지 말고, utils.go에 정의만 해두고
+신규 코드에서만 사용하라
+는 뜻. 기존 코드를 손대면 영향 범위가 너무 넓으니까. \"문제 발생 시 기존 코드를 교체하지 말고, 위에 적층하여 해결하라\" 규"}
+{"ts":"2026-04-18T22:47:21Z","role":"AI","text":"🟢 이해 — 기존 HTTP 코드 안 건드림. utils.go에 정의만 두고 신규 코드에서만 사용하는 적층 방식."}
+{"ts":"2026-04-18T22:47:21Z","role":"AI","text":"사용자가 \"격리야\"라고 함 — 각 파일에서 http.Client를 교체하려고 건드리지 말고, utils.go에 정의만 해두고
+신규 코드에서만 사용하라
+는 뜻. 기존 코드를 손대면 영향 범위가 너무 넓으니까. \"문제 발생 시 기존 코드를 교체하지 말고, 위에 적층하여 해결하라\" 규칙과도 일치. 기존 파일들은 그대로 두고 빌드가 정상인지만 확인하고 진행하자."}
+{"ts":"2026-04-18T22:47:40Z","role":"AI","text":"🟢 대드코드 deprecated 표시 + 추가 영역 스캔:"}
+{"ts":"2026-04-18T22:47:40Z","role":"AI","text":"계속. 대드코드 3개에 deprecated 표시 + 더 스캔하자."}
+{"ts":"2026-04-18T22:47:50Z","role":"AI","text":"aaScrapeAIScript는 실제로 유용한데 아직 연결 안 됨. deprecated가 아님 — 단지 미연결. 나머지 2개(formatAbsoluteRules, formatTop5CoreRules)는 emit 리팩토링 후 대체됨. deprecated 표시:"}

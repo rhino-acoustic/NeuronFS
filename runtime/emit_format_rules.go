@@ -124,6 +124,8 @@ func formatSubsumption(sb *strings.Builder) {
 	sb.WriteString(renderSection("section_subsumption.tmpl", nil))
 }
 
+// Deprecated: formatTop5CoreRules — emit 리팩토링(3-tier) 이후 미사용. formatCoreRules()로 대체됨.
+// 향후 재사용 가능성이 있어 유지.
 func formatTop5CoreRules(sb *strings.Builder, result SubsumptionResult, now time.Time) map[string]bool {
 	// ━━━ 핵심지침 TOP 5: 전체 영역 종합 스코어 (Lost-in-the-Middle 대응) ━━━
 
@@ -443,6 +445,8 @@ func formatRecentMemory(sb *strings.Builder, result SubsumptionResult) {
 	}
 }
 
+// Deprecated: formatAbsoluteRules — emit 리팩토링(3-tier) 이후 미사용. formatCoreRules()로 대체됨.
+// 향후 재사용 가능성이 있어 유지.
 func formatAbsoluteRules(sb *strings.Builder, result SubsumptionResult, top5Sentences map[string]bool) {
 	var banReminders []string
 	seenBanLeaf := make(map[string]bool)

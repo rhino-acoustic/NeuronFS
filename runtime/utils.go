@@ -1,6 +1,10 @@
 package main
 
-import "os"
+import (
+	"net/http"
+	"os"
+	"time"
+)
 
 // [EVOLVE:proceed] 자가발전 자동 승인
 
@@ -14,3 +18,10 @@ func fileExists(p string) bool {
 func Add(a, b int) int {
 	return a + b
 }
+
+// ── 공용 HTTP 클라이언트 (커넥션 풀 재사용) ──
+var (
+	httpShort  = &http.Client{Timeout: 5 * time.Second}  // health check, CDP
+	httpMedium = &http.Client{Timeout: 15 * time.Second} // Telegram, webhook
+	httpLong   = &http.Client{Timeout: 60 * time.Second} // LLM API (Groq)
+)
