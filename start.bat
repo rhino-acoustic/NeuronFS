@@ -12,14 +12,18 @@ REM Check if NeuronFS is already running
 tasklist /FI "IMAGENAME eq neuronfs.exe" 2>NUL | find /I /N "neuronfs.exe">NUL
 if "%ERRORLEVEL%"=="0" (
     echo [NeuronFS] neuronfs.exe is already running. 
-    echo [NeuronFS] Attempting graceful shutdown...
+    echo [NeuronFS] Attempting graceful shutdown (SIGTERM)...
+    taskkill /IM neuronfs.exe >nul 2>&1
     timeout /t 5 /nobreak
 )
 
-REM Kill ALL previous neuronfs processes (only if necessary)
-taskkill /IM neuronfs.exe >nul 2>&1
-timeout /t 2 /nobreak >nul
-taskkill /F /IM neuronfs.exe >nul 2>&1
+REM Last resort for stuck processes (Log instead of silent /F)
+tasklist /FI "IMAGENAME eq neuronfs.exe" 2>NUL | find /I /N "neuronfs.exe">NUL
+if "%ERRORLEVEL%"=="0" (
+    echo [NeuronFS] WARNING: Process still alive. Manual intervention may be needed to follow 'No Force Kill' rule.
+    echo [NeuronFS] If necessary, use: taskkill /F /IM neuronfs.exe
+    pause
+)
 
 set "BRAIN=%NFSROOT%\brain_v4"
 

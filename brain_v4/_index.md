@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-19T07:49:23 | Neurons: 398/398 | Activation: 12
+Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
@@ -9,23 +9,22 @@ Generated: 2026-04-19T07:49:23 | Neurons: 398/398 | Activation: 12
 - 🎭 ego → 🧠 cortex
 
 ## 🏆 TOP 10 뉴런
-1. 🧠 **dev > dev** (4)
-2. 🧠 **methodology > methodology** (4)
+1. 🧠 **dev > dev** (5)
+2. 🧠 **methodology > methodology** (5)
 3. 📝 **episodes > 2026-04-18 Pose 데이터 변환 분석** (2)
 4. 🧠 **dev > e2e test** (2)
-5. 🛡️ **반드시 > EVOLVE proceed 강제** (0)
-6. 🛡️ **반드시 > NeuronFS 공리** (0)
-7. 🛡️ **반드시 > bat재시작** (0)
-8. 🛡️ **반드시 > 커뮤니티검색필수: 세션시작** (0)
-9. 🛡️ **반드시 > 반드시 누락자문** (0)
-10. 🛡️ **반드시 > 반드시 빌드경로 SSOT** (0)
+5. 🛡️ **반드시 > Git 즉시 추적** (1)
+6. 🧠 **dev > dev > 추천: > 디스코드포스트갱신** (0)
+7. 🧠 **dev > dev > design systems** (0)
+8. 🛡️ **반드시 > bat재시작** (0)
+9. 🛡️ **반드시 > 커뮤니티검색필수: 세션시작** (0)
+10. 🛡️ **반드시 > 반드시 누락자문** (0)
 
 <details>
-<summary>🆕 신규 (probation) — 398 neurons (7d window)</summary>
+<summary>🆕 신규 (probation) — 397 neurons (7d window)</summary>
 
-### 🛡️ brainstem (30)
-- **반드시 > EVOLVE proceed 강제** (0) — 7d남음
-- **반드시 > NeuronFS 공리** (0) — 7d남음
+### 🛡️ brainstem (31)
+- **반드시 > Git 즉시 추적** (1) — 7d남음
 - **반드시 > bat재시작** (0) — 7d남음
 - **반드시 > 커뮤니티검색필수: 세션시작** (0) — 7d남음
 - **반드시 > 반드시 누락자문** (0) — 7d남음
@@ -54,6 +53,8 @@ Generated: 2026-04-19T07:49:23 | Neurons: 398/398 | Activation: 12
 - **진단순서 > CDP문제 최우선확인** (0) — 7d남음
 - **필** (0) — 7d남음
 - **필 > 아키텍처 결정 불변** (0) — 7d남음
+- **반드시 > EVOLVE proceed 강제** (0) — 7d남음
+- **반드시 > NeuronFS 공리** (0) — 7d남음
 
 ### 💓 limbic (3)
 - **경고 반복실수감지** (0) — 7d남음
@@ -78,10 +79,10 @@ Generated: 2026-04-19T07:49:23 | Neurons: 398/398 | Activation: 12
 ### 👁️ sensors (0)
 (없음)
 
-### 🧠 cortex (340)
-- **dev > dev** (4) — 7d남음
-- **methodology > methodology** (4) — 7d남음
+### 🧠 cortex (338)
 - **dev > e2e test** (2) — 7d남음
+- **dev > dev > 추천: > 디스코드포스트갱신** (0) — 7d남음
+- **dev > dev > design systems** (0) — 7d남음
 - **architecture** (0) — 7d남음
 - **backend** (0) — 3d남음
 - **community** (0) — 3d남음
@@ -103,10 +104,10 @@ Generated: 2026-04-19T07:49:23 | Neurons: 398/398 | Activation: 12
 - **dev > dev > crawling > 올리브영 DOM 2026 > 대시보드 자동연동** (0) — 7d남음
 - **dev > dev > crawling > 올리브영 DOM 2026 > 브랜드일괄 전략** (0) — 7d남음
 - **dev > dev > crawling > 올리브영 DOM 2026 > 상세페이지 추출패턴** (0) — 7d남음
-- **dev > dev > crawling > 올리브영 DOM 2026 > 성공 추출패턴** (0) — 7d남음
+- **dev > dev > 추천: > 로컬로그확인** (0) — 7d남음
 - **dev > dev > crawling > 올리브영 DOM 2026 > 셀렉터 매핑** (0) — 7d남음
 - **dev > dev > crawling > 올리브영 DOM 2026 > 제품 데이터 추출** (0) — 7d남음
-- **dev > dev > design systems** (0) — 7d남음
+- **dev > dev > 추천: > 로컬테스트** (0) — 7d남음
 - **dev > dev > design systems > fast components** (0) — 7d남음
 - **dev > dev > github docs** (0) — 3d남음
 - **dev > dev > github docs > 반드시 EN KO 동기화** (0) — 7d남음
@@ -151,7 +152,7 @@ Generated: 2026-04-19T07:49:23 | Neurons: 398/398 | Activation: 12
 - **dev > dev > trans v19 engine post processor 환각복구 타임스탬프수리 > 구조 5메서드 > is garbage Start잔해 빈텍스트필터** (0) — 7d남음
 - **dev > dev > trans v19 engine post processor 환각복구 타임스탬프수리 > 구조 5메서드 > parse raw output 깨진JSON 2단계파싱** (0) — 7d남음
 - **dev > dev > trans v19 engine post processor 환각복구 타임스탬프수리 > 구조 5메서드 > repair timestamp 300초오프셋수리** (0) — 7d남음
-- **dev > dev > trans v19 frontend v19html Pretendard dropzone WebSocket** (0) — 7d남음
+- **dev > dev > 추천: > 명령어분할** (0) — 7d남음
 - **dev > dev > trans v19 frontend v19html Pretendard dropzone WebSocket > 구조 7함수 2UI** (0) — 7d남음
 - **dev > dev > trans v19 frontend v19html Pretendard dropzone WebSocket > 구조 7함수 2UI > UI 6phase그리드 실시간갱신** (0) — 7d남음
 - **dev > dev > trans v19 frontend v19html Pretendard dropzone WebSocket > 구조 7함수 2UI > UI dropzone 드래그앤드롭** (0) — 7d남음
@@ -230,12 +231,10 @@ Generated: 2026-04-19T07:49:23 | Neurons: 398/398 | Activation: 12
 - **dev > dev > 추천: > 기존데이터구조활용** (0) — 7d남음
 - **dev > dev > 추천: > 깃헙리포관리** (0) — 7d남음
 - **dev > dev > 추천: > 데이터조사** (0) — 7d남음
-- **dev > dev > 추천: > 디스코드포스트갱신** (0) — 7d남음
 - **dev > dev > 추천: > 로컬깃활용** (0) — 7d남음
 - **dev > dev > 추천: > 로컬데이터사용** (0) — 7d남음
-- **dev > dev > 추천: > 로컬로그확인** (0) — 7d남음
-- **dev > dev > 추천: > 로컬테스트** (0) — 7d남음
-- **dev > dev > 추천: > 명령어분할** (0) — 7d남음
+- **dev > dev > crawling > 올리브영 DOM 2026 > 성공 추출패턴** (0) — 7d남음
+- **dev > dev > trans v19 frontend v19html Pretendard dropzone WebSocket** (0) — 7d남음
 - **dev > dev > 추천: > 명령어순차실행** (0) — 7d남음
 - **dev > dev > 추천: > 명령어승인** (0) — 7d남음
 - **dev > dev > 추천: > 명령어자동실행** (0) — 7d남음
@@ -446,11 +445,11 @@ Generated: 2026-04-19T07:49:23 | Neurons: 398/398 | Activation: 12
 
 | 영역 | 뉴런 | 활성화 | 상세 |
 |------|------|--------|------|
-| 🛡️ brainstem — 양심/본능 | 30 | 0 | `brainstem/_rules.md` |
+| 🛡️ brainstem — 양심/본능 | 31 | 1 | `brainstem/_rules.md` |
 | 💓 limbic — 감정 필터 | 3 | 0 | `limbic/_rules.md` |
 | 📝 hippocampus — 기록/기억 | 13 | 2 | `hippocampus/_rules.md` |
 | 👁️ sensors — 환경 제약 | 0 | 0 | `sensors/_rules.md` |
-| 🧠 cortex — 지식/기술 | 340 | 10 | `cortex/_rules.md` |
+| 🧠 cortex — 지식/기술 | 340 | 12 | `cortex/_rules.md` |
 | 🎭 ego — 성향/톤 | 12 | 0 | `ego/_rules.md` |
 | 🎯 prefrontal — 목표/계획 | 0 | 0 | `prefrontal/_rules.md` |
 | 🔗 shared — 공유 지식 | 0 | 0 | `shared/_rules.md` |
