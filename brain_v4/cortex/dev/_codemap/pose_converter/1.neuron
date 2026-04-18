@@ -10,9 +10,10 @@ ConvertPoseData (func), PoseData (struct)
 encoding/json, fmt, strings
 
 ## CONSTRAINTS
-- Coordinates must be float64
+- Coordinates are rounded to 6 decimal places (Precision Reduction) for token efficiency.
 - Error handling is mandatory in callers
 - Joint names must not be empty (validation required)
+- Coordinates must be float64
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ConvertPoseData converts 3D joint data to JSON.
 PoseData represents 3D joint coordinates.

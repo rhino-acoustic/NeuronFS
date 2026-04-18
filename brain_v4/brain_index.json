@@ -1,6 +1,6 @@
 {
   "root": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "last_updated": 1776554518982893200,
+  "last_updated": 1776554955431346000,
   "regions": {
     "brainstem": {
       "region": {
@@ -205,6 +205,28 @@
             "Depth": 1,
             "ModTime": "2026-04-18T19:58:00.0675719+09:00",
             "BirthTime": "2026-04-18T19:57:38.9652489+09:00"
+          },
+          {
+            "Name": "bat_ascii_only",
+            "Path": "禁\\bat_ascii_only",
+            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\brainstem\\禁\\bat_ascii_only",
+            "Counter": 1,
+            "Contra": 0,
+            "Dopamine": 0,
+            "Intensity": 1,
+            "Polarity": 1,
+            "HasBomb": false,
+            "HasMemory": false,
+            "HasGoal": false,
+            "GoalText": "",
+            "Geofence": "",
+            "Description": "﻿# bat/cmd ASCII only",
+            "Globs": "",
+            "Author": "",
+            "IsDormant": false,
+            "Depth": 1,
+            "ModTime": "2026-04-19T08:11:46.6187601+09:00",
+            "BirthTime": "2026-04-19T08:11:46.6112778+09:00"
           },
           {
             "Name": "curl사용",
@@ -645,50 +667,6 @@
             "Depth": 1,
             "ModTime": "2026-04-18T19:58:00.4433715+09:00",
             "BirthTime": "2026-04-18T19:57:39.0496961+09:00"
-          },
-          {
-            "Name": "필",
-            "Path": "필",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\brainstem\\필",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 0,
-            "ModTime": "2026-04-18T20:36:49.6883535+09:00",
-            "BirthTime": "2026-04-18T20:36:49.687832+09:00"
-          },
-          {
-            "Name": "아키텍처_결정_불변",
-            "Path": "필\\아키텍처_결정_불변",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\brainstem\\필\\아키텍처_결정_불변",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "﻿# 아키텍처 결정 사항 (변경 금지)",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 1,
-            "ModTime": "2026-04-18T20:36:49.6899372+09:00",
-            "BirthTime": "2026-04-18T20:36:49.6883535+09:00"
           }
         ],
         "Axons": [
@@ -697,7 +675,7 @@
         ],
         "HasBomb": false
       },
-      "max_mod_time": 1776552644533449600
+      "max_mod_time": 1776553906618760100
     },
     "cortex": {
       "region": {
@@ -728,28 +706,6 @@
             "BirthTime": "2026-04-18T19:57:39.0538523+09:00"
           },
           {
-            "Name": "backend",
-            "Path": "backend",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\backend",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 0,
-            "ModTime": "2026-04-14T08:03:26.8101013+09:00",
-            "BirthTime": "2026-04-18T19:57:39.0591024+09:00"
-          },
-          {
             "Name": "community",
             "Path": "community",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\community",
@@ -768,30 +724,8 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 0,
-            "ModTime": "2026-04-14T08:03:26.8194669+09:00",
+            "ModTime": "2026-04-19T08:28:27.3992976+09:00",
             "BirthTime": "2026-04-18T19:57:39.0622252+09:00"
-          },
-          {
-            "Name": "반면교사",
-            "Path": "community\\반면교사",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\community\\반면교사",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": true,
-            "Depth": 1,
-            "ModTime": "2026-04-14T08:03:26.8199808+09:00",
-            "BirthTime": "2026-04-18T19:57:39.0654076+09:00"
           },
           {
             "Name": "dev",
@@ -834,7 +768,7 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 1,
-            "ModTime": "2026-04-19T07:42:55.2422714+09:00",
+            "ModTime": "2026-04-19T08:28:27.7931015+09:00",
             "BirthTime": "2026-04-18T19:57:39.0690694+09:00"
           },
           {
@@ -5238,28 +5172,6 @@
             "BirthTime": "2026-04-18T19:57:39.5480413+09:00"
           },
           {
-            "Name": "런타임_디렉토리_분리_규칙",
-            "Path": "dev\\dev\\런타임_디렉토리_분리_규칙",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\dev\\dev\\런타임_디렉토리_분리_규칙",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 2,
-            "ModTime": "2026-04-14T08:02:43.2180626+09:00",
-            "BirthTime": "2026-04-18T19:57:39.5501109+09:00"
-          },
-          {
             "Name": "에러패턴확인",
             "Path": "dev\\dev\\에러패턴확인",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\dev\\dev\\에러패턴확인",
@@ -5458,50 +5370,6 @@
             "BirthTime": "2026-04-18T21:51:09.2750973+09:00"
           },
           {
-            "Name": "frontend",
-            "Path": "frontend",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\frontend",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 0,
-            "ModTime": "2026-04-14T08:03:26.8137598+09:00",
-            "BirthTime": "2026-04-18T19:57:39.6117528+09:00"
-          },
-          {
-            "Name": "infra",
-            "Path": "infra",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\infra",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 0,
-            "ModTime": "2026-04-14T08:03:26.8168494+09:00",
-            "BirthTime": "2026-04-18T19:57:39.6142941+09:00"
-          },
-          {
             "Name": "methodology",
             "Path": "methodology",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\methodology",
@@ -5542,7 +5410,7 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 1,
-            "ModTime": "2026-04-19T07:42:55.4983074+09:00",
+            "ModTime": "2026-04-19T08:28:27.833303+09:00",
             "BirthTime": "2026-04-18T19:57:39.6189632+09:00"
           },
           {
@@ -5830,50 +5698,6 @@
             "Depth": 2,
             "ModTime": "2026-04-18T19:58:01.7309039+09:00",
             "BirthTime": "2026-04-18T19:57:39.6533629+09:00"
-          },
-          {
-            "Name": "必_방탄설계",
-            "Path": "methodology\\methodology\\必_방탄설계",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\methodology\\methodology\\必_방탄설계",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "방탄설계 (Bulletproof Design)",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 2,
-            "ModTime": "2026-04-14T08:02:43.2565321+09:00",
-            "BirthTime": "2026-04-18T19:57:39.6564431+09:00"
-          },
-          {
-            "Name": "必_정밀사격_프로토콜",
-            "Path": "methodology\\methodology\\必_정밀사격_프로토콜",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\methodology\\methodology\\必_정밀사격_프로토콜",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "정밀사격 프로토콜 (Precision Fire Protocol)",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 2,
-            "ModTime": "2026-04-14T08:02:43.2575352+09:00",
-            "BirthTime": "2026-04-18T19:57:39.6581131+09:00"
           },
           {
             "Name": "推BeforeAfter증거제공",
@@ -8321,7 +8145,7 @@
         "Axons": null,
         "HasBomb": false
       },
-      "max_mod_time": 1776552175498307400
+      "max_mod_time": 1776554907833303000
     },
     "ego": {
       "region": {
@@ -8608,28 +8432,6 @@
         "Path": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus",
         "Neurons": [
           {
-            "Name": "audit_trail",
-            "Path": "audit_trail",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\audit_trail",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 0,
-            "ModTime": "2026-04-19T00:28:46.0441481+09:00",
-            "BirthTime": "2026-04-19T00:28:46.0436316+09:00"
-          },
-          {
             "Name": "episodes",
             "Path": "episodes",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\episodes",
@@ -8648,7 +8450,7 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 0,
-            "ModTime": "2026-04-18T22:22:31.012743+09:00",
+            "ModTime": "2026-04-19T08:28:33.5544923+09:00",
             "BirthTime": "2026-04-18T22:22:31.0122229+09:00"
           },
           {
@@ -8674,6 +8476,28 @@
             "BirthTime": "2026-04-18T22:22:31.012743+09:00"
           },
           {
+            "Name": "2026-04-19_2026-04-19_System_Stabilization",
+            "Path": "episodes\\2026-04-19_2026-04-19_System_Stabilization",
+            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\episodes\\2026-04-19_2026-04-19_System_Stabilization",
+            "Counter": 1,
+            "Contra": 0,
+            "Dopamine": 0,
+            "Intensity": 1,
+            "Polarity": 1,
+            "HasBomb": false,
+            "HasMemory": false,
+            "HasGoal": false,
+            "GoalText": "",
+            "Geofence": "",
+            "Description": "",
+            "Globs": "",
+            "Author": "",
+            "IsDormant": false,
+            "Depth": 1,
+            "ModTime": "2026-04-19T08:28:33.5581253+09:00",
+            "BirthTime": "2026-04-19T08:28:33.5544923+09:00"
+          },
+          {
             "Name": "session_log",
             "Path": "session_log",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\session_log",
@@ -8687,13 +8511,13 @@
             "HasGoal": false,
             "GoalText": "",
             "Geofence": "",
-            "Description": "2026-04-19T07:37:11 | BOOT | NeuronFS Supervisor 부팅 (PID 22740)",
+            "Description": "2026-04-19T08:28:33 | FIRE | cortex\\dev\\_codemap (0→1)",
             "Globs": "",
             "Author": "",
             "IsDormant": false,
             "Depth": 0,
-            "ModTime": "2026-04-19T08:17:31.087397+09:00",
-            "BirthTime": "2026-04-18T19:24:57.3234206+09:00"
+            "ModTime": "2026-04-19T08:28:33.5570366+09:00",
+            "BirthTime": "2026-04-19T08:28:33.1742685+09:00"
           },
           {
             "Name": "전사분석",
@@ -8736,29 +8560,7 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 1,
-            "ModTime": "2026-04-18T20:44:50.8312765+09:00",
-            "BirthTime": "2026-04-18T20:44:50.8312765+09:00"
-          },
-          {
-            "Name": "4월18일_NeuronFS 뉴런 손실 장애 복구 및 git 추적 기반 재발 방지",
-            "Path": "전사분석\\06_Troubleshooting_디버그\\4월18일_NeuronFS 뉴런 손실 장애 복구 및 git 추적 기반 재발 방지",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\전사분석\\06_Troubleshooting_디버그\\4월18일_NeuronFS 뉴런 손실 장애 복구 및 git 추적 기반 재발 방지",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "type: Troubleshooting",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 2,
-            "ModTime": "2026-04-18T20:44:50.8319871+09:00",
+            "ModTime": "2026-04-19T08:28:27.3881975+09:00",
             "BirthTime": "2026-04-18T20:44:50.8312765+09:00"
           },
           {
@@ -8780,30 +8582,8 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 1,
-            "ModTime": "2026-04-18T20:45:01.2597779+09:00",
+            "ModTime": "2026-04-19T08:28:27.3903194+09:00",
             "BirthTime": "2026-04-18T20:45:01.2510279+09:00"
-          },
-          {
-            "Name": "4월18일_3D 조인트 데이터 JSON 변환 및 포즈 GUI 실행 지원",
-            "Path": "전사분석\\06_UI_UX_디자인\\4월18일_3D 조인트 데이터 JSON 변환 및 포즈 GUI 실행 지원",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\전사분석\\06_UI_UX_디자인\\4월18일_3D 조인트 데이터 JSON 변환 및 포즈 GUI 실행 지원",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "type: UI",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 2,
-            "ModTime": "2026-04-18T20:45:01.2602859+09:00",
-            "BirthTime": "2026-04-18T20:45:01.2597779+09:00"
           },
           {
             "Name": "10_Benchmark_벤치마크",
@@ -8824,30 +8604,8 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 1,
-            "ModTime": "2026-04-18T20:31:59.3137031+09:00",
+            "ModTime": "2026-04-19T08:28:27.3934225+09:00",
             "BirthTime": "2026-04-18T20:31:59.3126623+09:00"
-          },
-          {
-            "Name": "4월18일_Gemini CLI 시스템 프롬프트 제어 기법 및 독자 발견 검증",
-            "Path": "전사분석\\10_Benchmark_벤치마크\\4월18일_Gemini CLI 시스템 프롬프트 제어 기법 및 독자 발견 검증",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\전사분석\\10_Benchmark_벤치마크\\4월18일_Gemini CLI 시스템 프롬프트 제어 기법 및 독자 발견 검증",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "type: Benchmark",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 2,
-            "ModTime": "2026-04-18T20:31:59.3137031+09:00",
-            "BirthTime": "2026-04-18T20:31:59.3137031+09:00"
           },
           {
             "Name": "13_Vision_포즈추출",
@@ -8868,36 +8626,14 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 1,
-            "ModTime": "2026-04-18T20:45:24.2824614+09:00",
+            "ModTime": "2026-04-19T08:28:27.3951262+09:00",
             "BirthTime": "2026-04-18T20:45:24.2819529+09:00"
-          },
-          {
-            "Name": "4월18일_convert_final.py 기반 3D 포즈 데이터 JSON 변환 대기",
-            "Path": "전사분석\\13_Vision_포즈추출\\4월18일_convert_final.py 기반 3D 포즈 데이터 JSON 변환 대기",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\전사분석\\13_Vision_포즈추출\\4월18일_convert_final.py 기반 3D 포즈 데이터 JSON 변환 대기",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "type: Vision",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 2,
-            "ModTime": "2026-04-18T20:45:24.2830188+09:00",
-            "BirthTime": "2026-04-18T20:45:24.2824614+09:00"
           }
         ],
         "Axons": null,
         "HasBomb": false
       },
-      "max_mod_time": 1776554251087397000
+      "max_mod_time": 1776554913558125300
     },
     "limbic": {
       "region": {

@@ -3,6 +3,7 @@ package pose_converter
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -14,7 +15,12 @@ type PoseData struct {
 	Z     float64 `json:"z"`
 }
 
-// ConvertPoseData converts 3D joint data to JSON.
+// roundTo6 rounds a float64 to 6 decimal places.
+func roundTo6(v float64) float64 {
+	return math.Round(v*1e6) / 1e6
+}
+
+// ConvertPoseData converts 3D joint data to JSON with precision reduction (6 decimal places).
 func ConvertPoseData(joint string, x, y, z float64) (string, error) {
 	if strings.TrimSpace(joint) == "" {
 		return "", fmt.Errorf("joint name cannot be empty")
@@ -22,9 +28,9 @@ func ConvertPoseData(joint string, x, y, z float64) (string, error) {
 
 	pose := PoseData{
 		Joint: joint,
-		X:     x,
-		Y:     y,
-		Z:     z,
+		X:     roundTo6(x),
+		Y:     roundTo6(y),
+		Z:     roundTo6(z),
 	}
 
 	jsonData, err := json.Marshal(pose)

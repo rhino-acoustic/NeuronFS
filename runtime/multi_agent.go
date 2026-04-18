@@ -106,7 +106,7 @@ func executeGeminiCLI(task AgentTask) AgentResult {
 	_ = os.WriteFile(promptFile, []byte(task.Prompt), 0644)
 	defer os.Remove(promptFile)
 
-	// CLI 실행: MCP(neuronfs) 허용 + yolo(자동 승인) + ANSI 컬러 제거
+	// CLI: yolo + MCP neuronfs + stdin injection (verified working)
 	cmd := exec.Command(geminiPath, "--yolo", "--allowed-mcp-server-names", "neuronfs")
 	cmd.Env = append(os.Environ(), "NO_COLOR=1", "TERM=dumb")
 	if task.WorkDir != "" {

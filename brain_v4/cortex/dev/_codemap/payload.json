@@ -1,0 +1,16 @@
+# 🗺️ NeuronFS Project Codemap (2026-04-19)
+
+## 🏗️ Core Architecture
+- **cmd/**: Application entry points (CLI, API, Dashboard)
+- **internal/**: Core business logic (Domain-Driven)
+  - **brain/**: Neuron processing & logic
+  - **vfs/**: Virtual File System (jloot)
+  - **api/**: REST/WS Handlers
+- **mcp/**: Model Context Protocol servers & tools
+- **runtime/**: Session-specific data & active states
+- **brain_v4/**: Persistent neuron storage (SSOT)
+
+## 🛠️ Key Components
+- **pose_converter/**: AI vision data processing
+- **dashboard_v4/**: Real-time visualization
+- **scripts/**: Automation & Maintenance

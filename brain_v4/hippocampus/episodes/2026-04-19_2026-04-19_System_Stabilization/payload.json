@@ -1,0 +1,4 @@
+- cortex/dev/_codemap 뉴런 복구 및 최신화
+- 빈 뉴런 폴더 일괄 제거 (NeuronFS 경량화)
+- brainstem과 cortex 간의 중복 규칙 식별 및 정리 착수
+- 2026 Go 베스트 프랙티스 기반 구조 분석 완료
