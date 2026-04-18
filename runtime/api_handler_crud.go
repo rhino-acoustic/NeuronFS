@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -24,7 +25,8 @@ func registerCRUDRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http
 			return
 		}
 		growNeuron(brainRoot, req.Path)
-		GlobalAPICache.InvalidateAll() // 캐시 무효화
+		region := strings.Split(req.Path, string(filepath.Separator))[0]
+		GlobalAPICache.InvalidateHierarchical(region) // 계층적 캐시 무효화
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "grown", "path": req.Path})
 	}))
@@ -43,7 +45,8 @@ func registerCRUDRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http
 			return
 		}
 		fireNeuron(brainRoot, req.Path)
-		GlobalAPICache.InvalidateAll() // 캐시 무효화
+		region := strings.Split(req.Path, string(filepath.Separator))[0]
+		GlobalAPICache.InvalidateHierarchical(region) // 계층적 캐시 무효화
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "fired", "path": req.Path})
 	}))
@@ -63,7 +66,8 @@ func registerCRUDRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http
 			return
 		}
 		signalNeuron(brainRoot, req.Path, req.Type)
-		GlobalAPICache.InvalidateAll() // 캐시 무효화
+		region := strings.Split(req.Path, string(filepath.Separator))[0]
+		GlobalAPICache.InvalidateHierarchical(region) // 계층적 캐시 무효화
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "signaled", "path": req.Path, "type": req.Type})
 	}))
@@ -181,7 +185,8 @@ func registerCRUDRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http
 			json.NewEncoder(w).Encode(map[string]string{"error": err.Error(), "path": req.Path})
 			return
 		}
-		GlobalAPICache.InvalidateAll() // 캐시 무효화
+		region := strings.Split(req.Path, string(filepath.Separator))[0]
+		GlobalAPICache.InvalidateHierarchical(region) // 계층적 캐시 무효화
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "rolled_back", "path": req.Path})
 	}))
@@ -223,7 +228,7 @@ func registerCRUDRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http
 
 		health := buildHealthJSON(brainRoot)
 		data, _ := json.Marshal(health)
-		GlobalAPICache.Set(cacheKey, data, "application/json", 10*time.Second)
+		GlobalAPICache.SetWithRegion(cacheKey, "brainstem", data, "application/json", 10*time.Second)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(data)
@@ -240,7 +245,7 @@ func registerCRUDRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http
 
 		resp := buildBrainJSONResponse(brainRoot)
 		data, _ := json.Marshal(resp)
-		GlobalAPICache.Set(cacheKey, data, "application/json", 5*time.Second)
+		GlobalAPICache.SetWithRegion(cacheKey, "brainstem", data, "application/json", 5*time.Second)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(data)

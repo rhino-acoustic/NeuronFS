@@ -440,8 +440,16 @@ func handleReadRegion(brainRoot string) http.HandlerFunc {
 		}
 
 		// Validate region
-		if _, ok := regionPriority[regionName]; !ok {
+		if _, ok := RegionPriority[regionName]; !ok {
 			http.Error(w, `{"error":"invalid region"}`, 400)
+			return
+		}
+
+		// Try hierarchical cache
+		cacheKey := "/api/read?region=" + regionName
+		if data, ct, ok := GlobalAPICache.Get(cacheKey); ok {
+			w.Header().Set("Content-Type", ct)
+			w.Write(data)
 			return
 		}
 
@@ -462,6 +470,9 @@ func handleReadRegion(brainRoot string) http.HandlerFunc {
 			http.Error(w, `{"error":"region not found"}`, 404)
 			return
 		}
+
+		// Cache it hierarchical
+		GlobalAPICache.SetWithRegion(cacheKey, regionName, content, "text/markdown; charset=utf-8", 1*time.Minute)
 
 		// FIRE: reading = activation
 		// Fire the top 3 most-used neurons in this region (retrieval strengthening)
