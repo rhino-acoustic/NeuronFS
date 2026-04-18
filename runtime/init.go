@@ -33,8 +33,8 @@ func (b *brainInit) axon(path, target string) {
 // initBrain initializes the brain directory structure and injects default rules if missing.
 func initBrain(root string) {
 	if _, err := os.Stat(root); err == nil {
-		fmt.Printf("[CLEAN] Removing %s\n", root)
-		os.RemoveAll(root)
+		fmt.Printf("[CLEAN] Moving %s to _quarantine\n", root)
+		SafeRemove(root)
 	}
 
 	b := &brainInit{root: root}

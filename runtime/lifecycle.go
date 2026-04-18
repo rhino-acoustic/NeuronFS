@@ -397,8 +397,8 @@ func deduplicateNeurons(brainRoot string) {
 				}
 			}
 
-			// victim 폴더 삭제
-			os.RemoveAll(victim.fullPath)
+			// victim 폴더 격리 (삭제 대신)
+			SafeRemove(victim.fullPath)
 			survivor.counter = totalCounter
 			mergeCount++
 

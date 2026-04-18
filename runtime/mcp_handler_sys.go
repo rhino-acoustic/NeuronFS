@@ -327,15 +327,15 @@ func registerMCPSysTools(server *mcp.Server, brainRoot string) {
 			if emptyCount > 0 {
 				sb.WriteString(fmt.Sprintf("\n📂 빈 뉴런 (c:0): %d개\n", emptyCount))
 				if autoFix {
-					// Remove empty neuron folders
+					// Quarantine empty neuron folders instead of deleting
 					removed := 0
 					for _, d := range emptyDirs {
 						fullPath := filepath.Join(brainRoot, strings.ReplaceAll(d, "/", string(filepath.Separator)))
-						if err := os.RemoveAll(fullPath); err == nil {
+						if err := SafeRemove(fullPath); err == nil {
 							removed++
 						}
 					}
-					sb.WriteString(fmt.Sprintf("  🗑️ %d개 자동 삭제\n", removed))
+					sb.WriteString(fmt.Sprintf("  🗑️ %d개 자동 격리\n", removed))
 				}
 			} else {
 				sb.WriteString("\n📂 빈 뉴런: 없음 ✅\n")

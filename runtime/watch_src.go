@@ -79,6 +79,33 @@ func syncCodemap(runtimeDir, brainRoot string) {
 	}
 }
 
+// SafeRemove moves the target path to _quarantine instead of deleting it.
+// Prevents accidental data loss in untracked directories like dist/ or brain_v4.
+func SafeRemove(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return nil
+	}
+
+	quarantineDir := "_quarantine"
+	// Ensure we are relative to the project root, not the runtime folder.
+	cwd, _ := os.Getwd()
+	targetQuarantine := quarantineDir
+	if strings.HasSuffix(cwd, "runtime") {
+		targetQuarantine = filepath.Join("..", quarantineDir)
+	}
+
+	if err := os.MkdirAll(targetQuarantine, 0750); err != nil {
+		return fmt.Errorf("failed to create quarantine dir: %w", err)
+	}
+
+	timestamp := time.Now().Format("20060102_150405")
+	base := filepath.Base(path)
+	newPath := filepath.Join(targetQuarantine, fmt.Sprintf("%s_backup_%s", base, timestamp))
+
+	fmt.Printf("\033[33m[SAFE REMOVE] Moving %s to %s\033[0m\n", path, newPath)
+	return os.Rename(path, newPath)
+}
+
 // runGoSourceWatcher monitors the runtime directory for .go file changes and triggers an auto-build
 // so that the next Hot-Swap CLI execution uses the newly built worker binary.
 func runGoSourceWatcher() {
