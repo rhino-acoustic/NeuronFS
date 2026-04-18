@@ -41,6 +41,8 @@ func runTranscriptCategorizer(brainRoot string) {
 	// 초기 대기: 서버 안정화 후 시작
 	time.Sleep(5 * time.Minute)
 
+	lastNeuronCleanup := time.Now().Add(-7 * time.Hour) // 첫 사이클에서 즉시 실행
+
 	for {
 		nfsRoot := filepath.Dir(brainRoot)
 
@@ -65,8 +67,13 @@ func runTranscriptCategorizer(brainRoot string) {
 		ctx := collectCronContext(brainRoot, nfsRoot)
 		fmt.Printf("[CRON] 📋 정황: %s\n", ctx)
 
-		// ── Step 4: 카테고리 분류 (Gemini CLI 위임) ──
-		categorizeRecentTranscripts(brainRoot, 1)
+		// ── Step 4: 카테고리 분류 (전사 있을 때만 Gemini CLI 위임) ──
+		recentCount := countRecentTranscripts(brainRoot, 1)
+		if recentCount > 0 {
+			categorizeRecentTranscripts(brainRoot, 1)
+		} else {
+			fmt.Println("[CRON] 💤 최근 전사 없음 — CLI 스킵")
+		}
 
 		// ── Step 5: 정황 기록 ──
 		writeCronLog(brainRoot, ctx)
@@ -74,10 +81,13 @@ func runTranscriptCategorizer(brainRoot string) {
 		// ── Step 6: 뇌 외부 구축 + 프로세스 뉴런 검증 ──
 		verifyBrainExternals(brainRoot, nfsRoot)
 
-		// ── Step 7: 뉴런 발화 정리 (dedup + decay) ──
-		fmt.Println("[CRON] 🧹 뉴런 정리 시작")
-		runDecay(brainRoot, 7)            // 7일 미사용 → dormant
-		deduplicateNeurons(brainRoot)     // 유사 뉴런 병합 (禁/必 면역)
+		// ── Step 7: 뉴런 발화 정리 (6시간 간격) ──
+		if time.Since(lastNeuronCleanup) >= 6*time.Hour {
+			fmt.Println("[CRON] 🧹 뉴런 정리 시작")
+			runDecay(brainRoot, 7)
+			deduplicateNeurons(brainRoot)
+			lastNeuronCleanup = time.Now()
+		}
 
 		fmt.Println("[CRON] ✅ 전사 크론 사이클 완료")
 		time.Sleep(1 * time.Hour)
@@ -482,4 +492,28 @@ func verifyBrainExternals(brainRoot, nfsRoot string) {
 	} else {
 		fmt.Println("[VERIFY] ✅ 뇌 외부 구축 완전")
 	}
+}
+
+// countRecentTranscripts counts transcript files modified within the last N hours
+func countRecentTranscripts(brainRoot string, hoursBack int) int {
+	transcriptsDir := filepath.Join(brainRoot, "_transcripts")
+	cutoff := time.Now().Add(-time.Duration(hoursBack) * time.Hour)
+	count := 0
+
+	entries, err := os.ReadDir(transcriptsDir)
+	if err != nil {
+		return 0
+	}
+
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".txt") {
+			continue
+		}
+		info, err := e.Info()
+		if err != nil || info.ModTime().Before(cutoff) || info.Size() < 100 {
+			continue
+		}
+		count++
+	}
+	return count
 }
