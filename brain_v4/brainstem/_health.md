@@ -1,22 +1,20 @@
 # NeuronFS Health Report
-> Auto-generated: 2026-04-18 20:45:34
+> Auto-generated: 2026-04-18 20:57:58
 > Status: 🟢 HEALTHY
 
 ## Checks
-- ✅ NEURONS: 610
+- ✅ NEURONS: 611
 - ✅ RULES: 8/8 영역
 - ✅ GEMINI.md: identity + NeuronFS 정상
 - ✅ CODEMAP: 152 뉴런
 - ✅ HOOKS: settings.json 존재
-- ✅ GIT: brain_v4 682 files tracked
-- ✅ SELF-HEAL: 0 corrections (All fixed)
-- ✅ DATA_PROTECTION: Git tracking rules active
-- ✅ BOOT_SAFETY: start.bat graceful shutdown updated
+- ✅ GIT: brain_v4 688 files tracked
+- ✅ SELF-HEAL: 1 corrections
 - ✅ MEMORY: 11 에피소드
 
 ## Quick Stats
-- Neurons: 610
+- Neurons: 611
 - Codemap: 152
-- Git tracked: 682
+- Git tracked: 688
 - Memory: 11 episodes
 - Fails: 0

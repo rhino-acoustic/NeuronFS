@@ -106,8 +106,8 @@ func executeGeminiCLI(task AgentTask) AgentResult {
 	_ = os.WriteFile(promptFile, []byte(task.Prompt), 0644)
 	defer os.Remove(promptFile)
 
-	// stdin pipe로 프롬프트 전달 (--prompt는 길이 제한으로 실패할 수 있음)
-	cmd := exec.Command(geminiPath, "--allowed-mcp-server-names", "none", "--sandbox", "false")
+	// CLI 실행: MCP(neuronfs) 허용 + yolo(자동 승인) + sandbox 비활성
+	cmd := exec.Command(geminiPath, "--yolo", "--allowed-mcp-server-names", "neuronfs")
 	if task.WorkDir != "" {
 		cmd.Dir = task.WorkDir
 	}

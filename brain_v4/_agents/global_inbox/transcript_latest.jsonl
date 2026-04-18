@@ -1,21 +1,20 @@
 
-`brainstem/_health.md`는 🟢 HEALTHY로 보고되지만, `corrections.jsonl`에 **CRITICAL DATA_LOSS** 사고가 기록되어 있습니다. 
-- **원인:** `benchmark_identity.py` Phase 2 실행 중 `taskkill` + `restart` 과정에서 549개의 뉴런 폴더가 삭제됨 (626 -> 77).
-- **문제:** Git 추적 대상이 아니었던 데이터는 복구 불가능함.
+L110: --sandbox false가 sandbox=TRUE로 파싱됨! yargs boolean 옵션이라 false가 별도 인자로 전달. 또한 --allowed-mcp-server-names none이 MCP 차단."}
+{"ts":"2026-04-18T21:21:56Z","role":"AI","text":"Found the problem! Line 110:
 
-[P0: 깃 선행] 현재 상태를 보존하기 위해 커밋을 수행합니다. (이전 오류 재확인: `run_shell_command`는 `system` 권한 도구로 다시 시도합니다.)
-[P3: 목표] 
-1. `benchmark_identity.py`의 `taskkill` 로직을 수정하여 안전한 재시작 보장.
-2. 삭제된 뉴런의 복구 가능성 확인 (Git `reflog` 또는 `_archive` 폴더 확인).
-3. 향후 사고 방지를 위해 \"데이터 변경 시 즉시 Git 추적(add)\" 룰을 `brainstem/必`에 강화.
+go
+alternate_email
+content_copy
+cmd := exec.Command(geminiPath, \"--allowed-mcp-server-names\", \"none\", \"--sandbox\", \"false\")
 
-[EVOLVE:proceed]
+--allowed-mcp-server-names none — MCP 서버 연결을 차단! 그래서 run_shell_command를 못 찾는 거. 이걸 neuronfs로 바꿔야 NeuronFS MCP 사용 가능.
 
-Error executing tool run_shell_command: Tool \"run_shell_command\" not found. Did you mean one of: \"grep_search\", \"cli_help\", \"read_file\"?
-🟢 **도구 제약 확인 및 전략 수정.**
+또한 --sandbox false도 문제가 될 수 있음 — sandbox 모드에서는 도구가 제한될 수 있음.
 
-`run_shell_command`가 가용 도구 목록에 보이지 않으므로(시스템 메시지에는 언급되었으나 실제 호출 시 실패), 사용 가능한 도구인 `grep_search`, `read_file`, `list_directory`, `glob` 등을 사용하여 조사를 계속하고, 코드 수정은 `replace` 등을 활용하겠습니다.
+I might also need to add the --yolo flag to auto-approve tools without prompting, and consider using --prompt instead of interactive mode. The key fix is changing --allowed-mcp-server-names to neuronfs so the shell command tool actually becomes available.
 
-먼저, 삭제된 뉴런의 흔적을 찾기 위해 `brain_v4/_archive`와 `brain_v4/_quarantine` 폴더를 조사합니다."}
-{"ts":"2026-04-18T20:57:33Z","role":"AI","text":"HEARTBEAT 뉴런은 발화되지만 [HEARTBEAT] 🚀 Gemini CLI 오토파일럿 발동 은 안 나옴. 전사 파일 활성 조건을 재확인:"}
-{"ts":"2026-04-18T20:57:51Z","role":"AI","text":"growth.log가 재시작 후 자동 갱신되어 1.7분 전! 이게 문제 — 서버 재시작 시 growth.log가 터치되어 5분 조건 불충족. 어디서 터치하는지:"}
+Wait — run_shell_command isn't an MCP tool at all, it's built into Gemini CLI itself. So --allowed-mcp-server-names none only blocks MCP servers, not the built-in tools. Looking at the error log again, the available tools are grep_search, cli_help, and read_file — which suggests the shell command tool might have a different name or the sandbox environment is restricting what's available.
+
+Actually, I think I found the real issue. The --sandbox false flag might be getting parsed incorrectly — in yargs, boolean flags need to be either --no-sandbox or just --sandbox without a value. Passing --sandbox false could be interpreted as --sandbox (true) with false as a separate positional argument, which would keep the sandbox enabled instead of disabling it. That's probably why the shell command tool isn't available.
+
+The fix is to either remove the sandbox flag entirely or use --no-sandbox instead, switch --allowed-mcp-server-names to neuronfs, and add the --yolo flag for automatic approval."}
