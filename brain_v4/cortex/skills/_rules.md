@@ -4,6 +4,9 @@ Active: 17 | Dormant: 0 | Activation: 0
 
 ## Neurons
 - skills/
+  - **VFS** (0)
+    - **UnionFS 하이브리드 RAM디스크** (0)
+    - **jloot 카트리지 컴파일복호화** (0)
   - **API** (0)
     - **REST CORS 미들웨어** (0)
     - **SSE 실시간스트리밍** (0)
@@ -18,7 +21,4 @@ Active: 17 | Dormant: 0 | Activation: 0
   - **MCP** (0)
     - **StreamableHTTP 서버구현** (0)
     - **도구등록 핸들러패턴** (0)
-  - **VFS** (0)
-    - **UnionFS 하이브리드 RAM디스크** (0)
-    - **jloot 카트리지 컴파일복호화** (0)
 

@@ -219,34 +219,32 @@ func min(a, b int) int {
 }
 
 // ── CDP DOM 스크래핑 + Network 모니터 ──
-// evolveKickCh — [EVOLVE:proceed] 감지 시 즉시 재발동 시그널
-var evolveKickCh = make(chan struct{}, 1)
+// evolveKickCh — [EVOLVE:proceed] or user command -> instant re-fire
+var evolveKickCh = make(chan struct{}, 2)
 
-// 활성 Network scraper 추적
 func hlAutoEvolve(brainRoot string) {
 
 	for {
-		// 3분 대기 OR 즉시 재발동 시그널 (먼저 오는 쪽)
+		forced := false
+		// 3min idle OR instant kick (whichever comes first)
 		select {
 		case <-evolveKickCh:
-			svLog("[AUTOPILOT] ⚡ 즉시 재발동 시그널 수신")
-			time.Sleep(5 * time.Second) // CLI 안정화 대기
+			svLog("[AUTOPILOT] ⚡ instant kick received")
+			time.Sleep(5 * time.Second)
+			forced = true
 		case <-time.After(3 * time.Minute):
-			// 정기 사이클
+			// regular cycle
 		}
 
-		// 자율주행 비활성 체크
+		// disabled check
 		nfsRoot := filepath.Dir(brainRoot)
 		if fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled")) {
 			continue
 		}
 
-		// 오토파일럿 전용 하트비트 (.autopilot_heartbeat)
-		// growth.log는 idle_worker가 매 사이클 터치하므로 사용 불가
 		heartbeatFile := filepath.Join(brainRoot, "hippocampus", "session_log", ".autopilot_heartbeat")
 		info, err := os.Stat(heartbeatFile)
 
-		// 하트비트 없으면 자동 생성 (6분 전)
 		if err != nil {
 			os.MkdirAll(filepath.Dir(heartbeatFile), 0750)
 			os.WriteFile(heartbeatFile, []byte("autopilot\n"), 0600)
@@ -255,9 +253,12 @@ func hlAutoEvolve(brainRoot string) {
 			info, err = os.Stat(heartbeatFile)
 		}
 
-		// 하트비트가 2분 이상 미갱신 OR 킥 시그널 수신 시 발동
-		if err == nil && time.Since(info.ModTime()) > 2*time.Minute {
-			// 전사 파일 체크: 최근 5분 내 전사 갱신이 있어야만 활성 대화 존재
+		// forced=true -> bypass all conditions
+		if !forced {
+			if err == nil && time.Since(info.ModTime()) < 2*time.Minute {
+				continue
+			}
+			// active conversation check (only for regular cycle)
 			transcriptDir := filepath.Join(brainRoot, "_transcripts")
 			entries, _ := os.ReadDir(transcriptDir)
 			activeConvo := false
@@ -270,72 +271,58 @@ func hlAutoEvolve(brainRoot string) {
 				}
 			}
 			if !activeConvo {
-				// 활성 대화 없음 — 아무도 안 듣고 있으니 주입 무의미
 				continue
 			}
-
-			// CLI 오케스트레이터 모델: Go 런타임은 최소 트리거만 발사
-			// 실제 판단과 행동은 CLI(AI 에이전트)가 수행
-			minimalTrigger := "[NeuronFS 시스템 점검 트리거] 시스템 상태를 확인하고 필요시 조치하라."
-
-			// _rules.md stale 방지: 90분마다 자동 re-inject (비차단)
-			rulesPath := filepath.Join(brainRoot, "brainstem", "_rules.md")
-			if info, err := os.Stat(rulesPath); err == nil {
-				if time.Since(info.ModTime()) > 90*time.Minute {
-					svLog("[HEARTBEAT] ♻️ _rules.md 90분 경과 — 자동 re-inject")
-					go writeAllTiers(brainRoot)
-				}
-			}
-
-			// 항상 트리거 — 이상 여부 상관없이 오토파일럿 구동
-			svLog("[HEARTBEAT] 🚀 Gemini CLI 오토파일럿 발동")
-
-			// ── 올바른 자율주행 플로우 ──
-			// 1. 최근대화 + 마스터 프롬프트 조합
-			// 2. Gemini CLI에 전달
-			// 3. Gemini CLI 응답을 CDP로 이 Antigravity 창에 주입
-			// 4. Antigravity 응답 → [EVOLVE:proceed] → 반복
-
-			// 텔레그램 알림
-			hlTgSend(hlTgChatID, minimalTrigger)
-
-			// Gemini CLI에 최근대화 + 마스터 프롬프트 전달
-			go func() {
-				nudge, _ := hlBuildContextualPrompt(brainRoot)
-				fullPrompt := hlMasterPrompt + "\n\n" + nudge
-
-				nfsRoot2 := filepath.Dir(brainRoot)
-				result := executeGeminiCLI(AgentTask{
-					Name:    "autopilot_evolve",
-					Prompt:  fullPrompt,
-					WorkDir: nfsRoot2,
-				})
-
-				if result.Success && len(result.Output) > 10 {
-					response := result.Output
-					if len([]rune(response)) > 2000 {
-						response = string([]rune(response)[:2000])
-					}
-					svLog("[AUTOPILOT] ✅ Gemini CLI 응답 수신")
-					// CDP로 IDE 채팅창에 직접 주입 (텔레그램→IDE와 동일 경로)
-					hlCDPInject(hlTgMountedRoom, response)
-					// 텔레그램에도 알림
-					hlTgSend(hlTgChatID, "[AUTOPILOT] ✅ CLI→IDE 주입 완료 ("+fmt.Sprintf("%d", len([]rune(response)))+"자)")
-				} else {
-					outputSnip := ""
-					if len(result.Output) > 100 {
-						outputSnip = result.Output[:100]
-					} else {
-						outputSnip = result.Output
-					}
-					fmt.Printf("[AUTOPILOT] ⚠️ Gemini CLI 실패: %s\n", outputSnip)
-				}
-			}()
-
-			// 무한 루프 회피 터치
-			hbFile2 := filepath.Join(brainRoot, "hippocampus", "session_log", ".autopilot_heartbeat")
-			os.Chtimes(hbFile2, time.Now(), time.Now())
 		}
+
+		// fire autopilot
+		minimalTrigger := "[NeuronFS autopilot trigger] check system and act."
+
+		rulesPath := filepath.Join(brainRoot, "brainstem", "_rules.md")
+		if info, err := os.Stat(rulesPath); err == nil {
+			if time.Since(info.ModTime()) > 90*time.Minute {
+				svLog("[HEARTBEAT] rules.md 90min stale - auto re-inject")
+				go writeAllTiers(brainRoot)
+			}
+		}
+
+		svLog("[HEARTBEAT] Gemini CLI autopilot fired")
+
+		hlTgSend(hlTgChatID, minimalTrigger)
+
+		go func() {
+			nudge, _ := hlBuildContextualPrompt(brainRoot)
+			fullPrompt := hlMasterPrompt + "\n\n" + nudge
+
+			nfsRoot2 := filepath.Dir(brainRoot)
+			result := executeGeminiCLI(AgentTask{
+				Name:    "autopilot_evolve",
+				Prompt:  fullPrompt,
+				WorkDir: nfsRoot2,
+			})
+
+			if result.Success && len(result.Output) > 10 {
+				response := result.Output
+				if len([]rune(response)) > 2000 {
+					response = string([]rune(response)[:2000])
+				}
+				svLog("[AUTOPILOT] Gemini CLI response received")
+				hlCDPInject(hlTgMountedRoom, response)
+				hlTgSend(hlTgChatID, "[AUTOPILOT] CLI->IDE inject done ("+fmt.Sprintf("%d", len([]rune(response)))+" chars)")
+			} else {
+				outputSnip := ""
+				if len(result.Output) > 100 {
+					outputSnip = result.Output[:100]
+				} else {
+					outputSnip = result.Output
+				}
+				fmt.Printf("[AUTOPILOT] CLI failed: %s\n", outputSnip)
+			}
+		}()
+
+		// touch heartbeat to prevent immediate re-fire
+		hbFile2 := filepath.Join(brainRoot, "hippocampus", "session_log", ".autopilot_heartbeat")
+		os.Chtimes(hbFile2, time.Now(), time.Now())
 	}
 }
 

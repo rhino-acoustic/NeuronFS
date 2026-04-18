@@ -1,5 +1,5 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\hijack_orchestrator.go
-updated: 2026-04-19T08:08:34
+updated: 2026-04-19T08:16:38
 # hijack_orchestrator.go
 dir: runtime
 
@@ -25,31 +25,14 @@ Rolling: 최근 20줄만 유지
 2. hippocampus 뉴런 업데이트
 간단 파싱
 ── CDP DOM 스크래핑 + Network 모니터 ──
-evolveKickCh — [EVOLVE:proceed] 감지 시 즉시 재발동 시그널
-활성 Network scraper 추적
-3분 대기 OR 즉시 재발동 시그널 (먼저 오는 쪽)
-정기 사이클
-자율주행 비활성 체크
-오토파일럿 전용 하트비트 (.autopilot_heartbeat)
-growth.log는 idle_worker가 매 사이클 터치하므로 사용 불가
-하트비트 없으면 자동 생성 (6분 전)
-하트비트가 2분 이상 미갱신 OR 킥 시그널 수신 시 발동
-전사 파일 체크: 최근 5분 내 전사 갱신이 있어야만 활성 대화 존재
-활성 대화 없음 — 아무도 안 듣고 있으니 주입 무의미
-CLI 오케스트레이터 모델: Go 런타임은 최소 트리거만 발사
-실제 판단과 행동은 CLI(AI 에이전트)가 수행
-_rules.md stale 방지: 90분마다 자동 re-inject (비차단)
-항상 트리거 — 이상 여부 상관없이 오토파일럿 구동
-── 올바른 자율주행 플로우 ──
-1. 최근대화 + 마스터 프롬프트 조합
-2. Gemini CLI에 전달
-3. Gemini CLI 응답을 CDP로 이 Antigravity 창에 주입
-4. Antigravity 응답 → [EVOLVE:proceed] → 반복
-텔레그램 알림
-Gemini CLI에 최근대화 + 마스터 프롬프트 전달
-CDP로 IDE 채팅창에 직접 주입 (텔레그램→IDE와 동일 경로)
-텔레그램에도 알림
-무한 루프 회피 터치
+evolveKickCh — [EVOLVE:proceed] or user command -> instant re-fire
+3min idle OR instant kick (whichever comes first)
+regular cycle
+disabled check
+forced=true -> bypass all conditions
+active conversation check (only for regular cycle)
+fire autopilot
+touch heartbeat to prevent immediate re-fire
 ── 메인 런처 ──
 텔레그램 양방향 polling
 CDP 모니터 & 큐 워커
