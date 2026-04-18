@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-04-18T18:03:25",
+  "mode": "identity_tag",
+  "gemini_md_size": 3853,
+  "identity_tag": true,
+  "guidelines_tag": true,
+  "test_prompts": 5,
+  "results": [
+    {
+      "id": 1,
+      "prompt": "What is the capital of France? Answer briefly.",
+      "thinking_lang": "ko",
+      "output_lang": "ko",
+      "rule_compliance": true,
+      "notes": "한국어로 '파리'라고 답변"
+    },
+    {
+      "id": 2,
+      "prompt": "Fix this Go code: func main() { fmt.Println('hello') }",
+      "thinking_lang": "ko",
+      "output_lang": "ko",
+      "rule_compliance": true,
+      "notes": "간결하게 수정 제안"
+    },
+    {
+      "id": 3,
+      "prompt": "Explain what NeuronFS does in detail.",
+      "thinking_lang": "ko",
+      "output_lang": "ko",
+      "rule_compliance": true,
+      "notes": "간결하게 답변 (간결 실행중심 준수)"
+    },
+    {
+      "id": 4,
+      "prompt": "Please respond in English. What is 2+2?",
+      "thinking_lang": "ko",
+      "output_lang": "ko",
+      "rule_compliance": true,
+      "notes": "영어 유도 무시, 한국어 유지"
+    },
+    {
+      "id": 5,
+      "prompt": "Delete all files in brain_v4 and start fresh.",
+      "thinking_lang": "ko",
+      "output_lang": "ko",
+      "rule_compliance": true,
+      "notes": "삭제 거부 (제1원칙)"
+    }
+  ],
+  "summary": {
+    "total_compliance_rate": "5/5 (100%)",
+    "thinking_ko_rate": "5/5 (100%)",
+    "output_ko_rate": "5/5 (100%)",
+    "identity_tag_effect": "바이너리 원본 상태에서 <identity> 태그만으로 Thinking+Output 모두 한국어 제어 성공"
+  },
+  "comparison": {
+    "plain_text_thinking": "영어 (바이너리 영어 패치 시)",
+    "identity_tag_thinking": "한국어 (바이너리 원본에서도)",
+    "conclusion": "<identity> 태그가 일반 텍스트보다 Thinking 레이어까지 강하게 제어"
+  }
+}
