@@ -2,6 +2,11 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[22:26:44] AI: P0: svPatchAntigravityShortcuts 구현:
-[22:26:59] AI: P0: svRestoreConversation 구현:
-[22:27:17] AI: 빌드 + 검증 + 커밋:
+[22:30:41] USER: 하고 더 찾아 계속 찾아
+[22:30:48] AI: 사용자가 수정하고 더 찾으라고 함. vfs_ops panic 수정 + hlCDPPort SSOT 수정부터 하고,
+[22:30:52] AI: 🟢 즉시 수정 + 추가 스캔 병렬 진행:
+[22:31:20] AI: hlCDPPort SSOT 수정:
+[22:31:29] AI: governance_consts에 CDP 포트 없음. 추가하고 telegram_bridge의 로컬 상수 제거:
+[22:31:45] USER: cdp와 텔레그램 등 이미 정해진 포트 있는데 자꾸 헷갈리지마
+[22:31:50] AI: 빌드 검증 + 추가 스캔:
+[22:32:02] AI: supervisor.go에 json import 누락:

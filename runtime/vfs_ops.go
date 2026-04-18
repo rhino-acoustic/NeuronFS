@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -53,7 +54,7 @@ func vfsReadDir(dir string) ([]fs.DirEntry, error) {
 		return os.ReadDir(dir)
 	}
 	if GlobalVFS == nil {
-		panic("GlobalVFS is nil. Call MountCartridge() early.")
+		return os.ReadDir(dir) // fallback to OS
 	}
 	return GlobalVFS.ReadDir(vfsRelativize(dir))
 }
@@ -64,7 +65,7 @@ func vfsReadFile(path string) ([]byte, error) {
 		return os.ReadFile(path)
 	}
 	if GlobalVFS == nil {
-		panic("GlobalVFS is nil.")
+		return os.ReadFile(path) // fallback to OS
 	}
 	return GlobalVFS.ReadFile(vfsRelativize(path))
 }
@@ -76,7 +77,7 @@ func vfsGlob(pattern string) ([]string, error) {
 		return filepath.Glob(pattern)
 	}
 	if GlobalVFS == nil {
-		panic("GlobalVFS is nil.")
+		return filepath.Glob(pattern) // fallback to OS
 	}
 
 	// Convert to VFS-relative path
@@ -101,7 +102,7 @@ func vfsStat(path string) (fs.FileInfo, error) {
 		return os.Stat(path)
 	}
 	if GlobalVFS == nil {
-		panic("GlobalVFS is nil.")
+		return os.Stat(path) // fallback to OS
 	}
 	return fs.Stat(GlobalVFS, vfsRelativize(path))
 }
@@ -113,7 +114,7 @@ func vfsWalkDir(root string, fn fs.WalkDirFunc) error {
 		return filepath.WalkDir(root, fn)
 	}
 	if GlobalVFS == nil {
-		panic("GlobalVFS is nil.")
+		return fmt.Errorf("GlobalVFS not initialized")
 	}
 	relRoot := vfsRelativize(root)
 

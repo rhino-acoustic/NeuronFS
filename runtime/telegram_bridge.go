@@ -1,4 +1,4 @@
-﻿// hijack_launcher.go — hijack-launcher.mjs Go 포팅
+// hijack_launcher.go — hijack-launcher.mjs Go 포팅
 // 통합 브릿지: TG polling + CDP 캡처 + 전사 + Groq 뉴런 추출
 // 외부 의존성: 0 (cdp_client.go + Go stdlib)
 package main
@@ -21,7 +21,8 @@ import (
 	"time"
 )
 
-const hlCDPPort = 9000
+// hlCDPPort is an alias for the SSOT CDPPort constant
+var hlCDPPort = CDPPort
 
 // ── 텔레그램 양방향 브릿지 ──
 var hlTgToken, hlTgChatID string

@@ -67,6 +67,9 @@ const (
 	// MCPStreamPort: Streamable HTTP MCP 서버 포트
 	// IDE 재시작 시에도 MCP 연결 유지 (stdio 대체)
 	MCPStreamPort = 9247
+
+	// CDPPort: Chrome DevTools Protocol 원격 디버깅 포트
+	CDPPort = 9000
 )
 
 // ━━━ Emotion Mapping (SSOT) ━━━
