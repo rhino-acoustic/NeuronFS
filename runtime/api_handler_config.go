@@ -1,4 +1,4 @@
-﻿// PROVIDES: handleConfigGet, handleConfigSet
+﻿// PROVIDES: registerConfigRoutes
 // DEPENDS ON: brain.go (scanBrain)
 package main
 

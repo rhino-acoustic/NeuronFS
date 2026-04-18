@@ -1,6 +1,6 @@
-// api_handlers.go — REST API 핸들러 (CRUD, Config, System)
+﻿// api_handlers.go — REST API 핸들러 (CRUD, Config, System)
 //
-// PROVIDES: registerCRUDRoutes, registerConfigRoutes, registerSystemRoutes, rollbackAll
+// PROVIDES: rollbackAll
 // DEPENDS:  neuron_crud.go (growNeuron, fireNeuron, signalNeuron, rollbackNeuron)
 //           lifecycle.go (runDecay, deduplicateNeurons)
 //           brain.go (scanBrain, runSubsumption)

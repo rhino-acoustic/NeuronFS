@@ -1,8 +1,8 @@
-package main
+﻿package main
 
 // ?????? transcript.go ??????
 // PROVIDES: gitSnapshot, touchActivity, getLastActivity, runIdleLoop, digestTranscripts, writeHeartbeat
-// DEPENDS ON: brain.go, lifecycle.go, emit.go, inject.go
+// DEPENDS ON: brain.go, lifecycle.go, emit_tiers.go, inject.go
 
 import (
 	"encoding/json"

@@ -1,8 +1,8 @@
-package main
+﻿package main
 
 // ━━━ watch.go ━━━
 // PROVIDES: runWatch
-// DEPENDS ON: brain.go, emit.go, inject.go
+// DEPENDS ON: brain.go, emit_tiers.go, inject.go
 
 import (
 	"fmt"
