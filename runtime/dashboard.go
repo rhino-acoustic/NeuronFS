@@ -1,4 +1,4 @@
-// PROVIDES: buildDashboard, renderSystemGraph
+﻿// PROVIDES: buildDashboard, renderSystemGraph
 // DEPENDS ON: brain.go (scanBrain), api_server.go (health)
 package main
 
@@ -316,7 +316,7 @@ func buildSystemFlow(brainRoot string) []SystemFlowNode {
 		{ID: "supervisor", Label: "Supervisor", Type: "process", Status: boolStatus(true), Children: []string{"api", "mcp", "cdp", "autopilot", "cron"}},
 		{ID: "api", Label: "REST API (:9090)", Type: "process", Status: boolStatus(portAlive(9090)), Children: []string{"dashboard", "brain"}},
 		{ID: "mcp", Label: "MCP Server (:9247)", Type: "process", Status: boolStatus(portAlive(9247)), Children: []string{"brain"}},
-		{ID: "cdp", Label: "CDP (:9000)", Type: "process", Status: boolStatus(portAlive(9000)), Children: []string{"auto_accept", "hijack"}},
+		{ID: "cdp", Label: "CDP (:9000)", Type: "process", Status: boolStatus(portAlive(CDPPort)), Children: []string{"auto_accept", "hijack"}},
 
 		// Background systems
 		{ID: "autopilot", Label: "Autopilot (hlAutoEvolve)", Type: "process", Status: "active", Children: []string{"gemini_cli", "evolve"}},

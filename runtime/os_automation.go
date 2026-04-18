@@ -1,4 +1,4 @@
-﻿// auto_accept.go — auto-accept.mjs Go 완전 포팅
+// auto_accept.go — auto-accept.mjs Go 완전 포팅
 // CDP 기반 버튼 자동 클릭 (Run/Accept/Retry)
 // + NEURON 명령 감지 (전사 파일 tail)
 // + Groq 배치 분석 (5분 유휴 시)
@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	aaCDPPort        = 9000
+	aaCDPPort        = CDPPort
 	aaPollMs         = 1000
 	aaClickCoolMs    = 1500
 	aaDiagIntervalMs = 30000

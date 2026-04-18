@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 // 전사 카테고리 자동 분류 시스템 (적층)
 // PROVIDES: runTranscriptCategorizer, categorizeRecentTranscripts
@@ -115,7 +115,7 @@ func collectCronContext(brainRoot, nfsRoot string) string {
 	var parts []string
 
 	// 1. 활성 세션 수 (CDP 타겟)
-	targets, err := cdpListTargets(9000)
+	targets, err := cdpListTargets(CDPPort)
 	if err == nil {
 		pages := 0
 		for _, t := range targets {

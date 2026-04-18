@@ -1,20 +1,20 @@
-전사→뉴런 파이프라인 완성도
-
-Hebbian/Spaced repetition 실제 동작 여부
-
-Dream cycle 실제 동작 여부
-
-PII masker 실제 동작 여부
-
-Edge inference, similarity index, CLI 명령어들의 실제 동작 여부도 확인해야 하고, 전사 파일 포맷 검증, MCP 서버 도구, 에이전트 브릿지, context_cache, context_hijacker 완성도까지 광범위하게 스캔해야 한다."}
-{"ts":"2026-04-18T22:51:03Z","role":"AI","text":"이제 기능 완성도 깊은 스캔:"}
-{"ts":"2026-04-18T22:51:39Z","role":"AI","text":"Major findings:- `hebbianTra"}
-{"ts":"2026-04-18T22:51:43Z","role":"AI","text":"🟢 거대 발견: 미연결 모듈 다수! 더 스캔:"}
-{"ts":"2026-04-18T22:52:32Z","role":"AI","text":"이전 스캔에서 미호출로 보인 모듈들이 실제론 호출됨 — ^func  패턴 필터가 잘못 작동했음. 전부 LIVE.
-
-더 깊이:"}
-{"ts":"2026-04-18T22:52:50Z","role":"AI","text":"🔴 거대 발견! CLI 31개 파일 중 **main에 등록된 게 3개뿐!"}
-{"ts":"2026-04-18T22:52:56Z","role":"AI","text":"🔴 거대 발견! CLI 31개 파일 중 main에 등록된 게 3개뿐! cli_router.go로 라우팅되는지:"}
 {"ts":"2026-04-18T22:53:05Z","role":"AI","text":"CLI 31개 모두 라우터에 등록됨 (59-91번 줄) — grep 패턴이 main.go에서 \"--\" 리터럴만 검색했기 때문에 미스. 실제론 모두 살아있음.
 
 계속 더 깊이:"}
+{"ts":"2026-04-18T22:53:26Z","role":"AI","text":"새 SSOT 위반 발견! aaCDPPort = 9000 in os_automation.go:19
+
+또 다른 큰 발견:
+
+RotatePrompt — 호출자 0!
+ContextCache — 호출자 0! (Get/Invalidate)"}
+{"ts":"2026-04-18T22:53:41Z","role":"AI","text":"aaCDPPort = 9000을 governance_consts의 CDPPort로 교체. 그리고 RunBenchmark 호출자 0으로 보임 — 미연결"}
+{"ts":"2026-04-18T22:53:44Z","role":"AI","text":"aaCDPPort = 9000을 governance_consts의 CDPPort로 교체. 그리고 RunBenchmark 호출자 0으로 보임 — 미연결. 계속 수정하고 더 스캔."}
+{"ts":"2026-04-18T22:53:44Z","role":"AI","text":"🟢 aaCDPPort SSOT 수정 + 더 스캔:"}
+{"ts":"2026-04-18T22:54:12Z","role":"AI","text":"발견 정리:
+
+#	문제	심각도
+71	9000 하드코딩 6곳 — CDPPort 상수 미사용	P2 SSOT
+74	RunBenchmark 호출 0 — 미연결	P3
+73	CodeAuditV2 — 호출자 확인 필요	P3
+
+9000 하드코딩 6곳 수정:"}

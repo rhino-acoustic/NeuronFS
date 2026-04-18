@@ -2,10 +2,9 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[22:51:03] AI: 이제 기능 완성도 깊은 스캔:
-[22:51:39] AI: Major findings:- `hebbianTra
-[22:51:43] AI: 🟢 거대 발견: 미연결 모듈 다수! 더 스캔:
-[22:52:32] AI: 이전 스캔에서 미호출로 보인 모듈들이 실제론 호출됨 — ^func  패턴 필터가 잘못 작동했음. 전부 LIVE.
-[22:52:50] AI: 🔴 거대 발견! CLI 31개 파일 중 **main에 등록된 게 3개뿐!
-[22:52:56] AI: 🔴 거대 발견! CLI 31개 파일 중 main에 등록된 게 3개뿐! cli_router.go로 라우팅되는지:
 [22:53:05] AI: CLI 31개 모두 라우터에 등록됨 (59-91번 줄) — grep 패턴이 main.go에서 \"--\
+[22:53:26] AI: 새 SSOT 위반 발견! aaCDPPort = 9000 in os_automation.go:19
+[22:53:41] AI: aaCDPPort = 9000을 governance_consts의 CDPPort로 교체. 그리고 RunBenchmark 호출자 0으로 보임 — 미연결
+[22:53:44] AI: aaCDPPort = 9000을 governance_consts의 CDPPort로 교체. 그리고 RunBenchmark 호출자 0으로 보임 — 미연결. 계속 수정하고 더 스캔.
+[22:53:44] AI: 🟢 aaCDPPort SSOT 수정 + 더 스캔:
+[22:54:12] AI: 발견 정리:

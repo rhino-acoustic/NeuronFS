@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 // ?????? transcript.go ??????
 // PROVIDES: gitSnapshot, touchActivity, getLastActivity, runIdleLoop, digestTranscripts, writeHeartbeat
@@ -262,7 +262,7 @@ func injectIdleResultSync(summary string) {
 		aaScanTargets()
 
 		// ???? CDP ????
-		targets, err := cdpListTargets(9000)
+		targets, err := cdpListTargets(CDPPort)
 		if err != nil {
 			diagLog = append(diagLog, fmt.Sprintf("CDP:9000 ??? ? %v", err))
 			continue

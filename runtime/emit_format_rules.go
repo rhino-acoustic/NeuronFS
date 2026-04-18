@@ -1,4 +1,4 @@
-// emit_bootstrap.go — Tier 1 컨텐츠 생성
+﻿// emit_bootstrap.go — Tier 1 컨텐츠 생성
 //
 // PROVIDES: emitBootstrap, emitAgentInbox, extractInboxPreview, emitSessionMemory
 // DEPENDS:  brain.go (SubsumptionResult, Neuron, Region)
@@ -71,7 +71,7 @@ func buildPreamble(sb *strings.Builder, result SubsumptionResult, brainRoot stri
 	// ━━━ Pulse: 오토파일럿 상태 기반 접두사 이모지 ━━━
 	nfsRoot := filepath.Dir(brainRoot)
 	autoDisabled := fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled"))
-	cdpAlive := portAlive(9000)
+	cdpAlive := portAlive(CDPPort)
 	if autoDisabled || !cdpAlive {
 		currentPulseEmoji = "🔴" // 오토파일럿 OFF
 	} else {
