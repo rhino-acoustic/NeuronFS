@@ -1,21 +1,20 @@
+사용자는 \"코드별 간극\"을 원하므로 각 핵심 파일의 구체적 결함을 분석해야 함."}
+{"ts":"2026-04-18T23:09:48Z","role":"AI","text":"🟢 핵심 파일별 간극 분석 — 가장 큰 파일부터:"}
+{"ts":"2026-04-18T23:10:52Z","role":"AI","text":"이제 나머지 모든 파일도:"}
+{"ts":"2026-04-18T23:11:07Z","role":"AI","text":"종합 코드별 간극 보고서:"}
+{"ts":"2026-04-18T23:12:17Z","role":"AI","text":"🟢 파일별 간극 분석 완료: 
+code_gap_analysis.md
 
-doInjectToFile — 정의만 있고 내부 호출 0. emit_tiers.go PROVIDES에 나열되지만 실제 미사용
-activationBar — 테스트에서만 사용. 프로덕션 미사용
-pulseEmoji — 완전 미사용
-isNodeScriptRunning — 테스트에서만 사용
+핵심 발견 요약:
 
-이제 pulseEmoji와 doInjectToFile은 진짜 데드코드."}
-{"ts":"2026-04-18T23:03:48Z","role":"AI","text":"🟢 확인: pulseEmoji 완전 데드, doInjectToFile 미연결. 추가 모듈 심층:"}
-{"ts":"2026-04-18T23:04:02Z","role":"USER","text":"qa베스트 프랙티스 검색"}
-{"ts":"2026-04-18T23:04:03Z","role":"AI","text":"정리:
+카테고리	수치
+CVE	3건 (Go 업데이트)
+deadcode	77개 (dek_manager 11개 최다)
+에러 무시	66건 (cdp_monitor 6건 최다)
+API 인증	0 (localhost)
+입력 검증	0
+goroutine recover	7/38 (82% 미보호)
+미테스트	139/152 파일
+로깅 4종 혼재	slog 0 사용
 
-Agent Bridge ✅ supervisor.go에서 호출
-Context Hijacker ✅ supervisor.go에서 호출
-Headless Executor ✅ supervisor.go에서 호출
-Access Control — LoadAccessPolicy/CanAccess/ListRolePermissions 호출자 0 → 인프라만 있고 사용 안 됨
-DEK Manager — InitKeyStore 호출자 0 → 키 관리 전체가 미연결"}
-{"ts":"2026-04-18T23:04:24Z","role":"AI","text":"모듈 대부분이 LIVE! ExecSafe는 16곳에서 사용 — 핵심 유틸.
-
-crypto_cartridge.go의 EncryptCartridge/DecryptCartridgeToRAM은 CLI 내부에서 사용 — cartridge_crypto.go 내부 호출되는지:"}
-{"ts":"2026-04-18T23:04:43Z","role":"AI","text":"🟢 Go QA 베스트 프랙티스 검색:"}
-{"ts":"2026-04-18T23:04:55Z","role":"AI","text":"핵심 도구: deadcode (Go 공식), golangci-lint, go test -race, govulncheck. 바로 실행:"}
+가장 위험한 파일: cdp_monitor.go (에러 6건 무시) > dek_manager.go (전체 모듈 미연결) > **supervisor."}
