@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 // 전사 카테고리 자동 분류 시스템 (적층)
 // PROVIDES: runTranscriptCategorizer, categorizeRecentTranscripts
@@ -165,9 +165,12 @@ func collectCronContext(brainRoot, nfsRoot string) string {
 
 // writeCronLog appends a line to the cron log for audit trail
 func writeCronLog(brainRoot, context string) {
-	logPath := filepath.Join(brainRoot, "_inbox", "cron.log")
+	logDir := filepath.Join(brainRoot, "_inbox")
+	os.MkdirAll(logDir, 0750)
+	logPath := filepath.Join(logDir, "cron.log")
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "[WARN] writeCronLog: %v\n", err)
 		return
 	}
 	defer f.Close()
