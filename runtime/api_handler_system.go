@@ -623,6 +623,17 @@ func registerSystemRoutes(mux *http.ServeMux, brainRoot string, withCORS func(ht
 		})
 	}))
 
+	// GET /api/flow — 시스템 플로우차트 (T5)
+	mux.HandleFunc("/api/flow", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		flow := buildSystemFlow(brainRoot)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"nodes": flow,
+			"total": len(flow),
+			"ts":    time.Now().Format(time.RFC3339),
+		})
+	}))
+
 	// Expose pprof
 	mux.HandleFunc("/debug/pprof/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.DefaultServeMux.ServeHTTP(w, r)

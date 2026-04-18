@@ -282,3 +282,62 @@ func buildBrainJSONResponse(brainRoot string) BrainJSON {
 	}
 	return data
 }
+
+// ──────────────────────────────────────────────────────────
+// T5: 시스템 플로우차트 API (적층)
+// ──────────────────────────────────────────────────────────
+
+// SystemFlowNode represents a node in the system flow diagram
+type SystemFlowNode struct {
+	ID       string   `json:"id"`
+	Label    string   `json:"label"`
+	Type     string   `json:"type"`     // "process", "data", "decision", "cron"
+	Status   string   `json:"status"`   // "active", "idle", "error"
+	Children []string `json:"children"` // connected node IDs
+}
+
+// buildSystemFlow returns the complete system architecture as a flow diagram
+func buildSystemFlow(brainRoot string) []SystemFlowNode {
+	return []SystemFlowNode{
+		// Core processes
+		{ID: "supervisor", Label: "Supervisor", Type: "process", Status: boolStatus(true), Children: []string{"api", "mcp", "cdp", "autopilot", "cron"}},
+		{ID: "api", Label: "REST API (:9090)", Type: "process", Status: boolStatus(portAlive(9090)), Children: []string{"dashboard", "brain"}},
+		{ID: "mcp", Label: "MCP Server (:9247)", Type: "process", Status: boolStatus(portAlive(9247)), Children: []string{"brain"}},
+		{ID: "cdp", Label: "CDP (:9000)", Type: "process", Status: boolStatus(portAlive(9000)), Children: []string{"auto_accept", "hijack"}},
+
+		// Background systems
+		{ID: "autopilot", Label: "Autopilot (hlAutoEvolve)", Type: "process", Status: "active", Children: []string{"gemini_cli", "evolve"}},
+		{ID: "gemini_cli", Label: "Gemini CLI", Type: "process", Status: "idle", Children: []string{"brain"}},
+		{ID: "auto_accept", Label: "Auto Accept (A3)", Type: "process", Status: "active", Children: []string{"cdp"}},
+		{ID: "hijack", Label: "Telegram→IDE (A6)", Type: "process", Status: "active", Children: []string{"cdp"}},
+
+		// Cron cycle
+		{ID: "cron", Label: "Cron (매시간)", Type: "cron", Status: "active", Children: []string{"git_snap", "archive", "prune", "categorize", "verify", "dedup"}},
+		{ID: "git_snap", Label: "Step1: Git Snapshot", Type: "cron", Status: "active", Children: []string{}},
+		{ID: "archive", Label: "Step2: 전사 백업", Type: "cron", Status: "active", Children: []string{"transcripts"}},
+		{ID: "prune", Label: "Step2.5: 50건 정리", Type: "cron", Status: "active", Children: []string{"transcripts"}},
+		{ID: "categorize", Label: "Step4: 카테고리분류", Type: "cron", Status: "active", Children: []string{"gemini_cli", "analysis"}},
+		{ID: "verify", Label: "Step6: 외부검증", Type: "cron", Status: "active", Children: []string{}},
+		{ID: "dedup", Label: "Step7: Dedup (6h)", Type: "cron", Status: "active", Children: []string{"brain"}},
+
+		// Data stores
+		{ID: "brain", Label: "brain_v4 (SSOT)", Type: "data", Status: "active", Children: []string{}},
+		{ID: "transcripts", Label: "_transcripts", Type: "data", Status: "active", Children: []string{}},
+		{ID: "analysis", Label: "hippocampus/전사분석", Type: "data", Status: "active", Children: []string{}},
+		{ID: "dashboard", Label: "V3 Dashboard", Type: "process", Status: boolStatus(portAlive(9090)), Children: []string{}},
+
+		// Emit targets
+		{ID: "evolve", Label: "--emit auto", Type: "process", Status: "active", Children: []string{"gemini_md", "cursorrules", "claude_md", "ki"}},
+		{ID: "gemini_md", Label: "GEMINI.md", Type: "data", Status: "active", Children: []string{}},
+		{ID: "cursorrules", Label: ".cursorrules", Type: "data", Status: "active", Children: []string{}},
+		{ID: "claude_md", Label: "CLAUDE.md", Type: "data", Status: "active", Children: []string{}},
+		{ID: "ki", Label: "KI (Antigravity)", Type: "data", Status: "active", Children: []string{}},
+	}
+}
+
+func boolStatus(alive bool) string {
+	if alive {
+		return "active"
+	}
+	return "error"
+}
