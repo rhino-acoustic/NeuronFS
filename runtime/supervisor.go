@@ -533,10 +533,10 @@ func svStatus(children []*ChildSpec) {
 
 			// L3: HTTP 헬스체크 (API 서버)
 			if c.Name == "neuronfs-api" {
-				client := http.Client{Timeout: 3 * time.Second}
+				client := http.Client{Timeout: 15 * time.Second} // 664뉴런 scanBrain 소요 고려
 				resp, err := client.Get(fmt.Sprintf("http://127.0.0.1:%d/api/health", APIPort))
 				if err != nil {
-					svLog("\033[31m[TRAUMA] Synaptic overload detected. Memory integrity compromised.\033[0m")
+					svLog("\033[33m[WARN] API health check timeout (15s) — restarting\033[0m")
 					c.stop()
 				} else if resp != nil {
 					resp.Body.Close()
