@@ -2,6 +2,5 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[22:15:07] AI: api: alive ✅, supervisor: dead — supervisor 프로세스가 neuronfs가 아닌 다른 이름일 수 있음:
-[22:15:16] AI: 3개 neuronfs 프로세스 실행 중! isProcessRunning이 제대로 동작 안 함:
-[22:15:31] AI: isProcessRunning(\"neuronfs\") → tasklist에서 IMAGENAME eq neuronfs → .exe 안 붙여서 실패! 수정:
+[22:20:53] AI: 🟢 추가 완료.
+[22:20:59] AI: 사용자가 \".\"을 보냄. 특별한 요

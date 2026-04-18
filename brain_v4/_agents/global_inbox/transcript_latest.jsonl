@@ -1,20 +1,20 @@
-│   └── 필/               아키텍처_결정_불변, bomb 상태
-├── limbic/      (P1) 💓 감정 필터 — 분노/집중/긴급 → AI 행동 강도 변조
-├── hippocampus/ (P2) 📝 기억/기록 — 세션 로그, 전사 분석, 에피소드 메모리
-├── sensors/     (P3) 👁️ 환경 제약 — NAS, 브랜드 규칙
-├── cortex/      (P4) 🧠 지식/기술 — 829파일. 코딩 패턴, 스킬, 코드맵
-│   ├── dev/_codemap/     Go 파일별 PROVIDES/DEPENDS 맵 (152개)
-│   └── skills/           기술 카트리지 (13개)
-├── ego/         (P5) 🎭 성향/톤 — 페르소나, 글쓰기 스타일
-├── prefrontal/  (P6) 🎯 목표/계획 — 스프린트 추적
-└── shared/      (P7) 🔗 공유 지식
-핵심 공리: Folder = Neuron | File = Trace | Path = Sentence
-cortex/dev/go_error_handling/rule.md → \"Go 에러 처리 규칙\"
-3.neuron → 이 뉴런이 3번 발화됨 (강화 학습)
-P0이 P6을 항상 이긴다 (Subsumption Cascade)
-뉴런 생명주기
-content_copy
-grow → "}
-{"ts":"2026-04-18T22:15:07Z","role":"AI","text":"api: alive ✅, supervisor: dead — supervisor 프로세스가 neuronfs가 아닌 다른 이름일 수 있음:"}
-{"ts":"2026-04-18T22:15:16Z","role":"AI","text":"3개 neuronfs 프로세스 실행 중! isProcessRunning이 제대로 동작 안 함:"}
-{"ts":"2026-04-18T22:15:31Z","role":"AI","text":"isProcessRunning(\"neuronfs\") → tasklist에서 IMAGENAME eq neuronfs → .exe 안 붙여서 실패! 수정:"}
+hippocampus/session_log/memory37.neuron  
+→ \"기억 영역의 "}
+{"ts":"2026-04-18T22:20:53Z","role":"AI","text":"🟢 추가 완료. 
+neuronfs_overview.md
+
+9가지 독자 기술로 확장:
+
+#	기술	핵심
+1	파일시스템=뇌	폴더가 뉴런
+2	Subsumption Cascade	P0이 P6을 이긴다
+3	자율 진화	논문→실구동 유일
+4	감정 시스템	분노→검증3배
+5	한자 룬	1글자=행동지시
+6	CDP 직접 주입	IDE 제어
+7	역 RAG	질문 전 사전 주입
+8	역경로	경로=의미=검색키
+9	지식 카트리지	벡터DB 제로, 카운터=유사도
+
+[EVOLVE:proceed]"}
+{"ts":"2026-04-18T22:20:59Z","role":"AI","text":"사용자가 \".\"을 보냄. 특별한 요"}
