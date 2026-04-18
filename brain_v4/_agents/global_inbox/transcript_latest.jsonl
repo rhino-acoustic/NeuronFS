@@ -18,3 +18,4 @@
 배치 파일이 아닙니다.
 
 [NeuronFS] Process exited. Press any key to restart, or Ctrl+C to quit."}
+{"ts":"2026-04-19T08:11:12Z","role":"AI","text":"인코딩 문제! bat 파일이 UTF-8로 저장되어서 한글 주석이 깨짐. bat 파일은 ANSI/CP949로 저장해야 한다. 한글 주석을 모두 영문으로 바꾸자."}
