@@ -74,6 +74,11 @@ func runTranscriptCategorizer(brainRoot string) {
 		// ── Step 6: 뇌 외부 구축 + 프로세스 뉴런 검증 ──
 		verifyBrainExternals(brainRoot, nfsRoot)
 
+		// ── Step 7: 뉴런 발화 정리 (dedup + decay) ──
+		fmt.Println("[CRON] 🧹 뉴런 정리 시작")
+		runDecay(brainRoot, 7)            // 7일 미사용 → dormant
+		deduplicateNeurons(brainRoot)     // 유사 뉴런 병합 (禁/必 면역)
+
 		fmt.Println("[CRON] ✅ 전사 크론 사이클 완료")
 		time.Sleep(1 * time.Hour)
 	}
