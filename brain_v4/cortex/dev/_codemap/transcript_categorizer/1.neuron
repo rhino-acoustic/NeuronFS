@@ -1,5 +1,5 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\transcript_categorizer.go
-updated: 2026-04-18T20:26:48
+updated: 2026-04-18T20:32:13
 # transcript_categorizer.go
 dir: runtime
 
@@ -25,6 +25,7 @@ via Gemini CLI. Stacked on top of existing transcript system.
 ── Step 5: 정황 기록 ──
 ── Step 6: 뇌 외부 구축 + 프로세스 뉴런 검증 ──
 ── Step 7: 뉴런 발화 정리 (6시간 간격) ──
+── Step 8: 자동 헬스 체크 (Verification-on-Resume 패턴) ──
 cronGitSnapshot performs a quick git add+commit before transcript processing
 collectCronContext gathers system state for transcript enrichment
 1. 활성 세션 수 (CDP 타겟)

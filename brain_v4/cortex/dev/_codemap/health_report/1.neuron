@@ -1,0 +1,21 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\health_report.go
+updated: 2026-04-18T20:32:12
+# health_report.go
+dir: runtime
+
+## PROVIDES
+runHealthReport
+
+## DEPENDS ON
+transcript_categorizer.go (cron loop)
+1. 뉴런 수
+2. _rules.md 8개 영역
+3. GEMINI.md
+4. 코드맵
+5. Hook
+6. git 추적
+7. corrections.jsonl
+8. hippocampus memory
+결과 집계
+brainstem/_health.md에 기록 (AI가 매 세션 읽음)
+

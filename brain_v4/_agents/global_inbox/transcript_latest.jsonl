@@ -1,3 +1,10 @@
+content_copy
+# 전체 서비스 검수 한 줄
+go test -run TestSmoke -v -timeout 60s
+테스트	검증 대상
+NeuronLifecycle	grow/fire/decay
+EmitPipeline	_rules.md 8개 + _index.md + GEMINI.md
+CodemapIntegrity	코드맵 44개 + PROVIDES 헤더
 HookSystem	4 이벤트 + 7 스크립트
 Cartridges	13개 .jloot
 GitProtection	brain_v4 추적
@@ -7,14 +14,7 @@ Memory	hippocampus 에피소드
 9/9 PASS — 커밋 467ef52.
 
 [EVOLVE:proceed]"}
-{"ts":"2026-04-18T20:30:31Z","role":"AI","text":"사용자 요점:
-
-AI가 문맥을 잃어도 지속적으로 체크할 수 있는 방법
-스모크 테스트보다 더 빡센 검증
-
-이건 스모크 테스트를 NeuronFS 크론에 넣어서 매시간 자동 실행하고, 결과를 brain_v4에 기록하면 됨. AI가 새 세션 시작해도 이 결과를 읽으면 현재 상태를 즉시 파악 가능.
-
-더 자세히 조사해봐야겠다."}
-{"ts":"2026-04-18T20:30:56Z","role":"AI","text":"핵심 발견: Verification-on-Resume + Progress Summarization 패턴. NeuronFS 크론에 스모크 테스트를 넣어서 AI가 문맥을 잃어도 _rules.md에 최근 검증 결과가 항상 있게 만든다."}
-{"ts":"2026-04-18T20:31:05Z","role":"AI","text":"크론 루프에 Step 8로 스모크 테스트 자동 실행 + _rules.md 기록 추가:"}
-{"ts":"2026-04-18T20:31:20Z","role":"AI","text":"이제 runHealthReport 함수 구현:"}
+{"ts":"2026-04-18T20:32:19Z","role":"AI","text":"핵심 발견: Verification-on-Resume + Progress Summarization 패턴. NeuronFS 크론에 스모크 테스트를 넣어서 AI가 문맥을 잃어도 _rules.md에 최근 검증 결과가 항상 있게 만든다."}
+{"ts":"2026-04-18T20:32:19Z","role":"AI","text":"크론 루프에 Step 8로 스모크 테스트 자동 실행 + _rules.md 기록 추가:"}
+{"ts":"2026-04-18T20:32:19Z","role":"AI","text":"이제 runHealthReport 함수 구현:"}
+{"ts":"2026-04-18T20:32:19Z","role":"AI","text":"vet ✅ build ✅. 배포 + 테스트:"}
