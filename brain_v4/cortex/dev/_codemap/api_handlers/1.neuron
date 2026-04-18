@@ -1,11 +1,18 @@
-﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\api_handlers.go
-updated: 2026-04-18T20:37:40
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\api_handlers.go
+updated: 2026-04-18T23:31:44
 # api_handlers.go
 dir: runtime
-lines: 41
 
 ## PROVIDES
-registerCRUDRoutes, registerConfigRoutes, registerSystemRoutes, rollbackAll
+rollbackAll
 
 ## DEPENDS ON
+neuron_crud.go (growNeuron, fireNeuron, signalNeuron, rollbackNeuron)
+lifecycle.go (runDecay, deduplicateNeurons)
+brain.go (scanBrain, runSubsumption)
+inject.go (autoReinject)
+security/ (BuildChain, VerifyChain, loadOrCreateHMACKey)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRUD Routes: grow, fire, signal, decay, state
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

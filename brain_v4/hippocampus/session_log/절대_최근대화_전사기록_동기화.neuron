@@ -2,7 +2,3 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[23:29:47] AI: 주요 발견:
-[23:29:59] AI: dev/dev axon은 TARGET: brainstem/hippocampus — 유효한 타겟. 이건 중첩 폴더 구조만 정리하면 됨. 이제 PROVIDES/DEPENDS ON 체인 검증:
-[23:30:26] AI: 🔴 PROVIDES/DEPENDS 불일치 발견:
-[23:31:10] USER: [telegram → NeuronFS] 계속

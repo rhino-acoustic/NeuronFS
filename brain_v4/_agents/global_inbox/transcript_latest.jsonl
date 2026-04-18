@@ -1,20 +1,20 @@
-connect_hippocampus.axon target=에러_패턴 — 존재하지 않는 타겟
-connect_brainstem.axon target=推전수검증 — 존재하지 않는 타겟"}
-{"ts":"2026-04-18T23:29:47Z","role":"AI","text":"주요 발견:
-
-cortex/dev/dev/ 와 cortex/methodology/methodology/ — 중첩 폴더 ⚠️ (자동 생성 잔해)
-끊긴 axon 2개 — 타겟 없음
-supervisor 체인 ✅ — hlLoadTelegram 4곳, hlStartCDPWorker 2곳에서 호출
-
-끊긴 axon 제거:"}
-{"ts":"2026-04-18T23:29:59Z","role":"AI","text":"dev/dev axon은 TARGET: brainstem/hippocampus — 유효한 타겟. 이건 중첩 폴더 구조만 정리하면 됨. 이제 PROVIDES/DEPENDS ON 체인 검증:"}
-{"ts":"2026-04-18T23:30:26Z","role":"AI","text":"🔴 PROVIDES/DEPENDS 불일치 발견:
-
-문제	파일	상세
-PROVIDES 함수 없음	cli_cmd_snapshot/watch	설명 문자열을 PROVIDES로 오기재
-PROVIDES 함수 없음	api_handler_config.go	handleConfigGet/Set → 실제 이름 다름
-PROVIDES 함수 없음	api_handlers.go	registerXXXRoutes → 실제 이름 다름
-DEPENDS 파일 없음	inject/watch/transcript.go	emit.go → 실제: emit_tiers.go로 분할됨
-
-커밋 + 보고서:"}
-{"ts":"2026-04-18T23:31:10Z","role":"USER","text":"[telegram → NeuronFS] 계속"}
+함수 총	419개
+LIVE 함수	342개 (81.6%)
+DEAD 함수	77개 (18.4%)
+brain_v4	1.6 MB
+Git 커밋	843회
+시스템 상태
+지표	값
+뉴런	613개
+리전	7개
+Axon	6개 (유효)
+코드맵	152/152 일치
+크론	23:07 마지막 실행
+CVE	3건 (Go 업데이트 시 해결)
+SSOT 달성
+항목	상태
+포트 위반	0 ✅
+하드코딩 경로	0 ✅
+panic	0 ✅
+HTTP 타임아웃 없음	0 ✅
+Body 누수	0 ✅"}

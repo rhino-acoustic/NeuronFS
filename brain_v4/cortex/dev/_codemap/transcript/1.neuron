@@ -1,5 +1,5 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\transcript.go
-updated: 2026-04-18T23:22:47
+updated: 2026-04-18T23:31:44
 # transcript.go
 dir: runtime
 
@@ -7,7 +7,7 @@ dir: runtime
 gitSnapshot, touchActivity, getLastActivity, runIdleLoop, digestTranscripts, writeHeartbeat
 
 ## DEPENDS ON
-brain.go, lifecycle.go, emit.go, inject.go
+brain.go, lifecycle.go, emit_tiers.go, inject.go
 autoSetEmotion writes emotion state to limbic/_state.json and triggers re-injection.
 Called automatically by transcript digestion when user frustration/satisfaction is detected.
 Trigger re-injection so GEMINI.md picks up the new emotion behavior
