@@ -1,1 +1,0 @@
-﻿{"ts":"2026-04-19T08:11:37","type":"correction","msg":"bat file saved with UTF-8 encoding causing CP949 parse error. MUST use ASCII-only in .bat files.","severity":"high"}

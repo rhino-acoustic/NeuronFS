@@ -1,6 +1,6 @@
 {
   "root": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "last_updated": 1776554208278473500,
+  "last_updated": 1776554266501075800,
   "regions": {
     "brainstem": {
       "region": {
@@ -8687,12 +8687,12 @@
             "HasGoal": false,
             "GoalText": "",
             "Geofence": "",
-            "Description": "2026-04-18T23:31:43 | BOOT | NeuronFS Supervisor 부팅 (PID 19304)",
+            "Description": "2026-04-19T07:37:11 | BOOT | NeuronFS Supervisor 부팅 (PID 22740)",
             "Globs": "",
             "Author": "",
             "IsDormant": false,
             "Depth": 0,
-            "ModTime": "2026-04-19T00:05:01.851879+09:00",
+            "ModTime": "2026-04-19T08:17:31.087397+09:00",
             "BirthTime": "2026-04-18T19:24:57.3234206+09:00"
           },
           {
@@ -8897,7 +8897,7 @@
         "Axons": null,
         "HasBomb": false
       },
-      "max_mod_time": 1776526126044148100
+      "max_mod_time": 1776554251087397000
     },
     "limbic": {
       "region": {

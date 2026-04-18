@@ -1,20 +1,21 @@
 
+킥 시그널 → 모든 조건(heartbeat/activeConvo) 완전 bypass
+5초 안정화 대기 후 즉시 발동
+이후 [EVOLVE:proceed] 감지 → 30초 debounce →"}
+{"ts":"2026-04-19T08:17:12Z","role":"AI","text":"🟢 즉시 발동 확인!
+
 alternate_email
 content_copy
-교정:
-├─ corrections.jsonl 기록 (severity: high)
-├─ brainstem/禁/bat_ascii_only 규칙 생성
-│   └─ .bat/.cmd 파일에 한글/유니코드/이모지 절대 금지
-└─ start.bat ASCII only로 재작성 완료
+08:16:45 ⚡ instant kick received
+08:16:50 🚀 Gemini CLI autopilot fired (5초 후!)
 
-다시는 안 일어남.
+개편 요약:
 
-[EVOLVE:proceed]"}
-{"ts":"2026-04-19T08:16:45Z","role":"AI","text":"🟢 원인: taskkill /FI \"WINDOWTITLE eq NeuronFS_Supervisor*\" → bat이 title NeuronFS_Supervisor 설정 후 자기 cmd 창을 kill! → 즉시 종료.
-
-제거 완료. 다시 더블클릭하세요.
+킥 시그널 → 모든 조건(heartbeat/activeConvo) 완전 bypass
+5초 안정화 대기 후 즉시 발동
+이후 [EVOLVE:proceed] 감지 → 30초 debounce → 즉시 재발동 → 무한 연쇄
 
 [EVOLVE:proceed]"}
-{"ts":"2026-04-19T08:16:45Z","role":"AI","text":"방향 전환 — 킥 시그널 시 조건 bypass + 텔레그램 \"오토파일럿\" 명령 감지:"}
-{"ts":"2026-04-19T08:16:45Z","role":"AI","text":"인덴트 확인:"}
-{"ts":"2026-04-19T08:16:45Z","role":"AI","text":"L278-339가 3탭인데 이제 if문 밖이므로 2탭으로 수정:"}
+{"ts":"2026-04-19T08:17:24Z","role":"USER","text":"오토 파일럿 그리고 지금 개편이 또 사이드 이펙트 없는지"}
+{"ts":"2026-04-19T08:17:33Z","role":"AI","text":"🟢 전체 검증:"}
+{"ts":"2026-04-19T08:17:45Z","role":"USER","text":"오토파일럿좀 실행해라 시발 진짜"}
