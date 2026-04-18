@@ -1,4 +1,4 @@
-﻿// hijack_launcher.go — hijack-launcher.mjs Go 포팅
+// hijack_launcher.go — hijack-launcher.mjs Go 포팅
 // 통합 브릿지: TG polling + CDP 캡처 + 전사 + Groq 뉴런 추출
 // 외부 의존성: 0 (cdp_client.go + Go stdlib)
 package main
@@ -592,7 +592,7 @@ func hlTgPoll(brainRoot string) {
 
 			inboxDir := filepath.Join(agentsDir, targetRoom, "inbox")
 			os.MkdirAll(inboxDir, 0750)
-			fname := fmt.Sprintf("tg_%d.md", time.Now().UnixMilli())
+			fname := fmt.Sprintf("_tg_%d.md", time.Now().UnixMilli())
 			content := fmt.Sprintf("# from: telegram\n# priority: normal\n\n%s", payload)
 			os.WriteFile(filepath.Join(inboxDir, fname), []byte(content), 0600)
 			hlTgSend(chatID, fmt.Sprintf("✅ [%s] 전달됨", targetRoom))

@@ -1,21 +1,20 @@
+agent_bridge.go L79-144: inbox 폴더 스캔 → _tg_xxx.md 파일 발견 → 다시 abInjectToAgent로 CDP 주입
 
-나머지 http.Client 개별 생성 교체
-physical_hooks의 sendTelegramSafe에서 http.Post 사용 - 공용 풀로 교체
-더 많은 resp.Body.Close 누수
-goroutine recover 추가
-unused import 정리
+즉, telegram_bridge가 inbox에 저장하고 직접 CDP 주입 → agent_bridge가 같은 inbox를 스캔하여 한 번 더 주입!"}
+{"ts":"2026-04-18T23:24:21Z","role":"AI","text":"확실한 중복 경로:
 
-가장 임팩트 있는 것"}
-{"ts":"2026-04-18T23:21:48Z","role":"AI","text":"사용자가 계속하라고 함. 더 많은 간극을 찾아서 수정하자. 아직 안 본 영역들:
+L597: tg_xxx.md로 inbox 저장
+L600: hlCDPInject로 직접 CDP 주입 (태그 없는 원본)
+agent_bridge L128: inbox에서 파일 발견 → [telegram → NeuronFS] 태그 붙여서 재주입
 
-나머지 http.Client 개별 생성 교체
-physical_hooks의 sendTelegramSafe에서 http.Post 사용 - 공용 풀로 교체
-더 많은 resp.Body.Close 누수
-goroutine recover 추가
-unused import 정리
+수정: telegram_bridge에서 _tg_ prefix로 저장하므로, agent_bridge가 이를 이미 처리된 것으로 인지시키거나, telegram_bridge에서 직접 CDP 주입을 제거하고 inbox 경유만 사용.
 
-가장 임팩트 있는 것부터."}
-{"ts":"2026-04-18T23:21:48Z","role":"AI","text":"🟢 나머지 HTTP 클라이언트 교체 + 추가 간극:"}
-{"ts":"2026-04-18T23:21:56Z","role":"USER","text":"[telegram → NeuronFS] 텔레그램으로 보내면 메세지 두개가 하나는 텔레그램 태그 달려서 하나는 그대로텔레그램으로 보내면 메세지 두개가 하나는 텔레그램 태그 달려서 하나는 그대로"}
-{"ts":"2026-04-18T23:22:01Z","role":"AI","text":"hlCDPPort는 CDPPort의 로컬 alias (telegram_bridge.go L24에서 정의) — 이건 정상. transcript.go:267 로그 문자열 하드코딩 1건 잔여:"}
-{"ts":"2026-04-18T23:22:10Z","role":"AI","text":"L267의 \"CDP:9000\" 로그 문자열을 동적으로 교체:"}
+가장 깔끔한 해결: telegram_bridge의 직접 CDP 주입(L600)을 제거하고, agent_bridge가 inbox 경유로 한 번만 주입되도록:"}
+{"ts":"2026-04-18T23:24:33Z","role":"AI","text":"확인 완료. 중복 원인:
+
+telegram_bridge L595: tg_xxx.md (prefix 없이) 저장
+telegram_bridge L600: 직접 CDP 주입 (원본 텍스트)
+agent_bridge L87: _ prefix 없는 .md → 처리 대상으로 인지
+agent_bridge L128: [telegram → NeuronFS] 태그 붙여서 재주입
+
+수정: telegram_bridge에서 inbox 저장 시 _ prefix 붙여서 agent_bridge가 재처리하지 않도록:"}
