@@ -1,0 +1,1 @@
+{"path":"brainstem/禁/multi_agent_stdin_injection_only","text":"stdin injection 방식은 검증된 유일한 작동 방식이며, -p flag 사용 시 쉘 이스케이프 및 길이 제한 문제가 발생함. 절대 수정 금지.","ts":"2026-04-19T08:30:55","type":"CORRECT_INTENT"}

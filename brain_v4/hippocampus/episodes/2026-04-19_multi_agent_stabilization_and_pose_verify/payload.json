@@ -1,0 +1,1 @@
+multi_agent.go의 executeGeminiCLI 함수에서 stdin injection 방식을 고수해야 함을 확인하고, 이를 brainstem/禁 영역에 영구 각인함. pose_converter 시스템 안정성 확인 완료.

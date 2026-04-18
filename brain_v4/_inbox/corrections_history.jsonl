@@ -1,2 +1,5 @@
 {"detail":"[FIXED 2026-04-18] benchmark Phase 2 taskkill+restart caused 549 neuron folders deleted. Recovered 384 neurons via git restore. Added 'Immediate Git Track' rule to brainstem and improved start.bat graceful shutdown.","timestamp":"2026-04-18T21:10:12","severity":"INFO","event":"DATA_RECOVERY_COMPLETE","cause":"System hardening implemented"}
 {"ts":"2026-04-19T08:11:37","type":"correction","msg":"bat file saved with UTF-8 encoding causing CP949 parse error. MUST use ASCII-only in .bat files.","severity":"high","status":"done","resolved_by":"NeuronFS_Evolve"}
+{"path":"brainstem/禁/multi_agent_stdin_injection_only","text":"stdin injection 방식은 검증된 유일한 작동 방식이며, -p flag 사용 시 쉘 이스케이프 및 길이 제한 문제가 발생함. 절대 수정 금지.","ts":"2026-04-19T08:30:55"}
+﻿{"ts":"2026-04-19T08:29:41","type":"correction","msg":"DO NOT modify multi_agent.go executeGeminiCLI - stdin injection is the verified working method. Never change to -p flag.","severity":"critical"}
+{"path":"brainstem/禁/multi_agent_stdin_injection_only","text":"stdin injection 방식은 검증된 유일한 작동 방식이며, -p flag 사용 시 쉘 이스케이프 및 길이 제한 문제가 발생함. 절대 수정 금지.","ts":"2026-04-19T08:30:55"}

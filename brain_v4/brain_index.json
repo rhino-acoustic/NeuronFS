@@ -1,6 +1,6 @@
 {
   "root": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "last_updated": 1776555034091538100,
+  "last_updated": 1776555085320436300,
   "regions": {
     "brainstem": {
       "region": {
@@ -249,6 +249,28 @@
             "Depth": 1,
             "ModTime": "2026-04-18T19:58:00.1245674+09:00",
             "BirthTime": "2026-04-18T19:57:38.961663+09:00"
+          },
+          {
+            "Name": "multi_agent_stdin_injection_only",
+            "Path": "禁\\multi_agent_stdin_injection_only",
+            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\brainstem\\禁\\multi_agent_stdin_injection_only",
+            "Counter": 1,
+            "Contra": 0,
+            "Dopamine": 0,
+            "Intensity": 1,
+            "Polarity": 1,
+            "HasBomb": false,
+            "HasMemory": false,
+            "HasGoal": false,
+            "GoalText": "",
+            "Geofence": "",
+            "Description": "",
+            "Globs": "",
+            "Author": "",
+            "IsDormant": false,
+            "Depth": 1,
+            "ModTime": "2026-04-19T08:30:55.9645508+09:00",
+            "BirthTime": "2026-04-19T08:30:55.9635469+09:00"
           },
           {
             "Name": "강제종료",
@@ -675,7 +697,7 @@
         ],
         "HasBomb": false
       },
-      "max_mod_time": 1776553906618760100
+      "max_mod_time": 1776555055964550800
     },
     "cortex": {
       "region": {
@@ -8450,7 +8472,7 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 0,
-            "ModTime": "2026-04-19T08:28:33.5544923+09:00",
+            "ModTime": "2026-04-19T08:30:55.9604424+09:00",
             "BirthTime": "2026-04-18T22:22:31.0122229+09:00"
           },
           {
@@ -8498,6 +8520,28 @@
             "BirthTime": "2026-04-19T08:28:33.5544923+09:00"
           },
           {
+            "Name": "2026-04-19_multi_agent_stabilization_and_pose_verify",
+            "Path": "episodes\\2026-04-19_multi_agent_stabilization_and_pose_verify",
+            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\episodes\\2026-04-19_multi_agent_stabilization_and_pose_verify",
+            "Counter": 1,
+            "Contra": 0,
+            "Dopamine": 0,
+            "Intensity": 1,
+            "Polarity": 1,
+            "HasBomb": false,
+            "HasMemory": false,
+            "HasGoal": false,
+            "GoalText": "",
+            "Geofence": "",
+            "Description": "",
+            "Globs": "",
+            "Author": "",
+            "IsDormant": false,
+            "Depth": 1,
+            "ModTime": "2026-04-19T08:30:55.9635469+09:00",
+            "BirthTime": "2026-04-19T08:30:55.9512031+09:00"
+          },
+          {
             "Name": "session_log",
             "Path": "session_log",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\session_log",
@@ -8516,7 +8560,7 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 0,
-            "ModTime": "2026-04-19T08:28:33.5570366+09:00",
+            "ModTime": "2026-04-19T08:30:56.0021866+09:00",
             "BirthTime": "2026-04-19T08:28:33.1742685+09:00"
           },
           {
@@ -8538,102 +8582,14 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 0,
-            "ModTime": "2026-04-18T20:45:24.2819529+09:00",
+            "ModTime": "2026-04-19T08:28:34.2563835+09:00",
             "BirthTime": "2026-04-18T19:51:54.9046497+09:00"
-          },
-          {
-            "Name": "06_Troubleshooting_디버그",
-            "Path": "전사분석\\06_Troubleshooting_디버그",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\전사분석\\06_Troubleshooting_디버그",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 1,
-            "ModTime": "2026-04-19T08:28:27.3881975+09:00",
-            "BirthTime": "2026-04-18T20:44:50.8312765+09:00"
-          },
-          {
-            "Name": "06_UI_UX_디자인",
-            "Path": "전사분석\\06_UI_UX_디자인",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\전사분석\\06_UI_UX_디자인",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 1,
-            "ModTime": "2026-04-19T08:28:27.3903194+09:00",
-            "BirthTime": "2026-04-18T20:45:01.2510279+09:00"
-          },
-          {
-            "Name": "10_Benchmark_벤치마크",
-            "Path": "전사분석\\10_Benchmark_벤치마크",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\전사분석\\10_Benchmark_벤치마크",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 1,
-            "ModTime": "2026-04-19T08:28:27.3934225+09:00",
-            "BirthTime": "2026-04-18T20:31:59.3126623+09:00"
-          },
-          {
-            "Name": "13_Vision_포즈추출",
-            "Path": "전사분석\\13_Vision_포즈추출",
-            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\전사분석\\13_Vision_포즈추출",
-            "Counter": 0,
-            "Contra": 0,
-            "Dopamine": 0,
-            "Intensity": 0,
-            "Polarity": 0.5,
-            "HasBomb": false,
-            "HasMemory": false,
-            "HasGoal": false,
-            "GoalText": "",
-            "Geofence": "",
-            "Description": "",
-            "Globs": "",
-            "Author": "",
-            "IsDormant": false,
-            "Depth": 1,
-            "ModTime": "2026-04-19T08:28:27.3951262+09:00",
-            "BirthTime": "2026-04-18T20:45:24.2819529+09:00"
           }
         ],
         "Axons": null,
         "HasBomb": false
       },
-      "max_mod_time": 1776554913558125300
+      "max_mod_time": 1776555056002186600
     },
     "limbic": {
       "region": {

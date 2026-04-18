@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
+Generated: 2026-04-19T08:31:19 | Neurons: 386/386 | Activation: 19
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
@@ -9,27 +9,25 @@ Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
 - 🎭 ego → 🧠 cortex
 
 ## 🏆 TOP 10 뉴런
-1. 🧠 **dev > dev** (5)
-2. 🧠 **methodology > methodology** (5)
-3. 📝 **episodes > 2026-04-18 Pose 데이터 변환 분석** (2)
-4. 🧠 **dev > e2e test** (2)
-5. 🛡️ **반드시 > Git 즉시 추적** (1)
-6. 🛡️ **절대 금지: > bat ascii only** (1)
-7. 📝 **episodes > 2026-04-19 2026-04-19 System Stabilization** (1)
-8. 🧠 **dev > dev > 추천: > 로컬테스트** (0)
-9. 🧠 **dev > dev > github docs > 추천: changelog 최신유지** (0)
-10. 🛡️ **반드시 > 반드시 누락자문** (0)
+1. 🧠 **methodology > methodology** (5)
+2. 🧠 **dev > dev** (5)
+3. 🧠 **dev > e2e test** (2)
+4. 📝 **episodes > 2026-04-18 Pose 데이터 변환 분석** (2)
+5. 📝 **episodes > 2026-04-19 multi agent stabilization and pose verify** (1)
+6. 🛡️ **반드시 > Git 즉시 추적** (1)
+7. 🛡️ **절대 금지: > bat ascii only** (1)
+8. 🛡️ **절대 금지: > multi agent stdin injection only** (1)
+9. 📝 **episodes > 2026-04-19 2026-04-19 System Stabilization** (1)
+10. 🧠 **dev > dev > 추천: > 로컬테스트** (0)
 
 <details>
-<summary>🆕 신규 (probation) — 386 neurons (7d window)</summary>
+<summary>🆕 신규 (probation) — 384 neurons (7d window)</summary>
 
-### 🛡️ brainstem (30)
+### 🛡️ brainstem (31)
 - **반드시 > Git 즉시 추적** (1) — 7d남음
 - **절대 금지: > bat ascii only** (1) — 7d남음
-- **반드시 > 반드시 누락자문** (0) — 7d남음
-- **반드시 > 반드시 빌드경로 SSOT** (0) — 7d남음
+- **절대 금지: > multi agent stdin injection only** (1) — 7d남음
 - **반드시 > 코드맵 참조생성갱신** (0) — 7d남음
-- **절대 금지: > MCP연결실패무시** (0) — 7d남음
 - **절대 금지: > curl사용** (0) — 7d남음
 - **절대 금지: > 강제종료** (0) — 7d남음
 - **절대 금지: > 과장** (0) — 7d남음
@@ -50,8 +48,11 @@ Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
 - **뉴런통합 필요** (0) — 7d남음
 - **진단순서** (0) — 2d남음
 - **진단순서 > CDP문제 최우선확인** (0) — 7d남음
-- **반드시 > bat재시작** (0) — 7d남음
+- **반드시 > 반드시 누락자문** (0) — 7d남음
 - **반드시 > 커뮤니티검색필수: 세션시작** (0) — 7d남음
+- **반드시 > bat재시작** (0) — 7d남음
+- **절대 금지: > MCP연결실패무시** (0) — 7d남음
+- **반드시 > 반드시 빌드경로 SSOT** (0) — 7d남음
 - **반드시 > NeuronFS 공리** (0) — 7d남음
 - **반드시 > EVOLVE proceed 강제** (0) — 7d남음
 
@@ -60,16 +61,13 @@ Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
 - **긴급 사용자답답함감지** (0) — 7d남음
 - **칭찬 사용자만족감지** (0) — 7d남음
 
-### 📝 hippocampus (9)
+### 📝 hippocampus (6)
 - **episodes > 2026-04-18 Pose 데이터 변환 분석** (2) — 7d남음
+- **episodes > 2026-04-19 multi agent stabilization and pose verify** (1) — 7d남음
 - **episodes > 2026-04-19 2026-04-19 System Stabilization** (1) — 7d남음
 - **episodes** (0) — 7d남음
 - **session log** (0) — 7d남음
 - **전사분석** (0) — 7d남음
-- **전사분석 > 06 Troubleshooting 디버그** (0) — 7d남음
-- **전사분석 > 06 UI UX 디자인** (0) — 7d남음
-- **전사분석 > 10 Benchmark 벤치마크** (0) — 7d남음
-- **전사분석 > 13 Vision 포즈추출** (0) — 7d남음
 
 ### 👁️ sensors (0)
 (없음)
@@ -77,7 +75,8 @@ Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
 ### 🧠 cortex (332)
 - **dev > e2e test** (2) — 7d남음
 - **dev > dev > 추천: > 로컬테스트** (0) — 7d남음
-- **dev > dev > github docs > 추천: changelog 최신유지** (0) — 7d남음
+- **methodology > methodology > 절대 금지: > 매직프레이즈 의존** (0) — 7d남음
+- **dev > dev > 추천: > 명령어최적화** (0) — 7d남음
 - **architecture** (0) — 7d남음
 - **community** (0) — 7d남음
 - **dev** (0) — 7d남음
@@ -109,7 +108,7 @@ Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
 - **dev > dev > github docs > 반드시 공리 파생구조 유지** (0) — 7d남음
 - **dev > dev > github docs > 반드시 독자시스템 솔직분류** (0) — 7d남음
 - **dev > dev > github docs > 반드시 벤치마크 결과갱신** (0) — 7d남음
-- **dev > dev > 추천: > 명령어자동실행** (0) — 7d남음
+- **dev > dev > github docs > 추천: changelog 최신유지** (0) — 7d남음
 - **dev > dev > github docs > 추천: wiki act구조 유지** (0) — 7d남음
 - **dev > dev > github docs > 추천: 비교표 13행 유지** (0) — 7d남음
 - **dev > dev > github docs > 절대 금지: mkdir beats vector** (0) — 7d남음
@@ -169,7 +168,7 @@ Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > DNA 전버전불변** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > DNA 전버전불변 > Claude AI PD v14도입 편집핵심 3점5에서4점6** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > DNA 전버전불변 > FCPXML DaVinci v14도입 NLE연동** (0) — 7d남음
-- **dev > dev > 추천: > 명령어승인** (0) — 7d남음
+- **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > DNA 전버전불변 > Groq API v14도입 교정및분할 v19유지** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > DNA 전버전불변 > STT가Phase1 화자분리가Phase2 순서불변** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > DNA 전버전불변 > faster whisper v14도입 v19까지 로컬STT표준** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > DNA 전버전불변 > ffmpeg subprocess 영상처리유일도구** (0) — 7d남음
@@ -185,7 +184,7 @@ Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 v19에서정리** (0) — 2d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 v19에서정리 > CleanSTT 재전사를 offset map수학역산으로대체함** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 이유포함** (0) — 7d남음
-- **dev > dev > 추천: > 명령어최적화** (0) — 7d남음
+- **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 이유포함 > 7passGroq분할 3pass50배치로간소화 품질충분** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 이유포함 > CleanSTT재전사 offset map으로수학적대체 API비용절감** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 이유포함 > Ollama v17에서Groq대체 완전소멸** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 이유포함 > shared py 25374줄 각모듈독립 중앙유틸소멸** (0) — 7d남음
@@ -217,7 +216,7 @@ Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
 - **dev > dev > 추천: > README갱신** (0) — 7d남음
 - **dev > dev > 추천: > go마이그레이션** (0) — 7d남음
 - **dev > dev > 추천: > grep search** (0) — 7d남음
-- **dev > dev > 추천: > hf token** (0) — 7d남음
+- **dev > dev > 추천: > 버전관리** (0) — 7d남음
 - **dev > dev > 추천: > lazyloading구현** (0) — 7d남음
 - **dev > dev > 추천: > lazy로딩옵저버사용** (0) — 7d남음
 - **dev > dev > 추천: > products datajs** (0) — 7d남음
@@ -231,10 +230,9 @@ Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
 - **dev > dev > 추천: > 로컬로그확인** (0) — 7d남음
 - **dev > dev > 추천: > 명령어분할** (0) — 7d남음
 - **dev > dev > 추천: > 명령어순차실행** (0) — 7d남음
-- **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > DNA 전버전불변 > Groq API v14도입 교정및분할 v19유지** (0) — 7d남음
-- **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 이유포함 > 7passGroq분할 3pass50배치로간소화 품질충분** (0) — 7d남음
-- **dev > dev > 추천: > 모바일테스트** (0) — 7d남음
-- **dev > dev > 추천: > 버전관리** (0) — 7d남음
+- **dev > dev > 추천: > 명령어승인** (0) — 7d남음
+- **dev > dev > 추천: > 명령어자동실행** (0) — 7d남음
+- **dev > dev > 추천: > hf token** (0) — 7d남음
 - **dev > dev > 추천: > 베스트프랙티스리서치** (0) — 7d남음
 - **dev > dev > 추천: > 브랜치관리** (0) — 7d남음
 - **dev > dev > 추천: > 사이드바구현** (0) — 7d남음
@@ -367,7 +365,7 @@ Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
 - **methodology > methodology > 추천: 프로젝트관리** (0) — 7d남음
 - **methodology > methodology > 절대 금지: > 검증없는출력** (0) — 7d남음
 - **methodology > methodology > 절대 금지: > 리팩토링시 기능삭제** (0) — 7d남음
-- **methodology > methodology > 절대 금지: > 매직프레이즈 의존** (0) — 7d남음
+- **dev > dev > 추천: > 모바일테스트** (0) — 7d남음
 - **methodology > methodology > 절대 금지: > 빌드후 미검증재시작** (0) — 7d남음
 - **methodology > methodology > 절대 금지: > 한번에 모든것 요청** (0) — 7d남음
 - **methodology > methodology > 절대 금지: 수동검증** (0) — 7d남음
@@ -434,9 +432,9 @@ Generated: 2026-04-19T08:30:00 | Neurons: 388/388 | Activation: 17
 
 | 영역 | 뉴런 | 활성화 | 상세 |
 |------|------|--------|------|
-| 🛡️ brainstem — 양심/본능 | 30 | 2 | `brainstem/_rules.md` |
+| 🛡️ brainstem — 양심/본능 | 31 | 3 | `brainstem/_rules.md` |
 | 💓 limbic — 감정 필터 | 3 | 0 | `limbic/_rules.md` |
-| 📝 hippocampus — 기록/기억 | 9 | 3 | `hippocampus/_rules.md` |
+| 📝 hippocampus — 기록/기억 | 6 | 4 | `hippocampus/_rules.md` |
 | 👁️ sensors — 환경 제약 | 0 | 0 | `sensors/_rules.md` |
 | 🧠 cortex — 지식/기술 | 334 | 12 | `cortex/_rules.md` |
 | 🎭 ego — 성향/톤 | 12 | 0 | `ego/_rules.md` |
