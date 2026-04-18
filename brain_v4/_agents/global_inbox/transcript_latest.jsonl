@@ -1,20 +1,21 @@
-파일 수정/개선?
 
-[EVOLVE:proceed]"}
-{"ts":"2026-04-18T21:22:45Z","role":"AI","text":"커밋 완료. 이제 코드맵 뉴런도 갱신하고 아키텍처 결정 뉴런에도 이 내용 추가."}
-{"ts":"2026-04-18T21:22:48Z","role":"AI","text":"🟢 코드맵 + 아키텍처 결정 뉴런 갱신 + 백업:"}
-{"ts":"2026-04-18T21:23:18Z","role":"AI","text":"총 14건 커밋 — 이 세션 발견 및 수정 요약
-#	근본 원인	수정	영향
-1	main redeclared	ide_integration.go 중복 제거	빌드 불가 → 해결
-2	GEMINI.md JSON 간섭	WorkDir 격리	전사 분류 실패 → 해결
-3	CLI→텔레그램만 전송	hlCDPInject 직접 주입	순환 끊김 → 해결
-4	growth.log 미존재	자동 생성 코드	오토파일럿 안 됨 → 해결
-5	마스터 프롬프트 v2 약함	v3 강화 (깃선행, 퇴행방지)	CLI 퇴행 → 방지
-6	--sandbox false = sandbox=true	제거 + --yolo	CLI 도구 없음 → 해결
-7	--allowed-mcp-server-names none	→ neuronfs	MCP 차단 → 해결
+[HL] 로그 없음 → runHijackLauncher가 시작되었지만 로그가 stderr로 안 감
+growth.log가 수동 설정해도 2분으로 돌아옴 → 뭔가가 계속 터치
 
-#6, #7이 가장 큰 발견. CLI가 sandbox 모드로 실행되어 run_shell_command, write_file 등 핵심 도구를 사용 못 했음. yargs boolean 파싱 트랩.
+로그가 안 나오는 이유: supervisor의 로그가 neuronfs-api.log에 안 쓰일 수 있음. svLog vs fmt.Fprintf(os.Stderr). 또한 growth.log가 계속 갱신되는 이유를 찾아야 함. idle_worker.go에서 터치할 수 있음."}
+{"ts":"2026-04-18T21:34:48Z","role":"AI","text":"사용자가 화남. [HL] 로그가 없고, growth.log가 계속 2분대. 문제:
 
-다음 오토파일럿 발동 시 CLI가 MCP + 쉘 명령 풀 사용 가능.
+[HL] 로그 없음 → runHijackLauncher가 시작되었지만 로그가 stderr로 안 감
+growth.log가 수동 설정해도 2분으로 돌아옴 → 뭔가가 계속 터치
 
-[EVOLVE:proceed]"}
+로그가 안 나오는 이유: supervisor의 로그가 neuronfs-api.log에 안 쓰일 수 있음. svLog vs fmt.Fprintf(os.Stderr). 또한 growth.log가 계속 갱신되는 이유를 찾아야 함. idle_worker.go에서 터치할 수 있음.
+
+growth.log를 터치하는 모든 코드를 빠르게 추적하고, hlAutoEvolve 함수에 강제로 디버그 로그를 추가해서 실제 동작을 확인해야겠다."}
+{"ts":"2026-04-18T21:34:48Z","role":"AI","text":"🟢 growth.log 터치 원인 + hlAutoEvolve 디버그 즉시 추가:"}
+{"ts":"2026-04-18T21:35:01Z","role":"AI","text":"idle_worker.go L40, L90이 매 사이클 growth.log에 APPEND! 이게 growth.log를 계속 터치해서 mtime이 갱신됨 → hlAutoEvolve 조건 불충족.
+
+idle_worker의 \"IDLE ENGINE\" 로그가 계속 나오고 있었음. 이놈이 growth.log를 계속 쓰고 있어서 hlAutoEvolve가 절대 발동 안 됨."}
+{"ts":"2026-04-18T21:35:10Z","role":"AI","text":"근본 원인 확정! idle_worker.go가 매 사이클 growth.log에 APPEND (L90) → mtime 갱신 → hlAutoEvolve의 \"5분 이상 미갱신\" 조건 영원히 불충족.
+
+수정: hlAutoEvolve에서 growth.log 대신 전용 heartbeat 파일 사용:"}
+{"ts":"2026-04-18T21:35:34Z","role":"AI","text":"EVOLVE:proceed 감지 시 터치 대상도 변경:"}
