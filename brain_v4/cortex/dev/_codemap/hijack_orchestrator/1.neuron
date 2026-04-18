@@ -1,5 +1,5 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\hijack_orchestrator.go
-updated: 2026-04-18T19:21:37
+updated: 2026-04-18T20:35:50
 # hijack_orchestrator.go
 dir: runtime
 
@@ -41,7 +41,8 @@ _rules.md stale 방지: 90분마다 자동 re-inject (비차단)
 4. Antigravity 응답 → [EVOLVE:proceed] → 반복
 텔레그램 알림
 Gemini CLI에 최근대화 + 마스터 프롬프트 전달
-텔레그램→IDE 경유 주입 (CDP 대신 — Antigravity에 CDP 포트 없음)
+CDP로 IDE 채팅창에 직접 주입 (텔레그램→IDE와 동일 경로)
+텔레그램에도 알림
 무한 루프 회피 터치
 ── 메인 런처 ──
 텔레그램 양방향 polling

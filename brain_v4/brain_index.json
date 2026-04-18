@@ -1,6 +1,6 @@
 {
   "root": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "last_updated": 1776512117894115100,
+  "last_updated": 1776512219499712500,
   "regions": {
     "brainstem": {
       "region": {
@@ -623,6 +623,50 @@
             "Depth": 1,
             "ModTime": "2026-04-18T19:58:00.4433715+09:00",
             "BirthTime": "2026-04-18T19:57:39.0496961+09:00"
+          },
+          {
+            "Name": "필",
+            "Path": "필",
+            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\brainstem\\필",
+            "Counter": 0,
+            "Contra": 0,
+            "Dopamine": 0,
+            "Intensity": 0,
+            "Polarity": 0.5,
+            "HasBomb": false,
+            "HasMemory": false,
+            "HasGoal": false,
+            "GoalText": "",
+            "Geofence": "",
+            "Description": "",
+            "Globs": "",
+            "Author": "",
+            "IsDormant": false,
+            "Depth": 0,
+            "ModTime": "2026-04-18T20:36:49.6883535+09:00",
+            "BirthTime": "2026-04-18T20:36:49.687832+09:00"
+          },
+          {
+            "Name": "아키텍처_결정_불변",
+            "Path": "필\\아키텍처_결정_불변",
+            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\brainstem\\필\\아키텍처_결정_불변",
+            "Counter": 0,
+            "Contra": 0,
+            "Dopamine": 0,
+            "Intensity": 0,
+            "Polarity": 0.5,
+            "HasBomb": false,
+            "HasMemory": false,
+            "HasGoal": false,
+            "GoalText": "",
+            "Geofence": "",
+            "Description": "﻿# 아키텍처 결정 사항 (변경 금지)",
+            "Globs": "",
+            "Author": "",
+            "IsDormant": false,
+            "Depth": 1,
+            "ModTime": "2026-04-18T20:36:49.6883535+09:00",
+            "BirthTime": "2026-04-18T20:36:49.6883535+09:00"
           }
         ],
         "Axons": [
@@ -631,7 +675,7 @@
         ],
         "HasBomb": false
       },
-      "max_mod_time": 1776509880443371500
+      "max_mod_time": 1776512209688353500
     },
     "cortex": {
       "region": {

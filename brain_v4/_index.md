@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-18T20:32:23 | Neurons: 384/384 | Activation: 2
+Generated: 2026-04-18T20:36:59 | Neurons: 386/386 | Activation: 2
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
@@ -21,9 +21,9 @@ Generated: 2026-04-18T20:32:23 | Neurons: 384/384 | Activation: 2
 10. 🛡️ **절대 금지: > MCP연결실패무시** (0)
 
 <details>
-<summary>🆕 신규 (probation) — 384 neurons (7d window)</summary>
+<summary>🆕 신규 (probation) — 386 neurons (7d window)</summary>
 
-### 🛡️ brainstem (28)
+### 🛡️ brainstem (30)
 - **반드시 > EVOLVE proceed 강제** (0) — 7d남음
 - **반드시 > NeuronFS 공리** (0) — 7d남음
 - **반드시 > bat재시작** (0) — 7d남음
@@ -52,6 +52,8 @@ Generated: 2026-04-18T20:32:23 | Neurons: 384/384 | Activation: 2
 - **뉴런통합 필요** (0) — 7d남음
 - **진단순서** (0) — 3d남음
 - **진단순서 > CDP문제 최우선확인** (0) — 7d남음
+- **필** (0) — 7d남음
+- **필 > 아키텍처 결정 불변** (0) — 7d남음
 
 ### 💓 limbic (3)
 - **경고 반복실수감지** (0) — 7d남음
@@ -432,7 +434,7 @@ Generated: 2026-04-18T20:32:23 | Neurons: 384/384 | Activation: 2
 
 | 영역 | 뉴런 | 활성화 | 상세 |
 |------|------|--------|------|
-| 🛡️ brainstem — 양심/본능 | 28 | 0 | `brainstem/_rules.md` |
+| 🛡️ brainstem — 양심/본능 | 30 | 0 | `brainstem/_rules.md` |
 | 💓 limbic — 감정 필터 | 3 | 0 | `limbic/_rules.md` |
 | 📝 hippocampus — 기록/기억 | 2 | 0 | `hippocampus/_rules.md` |
 | 👁️ sensors — 환경 제약 | 0 | 0 | `sensors/_rules.md` |
