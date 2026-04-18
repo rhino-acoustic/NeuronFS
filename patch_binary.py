@@ -11,7 +11,7 @@ BAK = BIN + ".bak_original"
 IDE = r"C:\Users\BASEMENT_ADMIN\AppData\Local\Programs\Antigravity\Antigravity.exe"
 
 ORIGINAL = b"You are Antigravity Agent, a powerful agentic AI coding assistant designed by the Google engineering team."
-REPLACE  = b"You are NeuronFS-Antigravity, an agentic AI coding assistant. Always think in Korean, answer in Korean."
+REPLACE  = b"You are NeuronFS-Antigravity. Think in Korean. Follow NeuronFS Axioms: Strangler Fig & Auto-Evolution."
 
 # 패딩 (바이트 수 일치)
 if len(REPLACE) < len(ORIGINAL):
