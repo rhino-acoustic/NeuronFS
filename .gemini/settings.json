@@ -1,0 +1,48 @@
+{
+  "mcpServers": {
+    "neuronfs": {
+      "httpUrl": "http://127.0.0.1:9247/mcp"
+    }
+  },
+  "fileFiltering": {
+    "respectGitIgnore": false
+  },
+  "hooks": {
+    "BeforeTool": [
+      {
+        "matcher": "replace_file_content|write_to_file|multi_replace_file_content",
+        "hooks": [
+          {
+            "name": "git-snapshot",
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File .gemini/hooks/pre_edit_git.ps1",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "name": "block-delete",
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File .gemini/hooks/block_delete.ps1",
+            "timeout": 5000
+          },
+          {
+            "name": "go-vet-guard",
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File .gemini/hooks/go_vet_guard.ps1",
+            "timeout": 30000
+          },
+          {
+            "name": "encoding-guard",
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File .gemini/hooks/encoding_guard.ps1",
+            "timeout": 3000
+          }
+        ]
+      }
+    ]
+  }
+}
