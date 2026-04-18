@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-18T19:59:17 | Neurons: 384/384 | Activation: 0
+Generated: 2026-04-18T20:03:22 | Neurons: 384/384 | Activation: 0
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
