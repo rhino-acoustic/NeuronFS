@@ -1,5 +1,5 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\hijack_orchestrator.go
-updated: 2026-04-18T23:17:49
+updated: 2026-04-19T08:08:34
 # hijack_orchestrator.go
 dir: runtime
 
@@ -14,10 +14,10 @@ cdp_client.go (hlCDPInjectSync), telegram_bridge.go (hlTgSend), evolve_context.g
 ── 마스터 프롬프트 (SSOT: 1곳에서만 정의) ──
 Dedup — timestamp 제거한 본문 기반 (고도화)
 entry format: "[HH:MM:SS] ROLE: text" → ROLE+text로 해시
-── [EVOLVE:proceed] 감지 → 자율주행 연쇄 트리거 ──
-60초 debounce
-CDP 주입 제거: CLI(AI 에이전트)가 스스로 판단하여 다음 액션을 결정함
-Go 런타임은 인프라 역할만 수행
+── [EVOLVE:proceed] 감지 → 자율주행 즉시 재발동 ──
+30초 debounce (연속 EVOLVE 스팸 방지)
+채널 시그널로 hlAutoEvolve의 sleep을 즉시 깨움
+이미 시그널 대기 중 — 중복 방지
 ── 텔레그램 전송 (원본 mjs _sendToTelegramInner 충실 포팅) ──
 ── 세션 rolling buffer (최근 20턴 JSONL) ──
 1. JSONL append + rolling
@@ -25,12 +25,15 @@ Rolling: 최근 20줄만 유지
 2. hippocampus 뉴런 업데이트
 간단 파싱
 ── CDP DOM 스크래핑 + Network 모니터 ──
+evolveKickCh — [EVOLVE:proceed] 감지 시 즉시 재발동 시그널
 활성 Network scraper 추적
+3분 대기 OR 즉시 재발동 시그널 (먼저 오는 쪽)
+정기 사이클
 자율주행 비활성 체크
 오토파일럿 전용 하트비트 (.autopilot_heartbeat)
 growth.log는 idle_worker가 매 사이클 터치하므로 사용 불가
 하트비트 없으면 자동 생성 (6분 전)
-하트비트가 5분 이상 미갱신일 때만 (AI가 EVOLVE:proceed 출력 시 터치)
+하트비트가 2분 이상 미갱신 OR 킥 시그널 수신 시 발동
 전사 파일 체크: 최근 5분 내 전사 갱신이 있어야만 활성 대화 존재
 활성 대화 없음 — 아무도 안 듣고 있으니 주입 무의미
 CLI 오케스트레이터 모델: Go 런타임은 최소 트리거만 발사

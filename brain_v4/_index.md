@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
+Generated: 2026-04-19T08:09:25 | Neurons: 399/399 | Activation: 15
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
@@ -43,13 +43,13 @@ Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
 - **절대 금지: > 불필요한코드** (0) — 7d남음
 - **절대 금지: > 빌드후 미검증재시작** (0) — 7d남음
 - **절대 금지: > 수동적변경** (0) — 7d남음
-- **절대 금지: > 쉬프트금지** (0) — 3d남음
+- **절대 금지: > 쉬프트금지** (0) — 2d남음
 - **절대 금지: > 쉬프트금지 > 반드시 > 적층해결** (0) — 7d남음
 - **절대 금지: > 외부접근** (0) — 7d남음
 - **절대 금지: > 중복작업** (0) — 7d남음
 - **절대 금지: 뇌 직접수정 MCP필수** (0) — 7d남음
 - **뉴런통합 필요** (0) — 7d남음
-- **진단순서** (0) — 3d남음
+- **진단순서** (0) — 2d남음
 - **진단순서 > CDP문제 최우선확인** (0) — 7d남음
 - **필** (0) — 7d남음
 - **필 > 아키텍처 결정 불변** (0) — 7d남음
@@ -84,21 +84,21 @@ Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
 - **dev > dev > 추천: > 디스코드포스트갱신** (0) — 7d남음
 - **dev > dev > design systems** (0) — 7d남음
 - **architecture** (0) — 7d남음
-- **backend** (0) — 3d남음
-- **community** (0) — 3d남음
+- **backend** (0) — 2d남음
+- **community** (0) — 2d남음
 - **dev** (0) — 7d남음
 - **dev > dev > AIA PPT 가이드** (0) — 7d남음
 - **dev > dev > NeuronFS** (0) — 7d남음
-- **dev > dev > NeuronFS > 구조** (0) — 3d남음
+- **dev > dev > NeuronFS > 구조** (0) — 2d남음
 - **dev > dev > NeuronFS > 구조 > BTree O1 검색** (0) — 7d남음
 - **dev > dev > NeuronFS > 구조 > OS 메타데이터 임베딩** (0) — 7d남음
 - **dev > dev > NeuronFS > 구조 > attention residuals axon** (0) — 7d남음
 - **dev > dev > NeuronFS > 구조 > hybrid similarity engine** (0) — 7d남음
 - **dev > dev > NeuronFS > 구조 > jloot VFS engine** (0) — 7d남음
-- **dev > dev > codemap** (0) — 3d남음
-- **dev > dev > codemap > 도구** (0) — 3d남음
+- **dev > dev > codemap** (0) — 2d남음
+- **dev > dev > codemap > 도구** (0) — 2d남음
 - **dev > dev > codemap > 도구 > api handler config** (0) — 7d남음
-- **dev > dev > crawling** (0) — 3d남음
+- **dev > dev > crawling** (0) — 2d남음
 - **dev > dev > crawling > 올리브영 DOM 2026** (0) — 7d남음
 - **dev > dev > crawling > 올리브영 DOM 2026 > 검색결과 구조** (0) — 7d남음
 - **dev > dev > crawling > 올리브영 DOM 2026 > 대시보드 자동연동** (0) — 7d남음
@@ -109,7 +109,7 @@ Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
 - **dev > dev > crawling > 올리브영 DOM 2026 > 제품 데이터 추출** (0) — 7d남음
 - **dev > dev > 추천: > 로컬테스트** (0) — 7d남음
 - **dev > dev > design systems > fast components** (0) — 7d남음
-- **dev > dev > github docs** (0) — 3d남음
+- **dev > dev > github docs** (0) — 2d남음
 - **dev > dev > github docs > 반드시 EN KO 동기화** (0) — 7d남음
 - **dev > dev > github docs > 반드시 subtitle axiom** (0) — 7d남음
 - **dev > dev > github docs > 반드시 공리 파생구조 유지** (0) — 7d남음
@@ -120,17 +120,17 @@ Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
 - **dev > dev > github docs > 추천: 비교표 13행 유지** (0) — 7d남음
 - **dev > dev > github docs > 절대 금지: mkdir beats vector** (0) — 7d남음
 - **dev > dev > github docs > 절대 금지: 통계 하드코딩** (0) — 7d남음
-- **dev > dev > governance** (0) — 3d남음
+- **dev > dev > governance** (0) — 2d남음
 - **dev > dev > governance > DCI 문서코드일치** (0) — 7d남음
 - **dev > dev > governance > SSOT 상수관리** (0) — 7d남음
 - **dev > dev > governance > 추천: > 검증자동화** (0) — 7d남음
 - **dev > dev > governance > 절대 금지: > brainstem decay** (0) — 7d남음
 - **dev > dev > governance > 절대 금지: > 매직넘버 하드코딩** (0) — 7d남음
 - **dev > dev > governance > 마스터프롬프트v2→StranglerFig 사이드이펙트제로** (0) — 7d남음
-- **dev > dev > hijack** (0) — 3d남음
+- **dev > dev > hijack** (0) — 2d남음
 - **dev > dev > hijack > CDP** (0) — 7d남음
 - **dev > dev > hijack > CDP 인젝션 다중창 매칭** (0) — 7d남음
-- **dev > dev > omniverse** (0) — 3d남음
+- **dev > dev > omniverse** (0) — 2d남음
 - **dev > dev > omniverse > 크롤러엔진 CDP제품수집** (0) — 7d남음
 - **dev > dev > omniverse > 포지셔닝맵 데이터파이프라인** (0) — 7d남음
 - **dev > dev > ops dashboard** (0) — 7d남음
@@ -188,7 +188,7 @@ Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > v19혁신 신규추가 > job디렉토리격리 동시다중작업** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > v19혁신 신규추가 > offset map 수학적타임코드재계산 CleanSTT불필요** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > v19혁신 신규추가 > v19html웹프론트 tkinter에서브라우저 원격접속** (0) — 7d남음
-- **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 v19에서정리** (0) — 3d남음
+- **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 v19에서정리** (0) — 2d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 v19에서정리 > CleanSTT 재전사를 offset map수학역산으로대체함** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 이유포함** (0) — 7d남음
 - **dev > dev > trans v19 아키텍처 6페이즈파이프라인 FastAPI서버 WebSocket실시간 > 의도적삭제 이유포함 > 7passGroq분할 3pass50배치로간소화 품질충분** (0) — 7d남음
@@ -282,7 +282,7 @@ Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
 - **dev > dev > 절대 금지: > 하드코딩** (0) — 7d남음
 - **dev > dev > 自动연동파이프라인** (0) — 7d남음
 - **dev > dev > 기술부채 레지스트리** (0) — 7d남음
-- **dev > dev > 런타임 디렉토리 분리 규칙** (0) — 3d남음
+- **dev > dev > 런타임 디렉토리 분리 규칙** (0) — 2d남음
 - **dev > dev > 에러패턴확인** (0) — 7d남음
 - **dev > dev > 에러패턴확인 > CDP MCP재시작→키디스패치 reloadWindow restartMCP** (0) — 7d남음
 - **dev > dev > 에러패턴확인 > MCP IPv6 localhost해석→settings와서버모두 127.0.0.1통일** (0) — 7d남음
@@ -291,8 +291,8 @@ Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
 - **dev > dev > 작업** (0) — 7d남음
 - **dev > dev > 좌측네비게이터구현** (0) — 7d남음
 - **dev > dev > 환경변수사용** (0) — 7d남음
-- **frontend** (0) — 3d남음
-- **infra** (0) — 3d남음
+- **frontend** (0) — 2d남음
+- **infra** (0) — 2d남음
 - **methodology** (0) — 7d남음
 - **methodology > methodology > 추천: 상쇄구조** (0) — 7d남음
 - **methodology > methodology > 절대 금지: 단편적접근** (0) — 7d남음
@@ -302,13 +302,13 @@ Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
 - **methodology > methodology > CHAT ID영속화** (0) — 7d남음
 - **methodology > methodology > EVOLVE** (0) — 7d남음
 - **methodology > methodology > Supervisor통합** (0) — 7d남음
-- **methodology > methodology > push** (0) — 3d남음
+- **methodology > methodology > push** (0) — 2d남음
 - **methodology > methodology > push > error handling** (0) — 7d남음
 - **methodology > methodology > vgvr freerider patterns** (0) — 7d남음
 - **methodology > methodology > 반드시 SSOT준수** (0) — 7d남음
 - **methodology > methodology > 반드시 로컬깃선행** (0) — 7d남음
-- **methodology > methodology > 반드시 방탄설계** (0) — 3d남음
-- **methodology > methodology > 반드시 정밀사격 프로토콜** (0) — 3d남음
+- **methodology > methodology > 반드시 방탄설계** (0) — 2d남음
+- **methodology > methodology > 반드시 정밀사격 프로토콜** (0) — 2d남음
 - **methodology > methodology > 추천: C4모델** (0) — 7d남음
 - **methodology > methodology > 추천: C4모델사용** (0) — 7d남음
 - **methodology > methodology > 추천: > CoT 먼저생각후출력** (0) — 7d남음
@@ -401,10 +401,10 @@ Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
 - **methodology > methodology > �׸����丵���ɴ���** (0) — 7d남음
 - **shared** (0) — 7d남음
 - **skills** (0) — 7d남음
-- **skills > API** (0) — 3d남음
+- **skills > API** (0) — 2d남음
 - **skills > API > REST CORS 미들웨어** (0) — 7d남음
 - **skills > API > SSE 실시간스트리밍** (0) — 7d남음
-- **skills > Go** (0) — 3d남음
+- **skills > Go** (0) — 2d남음
 - **skills > Go > crypto XChaCha20 암호화** (0) — 7d남음
 - **skills > Go > fsnotify 실시간감시** (0) — 7d남음
 - **skills > Go > go ast 코드구조분석** (0) — 7d남음
@@ -412,22 +412,22 @@ Generated: 2026-04-19T07:50:49 | Neurons: 399/399 | Activation: 15
 - **skills > LLM** (0) — 7d남음
 - **skills > LLM > Groq API 배치처리** (0) — 7d남음
 - **skills > LLM > 프롬프트엔지니어링 3tier** (0) — 7d남음
-- **skills > MCP** (0) — 3d남음
+- **skills > MCP** (0) — 2d남음
 - **skills > MCP > StreamableHTTP 서버구현** (0) — 7d남음
 - **skills > MCP > 도구등록 핸들러패턴** (0) — 7d남음
-- **skills > VFS** (0) — 3d남음
+- **skills > VFS** (0) — 2d남음
 - **skills > VFS > UnionFS 하이브리드 RAM디스크** (0) — 7d남음
 - **skills > VFS > jloot 카트리지 컴파일복호화** (0) — 7d남음
 
 ### 🎭 ego (12)
 - **communication** (0) — 7d남음
 - **반드시 대화끝정리** (0) — 7d남음
-- **톤** (0) — 3d남음
+- **톤** (0) — 2d남음
 - **톤 > 간결 명령조** (0) — 7d남음
 - **톤 > 글쓰기 스타일** (0) — 7d남음
 - **톤 > 한국어사고 한국어응답** (0) — 7d남음
 - **톤 > 🐤접두사** (0) — 7d남음
-- **행동양식** (0) — 3d남음
+- **행동양식** (0) — 2d남음
 - **행동양식 > 복잡작업 단계분해** (0) — 7d남음
 - **행동양식 > 실행후 증거보고** (0) — 7d남음
 - **행동양식 > 출력전 5자문 체크** (0) — 7d남음

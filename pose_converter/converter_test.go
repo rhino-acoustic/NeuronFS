@@ -17,3 +17,10 @@ func TestConvertPoseData(t *testing.T) {
 		t.Errorf("expected JSON to contain %q, but got %q", expectedSub, actual)
 	}
 }
+
+func TestConvertPoseData_EmptyJoint(t *testing.T) {
+	_, err := ConvertPoseData("", 10.5, 20.1, 5.0)
+	if err == nil {
+		t.Error("expected error for empty joint name, but got nil")
+	}
+}
