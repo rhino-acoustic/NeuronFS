@@ -1,20 +1,20 @@
-{"ts":"2026-04-18T20:37:21Z","role":"AI","text":"커밋 5f54455. 영구화 완료:
+커밋	5f54455
+매 응답 이모지 규칙
 
-alternate_email
-content_copy
-brain_v4/
-├── brainstem/필/아키텍처_결정_불변/rule.md  ← 핵심 결정 (롤백 방지)
-├── cortex/dev/_codemap/hijack_orchestrator/1.neuron  ← 오토파일럿 플로우
-└── cortex/dev/_codemap/transcript_categorizer/1.neuron  ← 전사분류 규칙
+GEMINI.md에서 🏴 접두사 → 이제 이걸 오토파일럿 상태로 교체:
 
-이 뉴런들은:
-
-emit 크론이 매시간 GEMINI.md에 반영 → 새 세션에서 자동 로드
-git에 추적 → 삭제 시 git checkout으로 복원
-brainstem/필/ → P0 우선순위 → 항상 emit
-
-AI가 문맥을 잃어도 이 뉴런을 읽으면 \"CLI→CDP 직접 주입\"이라는 결정을 다시 알게 됨.
+🟢 = 오토파일럿 ON
+🔴 = 오토파일럿 OFF
+⚡ = 작업 중
 
 [EVOLVE:proceed]"}
-{"ts":"2026-04-18T20:37:34Z","role":"AI","text":"🟢 오토파일럿 확인 + 코드맵 전체 갱신 + 백업:"}
-{"ts":"2026-04-18T20:37:52Z","role":"AI","text":"152개 코드맵 뉴런 전체 갱신! 이제 fix된 코드 백업:"}
+{"ts":"2026-04-18T20:38:23Z","role":"AI","text":"사용자 핵심: \"이번 세션에만 되는"}
+{"ts":"2026-04-18T20:38:26Z","role":"AI","text":"사용자 핵심: \"이번 세션에만 되는 게 아냐\" — emit이 오토파일럿 상태를 GEMINI.md에 자동으로 넣어야 함. 페르소나 이모지가 emit_format_rules.go에서 생성되는 곳을 찾아서 오토파일럿 상태를 동적으로 포함시켜야 함.
+
+emit_format_rules.go에서 페르소나 섹션을 찾고, 오토파일럿 상태를 동적으로 포함하도록 수정."}
+{"ts":"2026-04-18T20:38:26Z","role":"AI","text":"emit에서 오토파일럿 상태를 동적으로 GEMINI.md에 반영하도록 수정:"}
+{"ts":"2026-04-18T20:39:01Z","role":"USER","text":"그외 여러 상태를 보여주던지"}
+{"ts":"2026-04-18T20:39:03Z","role":"AI","text":"이미 동적 이모지 시스템이 있음! currentPulseEmoji가 매 emit마다 변경됨. 이걸 오토파일럿 상태 기반으로 변경:"}
+{"ts":"2026-04-18T20:39:37Z","role":"USER","text":"그외 여러 상태를 보여주던지"}
+{"ts":"2026-04-18T20:39:37Z","role":"USER","text":"fix되어서 안건드려야 할 코드들은 정하고 거기 폴더에도 백업해놔"}
+{"ts":"2026-04-18T20:39:37Z","role":"USER","text":"땜질하지 말고 emit이 수행하도록 전체 검수 이번 세션에만 되는게 아냐"}

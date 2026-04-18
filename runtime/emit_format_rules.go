@@ -68,17 +68,15 @@ func buildPreamble(sb *strings.Builder, result SubsumptionResult, brainRoot stri
 		return false
 	}
 
-	// ━━━ Pulse: 매 emit마다 변하는 이모지 — 이모지 변화 = 최신 주입 증거 ━━━
-	pulseEmojis := []string{
-		"⚡", "🔥", "🌀", "💎", "🧠", "⭐", "🎯", "🚀", "💫", "🌊",
-		"🦋", "🌸", "🍀", "🎪", "🏔️", "🌅", "🎨", "🔮", "🌙", "☀️",
-		"🐉", "🦅", "🐺", "🦁", "🐋", "🦊", "🐝", "🦈", "🐙", "🦑",
-		"💠", "🔷", "🟣", "🟠", "🔴", "🟢", "🟡", "⬛", "🟤", "⚪",
-		"🎭", "🎬", "🎵", "🎲", "🧩", "🔬", "🧬", "⚙️", "🛡️", "⚔️",
-		"🌍", "🌑", "☄️", "🪐", "🌌", "🔭", "🧭", "⏳", "🗝️", "🏴",
+	// ━━━ Pulse: 오토파일럿 상태 기반 접두사 이모지 ━━━
+	nfsRoot := filepath.Dir(brainRoot)
+	autoDisabled := fileExists(filepath.Join(nfsRoot, "telegram-bridge", ".auto_evolve_disabled"))
+	cdpAlive := portAlive(9000)
+	if autoDisabled || !cdpAlive {
+		currentPulseEmoji = "🔴" // 오토파일럿 OFF
+	} else {
+		currentPulseEmoji = "🟢" // 오토파일럿 ON
 	}
-	pulseIdx := time.Now().Second() % len(pulseEmojis)
-	currentPulseEmoji = pulseEmojis[pulseIdx]
 	// Pulse 라인 삭제됨 — 이모지는 접두사 규칙에서 동적 주입
 
 	sb.WriteString("## NeuronFS Active Rules\n\n")
