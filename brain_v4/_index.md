@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-19T08:31:19 | Neurons: 386/386 | Activation: 19
+Generated: 2026-04-19T08:34:14 | Neurons: 387/387 | Activation: 20
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
@@ -18,17 +18,16 @@ Generated: 2026-04-19T08:31:19 | Neurons: 386/386 | Activation: 19
 7. 🛡️ **절대 금지: > bat ascii only** (1)
 8. 🛡️ **절대 금지: > multi agent stdin injection only** (1)
 9. 📝 **episodes > 2026-04-19 2026-04-19 System Stabilization** (1)
-10. 🧠 **dev > dev > 추천: > 로컬테스트** (0)
+10. 🧠 **methodology > 절대 금지: > 빌드후 미검증재시작** (1)
 
 <details>
-<summary>🆕 신규 (probation) — 384 neurons (7d window)</summary>
+<summary>🆕 신규 (probation) — 385 neurons (7d window)</summary>
 
 ### 🛡️ brainstem (31)
 - **반드시 > Git 즉시 추적** (1) — 7d남음
 - **절대 금지: > bat ascii only** (1) — 7d남음
 - **절대 금지: > multi agent stdin injection only** (1) — 7d남음
-- **반드시 > 코드맵 참조생성갱신** (0) — 7d남음
-- **절대 금지: > curl사용** (0) — 7d남음
+- **절대 금지: > MCP연결실패무시** (0) — 7d남음
 - **절대 금지: > 강제종료** (0) — 7d남음
 - **절대 금지: > 과장** (0) — 7d남음
 - **절대 금지: > 땜질코딩** (0) — 7d남음
@@ -48,11 +47,12 @@ Generated: 2026-04-19T08:31:19 | Neurons: 386/386 | Activation: 19
 - **뉴런통합 필요** (0) — 7d남음
 - **진단순서** (0) — 2d남음
 - **진단순서 > CDP문제 최우선확인** (0) — 7d남음
+- **반드시 > 반드시 빌드경로 SSOT** (0) — 7d남음
 - **반드시 > 반드시 누락자문** (0) — 7d남음
 - **반드시 > 커뮤니티검색필수: 세션시작** (0) — 7d남음
+- **절대 금지: > curl사용** (0) — 7d남음
+- **반드시 > 코드맵 참조생성갱신** (0) — 7d남음
 - **반드시 > bat재시작** (0) — 7d남음
-- **절대 금지: > MCP연결실패무시** (0) — 7d남음
-- **반드시 > 반드시 빌드경로 SSOT** (0) — 7d남음
 - **반드시 > NeuronFS 공리** (0) — 7d남음
 - **반드시 > EVOLVE proceed 강제** (0) — 7d남음
 
@@ -72,11 +72,12 @@ Generated: 2026-04-19T08:31:19 | Neurons: 386/386 | Activation: 19
 ### 👁️ sensors (0)
 (없음)
 
-### 🧠 cortex (332)
+### 🧠 cortex (333)
 - **dev > e2e test** (2) — 7d남음
+- **methodology > 절대 금지: > 빌드후 미검증재시작** (1) — 7d남음
 - **dev > dev > 추천: > 로컬테스트** (0) — 7d남음
-- **methodology > methodology > 절대 금지: > 매직프레이즈 의존** (0) — 7d남음
-- **dev > dev > 추천: > 명령어최적화** (0) — 7d남음
+- **methodology > methodology > 절대 금지: > 빌드후 미검증재시작** (0) — 7d남음
+- **dev > dev > 추천: > 모바일테스트** (0) — 7d남음
 - **architecture** (0) — 7d남음
 - **community** (0) — 7d남음
 - **dev** (0) — 7d남음
@@ -216,8 +217,8 @@ Generated: 2026-04-19T08:31:19 | Neurons: 386/386 | Activation: 19
 - **dev > dev > 추천: > README갱신** (0) — 7d남음
 - **dev > dev > 추천: > go마이그레이션** (0) — 7d남음
 - **dev > dev > 추천: > grep search** (0) — 7d남음
-- **dev > dev > 추천: > 버전관리** (0) — 7d남음
-- **dev > dev > 추천: > lazyloading구현** (0) — 7d남음
+- **dev > dev > 추천: > hf token** (0) — 7d남음
+- **dev > dev > 추천: > 베스트프랙티스리서치** (0) — 7d남음
 - **dev > dev > 추천: > lazy로딩옵저버사용** (0) — 7d남음
 - **dev > dev > 추천: > products datajs** (0) — 7d남음
 - **dev > dev > 추천: > supervisor환경변수전달** (0) — 7d남음
@@ -232,8 +233,8 @@ Generated: 2026-04-19T08:31:19 | Neurons: 386/386 | Activation: 19
 - **dev > dev > 추천: > 명령어순차실행** (0) — 7d남음
 - **dev > dev > 추천: > 명령어승인** (0) — 7d남음
 - **dev > dev > 추천: > 명령어자동실행** (0) — 7d남음
-- **dev > dev > 추천: > hf token** (0) — 7d남음
-- **dev > dev > 추천: > 베스트프랙티스리서치** (0) — 7d남음
+- **dev > dev > 추천: > 명령어최적화** (0) — 7d남음
+- **dev > dev > 추천: > lazyloading구현** (0) — 7d남음
 - **dev > dev > 추천: > 브랜치관리** (0) — 7d남음
 - **dev > dev > 추천: > 사이드바구현** (0) — 7d남음
 - **dev > dev > 추천: > 서브프로세스호출** (0) — 7d남음
@@ -365,8 +366,8 @@ Generated: 2026-04-19T08:31:19 | Neurons: 386/386 | Activation: 19
 - **methodology > methodology > 추천: 프로젝트관리** (0) — 7d남음
 - **methodology > methodology > 절대 금지: > 검증없는출력** (0) — 7d남음
 - **methodology > methodology > 절대 금지: > 리팩토링시 기능삭제** (0) — 7d남음
-- **dev > dev > 추천: > 모바일테스트** (0) — 7d남음
-- **methodology > methodology > 절대 금지: > 빌드후 미검증재시작** (0) — 7d남음
+- **methodology > methodology > 절대 금지: > 매직프레이즈 의존** (0) — 7d남음
+- **dev > dev > 추천: > 버전관리** (0) — 7d남음
 - **methodology > methodology > 절대 금지: > 한번에 모든것 요청** (0) — 7d남음
 - **methodology > methodology > 절대 금지: 수동검증** (0) — 7d남음
 - **methodology > methodology > 검증 후 보고** (0) — 7d남음
@@ -436,7 +437,7 @@ Generated: 2026-04-19T08:31:19 | Neurons: 386/386 | Activation: 19
 | 💓 limbic — 감정 필터 | 3 | 0 | `limbic/_rules.md` |
 | 📝 hippocampus — 기록/기억 | 6 | 4 | `hippocampus/_rules.md` |
 | 👁️ sensors — 환경 제약 | 0 | 0 | `sensors/_rules.md` |
-| 🧠 cortex — 지식/기술 | 334 | 12 | `cortex/_rules.md` |
+| 🧠 cortex — 지식/기술 | 335 | 13 | `cortex/_rules.md` |
 | 🎭 ego — 성향/톤 | 12 | 0 | `ego/_rules.md` |
 | 🎯 prefrontal — 목표/계획 | 0 | 0 | `prefrontal/_rules.md` |
 | 🔗 shared — 공유 지식 | 0 | 0 | `shared/_rules.md` |
