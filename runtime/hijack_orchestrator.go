@@ -232,7 +232,17 @@ func hlAutoEvolve(brainRoot string) {
 		growthLog := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
 		info, err := os.Stat(growthLog)
 
-		// growth.log가 5분 이상 미갱신일 때만 (3→5분 확대)
+		// growth.log 없으면 자동 생성 (이 누락이 오토파일럿 미발동의 근본 원인)
+		if err != nil {
+			os.MkdirAll(filepath.Dir(growthLog), 0750)
+			os.WriteFile(growthLog, []byte("# NeuronFS Growth Log\n"), 0600)
+			// 5분 전 타임스탬프로 설정하여 즉시 트리거 가능
+			old := time.Now().Add(-6 * time.Minute)
+			os.Chtimes(growthLog, old, old)
+			info, err = os.Stat(growthLog)
+		}
+
+		// growth.log가 5분 이상 미갱신일 때만
 		if err == nil && time.Since(info.ModTime()) > 5*time.Minute {
 			// 전사 파일 체크: 최근 5분 내 전사 갱신이 있어야만 활성 대화 존재
 			transcriptDir := filepath.Join(brainRoot, "_transcripts")

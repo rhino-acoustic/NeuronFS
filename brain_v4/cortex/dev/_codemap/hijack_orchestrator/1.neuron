@@ -1,11 +1,59 @@
-﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\hijack_orchestrator.go
-updated: 2026-04-18T20:37:40
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\hijack_orchestrator.go
+updated: 2026-04-18T20:46:26
 # hijack_orchestrator.go
 dir: runtime
-lines: 398
 
 ## PROVIDES
 hlAppendTranscript, hlAutoEvolve, runHijackLauncher, hlScrapeCurrentConversation
 
 ## DEPENDS ON
 cdp_client.go (hlCDPInjectSync), telegram_bridge.go (hlTgSend), evolve_context.go (hlBuildContextualPrompt), multi_agent.go (executeGeminiCLI)
+── 전사 기록 ──
+── 활성 scraper 추적 (중복 goroutine 방지) ──
+── EVOLVE 연쇄 debounce (60초 쿨다운) ──
+── 마스터 프롬프트 (SSOT: 1곳에서만 정의) ──
+Dedup — timestamp 제거한 본문 기반 (고도화)
+entry format: "[HH:MM:SS] ROLE: text" → ROLE+text로 해시
+── [EVOLVE:proceed] 감지 → 자율주행 연쇄 트리거 ──
+60초 debounce
+CDP 주입 제거: CLI(AI 에이전트)가 스스로 판단하여 다음 액션을 결정함
+Go 런타임은 인프라 역할만 수행
+── 텔레그램 전송 (원본 mjs _sendToTelegramInner 충실 포팅) ──
+── 세션 rolling buffer (최근 20턴 JSONL) ──
+1. JSONL append + rolling
+Rolling: 최근 20줄만 유지
+2. hippocampus 뉴런 업데이트
+간단 파싱
+── CDP DOM 스크래핑 + Network 모니터 ──
+활성 Network scraper 추적
+자율주행 비활성 체크
+growth.log가 5분 이상 미갱신일 때만 (3→5분 확대)
+전사 파일 체크: 최근 5분 내 전사 갱신이 있어야만 활성 대화 존재
+활성 대화 없음 — 아무도 안 듣고 있으니 주입 무의미
+CLI 오케스트레이터 모델: Go 런타임은 최소 트리거만 발사
+실제 판단과 행동은 CLI(AI 에이전트)가 수행
+_rules.md stale 방지: 90분마다 자동 re-inject (비차단)
+항상 트리거 — 이상 여부 상관없이 오토파일럿 구동
+── 올바른 자율주행 플로우 ──
+1. 최근대화 + 마스터 프롬프트 조합
+2. Gemini CLI에 전달
+3. Gemini CLI 응답을 CDP로 이 Antigravity 창에 주입
+4. Antigravity 응답 → [EVOLVE:proceed] → 반복
+텔레그램 알림
+Gemini CLI에 최근대화 + 마스터 프롬프트 전달
+CDP로 IDE 채팅창에 직접 주입 (텔레그램→IDE와 동일 경로)
+텔레그램에도 알림
+무한 루프 회피 터치
+── 메인 런처 ──
+텔레그램 양방향 polling
+CDP 모니터 & 큐 워커
+자동 evolve
+keep alive
+hlScrapeCurrentConversation — CDP로 현재 활성 대화 제목 스크래핑
+현재 대화 제목 추출 (Antigravity 채팅 패널의 제목)
+방법1: 탭 타이틀에서 추출
+방법2: 활성 채팅 헤더에서 추출
+fallback: 탭 타이틀 사용
+appendDebugLog writes TG debug entries to tg_debug.log for troubleshooting
+Broadcast to SSE (Dashboard V2)
+
