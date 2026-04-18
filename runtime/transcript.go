@@ -156,6 +156,9 @@ func runIdleLoop(brainRoot string) {
 		idleEvolveRunning = true
 		fmt.Printf("\n[IDLE] ?? %s idle detected ? calling stateless core worker...\n", idleDuration.Round(time.Second))
 
+		// 전사 자동 백업 (24시간 경과분)
+		archiveOldTranscripts(brainRoot)
+
 		nfsExe := filepath.Join(filepath.Dir(brainRoot), "neuronfs.exe")
 		out, err := exec.Command(nfsExe, brainRoot, "--tool", "idle_core", "{}").CombinedOutput()
 		if err != nil {
@@ -584,3 +587,80 @@ func writeHeartbeat(brainRoot string, result SubsumptionResult) {
 // ?????? REST API + Rollback ?? api_server.go ??????
 // MOVED: startAPI, rollbackAll
 
+
+// ──────────────────────────────────────────────────────────
+// TRANSCRIPT ARCHIVE: 24시간 경과한 라이브 전사를 자동 백업 (적층)
+// ──────────────────────────────────────────────────────────
+
+// archiveOldTranscripts moves transcript files older than 24h
+// from _transcripts/ to _transcripts/_backup_YYYYMMDD/.
+// This ensures no live transcript is lost due to rotation.
+// Called from runIdleLoop. Existing transcripts are NEVER deleted.
+func archiveOldTranscripts(brainRoot string) int {
+	transcriptsDir := filepath.Join(brainRoot, "_transcripts")
+	cutoff := time.Now().Add(-24 * time.Hour)
+	moved := 0
+
+	entries, err := os.ReadDir(transcriptsDir)
+	if err != nil {
+		return 0
+	}
+
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		name := e.Name()
+		if !strings.HasSuffix(name, ".txt") {
+			continue
+		}
+
+		info, err := e.Info()
+		if err != nil || info.ModTime().After(cutoff) {
+			continue
+		}
+
+		dateStr := ""
+		parts := strings.Split(name, "_")
+		for _, p := range parts {
+			if len(p) == 10 && strings.Count(p, "-") == 2 {
+				dateStr = strings.ReplaceAll(p, "-", "")
+				break
+			}
+		}
+		if dateStr == "" {
+			dateStr = info.ModTime().Format("20060102")
+		}
+
+		backupDir := filepath.Join(transcriptsDir, "_backup_"+dateStr)
+		os.MkdirAll(backupDir, 0750)
+
+		src := filepath.Join(transcriptsDir, name)
+		dst := filepath.Join(backupDir, name)
+
+		if fileExists(dst) {
+			continue
+		}
+
+		data, err := os.ReadFile(src)
+		if err != nil {
+			continue
+		}
+		if err := os.WriteFile(dst, data, 0600); err != nil {
+			continue
+		}
+		dstInfo, err := os.Stat(dst)
+		if err != nil || dstInfo.Size() != info.Size() {
+			os.Remove(dst)
+			continue
+		}
+		os.Remove(src)
+		moved++
+		fmt.Printf("[ARCHIVE] 📦 %s → %s\n", name, "_backup_"+dateStr)
+	}
+
+	if moved > 0 {
+		fmt.Printf("[ARCHIVE] ✅ %d건 전사 백업 완료\n", moved)
+	}
+	return moved
+}
