@@ -1,11 +1,18 @@
 ﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\multi_agent.go
-updated: 2026-04-18T20:37:40
+updated: 2026-04-18T21:22:55
 # multi_agent.go
 dir: runtime
-lines: 199
+lines: 200
 
 ## PROVIDES
-
+executeGeminiCLI, AgentTask, AgentResult
 
 ## DEPENDS ON
+없음 (독립 모듈)
 
+## 절대 변경 금지 사항
+1. --yolo 모드 필수 (자동 승인)
+2. --allowed-mcp-server-names neuronfs (MCP 연결)
+3. --sandbox 옵션 사용 금지 (boolean trap: --sandbox false가 sandbox=true로 파싱됨)
+4. stdin pipe로 프롬프트 전달 (--prompt는 길이 제한)
+5. 타임아웃 5분

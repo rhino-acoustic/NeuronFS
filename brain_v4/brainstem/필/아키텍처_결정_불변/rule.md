@@ -20,3 +20,9 @@
 ## 빌드
 - ide_integration.go에 main/fileExists/svLog 없음 (main.go에서 제공)
 - svPatchAntigravityShortcuts, svRestoreConversation은 stub
+
+## CLI 실행 (multi_agent.go)
+- --yolo 필수 (자동 승인)
+- --allowed-mcp-server-names neuronfs (MCP 연결 허용)
+- --sandbox 사용 금지 (boolean flag trap → sandbox=true로 파싱)
+- stdin pipe로 프롬프트 주입
