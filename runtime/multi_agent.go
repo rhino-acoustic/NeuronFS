@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
 	"fmt"
@@ -108,7 +108,7 @@ func executeGeminiCLI(task AgentTask) AgentResult {
 
 	// Use stdin pipe injection: gemini < prompt.txt (non-interactive)
 	// Also try --yolo/--non-interactive flags if available
-	cmd := exec.Command(geminiPath, "--prompt", task.Prompt, "--yolo")
+	cmd := exec.Command(geminiPath, "--prompt", task.Prompt, "--yolo", "--allowed-mcp-server-names", "none", "--sandbox", "false")
 	if task.WorkDir != "" {
 		cmd.Dir = task.WorkDir
 	}
