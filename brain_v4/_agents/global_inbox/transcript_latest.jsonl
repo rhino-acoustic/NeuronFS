@@ -1,20 +1,20 @@
-    ],
-    _rejectDigits: false,
-    _rejectSubDigits: false,
-    _digitIsSub: false
-  },
-  abort: false
-}
-xterm.js: Parsing error:  {
-  position: 116,
-  code: 65533,
-  currentState: 9,
-  collect: 0,
-  params: s3 {
-    maxLength: 32,
-    maxSubParamsLength: 32,
-    params: Int32Array(32) [
-      0, 5, 9, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0,"}
-{"ts":"2026-04-19T08:21:48Z","role":"USER","text":"\"C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\start.bat\" < 이거 시작하면 그냥 꺼져.."}
+
+정상 동작. 3분 sleep + 5분 heartbeat = 최대 8분 지연 발생 가능 (설계상).
+
+[EVOLVE:proceed]"}
+{"ts":"2026-04-19T08:21:54Z","role":"AI","text":"🟢 정상 가동 중! 3개 프로세스, 오토파일럿 즉시 재발동도 작동:
+
+alternate_email
+content_copy
+08:09:09 — ⚡ [EVOLVE:proceed] 감지 → 즉시 재발동 시그널
+08:09:09 — ⚡ 즉시 재발동 시그널 수신
+08:09:14 — 🚀 Gemini CLI 오토파일럿 발동 (5초 후!)
+
+\"그냥 꺼진다\" 재현 안 됨. 현재:
+
+neuronfs.exe PID 45656 (08:09에 시작, 1분 이상 생존 중)
+오토파일럿 정상 발동
+
+혹시 start.bat 더블클릭 시 cmd 창이 잠깐 열렸다 닫히는 현상이면, hot-reload watcher가 빌드 → reboot → bat의 :loop → 재시작 → 또 변경 감지 → 무한 루프일 수 있음. 다시 돌려보시고 재현되면 알려주세요.
+
+[EVOLVE:proceed]"}
