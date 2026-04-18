@@ -1,20 +1,20 @@
-MCP: neuronfs 연결 성공
-
-CLI 정상 작동 확인. 오토파일럿 → CLI → 응답 → CDP 주입 경로 복원.
-
-[EVOLVE:proceed]"}
-{"ts":"2026-04-19T08:31:10Z","role":"AI","text":"사용자가 극도로 답답해하고 있다. CLI는 검증 완료. 지금 오토파일럿이 실제로 CDP 주입까지 완료되는지 확인하고 즉시 보고해야 함. 오토파일럿 킥 → CLI 실행 → CDP 주입 → 이 채팅창에 프롬프트 도착. 이 전체 흐름이 작동하는지 즉시 확인."}
-{"ts":"2026-04-19T08:31:24Z","role":"USER","text":"오토파일럿 되냐고!!!!!!!!!!!!!!!!!!!!!!!"}
-{"ts":"2026-04-19T08:31:44Z","role":"AI","text":"연쇄 작동 중!
-
-alternate_email
-content_copy
-08:29:43 🚀 autopilot fired
-08:30:51 ⚡ [EVOLVE:proceed] 감지 → 즉시 재발동
-08:30:56 🚀 autopilot fired (2차)
-
-CLI → 응답 → [EVOLVE:proceed] → 재발동 → 연쇄 루프 정상 가동!
-
-하지만 CDP 주입(inject) 로그가 아직 안 보임. 1분 후 확인:"}
-{"ts":"2026-04-19T08:31:58Z","role":"USER","text":"cdp 주입을 왜 기다려 대체 왜 시발 병신아"}
-{"ts":"2026-04-19T08:32:10Z","role":"USER","text":"[telegram → NeuronFS] 여기서 되잖아"}
+  abort: false
+}
+xterm.js: Parsing error:  {
+  position: 133,
+  code: 65533,
+  currentState: 9,
+  collect: 0,
+  params: s3 {
+    maxLength: 32,
+    maxSubParamsLength: 32,
+    params: Int32Array(32) [
+      0, 5, 9, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0
+    ],
+    length: 1,
+    _subParams: Int32Array(32) [
+      12, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0,"}
