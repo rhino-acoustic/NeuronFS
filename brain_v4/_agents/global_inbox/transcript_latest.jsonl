@@ -1,20 +1,20 @@
-수정: c.running=true (외부 실행도 UP으로 인식)
-
-다음 Supervisor 보고에서 🟢 UP antigravity로 바뀔 것.
-
-[EVOLVE:proceed]"}
-{"ts":"2026-04-19T07:41:36Z","role":"USER","text":"[telegram → NeuronFS] 오토파일럿"}
-{"ts":"2026-04-19T07:41:49Z","role":"AI","text":"🟢 오토파일럿 현재 상태:"}
-{"ts":"2026-04-19T07:42:10Z","role":"AI","text":"heartbeat 07:37:18 (5분 전) — 오토파일럿이 방금 heartbeat를 터치했다! 현재 발동 직전 상태:
 
 alternate_email
 content_copy
-오토파일럿 조건:
-├─ [✅] activeConvo (전사 0분 전)
-├─ [✅] auto_evolve 활성
-├─ [❌] heartbeat < 5분 (방금 터치됨 → 다음 사이클 대기)
-└─ [❌] CDP 9222 미연결 → 주입 불가
+타임라인:
+07:43:01 — heartbeat 터치 (EVOLVE:proceed)
+07:46:xx — hlAutoEvolve 체크 → 3분 경과 (< 5분) →"}
+{"ts":"2026-04-19T07:49:33Z","role":"AI","text":"🟢 [07:49:11] [HEARTBEAT] 🚀 Gemini CLI 오토파일럿 발동!
 
-문제: CDP 9222 미연결. Antigravity가 --remote-debugging-port=9222 없이 실행됨. 이게 오토파일럿이 CLI 응답을 IDE에 주입할 수 없는 원인.
+heartbeat 갱신: 07:49:12 (방금!)
 
-Antigravity가 CDP 포트 열고 있는지 확인:"}
+alternate_email
+content_copy
+타임라인:
+07:43:01 — heartbeat 터치 (EVOLVE:proceed)
+07:46:xx — hlAutoEvolve 체크 → 3분 경과 (< 5분) → skip
+07:49:11 — hlAutoEvolve 체크 → 6분 경과 (> 5분) → 🚀 발동!
+
+정상 동작. 3분 sleep + 5분 heartbeat = 최대 8분 지연 발생 가능 (설계상).
+
+[EVOLVE:proceed]"}
