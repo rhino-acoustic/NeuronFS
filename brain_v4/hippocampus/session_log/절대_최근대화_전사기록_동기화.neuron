@@ -2,10 +2,5 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[23:43:32] AI: 여전히 29=29. dormant 파일이 파싱되고 있는지 확인 — brain.go에서 hooks_pattern이 depth 4 (cortex/left/frontend/hooks_pattern)인데 스캔 depth가 맞는지:
-[23:43:56] AI: M-11 실패의 근본 원인: hooks_pattern은 cortex/left/frontend/hooks_pattern으로 depth=3. 뉴런 파일(e.g. 40.neuron)이 그 안에 있음. decay.dormant를 만들면 IsDormant=true가 되고 activeNeurons에서 제외됨.
-[23:43:59] AI: M-11 실패의 근본 원인: hooks_pattern은 cortex/left/frontend/hooks_pattern으로 depth=3. 뉴런 파일(e.g. 40.neuron)이 그 안에 있음. decay.dormant를 만들면 IsDormant=true가 되고 activeNeurons에서 제외됨.
-[23:43:59] AI: 스캔이 동작하는지 직접 확인:
-[23:44:36] AI: 발견! 테스트 brain에서 hooks_pattern은 cortex/left/frontend/hooks_pattern (29개 중 하나). scanBrain이 뉴런 폴더 단위 카운트 → 29개. dormant는 뉴런 폴더 안의 파일이므로 IsDormant=true → activeNeurons에서 제외.
-[23:44:46] AI: 두 곳 함께 수정 — TotalNeurons 비교로:
-[23:45:29] AI: ✅ PASS! 이제 M-11도 확인:
+[23:46:37] AI: 근본 원인 — VFS 캐시 문제인지 확인:
+[23:47:02] AI: 발견! L53: NEURONFS_TEST_ISOLATION=1이 아니면 VFS가 GlobalVFS.ReadDir(vfsRelativize(dir)) 사용 → 상대경로 변환 후 RouterFS가 경로를 잘못 해석 가능.

@@ -15,7 +15,8 @@ func setupTestBrain(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
 
-	// VFS 초기화 (테스트에서는 Upper-only 모드)
+	// VFS 우회: 테스트에서는 OS 직접 접근 (RouterFS 상대경로 문제 방지)
+	os.Setenv("NEURONFS_TEST_ISOLATION", "1")
 	initVFS(dir)
 
 	neuronDirs := []struct {
