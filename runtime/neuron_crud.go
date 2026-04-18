@@ -141,6 +141,7 @@ func growNeuron(brainRoot string, neuronPath string) error {
 
 	// Mark dirty — periodic loop will handle injection
 	InvalidateBrainCache(brainRoot)
+	touchRegion(brainRoot, region)
 	markBrainDirty()
 	return nil
 }
@@ -149,6 +150,10 @@ func growNeuron(brainRoot string, neuronPath string) error {
 // Usage: neuronfs brain_v4 --fire cortex/frontend/coding/no_console_log
 func fireNeuron(brainRoot string, neuronPath string) {
 	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
+
+	// Extract region for incremental scan touching
+	parts := strings.SplitN(neuronPath, string(filepath.Separator), 2)
+	region := parts[0]
 
 	mu := lockNeuronPath(neuronPath)
 	mu.Lock()
@@ -210,6 +215,7 @@ func fireNeuron(brainRoot string, neuronPath string) {
 	hebbianTrack(brainRoot, neuronPath)
 
 	InvalidateBrainCache(brainRoot)
+	touchRegion(brainRoot, region)
 	markBrainDirty()
 }
 
@@ -218,6 +224,11 @@ func fireNeuron(brainRoot string, neuronPath string) {
 // Usage: neuronfs brain_v4 --rollback cortex/frontend/coding/no_console_log
 func rollbackNeuron(brainRoot string, neuronPath string) error {
 	neuronPath = strings.Trim(strings.ReplaceAll(neuronPath, "\\", "/"), "/")
+	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
+
+	// Extract region for incremental scan touching
+	parts := strings.SplitN(neuronPath, string(filepath.Separator), 2)
+	region := parts[0]
 
 	mu := lockNeuronPath(neuronPath)
 	mu.Lock()
@@ -274,6 +285,7 @@ func rollbackNeuron(brainRoot string, neuronPath string) error {
 
 	logEpisode(brainRoot, "ROLLBACK", fmt.Sprintf("%s (%d→%d)", neuronPath, currentCounter, newCounter))
 	InvalidateBrainCache(brainRoot)
+	touchRegion(brainRoot, region)
 	markBrainDirty()
 	return nil
 }
@@ -282,6 +294,10 @@ func rollbackNeuron(brainRoot string, neuronPath string) error {
 // Returns error instead of os.Exit so REST API won't crash
 func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 	neuronPath = strings.ReplaceAll(neuronPath, "/", string(filepath.Separator))
+
+	// Extract region for incremental scan touching
+	parts := strings.SplitN(neuronPath, string(filepath.Separator), 2)
+	region := parts[0]
 
 	mu := lockNeuronPath(neuronPath)
 	mu.Lock()
@@ -342,6 +358,7 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 
 	logEpisode(brainRoot, "SIGNAL:"+sigType, neuronPath)
 	InvalidateBrainCache(brainRoot)
+	touchRegion(brainRoot, region)
 	markBrainDirty()
 	return nil
 }

@@ -17,6 +17,7 @@ package main
 //   (stdlib only — foundational module)
 
 import (
+	"encoding/json"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -78,6 +79,68 @@ type Region struct {
 type Brain struct {
 	Root    string
 	Regions []Region
+}
+
+// ─── Brain Index (Incremental Scan) ───
+type RegionCache struct {
+	Region      Region `json:"region"`
+	MaxModTime  int64  `json:"max_mod_time"` // Latest ModTime within this region
+}
+
+type BrainIndex struct {
+	Root        string                 `json:"root"`
+	LastUpdated int64                  `json:"last_updated"`
+	Regions     map[string]RegionCache `json:"regions"`
+}
+
+func loadBrainIndex(root string) (*BrainIndex, error) {
+	path := filepath.Join(root, FileBrainIndex)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var idx BrainIndex
+	if err := json.Unmarshal(data, &idx); err != nil {
+		return nil, err
+	}
+	return &idx, nil
+}
+
+func saveBrainIndex(root string, brain Brain) error {
+	idx := BrainIndex{
+		Root:        root,
+		LastUpdated: time.Now().UnixNano(),
+		Regions:     make(map[string]RegionCache),
+	}
+	for _, r := range brain.Regions {
+		maxMod := int64(0)
+		for _, n := range r.Neurons {
+			if n.ModTime.UnixNano() > maxMod {
+				maxMod = n.ModTime.UnixNano()
+			}
+		}
+		// If index is being saved, current state IS the most recent
+		idx.Regions[r.Name] = RegionCache{
+			Region:     r,
+			MaxModTime: maxMod,
+		}
+	}
+	data, err := json.MarshalIndent(idx, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(root, FileBrainIndex), data, 0644)
+}
+
+// touchRegion updates the modification time of a region root to signal "dirty"
+// This allows incremental scanBrain to skip unchanged regions by checking folder ModTime.
+func touchRegion(root string, regionName string) {
+	regionPath := filepath.Join(root, regionName)
+	if regionName == "shared" {
+		regionPath = filepath.Join(root, ".neuronfs", "shared")
+	}
+	now := time.Now()
+	_ = os.Chtimes(regionPath, now, now)
 }
 
 // ─── Subsumption Result ───
@@ -171,6 +234,9 @@ func scanBrain(root string) Brain {
 		}
 	}
 
+	// 1. Try Disk Index (Incremental Scan Phase 19)
+	index, _ := loadBrainIndex(root)
+
 	brain := Brain{Root: root}
 
 	regionsToScan := make(map[string]string)
@@ -199,337 +265,353 @@ func scanBrain(root string) Brain {
 		wg.Add(1)
 		go func(name, regionPath string) {
 			defer wg.Done()
+
+			// ━━━ Incremental Check ━━━
+			if index != nil {
+				if cached, ok := index.Regions[name]; ok {
+					info, err := vfsStat(regionPath)
+					// If region folder ModTime <= index's LastUpdated, it's fresh!
+					// (Assuming touchRegion was called during CRUD or vfsStat reflects subtree changes)
+					if err == nil && info.ModTime().UnixNano() <= index.LastUpdated {
+						mu.Lock()
+						brain.Regions = append(brain.Regions, cached.Region)
+						mu.Unlock()
+						return // SKIP SCAN
+					}
+				}
+			}
+
 			priority := regionPriority[name]
 
-		region := Region{
-			Name:     name,
-			Priority: priority,
-			Path:     regionPath,
-		}
-
-		// Scan for .axon files at region root
-		axonFiles, _ := vfsGlob(filepath.Join(regionPath, "*.axon"))
-		for _, af := range axonFiles {
-			content, _ := vfsReadFile(af)
-			target := strings.TrimSpace(string(content))
-			// Remove UTF-8 BOM if present
-			target = strings.TrimPrefix(target, "\xEF\xBB\xBF")
-			target = strings.TrimPrefix(target, "TARGET: ")
-			if target != "" {
-				region.Axons = append(region.Axons, target)
+			region := Region{
+				Name:     name,
+				Priority: priority,
+				Path:     regionPath,
 			}
-		}
 
-		// Scan flat neurons at region root (e.g., brainstem: 禁fallback.1.neuron)
-		// Pattern: NeuronName.Counter.neuron or NeuronName.neuron
-		flatNeuronRegex := regexp.MustCompile(`^(.+)\.(\d+)\.neuron$`)
-		flatNeuronSimple := regexp.MustCompile(`^(.+)\.neuron$`)
-		rootNeuronFiles, _ := vfsGlob(filepath.Join(regionPath, "*.neuron"))
-		neuronMap := make(map[string]*Neuron) // group by neuron name (Path)
-		for _, nf := range rootNeuronFiles {
-			fname := filepath.Base(nf)
-			var neuronName string
-			var counter int
+			// Scan for .axon files at region root
+			axonFiles, _ := vfsGlob(filepath.Join(regionPath, "*.axon"))
+			for _, af := range axonFiles {
+				content, _ := vfsReadFile(af)
+				target := strings.TrimSpace(string(content))
+				// Remove UTF-8 BOM if present
+				target = strings.TrimPrefix(target, "\xEF\xBB\xBF")
+				target = strings.TrimPrefix(target, "TARGET: ")
+				if target != "" {
+					region.Axons = append(region.Axons, target)
+				}
+			}
 
-			if m := flatNeuronRegex.FindStringSubmatch(fname); m != nil {
-				neuronName = m[1]
-				counter, _ = strconv.Atoi(m[2])
-			} else if m := flatNeuronSimple.FindStringSubmatch(fname); m != nil {
-				neuronName = m[1]
-				if neuronName == "bomb" || strings.HasPrefix(neuronName, "dopamine") || strings.HasPrefix(neuronName, "memory") {
+			// Scan flat neurons at region root (e.g., brainstem: 禁fallback.1.neuron)
+			// Pattern: NeuronName.Counter.neuron or NeuronName.neuron
+			flatNeuronRegex := regexp.MustCompile(`^(.+)\.(\d+)\.neuron$`)
+			flatNeuronSimple := regexp.MustCompile(`^(.+)\.neuron$`)
+			rootNeuronFiles, _ := vfsGlob(filepath.Join(regionPath, "*.neuron"))
+			neuronMap := make(map[string]*Neuron) // group by neuron name (Path)
+			for _, nf := range rootNeuronFiles {
+				fname := filepath.Base(nf)
+				var neuronName string
+				var counter int
+
+				if m := flatNeuronRegex.FindStringSubmatch(fname); m != nil {
+					neuronName = m[1]
+					counter, _ = strconv.Atoi(m[2])
+				} else if m := flatNeuronSimple.FindStringSubmatch(fname); m != nil {
+					neuronName = m[1]
+					if neuronName == "bomb" || strings.HasPrefix(neuronName, "dopamine") || strings.HasPrefix(neuronName, "memory") {
+						continue
+					}
+				} else {
 					continue
 				}
-			} else {
-				continue
-			}
 
-			if existing, ok := neuronMap[neuronName]; ok {
-				if counter > existing.Counter {
-					existing.Counter = counter
-				}
-			} else {
-				n := &Neuron{
-					Name:     neuronName,
-					Path:     neuronName,
-					FullPath: filepath.Join(regionPath, neuronName),
-					Depth:    0,
-					Counter:  counter,
-				}
-				if fileInfo, err := vfsStat(nf); err == nil {
-					n.ModTime = fileInfo.ModTime()
+				if existing, ok := neuronMap[neuronName]; ok {
+					if counter > existing.Counter {
+						existing.Counter = counter
+					}
 				} else {
-					n.ModTime = time.Now()
+					n := &Neuron{
+						Name:     neuronName,
+						Path:     neuronName,
+						FullPath: filepath.Join(regionPath, neuronName),
+						Depth:    0,
+						Counter:  counter,
+					}
+					if fileInfo, err := vfsStat(nf); err == nil {
+						n.ModTime = fileInfo.ModTime()
+					} else {
+						n.ModTime = time.Now()
+					}
+					// BirthTime = 폴더 생성 시간 (grow 시점)
+					n.BirthTime = getFolderBirthTime(n.FullPath)
+					if fname == "bomb.neuron" {
+						n.HasBomb = true
+						region.HasBomb = true
+					} else if strings.HasPrefix(fname, "bomb_") {
+						n.HasBomb = true
+					}
+					neuronMap[neuronName] = n
 				}
-				// BirthTime = 폴더 생성 시간 (grow 시점)
-				n.BirthTime = getFolderBirthTime(n.FullPath)
-				if fname == "bomb.neuron" {
-					n.HasBomb = true
-					region.HasBomb = true
-				} else if strings.HasPrefix(fname, "bomb_") {
-					n.HasBomb = true
-				}
-				neuronMap[neuronName] = n
-			}
-		}
-
-		// Walk for neuron folders — Axiom: Folder=Neuron, File=Trace
-		vfsWalkDir(regionPath, func(path string, d fs.DirEntry, err error) error {
-			if err != nil || !d.IsDir() || path == regionPath {
-				return nil
 			}
 
-			baseName := filepath.Base(path)
-			if strings.HasPrefix(baseName, "_") || strings.HasPrefix(baseName, ".") || baseName == "working_memory" {
-				if baseName == "_sandbox" {
+			// Walk for neuron folders — Axiom: Folder=Neuron, File=Trace
+			vfsWalkDir(regionPath, func(path string, d fs.DirEntry, err error) error {
+				if err != nil || !d.IsDir() || path == regionPath {
 					return nil
 				}
-				return filepath.SkipDir
-			}
 
-			// 한자 옵코드 폴더(禁/必/推 등)는 구조 폴더 — 뉴런이 아님
-			// neuronMap에 등록하지 않고 Walk만 계속 (하위 폴더는 등록)
-			if isHanjaFolder(baseName) {
-				return nil // skip registration, continue walking children
-			}
-
-			relPath, _ := filepath.Rel(regionPath, path)
-			depth := strings.Count(relPath, string(filepath.Separator))
-
-			n, exists := neuronMap[relPath]
-			var dModTime time.Time
-			if dInfo, err := d.Info(); err == nil {
-				dModTime = dInfo.ModTime()
-			} else {
-				dModTime = time.Now()
-			}
-
-			if !exists {
-				n = &Neuron{
-					Name:      baseName,
-					Path:      relPath,
-					FullPath:  path,
-					Depth:     depth,
-					ModTime:   dModTime,
-					BirthTime: getFolderBirthTime(path),
+				baseName := filepath.Base(path)
+				if strings.HasPrefix(baseName, "_") || strings.HasPrefix(baseName, ".") || baseName == "working_memory" {
+					if baseName == "_sandbox" {
+						return nil
+					}
+					return filepath.SkipDir
 				}
-				neuronMap[relPath] = n
-			} else {
-				n.FullPath = path
-				n.Depth = depth
-				if dModTime.After(n.ModTime) {
-					n.ModTime = dModTime
-				}
-			}
 
-			entries, _ := vfsReadDir(path)
-			var neuronFiles []string
-			var goalFiles []string
-			var geofenceFiles []string
-			var dormantFiles []string
-
-			for _, e := range entries {
-				if e.IsDir() {
-					continue
+				// 한자 옵코드 폴더(禁/必/推 등)는 구조 폴더 — 뉴런이 아님
+				// neuronMap에 등록하지 않고 Walk만 계속 (하위 폴더는 등록)
+				if isHanjaFolder(baseName) {
+					return nil // skip registration, continue walking children
 				}
-				name := e.Name()
-				fullf := filepath.Join(path, name)
-				
-				if strings.HasSuffix(name, ".neuron") || strings.HasSuffix(name, ".contra") {
-					neuronFiles = append(neuronFiles, fullf)
-				} else if strings.HasSuffix(name, ".goal") {
-					goalFiles = append(goalFiles, fullf)
-				} else if strings.HasSuffix(name, ".geofence") {
-					geofenceFiles = append(geofenceFiles, fullf)
-				} else if strings.HasSuffix(name, ".dormant") {
-					dormantFiles = append(dormantFiles, fullf)
-				}
-			}
 
-			for _, nf := range neuronFiles {
-				fname := filepath.Base(nf)
-				if nfInfo, err := vfsStat(nf); err == nil {
-					if nfInfo.ModTime().After(n.ModTime) {
-						n.ModTime = nfInfo.ModTime()
+				relPath, _ := filepath.Rel(regionPath, path)
+				depth := strings.Count(relPath, string(filepath.Separator))
+
+				n, exists := neuronMap[relPath]
+				var dModTime time.Time
+				if dInfo, err := d.Info(); err == nil {
+					dModTime = dInfo.ModTime()
+				} else {
+					dModTime = time.Now()
+				}
+
+				if !exists {
+					n = &Neuron{
+						Name:      baseName,
+						Path:      relPath,
+						FullPath:  path,
+						Depth:     depth,
+						ModTime:   dModTime,
+						BirthTime: getFolderBirthTime(path),
+					}
+					neuronMap[relPath] = n
+				} else {
+					n.FullPath = path
+					n.Depth = depth
+					if dModTime.After(n.ModTime) {
+						n.ModTime = dModTime
 					}
 				}
 
-				if m := counterRegex.FindStringSubmatch(fname); m != nil {
-					cnt, _ := strconv.Atoi(m[1])
-					if cnt > n.Counter {
-						n.Counter = cnt
+				entries, _ := vfsReadDir(path)
+				var neuronFiles []string
+				var goalFiles []string
+				var geofenceFiles []string
+				var dormantFiles []string
+
+				for _, e := range entries {
+					if e.IsDir() {
+						continue
+					}
+					name := e.Name()
+					fullf := filepath.Join(path, name)
+
+					if strings.HasSuffix(name, ".neuron") || strings.HasSuffix(name, ".contra") {
+						neuronFiles = append(neuronFiles, fullf)
+					} else if strings.HasSuffix(name, ".goal") {
+						goalFiles = append(goalFiles, fullf)
+					} else if strings.HasSuffix(name, ".geofence") {
+						geofenceFiles = append(geofenceFiles, fullf)
+					} else if strings.HasSuffix(name, ".dormant") {
+						dormantFiles = append(dormantFiles, fullf)
 					}
 				}
 
-				if m := dopamineRegex.FindStringSubmatch(fname); m != nil {
-					cnt, _ := strconv.Atoi(m[1])
-					n.Dopamine += cnt
-				}
-
-				if strings.HasSuffix(fname, ".contra") && region.Name != "brainstem" {
-					base := strings.TrimSuffix(fname, ".contra")
-					if cnt, err := strconv.Atoi(base); err == nil && cnt > n.Contra {
-						n.Contra = cnt
-					}
-				}
-
-				if fname == "bomb.neuron" {
-					n.HasBomb = true
-					region.HasBomb = true
-				}
-				if strings.HasPrefix(fname, "memory") {
-					n.HasMemory = true
-				}
-			}
-
-			if len(goalFiles) > 0 {
-				n.HasGoal = true
-				if content, err := vfsReadFile(goalFiles[0]); err == nil && len(content) > 0 {
-					n.GoalText = strings.TrimSpace(string(content))
-				}
-			}
-
-			if len(geofenceFiles) > 0 {
-				if content, err := vfsReadFile(geofenceFiles[0]); err == nil && len(content) > 0 {
-					n.Geofence = strings.TrimSpace(string(content))
-				}
-			}
-
-			if len(dormantFiles) > 0 {
-				n.IsDormant = true
-			}
-
-			return nil
-		})
-
-		// Finalize compute elements and ensure deterministic order
-		var paths []string
-		for path := range neuronMap {
-			paths = append(paths, path)
-		}
-		sort.Strings(paths)
-
-		for _, path := range paths {
-			n := neuronMap[path]
-			n.Intensity = n.Counter - n.Contra + n.Dopamine
-			totalSignals := n.Counter + n.Contra + n.Dopamine
-			if totalSignals > 0 {
-				n.Polarity = float64(n.Counter+n.Dopamine-n.Contra) / float64(totalSignals)
-			} else {
-				n.Polarity = 0.5
-			}
-
-			// ━━━ Natural Language Rule: rule.md → Description (post-Walk) ━━━
-			// Priority: rule.md frontmatter > rule.md first line > .neuron filename > empty
-			if n.Description == "" && n.FullPath != "" {
-				ruleFile := filepath.Join(n.FullPath, "rule.md")
-				if ruleContent, err := vfsReadFile(ruleFile); err == nil {
-					ruleText := strings.TrimSpace(string(ruleContent))
-					inFM := false
-					for _, line := range strings.Split(ruleText, "\n") {
-						line = strings.TrimSpace(line)
-						if line == "---" {
-							inFM = !inFM
-							continue
-						}
-						if inFM {
-							if strings.HasPrefix(line, "description:") {
-								n.Description = strings.TrimSpace(strings.TrimPrefix(line, "description:"))
-							}
-							if strings.HasPrefix(line, "globs:") {
-								n.Globs = strings.TrimSpace(strings.TrimPrefix(line, "globs:"))
-							}
-							if strings.HasPrefix(line, "author:") {
-								n.Author = strings.TrimSpace(strings.TrimPrefix(line, "author:"))
-							}
+				for _, nf := range neuronFiles {
+					fname := filepath.Base(nf)
+					if nfInfo, err := vfsStat(nf); err == nil {
+						if nfInfo.ModTime().After(n.ModTime) {
+							n.ModTime = nfInfo.ModTime()
 						}
 					}
-					// Fallback: first content line
-					if n.Description == "" {
+
+					if m := counterRegex.FindStringSubmatch(fname); m != nil {
+						cnt, _ := strconv.Atoi(m[1])
+						if cnt > n.Counter {
+							n.Counter = cnt
+						}
+					}
+
+					if m := dopamineRegex.FindStringSubmatch(fname); m != nil {
+						cnt, _ := strconv.Atoi(m[1])
+						n.Dopamine += cnt
+					}
+
+					if strings.HasSuffix(fname, ".contra") && region.Name != "brainstem" {
+						base := strings.TrimSuffix(fname, ".contra")
+						if cnt, err := strconv.Atoi(base); err == nil && cnt > n.Contra {
+							n.Contra = cnt
+						}
+					}
+
+					if fname == "bomb.neuron" {
+						n.HasBomb = true
+						region.HasBomb = true
+					}
+					if strings.HasPrefix(fname, "memory") {
+						n.HasMemory = true
+					}
+				}
+
+				if len(goalFiles) > 0 {
+					n.HasGoal = true
+					if content, err := vfsReadFile(goalFiles[0]); err == nil && len(content) > 0 {
+						n.GoalText = strings.TrimSpace(string(content))
+					}
+				}
+
+				if len(geofenceFiles) > 0 {
+					if content, err := vfsReadFile(geofenceFiles[0]); err == nil && len(content) > 0 {
+						n.Geofence = strings.TrimSpace(string(content))
+					}
+				}
+
+				if len(dormantFiles) > 0 {
+					n.IsDormant = true
+				}
+
+				return nil
+			})
+
+			// Finalize compute elements and ensure deterministic order
+			var paths []string
+			for path := range neuronMap {
+				paths = append(paths, path)
+			}
+			sort.Strings(paths)
+
+			for _, path := range paths {
+				n := neuronMap[path]
+				n.Intensity = n.Counter - n.Contra + n.Dopamine
+				totalSignals := n.Counter + n.Contra + n.Dopamine
+				if totalSignals > 0 {
+					n.Polarity = float64(n.Counter+n.Dopamine-n.Contra) / float64(totalSignals)
+				} else {
+					n.Polarity = 0.5
+				}
+
+				// ━━━ Natural Language Rule: rule.md → Description (post-Walk) ━━━
+				// Priority: rule.md frontmatter > rule.md first line > .neuron filename > empty
+				if n.Description == "" && n.FullPath != "" {
+					ruleFile := filepath.Join(n.FullPath, "rule.md")
+					if ruleContent, err := vfsReadFile(ruleFile); err == nil {
+						ruleText := strings.TrimSpace(string(ruleContent))
+						inFM := false
 						for _, line := range strings.Split(ruleText, "\n") {
 							line = strings.TrimSpace(line)
-							if strings.HasPrefix(line, "#") {
-								line = strings.TrimSpace(strings.TrimPrefix(line, "#"))
-								line = strings.TrimSpace(strings.TrimPrefix(line, "#"))
+							if line == "---" {
+								inFM = !inFM
+								continue
 							}
-							if line != "" && line != "---" {
-								runes := []rune(line)
-								if len(runes) > 150 {
-									line = string(runes[:150]) + "..."
+							if inFM {
+								if strings.HasPrefix(line, "description:") {
+									n.Description = strings.TrimSpace(strings.TrimPrefix(line, "description:"))
 								}
-								n.Description = line
-								break
+								if strings.HasPrefix(line, "globs:") {
+									n.Globs = strings.TrimSpace(strings.TrimPrefix(line, "globs:"))
+								}
+								if strings.HasPrefix(line, "author:") {
+									n.Author = strings.TrimSpace(strings.TrimPrefix(line, "author:"))
+								}
+							}
+						}
+						// Fallback: first content line
+						if n.Description == "" {
+							for _, line := range strings.Split(ruleText, "\n") {
+								line = strings.TrimSpace(line)
+								if strings.HasPrefix(line, "#") {
+									line = strings.TrimSpace(strings.TrimPrefix(line, "#"))
+									line = strings.TrimSpace(strings.TrimPrefix(line, "#"))
+								}
+								if line != "" && line != "---" {
+									runes := []rune(line)
+									if len(runes) > 150 {
+										line = string(runes[:150]) + "..."
+									}
+									n.Description = line
+									break
+								}
 							}
 						}
 					}
-				}
-				// Fallback 2: .neuron 파일 본문 첫 줄 또는 파일 이름
-				if n.Description == "" && n.FullPath != "" {
-					entries, _ := os.ReadDir(n.FullPath)
-					for _, e := range entries {
-						if !e.IsDir() && strings.HasSuffix(e.Name(), ".neuron") {
-							// 1) 본문 내용 파싱 시도
-							if content, err := os.ReadFile(filepath.Join(n.FullPath, e.Name())); err == nil {
-								for _, line := range strings.Split(string(content), "\n") {
-									line = strings.TrimSpace(line)
-									// BOM 제어
-									line = strings.TrimPrefix(line, "\xEF\xBB\xBF")
-									// JSON 및 시스템 메타데이터 스킵
-									if strings.HasPrefix(line, "{") || strings.HasPrefix(line, "counter:") || strings.HasPrefix(line, "created:") || strings.HasPrefix(line, "last_fired:") {
-										continue
-									}
-									// Markdown 헤더 기호 제거
-									if strings.HasPrefix(line, "#") {
-										line = strings.TrimSpace(strings.TrimPrefix(line, "#"))
-										line = strings.TrimSpace(strings.TrimPrefix(line, "#")) // ## 지원
-									}
-									if line != "" && line != "---" {
-										runes := []rune(line)
-										if len(runes) > 150 {
-											line = string(runes[:150]) + "..."
+					// Fallback 2: .neuron 파일 본문 첫 줄 또는 파일 이름
+					if n.Description == "" && n.FullPath != "" {
+						entries, _ := os.ReadDir(n.FullPath)
+						for _, e := range entries {
+							if !e.IsDir() && strings.HasSuffix(e.Name(), ".neuron") {
+								// 1) 본문 내용 파싱 시도
+								if content, err := os.ReadFile(filepath.Join(n.FullPath, e.Name())); err == nil {
+									for _, line := range strings.Split(string(content), "\n") {
+										line = strings.TrimSpace(line)
+										// BOM 제어
+										line = strings.TrimPrefix(line, "\xEF\xBB\xBF")
+										// JSON 및 시스템 메타데이터 스킵
+										if strings.HasPrefix(line, "{") || strings.HasPrefix(line, "counter:") || strings.HasPrefix(line, "created:") || strings.HasPrefix(line, "last_fired:") {
+											continue
 										}
-										n.Description = line
-										break
+										// Markdown 헤더 기호 제거
+										if strings.HasPrefix(line, "#") {
+											line = strings.TrimSpace(strings.TrimPrefix(line, "#"))
+											line = strings.TrimSpace(strings.TrimPrefix(line, "#")) // ## 지원
+										}
+										if line != "" && line != "---" {
+											runes := []rune(line)
+											if len(runes) > 150 {
+												line = string(runes[:150]) + "..."
+											}
+											n.Description = line
+											break
+										}
 									}
 								}
-							}
-							
-							// 2) 본문에 없으면 파일 이름 파싱
-							if n.Description == "" {
-								name := strings.TrimSuffix(e.Name(), ".neuron")
-								isReserved := true
-								for _, r := range name {
-									if r < '0' || r > '9' {
-										isReserved = false
-										break
+
+								// 2) 본문에 없으면 파일 이름 파싱
+								if n.Description == "" {
+									name := strings.TrimSuffix(e.Name(), ".neuron")
+									isReserved := true
+									for _, r := range name {
+										if r < '0' || r > '9' {
+											isReserved = false
+											break
+										}
+									}
+									if name == "consolidated" || name == "merged" {
+										isReserved = true
+									}
+									if !isReserved && len(name) > 2 {
+										n.Description = strings.ReplaceAll(name, "_", " ")
 									}
 								}
-								if name == "consolidated" || name == "merged" {
-									isReserved = true
+								if n.Description != "" {
+									break
 								}
-								if !isReserved && len(name) > 2 {
-									n.Description = strings.ReplaceAll(name, "_", " ")
-								}
-							}
-							if n.Description != "" {
-								break
 							}
 						}
 					}
 				}
+
+				// Clean mojibake/encoding issues from description
+				if n.Description != "" && isMojibake(n.Description) {
+					n.Description = ""
+				}
+
+				region.Neurons = append(region.Neurons, *n)
 			}
 
-			// Clean mojibake/encoding issues from description
-			if n.Description != "" && isMojibake(n.Description) {
-				n.Description = ""
-			}
-
-			region.Neurons = append(region.Neurons, *n)
-		}
-
-		mu.Lock()
-		brain.Regions = append(brain.Regions, region)
-		mu.Unlock()
-	}(name, regionPath)
+			mu.Lock()
+			brain.Regions = append(brain.Regions, region)
+			mu.Unlock()
+		}(name, regionPath)
 	}
 
 	wg.Wait()
@@ -543,6 +625,9 @@ func scanBrain(root string) Brain {
 		Brain: brain,
 		Time:  time.Now(),
 	})
+
+	// 2. Save Disk Index
+	saveBrainIndex(root, brain)
 
 	return brain
 }

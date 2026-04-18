@@ -224,6 +224,7 @@ const (
 	FileRules       = "_rules.md"
 	FileIndex       = "_index.md"
 	FileLimbicState = "_state.json"
+	FileBrainIndex  = "brain_index.json"
 	FileCorrections = "corrections.jsonl"
 	FileBomb        = "bomb.neuron"
 	DirSessionLog   = "session_log"
