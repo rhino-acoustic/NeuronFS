@@ -1,6 +1,6 @@
 {
   "root": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "last_updated": 1776516143301531600,
+  "last_updated": 1776517043064790800,
   "regions": {
     "brainstem": {
       "region": {
@@ -790,17 +790,17 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 0,
-            "ModTime": "2026-04-18T19:59:09.537328+09:00",
+            "ModTime": "2026-04-18T21:51:09.2750973+09:00",
             "BirthTime": "2026-04-18T19:21:37.5560263+09:00"
           },
           {
             "Name": "dev",
             "Path": "dev\\dev",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\dev\\dev",
-            "Counter": 3,
+            "Counter": 4,
             "Contra": 0,
             "Dopamine": 0,
-            "Intensity": 3,
+            "Intensity": 4,
             "Polarity": 1,
             "HasBomb": false,
             "HasMemory": false,
@@ -812,7 +812,7 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 1,
-            "ModTime": "2026-04-18T21:28:26.085923+09:00",
+            "ModTime": "2026-04-18T21:41:38.6017982+09:00",
             "BirthTime": "2026-04-18T19:57:39.0690694+09:00"
           },
           {
@@ -5414,6 +5414,28 @@
             "BirthTime": "2026-04-18T19:57:39.6096205+09:00"
           },
           {
+            "Name": "e2e_test",
+            "Path": "dev\\e2e_test",
+            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\dev\\e2e_test",
+            "Counter": 2,
+            "Contra": 0,
+            "Dopamine": 0,
+            "Intensity": 2,
+            "Polarity": 1,
+            "HasBomb": false,
+            "HasMemory": false,
+            "HasGoal": false,
+            "GoalText": "",
+            "Geofence": "",
+            "Description": "",
+            "Globs": "",
+            "Author": "",
+            "IsDormant": false,
+            "Depth": 1,
+            "ModTime": "2026-04-18T21:51:09.322775+09:00",
+            "BirthTime": "2026-04-18T21:51:09.2750973+09:00"
+          },
+          {
             "Name": "frontend",
             "Path": "frontend",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\frontend",
@@ -5483,10 +5505,10 @@
             "Name": "methodology",
             "Path": "methodology\\methodology",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\methodology\\methodology",
-            "Counter": 3,
+            "Counter": 4,
             "Contra": 0,
             "Dopamine": 0,
-            "Intensity": 3,
+            "Intensity": 4,
             "Polarity": 1,
             "HasBomb": false,
             "HasMemory": false,
@@ -5498,7 +5520,7 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 1,
-            "ModTime": "2026-04-18T21:28:26.339534+09:00",
+            "ModTime": "2026-04-18T21:41:38.909844+09:00",
             "BirthTime": "2026-04-18T19:57:39.6189632+09:00"
           },
           {
@@ -8277,7 +8299,7 @@
         "Axons": null,
         "HasBomb": false
       },
-      "max_mod_time": 1776515306339534000
+      "max_mod_time": 1776516669322775000
     },
     "ego": {
       "region": {

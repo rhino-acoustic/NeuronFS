@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-18T21:41:48 | Neurons: 394/394 | Activation: 6
+Generated: 2026-04-18T21:57:17 | Neurons: 395/395 | Activation: 10
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
@@ -9,19 +9,19 @@ Generated: 2026-04-18T21:41:48 | Neurons: 394/394 | Activation: 6
 - 🎭 ego → 🧠 cortex
 
 ## 🏆 TOP 10 뉴런
-1. 🧠 **dev > dev** (3)
-2. 🧠 **methodology > methodology** (3)
-3. 🛡️ **반드시 > EVOLVE proceed 강제** (0)
-4. 🛡️ **반드시 > NeuronFS 공리** (0)
-5. 🛡️ **반드시 > bat재시작** (0)
-6. 🛡️ **반드시 > 커뮤니티검색필수: 세션시작** (0)
-7. 🛡️ **반드시 > 반드시 누락자문** (0)
-8. 🛡️ **반드시 > 반드시 빌드경로 SSOT** (0)
-9. 🛡️ **반드시 > 코드맵 참조생성갱신** (0)
-10. 🛡️ **절대 금지: > MCP연결실패무시** (0)
+1. 🧠 **dev > dev** (4)
+2. 🧠 **methodology > methodology** (4)
+3. 🧠 **dev > e2e test** (2)
+4. 🛡️ **반드시 > EVOLVE proceed 강제** (0)
+5. 🛡️ **반드시 > NeuronFS 공리** (0)
+6. 🛡️ **반드시 > bat재시작** (0)
+7. 🛡️ **반드시 > 커뮤니티검색필수: 세션시작** (0)
+8. 🛡️ **반드시 > 반드시 누락자문** (0)
+9. 🛡️ **반드시 > 반드시 빌드경로 SSOT** (0)
+10. 🛡️ **반드시 > 코드맵 참조생성갱신** (0)
 
 <details>
-<summary>🆕 신규 (probation) — 394 neurons (7d window)</summary>
+<summary>🆕 신규 (probation) — 395 neurons (7d window)</summary>
 
 ### 🛡️ brainstem (30)
 - **반드시 > EVOLVE proceed 강제** (0) — 7d남음
@@ -75,9 +75,10 @@ Generated: 2026-04-18T21:41:48 | Neurons: 394/394 | Activation: 6
 ### 👁️ sensors (0)
 (없음)
 
-### 🧠 cortex (339)
-- **dev > dev** (3) — 7d남음
-- **methodology > methodology** (3) — 7d남음
+### 🧠 cortex (340)
+- **dev > dev** (4) — 7d남음
+- **methodology > methodology** (4) — 7d남음
+- **dev > e2e test** (2) — 7d남음
 - **architecture** (0) — 7d남음
 - **backend** (0) — 3d남음
 - **community** (0) — 3d남음
@@ -446,7 +447,7 @@ Generated: 2026-04-18T21:41:48 | Neurons: 394/394 | Activation: 6
 | 💓 limbic — 감정 필터 | 3 | 0 | `limbic/_rules.md` |
 | 📝 hippocampus — 기록/기억 | 10 | 0 | `hippocampus/_rules.md` |
 | 👁️ sensors — 환경 제약 | 0 | 0 | `sensors/_rules.md` |
-| 🧠 cortex — 지식/기술 | 339 | 6 | `cortex/_rules.md` |
+| 🧠 cortex — 지식/기술 | 340 | 10 | `cortex/_rules.md` |
 | 🎭 ego — 성향/톤 | 12 | 0 | `ego/_rules.md` |
 | 🎯 prefrontal — 목표/계획 | 0 | 0 | `prefrontal/_rules.md` |
 | 🔗 shared — 공유 지식 | 0 | 0 | `shared/_rules.md` |

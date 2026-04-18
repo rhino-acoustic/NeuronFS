@@ -1,20 +1,20 @@
+감사 결론
 
-MCP 서버 포트 9091이 연결 거부! NeuronFS가 재시작된 직후라 MCP 서버가 아직 안 올라왔거나, MCP HTTP 서버가 9091에서 안 돌고 있음.
+11 PASS / 1 WARN / 1 FAIL (telegram 미설정)
 
-또한 xterm.js parsing error — 이건 CDP 인젝션 시 특수 문자/이스케이프 시퀀스 문제."}
-{"ts":"2026-04-18T21:41:24Z","role":"AI","text":"핵심 에러:
+핵심 엔진(뇌, emit, 크론, 전사, 오토파일럿)은 실구동 검증 완료. telegram만 토큰 미설정이며 핵심 기능에 영향 없음."}
+{"ts":"2026-04-18T21:55:43Z","role":"AI","text":"사용자가 원하는 것: 빠진 기능만 감사. \"분명 있다고 판단하고\" — 코드에 선언된 기능인데 실제로 안 돌아가는 것들을 찾아라.
 
-alternate_email
-content_copy
-[MCP error] Error during discovery for MCP server 'neuronfs': fetch failed
-connect ECONNREFUSED 127.0.0.1:9091
+접근:
 
-MCP 서버 포트 9091이 연결 거부! NeuronFS가 재시작된 직후라 MCP 서버가 아직 안 올라왔거나, MCP HTTP 서버가 9091에서 안 돌고 있음.
+PROVIDES 헤더에 선언된 함수가 실제로 호출되는지
+supervisor.go에서 시작한 goroutine이 실제로 돌고 있는지
+API 엔드포인트가 등록되었지만 응답 안 하는 것"}
+{"ts":"2026-04-18T21:55:47Z","role":"AI","text":"🟢 빠진 기능만 감사 — 코드에 있지만 안 도는 것:"}
+{"ts":"2026-04-18T21:55:53Z","role":"USER","text":"텔레그램 브릿지는 지금 잘되고 있는데 텔레그램과 문제가 뭐야"}
+{"ts":"2026-04-18T21:56:42Z","role":"AI","text":"사용자가 말하길 텔레그램 브릿지는 잘 되고 있다고. 그"}
+{"ts":"2026-04-18T21:56:45Z","role":"AI","text":"사용자가 말하길 텔레그램 브릿지는 잘 되고 있다고. 그러면 health API에서 no_token으로 나오는 건 코드 문제. 텔레그램이 실제로는 동작하는데 health 체크가 잘못 보고하는 것. 이것도 빠진 기능의 일부.
 
-또한 xterm.js parsing error — 이건 CDP 인젝션 시 특수 문자/이스케이프 시퀀스 문제.
-
-지금 9091 포트가 실제로 열려있는지 확인해봐야겠다."}
-{"ts":"2026-04-18T21:41:24Z","role":"AI","text":"🟢 MCP 포트 9091 연결 거부! 즉시 확인:"}
-{"ts":"2026-04-18T21:41:43Z","role":"AI","text":"9091 DEAD! MCP Streamable HTTP 서버가 안 돌고 있음. supervisor.go에서 MCP 시작 코드 확인:"}
-{"ts":"2026-04-18T21:42:10Z","role":"AI","text":"MCPStreamPort = 9247 — MCP 서버가 9247에서 돌고 있는데, .gemini/settings.json은 9091로 설정됨!"}
-{"ts":"2026-04-18T21:42:22Z","role":"AI","text":"9247 ALIVE + MCP 응답! .gemini/settings.json의 포트가 잘못됨:"}
+결과를 기다리면서 텔레그램 상태 확인."}
+{"ts":"2026-04-18T21:56:45Z","role":"AI","text":"🟢 텔레그램이 실제 동작하는데 health가 no_token으로 잘못 보고 — 확인:"}
+{"ts":"2026-04-18T21:57:22Z","role":"AI","text":"API 엔드포인트 테스트가 멈춤 — 타임아웃 중. 별도 실행:"}
