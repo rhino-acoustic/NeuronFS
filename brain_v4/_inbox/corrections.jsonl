@@ -1,0 +1,1 @@
+﻿{"ts":"2026-04-19T08:29:41","type":"correction","msg":"DO NOT modify multi_agent.go executeGeminiCLI - stdin injection is the verified working method. Never change to -p flag.","severity":"critical"}
