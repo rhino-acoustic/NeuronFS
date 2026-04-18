@@ -74,6 +74,7 @@ func startAPI(brainRoot string, port int) {
 	// go startP2PSyncDaemon(brainRoot) // <--- Replaced by explicit Phase 60 NeuronFS --sync command
 	go startDreamCycleDaemon(brainRoot) // <--- Phase 41: V10 Dream Cycle
 	go func() { BuildSimilarityIndex(brainRoot) }() // <--- Phase 44: V11 TF-IDF Index
+	go runTranscriptCategorizer(brainRoot) // <--- 전사 자동 카테고리 분류 (1시간 주기, Gemini CLI 위임)
 
 	fmt.Printf("  🔄 IDLE ENGINE: auto evolve/snapshot/NAS every %dm idle\n", idleThresholdMinutes)
 
