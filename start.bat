@@ -10,7 +10,6 @@ if exist "%NFSROOT%\.secrets\anthropic_api_key" set /p ANTHROPIC_API_KEY=<"%NFSR
 
 echo [NeuronFS] Cleaning up previous processes...
 taskkill /F /IM neuronfs.exe >nul 2>&1
-taskkill /FI "WINDOWTITLE eq NeuronFS_Supervisor*" /F >nul 2>&1
 timeout /t 2 /nobreak >nul
 
 tasklist /FI "IMAGENAME eq neuronfs.exe" 2>NUL | find /I "neuronfs.exe" >NUL
