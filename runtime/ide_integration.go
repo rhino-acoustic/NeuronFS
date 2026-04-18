@@ -38,14 +38,8 @@ func findAntigravity() string {
 	return ""
 }
 
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
-}
-
-func svLog(msg string) {
-	fmt.Printf("[%s] %s\n", time.Now().Format("15:04:05"), msg)
-}
+// ide_integration.go의 main/fileExists/svLog는 main.go에서 제공
+// 아래 독립 진입점 제거 (main.go에 통합됨)
 
 func svChatHistoryGuard() {
 	appdata := os.Getenv("APPDATA")
@@ -146,9 +140,4 @@ else:
 	} else {
 		svLog("🚨 [ChatGuard] 복원 실패")
 	}
-}
-
-func main() {
-	// 통합 바이너리 진입점 (필요 시 확장)
-	fmt.Println("NeuronFS IDE Integration Service")
 }

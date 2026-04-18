@@ -1,5 +1,5 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\transcript_categorizer.go
-updated: 2026-04-18T19:21:38
+updated: 2026-04-18T20:26:48
 # transcript_categorizer.go
 dir: runtime
 
@@ -40,11 +40,21 @@ using Gemini CLI for content analysis and classification.
 이미 분류된 파일인지 체크 (.categorized.json 마커)
 첫 3000자만 추출 (토큰 절약)
 3. 카테고리 목록과 함께 Gemini CLI에 분류 요청
+GEMINI.md 규칙 간섭 방지: NeuronFS 외부에서 CLI 실행
 4. JSON 파싱
 5. 전사분석 뉴런 생성
 날짜+제목으로 디렉토리 생성
 마커 기록
 JSON 블록 추출 (```json ... ``` 또는 { ... })
+1차: 정상 JSON 시도
+2차: relaxed — 따옴표 없는 키/값 보정 (LLM이 {key:value} 형태로 출력 시)
+fixRelaxedJSON은 {key:"value"} 또는 {key:value} 를 {"key":"value"}로 보정
+키에 따옴표 추가: category: → "category":
+bare key 패턴: {key: or ,key:
+간단한 regex 대체: `키:` → `"키":`  (JSON 키 보정)
+{category: → {"category":
+값이 따옴표 없는 경우: :"value" 는 OK, :value 는 "value"로
+이미 키를 보정했으니 JSON이 될 확률이 높아짐
 NeuronFS_2026-04-18_08h.txt → 4월18일
 디렉토리명으로 사용 불가한 문자 제거
 ──────────────────────────────────────────────────────────

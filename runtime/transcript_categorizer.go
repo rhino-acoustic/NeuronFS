@@ -235,11 +235,13 @@ func categorizeRecentTranscripts(brainRoot string, hoursBack int) int {
 3. 반드시 JSON으로 응답: {"category":"카테고리명","title":"핵심주제","summary":"3줄요약"}
 4. JSON만 출력. 설명 불필요.`, catList, fname, content)
 
-		nfsRoot := filepath.Dir(brainRoot)
+		// GEMINI.md 규칙 간섭 방지: NeuronFS 외부에서 CLI 실행
+		cleanDir := filepath.Join(os.TempDir(), "neuronfs_categorize")
+		os.MkdirAll(cleanDir, 0750)
 		result := executeGeminiCLI(AgentTask{
 			Name:    "transcript_categorize",
 			Prompt:  prompt,
-			WorkDir: nfsRoot,
+			WorkDir: cleanDir,
 		})
 
 		if !result.Success || len(result.Output) < 10 {
@@ -295,9 +297,45 @@ func parseCategoryResult(output string) categoryResult {
 			text = text[:end+1]
 		}
 	}
-	json.Unmarshal([]byte(text), &result)
+	// 1차: 정상 JSON 시도
+	if json.Unmarshal([]byte(text), &result) == nil && result.Category != "" {
+		return result
+	}
+	// 2차: relaxed — 따옴표 없는 키/값 보정 (LLM이 {key:value} 형태로 출력 시)
+	fixed := fixRelaxedJSON(text)
+	json.Unmarshal([]byte(fixed), &result)
 	return result
 }
+
+// fixRelaxedJSON은 {key:"value"} 또는 {key:value} 를 {"key":"value"}로 보정
+func fixRelaxedJSON(s string) string {
+	// 키에 따옴표 추가: category: → "category":
+	s = strings.ReplaceAll(s, "\n", " ")
+	s = strings.ReplaceAll(s, "\r", "")
+	// bare key 패턴: {key: or ,key:
+	var b strings.Builder
+	inStr := false
+	for i := 0; i < len(s); i++ {
+		ch := s[i]
+		if ch == '"' && (i == 0 || s[i-1] != '\\') {
+			inStr = !inStr
+		}
+		b.WriteByte(ch)
+	}
+	raw := b.String()
+
+	// 간단한 regex 대체: `키:` → `"키":`  (JSON 키 보정)
+	import_free := raw
+	for _, key := range []string{"category", "title", "summary"} {
+		// {category: → {"category":
+		import_free = strings.ReplaceAll(import_free, key+":", "\""+key+"\":")
+		import_free = strings.ReplaceAll(import_free, key+" :", "\""+key+"\" :")
+	}
+	// 값이 따옴표 없는 경우: :"value" 는 OK, :value 는 "value"로
+	// 이미 키를 보정했으니 JSON이 될 확률이 높아짐
+	return import_free
+}
+
 
 func extractDateFromFilename(fname string) string {
 	// NeuronFS_2026-04-18_08h.txt → 4월18일

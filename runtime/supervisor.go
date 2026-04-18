@@ -595,7 +595,13 @@ func svCrashAlert(c *ChildSpec) {
 
 // svPatchAntigravityShortcuts — Antigravity 바로가기에 CDP 플래그 자동 주입
 // 시작 메뉴 + 작업표시줄 + 데스크탑의 .lnk를 모두 찾아 --remote-debugging-port=9000 추가
+func svPatchAntigravityShortcuts() {
+	// TODO: .lnk 패치 구현
+}
 
+func svRestoreConversation(nfsRoot, brainRoot string) {
+	// TODO: 재시작 후 대화 복귀 구현
+}
 // ── MCP Goroutine Supervisor (panic recovery + auto-restart) ──
 var (
 	mcpBrainRoot string
