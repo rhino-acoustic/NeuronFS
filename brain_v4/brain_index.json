@@ -1,6 +1,6 @@
 {
   "root": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "last_updated": 1776524508378142200,
+  "last_updated": 1776527926554541300,
   "regions": {
     "brainstem": {
       "region": {
@@ -8586,6 +8586,28 @@
         "Path": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus",
         "Neurons": [
           {
+            "Name": "audit_trail",
+            "Path": "audit_trail",
+            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\audit_trail",
+            "Counter": 0,
+            "Contra": 0,
+            "Dopamine": 0,
+            "Intensity": 0,
+            "Polarity": 0.5,
+            "HasBomb": false,
+            "HasMemory": false,
+            "HasGoal": false,
+            "GoalText": "",
+            "Geofence": "",
+            "Description": "",
+            "Globs": "",
+            "Author": "",
+            "IsDormant": false,
+            "Depth": 0,
+            "ModTime": "2026-04-19T00:28:46.0441481+09:00",
+            "BirthTime": "2026-04-19T00:28:46.0436316+09:00"
+          },
+          {
             "Name": "episodes",
             "Path": "episodes",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\hippocampus\\episodes",
@@ -8643,12 +8665,12 @@
             "HasGoal": false,
             "GoalText": "",
             "Geofence": "",
-            "Description": "2026-04-18T22:42:58 | BOOT | NeuronFS Supervisor 부팅 (PID 50724)",
+            "Description": "2026-04-18T23:31:43 | BOOT | NeuronFS Supervisor 부팅 (PID 19304)",
             "Globs": "",
             "Author": "",
             "IsDormant": false,
             "Depth": 0,
-            "ModTime": "2026-04-18T23:13:51.2452237+09:00",
+            "ModTime": "2026-04-19T00:05:01.851879+09:00",
             "BirthTime": "2026-04-18T19:24:57.3234206+09:00"
           },
           {
@@ -8853,7 +8875,7 @@
         "Axons": null,
         "HasBomb": false
       },
-      "max_mod_time": 1776521631245223700
+      "max_mod_time": 1776526126044148100
     },
     "limbic": {
       "region": {
