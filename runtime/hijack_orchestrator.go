@@ -280,17 +280,21 @@ func hlAutoEvolve(brainRoot string) {
 				})
 
 				if result.Success && len(result.Output) > 10 {
-					// Gemini CLI 응답을 CDP로 이 Antigravity 창에 주입
 					response := result.Output
 					if len([]rune(response)) > 2000 {
 						response = string([]rune(response)[:2000])
 					}
-					fmt.Println("[AUTOPILOT] ✅ Gemini CLI 응답 → CDP 주입")
-					hlCDPInjectSync(hlTgMountedRoom, response)
+					fmt.Println("[AUTOPILOT] ✅ Gemini CLI 응답 수신")
+					// 텔레그램→IDE 경유 주입 (CDP 대신 — Antigravity에 CDP 포트 없음)
+					hlTgSend(hlTgChatID, response)
 				} else {
-					// Gemini CLI 실패 시 최소 트리거로 fallback
-					fmt.Printf("[AUTOPILOT] ⚠️ Gemini CLI 실패: %s — fallback 트리거\n", result.Output[:min(len(result.Output), 100)])
-					hlCDPInjectSync(hlTgMountedRoom, minimalTrigger)
+					outputSnip := ""
+					if len(result.Output) > 100 {
+						outputSnip = result.Output[:100]
+					} else {
+						outputSnip = result.Output
+					}
+					fmt.Printf("[AUTOPILOT] ⚠️ Gemini CLI 실패: %s\n", outputSnip)
 				}
 			}()
 
