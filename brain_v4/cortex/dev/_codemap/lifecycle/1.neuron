@@ -1,11 +1,69 @@
-﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\lifecycle.go
-updated: 2026-04-18T20:37:40
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\lifecycle.go
+updated: 2026-04-18T22:36:44
 # lifecycle.go
 dir: runtime
-lines: 542
 
 ## PROVIDES
 RunTTLDecay, deduplicateNeurons, logEpisode, runVacuum, softClear
+pruneWeakNeurons, runDecay, logEpisode, deduplicateNeurons
 
 ## DEPENDS ON
-//   similarity.go   → hybridSimilarity(), tokenize(), extractPrefix()
+similarity.go   → hybridSimilarity(), tokenize(), extractPrefix()
+main.go         → scanBrain(), writeAllTiers(), markBrainDirty()
+main.go         → counterRegex, regionPriority (package vars)
+pruneWeakNeurons marks 推-prefix neurons with activation ≤1 and 7+ days inactive as dormant.
+신규 뉴런 보호(Infant Immunity): 생성 후 7일은 prune 면제.
+7일 내 counter≥2 → 졸업(permanent). counter=1 + 7일 경과 → dormant.
+이미 dormant면 스킵
+카운터 + 최신 수정 시간 확인
+7일 보호 기간 내: 스킵 (Infant Immunity)
+7일 경과 후 counter≥2 → 졸업 (로그만)
+활성 ≤1 AND 7일+ 미사용 → dormant
+runDecay moves neurons untouched for N days to dormant state
+Usage: neuronfs brain_v4 --decay 30
+brainstem 제외: P0 거버넌스 규칙(禁/必)은 영구 — decay 대상이 아님
+禁/必 경로 내의 뉴런은 거버넌스 → decay 면제
+경로 전체를 검사 (cortex/禁/하드코딩 → 하위도 면제)
+Check if this is a neuron folder (has .neuron files)
+Skip if already dormant
+Find the most recent .neuron file modification time
+Mark as dormant
+logEpisode records an event in hippocampus/session_log
+Circular buffer: keeps only the most recent MaxEpisodes episodes
+(MaxEpisodes defined in governance_consts.go)
+logEpisode writes an event log to the hippocampus memory store.
+memRegex: brain.go package-level var
+Collect all memory files with their numbers
+Sort by number ascending
+Evict oldest if at limit
+Find next number
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+deduplicateNeurons scans brain for semantically similar neuron folders
+and merges them: cross-region comparison enabled, P-priority survivor selection
+Uses hybrid similarity (Cosine Bigram 60% + Levenshtein 40%, >= MergeThreshold) on folder names
+Generates axon files at victim location to maintain neural pathways
+Collect all active leaf neurons (brainstem 포함!)
+Compare all pairs (O(n²))
+거버넌스 보호: 禁/必 경로 하위 뉴런은 dedup 대상에서 제외
+(1) leaf 이름의 접두어 극성 보호 (禁X vs 推X)
+(2) 경로에 禁/必가 포함된 뉴런 → governance, dedup 면제
+유사도 MergeThreshold 이상 — 병합 대상
+생존자 선택 로직:
+1. 교차 영역: P가 낮은(=강한) 쪽이 생존
+2. 같은 영역: depth 깊거나 counter 높은 쪽
+P가 낮은 쪽 생존 (brainstem P0 > ego P5)
+같은 영역: depth/counter 비교
+카운터 합산 + 보너스 (+1)
+생존자 카운터 갱신
+victim의 dopamine/memory 시그널을 생존자로 이동
+교차 영역: victim 부모에 axon 파일 생성 (연결 보존)
+victim 폴더 격리 (삭제 대신)
+Find closing "---" via index search — immune to CRLF byte offset drift
+Find first "---" line end
+Find closing "---" after the first line
+Parse fields from frontmatter block
+Clamp endIdx to content length (absolute safety)
+RunTTLDecay degrades synaptic weight of neurons
+brainstem(P0) 영구 제외 — 거버넌스 규칙은 decay 대상이 아님
+Safety: clamp endIdx to content bounds
+

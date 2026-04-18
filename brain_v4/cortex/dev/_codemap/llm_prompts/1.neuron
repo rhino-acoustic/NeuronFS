@@ -1,5 +1,5 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\llm_prompts.go
-updated: 2026-04-18T20:52:04
+updated: 2026-04-18T22:36:44
 # llm_prompts.go
 dir: runtime
 
@@ -14,6 +14,7 @@ Rune-based truncation to prevent UTF-8 mid-character split
 ─── Context Extraction ───
 Collect hippocampus episode logs
 1. 기존 메모리 로그 수집
+memRegex: brain.go package-level var
 2. 신규 JSON Signal 수집 (Neuro-Lifecycle)
 3. Growth trajectory (최근 10개 — 궤적 학습)
 4. Hebbian co-activation (최근 20개 — 동시 발화 패턴)
