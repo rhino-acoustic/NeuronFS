@@ -93,7 +93,10 @@ func runHealthReport(brainRoot, nfsRoot string) {
 	out, err := exec.Command("git", "-C", nfsRoot, "ls-files", "brain_v4/").Output()
 	gitTracked := 0
 	if err == nil {
-		gitTracked = len(strings.Split(strings.TrimSpace(string(out)), "\n"))
+		s := strings.TrimSpace(string(out))
+		if s != "" {
+			gitTracked = len(strings.Split(s, "\n"))
+		}
 	}
 	if gitTracked < 100 {
 		checks = append(checks, fmt.Sprintf("❌ GIT: brain_v4 %d files tracked (위험!)", gitTracked))
@@ -106,7 +109,11 @@ func runHealthReport(brainRoot, nfsRoot string) {
 	corrPath := filepath.Join(brainRoot, "_inbox", "corrections.jsonl")
 	if fileExists(corrPath) {
 		data, _ := os.ReadFile(corrPath)
-		lines := len(strings.Split(strings.TrimSpace(string(data)), "\n"))
+		s := strings.TrimSpace(string(data))
+		lines := 0
+		if s != "" {
+			lines = len(strings.Split(s, "\n"))
+		}
 		checks = append(checks, fmt.Sprintf("✅ SELF-HEAL: %d corrections", lines))
 	}
 

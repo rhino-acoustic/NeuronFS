@@ -219,8 +219,12 @@ func TestSmoke_SelfHealing(t *testing.T) {
 	}
 
 	data, _ := os.ReadFile(corrPath)
-	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
-	t.Logf("✅ SELF-HEAL: corrections.jsonl %d건", len(lines))
+	content := strings.TrimSpace(string(data))
+	count := 0
+	if content != "" {
+		count = len(strings.Split(content, "\n"))
+	}
+	t.Logf("✅ SELF-HEAL: corrections.jsonl %d건", count)
 }
 
 // ── 8. hippocampus 기억 ──
