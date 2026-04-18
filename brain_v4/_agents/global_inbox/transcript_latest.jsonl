@@ -1,20 +1,20 @@
+{"ts":"2026-04-18T23:27:25Z","role":"AI","text":"🟢 시스템 플로우 교차 검증 시작 — 단계별 세분화:"}
+{"ts":"2026-04-18T23:28:01Z","role":"AI","text":"이제 전체 모듈 시작 체인 확인 + 텔레그램 플로우:"}
+{"ts":"2026-04-18T23:28:44Z","role":"AI","text":"코드맵 뉴런과 실제 코드의 교차 검증 + axon 무결성 검증:"}
+{"ts":"2026-04-18T23:28:47Z","role":"AI","text":"🟢 코드맵 ↔ 실제 코드 교차 검증 + axon 무결성:"}
+{"ts":"2026-04-18T23:29:03Z","role":"AI","text":"✅ 코드맵 152개 전부 일치! 이제 axon + 뉴런 무결성:"}
+{"ts":"2026-04-18T23:29:19Z","role":"AI","text":"🔴 끊긴 axon 2개 발견! 타겟 폴더가 존재하지 않음:"}
+{"ts":"2026-04-18T23:29:31Z","role":"AI","text":"🔴 4가지 문제:
 
-_tg_1776522348643.md (23:25:48) — 새 파일은 _tg_ prefix로 저장됨
-미처리 파일 0건 — agent_bridge가 _ prefix를 스킵하여 중복 처리 없음
-bridge.log — 이전 tg_1776522109321.md는 한 번만 처리(✅ injected)
+cortex/dev/dev/ — 중첩 폴더 (NeuronFS 규칙 위반: 6단계 초과는 아니지만 /dev/dev/은 의미 없음)
+cortex/methodology/methodology/ — 같은 중첩
+connect_hippocampus.axon target=에러_패턴 — 존재하지 않는 타겟
+connect_brainstem.axon target=推전수검증 — 존재하지 않는 타겟"}
+{"ts":"2026-04-18T23:29:47Z","role":"AI","text":"주요 발견:
 
-방금 보낸 \"테스트\" 메시지가 _tg_1776522348643.md로 저장되었고, agent_bridge가 재처리하지 않음. 중복 주입 문제 해결됨.
+cortex/dev/dev/ 와 cortex/methodology/methodology/ — 중첩 폴더 ⚠️ (자동 생성 잔해)
+끊긴 axon 2개 — 타겟 없음
+supervisor 체인 ✅ — hlLoadTelegram 4곳, hlStartCDPWorker 2곳에서 호출
 
-텔레그램에서 한 번 더 보내서 메시지가 하나만 도착하는지 확인해보세요.
-
-[EVOLVE:proceed]"}
-{"ts":"2026-04-18T23:26:33Z","role":"AI","text":"사용자가 말하는 것: 텔레그램 메시지에 [telegram → NeuronFS] 태그가 붙어서 가야 하는데, 지금은 태그 없이 원본 텍스트만 CDP에 주입됨.
-
-현재 경로:
-
-telegram_bridge L600: go hlCDPInject(targetRoom, cdpPayload) — 원본 텍스트 (태그 없음)
-
-inbox에 _tg_ prefix로 저장 → agent_bridge 스킵
-
-해결책"}
-{"ts":"2026-04-18T23:26:36Z","role":"AI","text":"🟢 맞다 — CDP 주입 시 [telegram → NeuronFS] 태그 추가:"}
+끊긴 axon 제거:"}
+{"ts":"2026-04-18T23:29:59Z","role":"AI","text":"dev/dev axon은 TARGET: brainstem/hippocampus — 유효한 타겟. 이건 중첩 폴더 구조만 정리하면 됨. 이제 PROVIDES/DEPENDS ON 체인 검증:"}
