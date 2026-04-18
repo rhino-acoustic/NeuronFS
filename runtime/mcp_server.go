@@ -26,7 +26,32 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/rhino-acoustic/NeuronFS/runtime/internal/cache"
 )
+
+var (
+	// globalCache is the singleton instance for brain-related caches.
+	globalCache        *cache.MemoryCache
+	globalCacheWatcher *cache.Watcher
+	cacheOnce          sync.Once
+)
+
+// initCache ensures the caching system is initialized once.
+func initCache(brainRoot string) {
+	cacheOnce.Do(func() {
+		globalCache = cache.NewMemoryCache()
+		watcher, err := cache.NewWatcher(brainRoot, globalCache)
+		if err != nil {
+			log.Printf("Failed to initialize cache watcher: %v", err)
+			return
+		}
+		if err := watcher.Start(); err != nil {
+			log.Printf("Failed to start cache watcher: %v", err)
+			return
+		}
+		globalCacheWatcher = watcher
+	})
+}
 
 // activeMCPServers tracks live MCP server instances for resource update notifications.
 // When brain changes, we notify all active servers so IDE re-reads neuronfs://rules/current.
@@ -67,6 +92,7 @@ func startMCPServer(brainRoot string) {
 // This is used in --mcp mode where os.Stdout is redirected to stderr to prevent
 // fmt.Print* from polluting the JSON-RPC channel.
 func startMCPServerWithStdout(brainRoot string, stdout *os.File) {
+	initCache(brainRoot)
 	server := mcp.NewServer(
 		&mcp.Implementation{
 			Name:    "neuronfs",
@@ -180,17 +206,12 @@ func mcpWithRules(brainRoot string, text string) *mcp.CallToolResult {
 	}
 }
 
-// buildP0Reminder generates a compact P0 rules string from brainstem 禁 neurons.
-// Cached for 60 seconds to avoid scanning on every tool call.
-var (
-	cachedP0     string
-	cachedP0Time time.Time
-)
-
 func buildP0Reminder(brainRoot string) string {
-	// Cache for 60 seconds
-	if time.Since(cachedP0Time) < 60*time.Second && cachedP0 != "" {
-		return cachedP0
+	initCache(brainRoot)
+
+	val, found := globalCache.Get("p0_reminder")
+	if found {
+		return val.(string)
 	}
 
 	brain := scanBrain(brainRoot)
@@ -204,7 +225,6 @@ func buildP0Reminder(brainRoot string) string {
 			if n.IsDormant {
 				continue
 			}
-			// brainstem 조어: pathToSentence 대신 leaf(폴더명) 직접 사용
 			parts := strings.Split(n.Path, string(filepath.Separator))
 			leaf := parts[len(parts)-1]
 			if strings.ContainsAny(n.Path, "禁") {
@@ -215,7 +235,6 @@ func buildP0Reminder(brainRoot string) string {
 		}
 	}
 
-	// P0: 조어만 나열 (최대 8개씩)
 	if len(bans) > 8 {
 		bans = bans[:8]
 	}
@@ -223,7 +242,6 @@ func buildP0Reminder(brainRoot string) string {
 		musts = musts[:8]
 	}
 
-	// Read preamble for language rule
 	preamblePath := filepath.Join(brainRoot, "_preamble.txt")
 	langRule := ""
 	if data, err := os.ReadFile(preamblePath); err == nil {
@@ -245,9 +263,10 @@ func buildP0Reminder(brainRoot string) string {
 	}
 	sb.WriteString("禁: " + strings.Join(bans, " "))
 
-	cachedP0 = sb.String()
-	cachedP0Time = time.Now()
-	return cachedP0
+	res := sb.String()
+	// TTL 0: File system watcher will invalidate this
+	globalCache.Set("p0_reminder", res, 0)
+	return res
 }
 
 // boolPtr returns a pointer to a boolean value.
@@ -258,9 +277,19 @@ func boolPtr(b bool) *bool {
 // buildMCPInstructions generates the server instructions from current brain state.
 // These instructions are injected into the LLM's context on every session initialize.
 func buildMCPInstructions(brainRoot string) string {
+	initCache(brainRoot)
+
+	val, found := globalCache.Get("mcp_instructions")
+	if found {
+		return val.(string)
+	}
+
 	brain := scanBrain(brainRoot)
 	result := runSubsumption(brain)
-	return emitBootstrap(result, brainRoot)
+	res := emitBootstrap(result, brainRoot)
+
+	globalCache.Set("mcp_instructions", res, 0)
+	return res
 }
 
 // logWriter returns stderr for MCP mode (stdout is reserved for JSON-RPC)
