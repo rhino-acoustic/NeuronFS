@@ -1,20 +1,20 @@
-IDE 재기동 필요하면 말씀.
+수정: c.running=true (외부 실행도 UP으로 인식)
+
+다음 Supervisor 보고에서 🟢 UP antigravity로 바뀔 것.
 
 [EVOLVE:proceed]"}
-{"ts":"2026-04-19T07:36:19Z","role":"USER","text":"[telegram → NeuronFS] 지금 ide가 구동중이니끼 대화가되지"}
-{"ts":"2026-04-19T07:36:23Z","role":"AI","text":"🟢 맞다 — IDE 구동 중인데 Supervisor가 DOWN으로 보고. Supervisor 감지 버그:"}
-{"ts":"2026-04-19T07:36:23Z","role":"AI","text":"Antigravity 프로세스 23개 구동 중! 하지만 CDP 9222/9223 미연결. Supervisor가 프로세스 존재를 확인하지만 CDP 포트 응답으로 판단하고 있을 수 있음."}
-{"ts":"2026-04-19T07:36:44Z","role":"AI","text":"L426-431이 핵심!
+{"ts":"2026-04-19T07:41:36Z","role":"USER","text":"[telegram → NeuronFS] 오토파일럿"}
+{"ts":"2026-04-19T07:41:49Z","role":"AI","text":"🟢 오토파일럿 현재 상태:"}
+{"ts":"2026-04-19T07:42:10Z","role":"AI","text":"heartbeat 07:37:18 (5분 전) — 오토파일럿이 방금 heartbeat를 터치했다! 현재 발동 직전 상태:
 
-go
 alternate_email
 content_copy
-if c.Name == \"antigravity\" && isProcessRunning(\"Antigravity.exe\") {
-    c.running = false  // ← 🔴 이미 실행 중인데 running=false!
-    time.Sleep(30 * time.Second)
-    continue
-}
+오토파일럿 조건:
+├─ [✅] activeConvo (전사 0분 전)
+├─ [✅] auto_evolve 활성
+├─ [❌] heartbeat < 5분 (방금 터치됨 → 다음 사이클 대기)
+└─ [❌] CDP 9222 미연결 → 주입 불가
 
-버그: Antigravity가 사용자에 의해 직접 실행된 경우(Supervisor가 시작하지 않음), isProcessRunning(\"Antigravity.exe\")=true → c.running = false → Supervisor가 DOWN으로 보고!
+문제: CDP 9222 미연결. Antigravity가 --remote-debugging-port=9222 없이 실행됨. 이게 오토파일럿이 CLI 응답을 IDE에 주입할 수 없는 원인.
 
-수정: 이미 실행 중이면 running=true로 표시:"}
+Antigravity가 CDP 포트 열고 있는지 확인:"}

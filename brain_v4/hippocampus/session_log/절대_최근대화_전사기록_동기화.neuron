@@ -2,7 +2,6 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[07:36:19] USER: [telegram → NeuronFS] 지금 ide가 구동중이니끼 대화가되지
-[07:36:23] AI: 🟢 맞다 — IDE 구동 중인데 Supervisor가 DOWN으로 보고. Supervisor 감지 버그:
-[07:36:23] AI: Antigravity 프로세스 23개 구동 중! 하지만 CDP 9222/9223 미연결. Supervisor가 프로세스 존재를 확인하지만 CDP 포트 응답으로 판단하고 있을 수 있음.
-[07:36:44] AI: L426-431이 핵심!
+[07:41:36] USER: [telegram → NeuronFS] 오토파일럿
+[07:41:49] AI: 🟢 오토파일럿 현재 상태:
+[07:42:10] AI: heartbeat 07:37:18 (5분 전) — 오토파일럿이 방금 heartbeat를 터치했다! 현재 발동 직전 상태:
