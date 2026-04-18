@@ -1,20 +1,20 @@
 
-BUT WAIT - if we mark a neuron dormant, its activeNeurons count should decrease by 1 for that region. So TotalNeurons should go from 29 to 28. Why isn't it? The issue must be with how scanBrain handles the dormant file at that folder depth. Let me check the hooks implementation.
+수정: setupTestBrain에서 brain_index.json 생성하지 않도록 하거나, 테스트 시 인덱스 로딩 무시. saveBrainIndex가 L631에서 호출되므로 첫 번째 scanBrain 후 인덱스가 저장됨 → 두 번째 scanBrain에서 캐시 히트!"}
+{"ts":"2026-04-18T23:50:42Z","role":"AI","text":"메모리 캐시는 NEURONFS_TEST_ISOLATION=1이면 스킵됨 (L229). 하지만 디스크 인덱스 캐시 (L271-280)는
+TEST_ISOLATION 체크 없음!
 
-The pattern is at depth cortex/left/frontend/hooks_pattern, and the test writes decay.dormant to this folder. But scanBrain walks from the region root (cortex), and the walk callback checks entries in each neuron directory. Looking at the code, it uses a directory read to get files in the neuron folder and checks for .dormant suffix. The key question is whether the directory cortex/left/frontend/hooks_pattern is being properly recognized as a neuron folder during the walk.
+첫 번째 scanBrain"}
+{"ts":"2026-04-18T23:50:45Z","role":"AI","text":"메모리 캐시는 NEURONFS_TEST_ISOLATION=1이면 스킵됨 (L229). 하지만 디스크 인덱스 캐시 (L271-280)는
+TEST_ISOLATION 체크 없음!
 
-alternate_email
-content_copy
-go
-relPath, _ := filepath.Rel(regionPath, path)
-depth := strings.Count(relPath, string(filepath.Separator))
+첫 번째 scanBrain → saveBrainIndex로 brain_index.json 저장 → 두 번째 scanBrain → loadBrainIndex로 읽음 → cortex region의 ModTime이 index.LastUpdated보다 이전 → 캐시에서 로드 → dormant 변경 반영 안 됨!
 
-So hooks_pattern has relPath = \"left/frontend/hooks_pattern\", depth = 2. The code then reads the directory entries and skips subdirectories, so the .dormant file should be caught and added to dormantFiles. Then it sets IsDormant = true if dormantFiles has any entries. I'm wondering if the issue is with how the neuron folder is being identified or processed during the walk.
-
-Actually, I think I need to trace through the VFS initialization - initVFS might be setting up something that interferes w"}
-{"ts":"2026-04-18T23:46:37Z","role":"AI","text":"근본 원인 — VFS 캐시 문제인지 확인:"}
-{"ts":"2026-04-18T23:47:02Z","role":"AI","text":"발견! L53: NEURONFS_TEST_ISOLATION=1이 아니면 VFS가 GlobalVFS.ReadDir(vfsRelativize(dir)) 사용 → 상대경로 변환 후 RouterFS가 경로를 잘못 해석 가능.
-
-initVFS(dir)에서 Upper: nil → VFS가 nil upper로 읽기 시도 → 실제 OS로 fallback이지만 vfsRelativize가 경로를 꼬일 수 있음.
-
-간단한 수정: 테스트에서 NEURONFS_TEST_ISOLATION=1 환경변수 설정:"}
+L271에도 TEST_ISOLATION 체크를 추가해야겠다."}
+{"ts":"2026-04-18T23:50:45Z","role":"AI","text":"🟢 근본 원인: L271의 디스크 인덱스에 TEST_ISOLATION 가드 없음:"}
+{"ts":"2026-04-18T23:51:13Z","role":"AI","text":"✅ M-11 PASS! 이제 전체 벤치마크 재실행:"}
+{"ts":"2026-04-18T23:51:22Z","role":"AI","text":"setup failed — 디버그 테스트 파일 충돌:"}
+{"ts":"2026-04-18T23:51:40Z","role":"AI","text":"Go 모듈 문제 — 이전 디버그 테스트에서 go mod가 꼬임:"}
+{"ts":"2026-04-18T23:52:17Z","role":"AI","text":"internal/cache 모듈 문제:"}
+{"ts":"2026-04-18T23:52:29Z","role":"AI","text":"빌드 OK. 테스트 재시도:"}
+{"ts":"2026-04-18T23:52:47Z","role":"AI","text":"mcp_server.go:29 import 문제. go build는 되지만 go test는 실패. 빌드 태그나 import 확인:"}
+{"ts":"2026-04-18T23:52:56Z","role":"AI","text":"import \"neuronfs/internal/cache\" — 모듈명이 github.com/rhino-acoustic/NeuronFS/runtime인데 import가 neuronfs/internal/cache로 잘못됨!"}

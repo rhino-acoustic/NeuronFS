@@ -1,3 +1,5 @@
+package main
+
 // NeuronFS MCP Server — Go Native
 //
 // PROVIDES: startMCPServer, startMCPServerWithStdout, startMCPHTTPServer,
@@ -11,8 +13,6 @@
 //
 // HTTP 모드: per-session factory → 매 세션마다 최신 brain 스캔 후 Instructions 주입
 // ResourceUpdated: markBrainDirty() → 모든 활성 MCP 서버에 리소스 변경 알림
-
-package main
 
 import (
 	"context"

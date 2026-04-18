@@ -267,8 +267,8 @@ func scanBrain(root string) Brain {
 		go func(name, regionPath string) {
 			defer wg.Done()
 
-			// ━━━ Incremental Check ━━━
-			if index != nil {
+			// ━━━ Incremental Check (skip in test isolation) ━━━
+			if index != nil && os.Getenv("NEURONFS_TEST_ISOLATION") != "1" {
 				if cached, ok := index.Regions[name]; ok {
 					info, err := vfsStat(regionPath)
 					// If region folder ModTime <= index's LastUpdated, it's fresh!
