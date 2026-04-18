@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -31,7 +32,13 @@ const (
 )
 
 // triggerPhysicalHook — bomb 감지 시 모든 물리 경보 발동
+// 테스트 환경에서는 물리 경보를 발동하지 않음
 func triggerPhysicalHook(regionName string) {
+	// Skip physical alerts during `go test` (flag.Lookup detects testing binary)
+	if flag.Lookup("test.v") != nil {
+		fmt.Fprintf(os.Stderr, "[TEST] BOMB in '%s' — physical hook SKIPPED (test mode)\n", regionName)
+		return
+	}
 	fmt.Fprintf(os.Stderr, "[CRITICAL] BOMB in '%s'. Physical alert triggered.\n", regionName)
 
 	go triggerRedFlash(regionName)

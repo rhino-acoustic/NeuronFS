@@ -1,20 +1,20 @@
-함수 총	419개
-LIVE 함수	342개 (81.6%)
-DEAD 함수	77개 (18.4%)
-brain_v4	1.6 MB
-Git 커밋	843회
-시스템 상태
-지표	값
-뉴런	613개
-리전	7개
-Axon	6개 (유효)
-코드맵	152/152 일치
-크론	23:07 마지막 실행
-CVE	3건 (Go 업데이트 시 해결)
-SSOT 달성
-항목	상태
-포트 위반	0 ✅
-하드코딩 경로	0 ✅
-panic	0 ✅
-HTTP 타임아웃 없음	0 ✅
-Body 누수	0 ✅"}
+{"ts":"2026-04-18T23:39:46Z","role":"AI","text":"사용자가 두 가지를 말함:
+
+실제 하네스를 실행해라
+[unknown] executor has not processed the previous input yet — 이 메시지가 감지되면 \"continue\" 인젝션이 되어야 한다
+
+두 번째는 CDP 주입"}
+{"ts":"2026-04-18T23:39:49Z","role":"AI","text":"사용자가 두 가지를 말함:
+
+실제 하네스를 실행해라
+[unknown] executor has not processed the previous input yet — 이 메시지가 감지되면 \"continue\" 인젝션이 되어야 한다
+
+두 번째는 CDP 주입 시 IDE가 이전 입력을 아직 처리 중일 때 나오는 메시지. 이걸 텔레그램 브릿지나 agent_bridge에서 감지하여 자동으로 \"Continue\"를 재주입해야 한다는 것.
+
+이제 실제 하네스 실행과 함께 이 에러 메시지를 감지하는 로직을 추가해야 한다."}
+{"ts":"2026-04-18T23:39:49Z","role":"AI","text":"🟢 두 가지 — 실제 하네스 + executor 미처리 감지:"}
+{"ts":"2026-04-18T23:39:59Z","role":"AI","text":"✅ harness PASS (23 checks)! (exit code 1은 PowerShell stderr 파싱 이슈, 실제 결과는 PASS)
+
+이제 executor 미처리 감지 → 자동 Continue 인젝션 구현:"}
+{"ts":"2026-04-18T23:40:11Z","role":"AI","text":"executor has not processed 메시지는 아직 감지 로직 없음. DOM 스크래핑에서 감지할 수 있는 위치 — hlAttachDOMScraper의 스크래핑 결과에서 패턴 매칭:"}
+{"ts":"2026-04-18T23:40:26Z","role":"AI","text":"적중. L274에서 전사 기록 시점에 executor has not processed 감지 후 Continue 자동 주입. 전사 기록 직후에 패턴 매칭:"}

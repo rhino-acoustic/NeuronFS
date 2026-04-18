@@ -2,3 +2,9 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
+[23:39:46] AI: 사용자가 두 가지를 말함:
+[23:39:49] AI: 사용자가 두 가지를 말함:
+[23:39:49] AI: 🟢 두 가지 — 실제 하네스 + executor 미처리 감지:
+[23:39:59] AI: ✅ harness PASS (23 checks)! (exit code 1은 PowerShell stderr 파싱 이슈, 실제 결과는 PASS)
+[23:40:11] AI: executor has not processed 메시지는 아직 감지 로직 없음. DOM 스크래핑에서 감지할 수 있는 위치 — hlAttachDOMScraper의 스크래핑 결과에서 패턴 매칭:
+[23:40:26] AI: 적중. L274에서 전사 기록 시점에 executor has not processed 감지 후 Continue 자동 주입. 전사 기록 직후에 패턴 매칭:

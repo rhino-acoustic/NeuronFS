@@ -274,6 +274,13 @@ func hlAttachDOMScraper(wsURL, title, brainRoot string) {
 				hlAppendTranscript(fmt.Sprintf("[%s] %s: %s", kst, role, t.text), proj, brainRoot)
 				t.logged = t.text
 				tracked[id] = t
+
+				// executor 미처리 감지 → 자동 Continue 재주입
+				if strings.Contains(t.text, "executor has not processed") ||
+					strings.Contains(t.text, "has not processed the previous input") {
+					fmt.Fprintf(os.Stderr, "[CDP] ⚡ executor 미처리 감지 → Continue 자동 주입\n")
+					go hlCDPInject("NeuronFS", "Continue")
+				}
 			}
 			// 10분 eviction (3분→10분 확장 — 재캡처 중복 방지)
 			if now.Sub(t.ts) > 10*time.Minute {
