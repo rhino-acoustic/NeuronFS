@@ -1,20 +1,20 @@
-Telegram health	✅ 동작 중	no_token 보고	토큰 로딩 로직 확인 필요
+— code: 20197은 유니코드 코드포인트로, CLI가 ANSI 컬러 시퀀스를 출력하는데 채팅창에 직접 주입되면서 터미널이 아닌 환경에서 파싱 실패. --no-color 플래그나 NO_COLOR=1 환경변수로 컬러 출력을 비활성화하면 해결 가능.
 
-하지만 health가 cdp: alive → CDP는 실제로 동작. 로그 패턴이 안 잡힌 것일 수 있음:"}
-{"ts":"2026-04-18T21:58:35Z","role":"AI","text":"핵심 발견:
+MCP 연결 성공
+— 포트 수정 후 CLI가 MCP에 제대로 연결되어 read_file, run_command 같은 도구들을 사용할 수 있게 됨. 이전의 run_shell_command not found 에러가 해결된 상태.
 
-시작 로그가 neuronfs-api.log에 안 찍힘 — svLog가 stderr나 다른 곳으로 가고 있을 수 있음. 하지만 전사 파일은 0분 전 갱신 → DOM scraper는 실제 돌고 있음
-markServiceRunning 호출이 있지만 dashboard 체크에서 \"watch\", \"api\", \"supervisor\"만 확인, hijack-launcher, mcp-http 등은 health에 안 나옴
-텔레그램은 로그에 없음 — telegram이 아닌 TG 패턴도 없음, 하지만 사용자는 동작한다고 함 → 별도 프로세스거나 Node.js bridge
+사용자에게 두 가지를 보고해야 함: CLI와 MCP 연결이 성공했고, xterm.js 에러는 ANSI 컬러 코드 문제로 환경변수 추가로 해결 가능하다는 점."}
+{"ts":"2026-04-18T21:59:54Z","role":"AI","text":"🟢 CLI 오토파일럿 동작 확인! 2가지 보임:
 
-결론 — 실제 빠진 기능:
+✅ MCP 연결 성공
+alternate_email
+content_copy
+Registering notification handlers for server 'neuronfs'. Capabilities: {
+  tools: { listChanged: true }
+}
 
-기능	상태	수정 필요
-svPatchAntigravityShortcuts	TODO stub	미구현
-svRestoreConversation	TODO stub	미구현
-health: supervisor/watch/telegram 보고	unknown/no_token	dashboard 체크 로직 누락
-EVOLVE:proceed 감지	False	이번 재시작 후 아직 미감지
+포트 9247 수정 효과.
 
-나머지(CDP, Hijack, 크론 등)는 로그 패턴 불일치일 뿐 실제 동작 중 (전사 캡처, 분류 성공이 증거).
+❌ xterm.js Parsing error
 
-텔레그램: Go 코드의 hlTgPoll이 아닌 별도 Node.js 브릿지일 가능이 있음."}
+CLI 출력에 ANSI 컬러 코드가 포함 → CDP로 채팅창 주입 시 터미널이 아니라 파싱 못함. 수정: CLI 실행 시 NO_COLOR=1 환경변수 추가:"}
