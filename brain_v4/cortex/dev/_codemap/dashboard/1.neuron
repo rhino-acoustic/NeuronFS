@@ -1,10 +1,7 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\dashboard.go
-updated: 2026-04-18T22:27:27
+updated: 2026-04-18T22:54:42
 # dashboard.go
 dir: runtime
-
-## PROVIDES
-buildDashboard, renderSystemGraph
 
 ## DEPENDS ON
 brain.go (scanBrain), api_server.go (health)

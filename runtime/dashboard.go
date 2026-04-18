@@ -1,4 +1,4 @@
-﻿// PROVIDES: buildDashboard, renderSystemGraph
+// PROVIDES: buildDashboard, renderSystemGraph
 // DEPENDS ON: brain.go (scanBrain), api_server.go (health)
 package main
 
@@ -314,9 +314,9 @@ func buildSystemFlow(brainRoot string) []SystemFlowNode {
 	return []SystemFlowNode{
 		// Core processes
 		{ID: "supervisor", Label: "Supervisor", Type: "process", Status: boolStatus(true), Children: []string{"api", "mcp", "cdp", "autopilot", "cron"}},
-		{ID: "api", Label: "REST API (:9090)", Type: "process", Status: boolStatus(portAlive(9090)), Children: []string{"dashboard", "brain"}},
-		{ID: "mcp", Label: "MCP Server (:9247)", Type: "process", Status: boolStatus(portAlive(9247)), Children: []string{"brain"}},
-		{ID: "cdp", Label: "CDP (:9000)", Type: "process", Status: boolStatus(portAlive(CDPPort)), Children: []string{"auto_accept", "hijack"}},
+		{ID: "api", Label: fmt.Sprintf("REST API (:%d)", APIPort), Type: "process", Status: boolStatus(portAlive(APIPort)), Children: []string{"dashboard", "brain"}},
+		{ID: "mcp", Label: fmt.Sprintf("MCP Server (:%d)", MCPStreamPort), Type: "process", Status: boolStatus(portAlive(MCPStreamPort)), Children: []string{"brain"}},
+		{ID: "cdp", Label: fmt.Sprintf("CDP (:%d)", CDPPort), Type: "process", Status: boolStatus(portAlive(CDPPort)), Children: []string{"auto_accept", "hijack"}},
 
 		// Background systems
 		{ID: "autopilot", Label: "Autopilot (hlAutoEvolve)", Type: "process", Status: "active", Children: []string{"gemini_cli", "evolve"}},
@@ -337,7 +337,7 @@ func buildSystemFlow(brainRoot string) []SystemFlowNode {
 		{ID: "brain", Label: "brain_v4 (SSOT)", Type: "data", Status: "active", Children: []string{}},
 		{ID: "transcripts", Label: "_transcripts", Type: "data", Status: "active", Children: []string{}},
 		{ID: "analysis", Label: "hippocampus/전사분석", Type: "data", Status: "active", Children: []string{}},
-		{ID: "dashboard", Label: "V3 Dashboard", Type: "process", Status: boolStatus(portAlive(9090)), Children: []string{}},
+		{ID: "dashboard", Label: "V3 Dashboard", Type: "process", Status: boolStatus(portAlive(APIPort)), Children: []string{}},
 
 		// Emit targets
 		{ID: "evolve", Label: "--emit auto", Type: "process", Status: "active", Children: []string{"gemini_md", "cursorrules", "claude_md", "ki"}},

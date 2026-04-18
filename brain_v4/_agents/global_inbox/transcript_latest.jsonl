@@ -1,20 +1,20 @@
-{"ts":"2026-04-18T22:53:05Z","role":"AI","text":"CLI 31개 모두 라우터에 등록됨 (59-91번 줄) — grep 패턴이 main.go에서 \"--\" 리터럴만 검색했기 때문에 미스. 실제론 모두 살아있음.
+goroutine 23개 종료 시그널 없음 (설계적 선택)
+에러 무시 66건 (기능 이상 없음, 로깅 추가 권장)
 
-계속 더 깊이:"}
-{"ts":"2026-04-18T22:53:26Z","role":"AI","text":"새 SSOT 위반 발견! aaCDPPort = 9000 in os_automation.go:19
+[EVOLVE:proceed]"}
+{"ts":"2026-04-18T22:54:48Z","role":"AI","text":"🟢 대기 중.
 
-또 다른 큰 발견:
-
-RotatePrompt — 호출자 0!
-ContextCache — 호출자 0! (Get/Invalidate)"}
-{"ts":"2026-04-18T22:53:41Z","role":"AI","text":"aaCDPPort = 9000을 governance_consts의 CDPPort로 교체. 그리고 RunBenchmark 호출자 0으로 보임 — 미연결"}
-{"ts":"2026-04-18T22:53:44Z","role":"AI","text":"aaCDPPort = 9000을 governance_consts의 CDPPort로 교체. 그리고 RunBenchmark 호출자 0으로 보임 — 미연결. 계속 수정하고 더 스캔."}
-{"ts":"2026-04-18T22:53:44Z","role":"AI","text":"🟢 aaCDPPort SSOT 수정 + 더 스캔:"}
-{"ts":"2026-04-18T22:54:12Z","role":"AI","text":"발견 정리:
+[EVOLVE:proceed]"}
+{"ts":"2026-04-18T22:55:27Z","role":"AI","text":"추가 발견:
 
 #	문제	심각도
-71	9000 하드코딩 6곳 — CDPPort 상수 미사용	P2 SSOT
-74	RunBenchmark 호출 0 — 미연결	P3
-73	CodeAuditV2 — 호출자 확인 필요	P3
+82	portAlive(9090), portAlive(9247) — dashboard에서 여전히 숫자 리터럴	P2
+83	GetPersonality, InjectPersonality — 호출자 0	P3
+84	AgentMessageQueue 5개 함수 — 호출자 0	P2
+85	ParseStack — 호출자 0	P3
+87-88	RunBenchmarkSuite, RunCodeAuditV2 — 정의만 있고 호출 0	P3
 
-9000 하드코딩 6곳 수정:"}
+dashboard 포트도 SSOT 교체:"}
+{"ts":"2026-04-18T22:55:39Z","role":"AI","text":"dashboard의 portAlive에서 9090, 9247, 3000"}
+{"ts":"2026-04-18T22:55:43Z","role":"AI","text":"🟢 dashboard 포트 SSOT + 미연결 모듈 정리:"}
+{"ts":"2026-04-18T22:56:02Z","role":"AI","text":"CDP 레이블도:"}
