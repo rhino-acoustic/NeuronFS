@@ -1,13 +1,39 @@
 {
   "mcpServers": {
     "neuronfs": {
-      "httpUrl": "http://127.0.0.1:9247/mcp"
+      "httpUrl": "http://127.0.0.1:9091/mcp"
     }
   },
   "fileFiltering": {
     "respectGitIgnore": false
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "neuron-load",
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File .gemini/hooks/session_start.ps1",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "auto-save",
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File .gemini/hooks/session_end.ps1",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
     "BeforeTool": [
       {
         "matcher": "replace_file_content|write_to_file|multi_replace_file_content",
@@ -40,6 +66,19 @@
             "type": "command",
             "command": "powershell -ExecutionPolicy Bypass -File .gemini/hooks/encoding_guard.ps1",
             "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "AfterTool": [
+      {
+        "matcher": "replace_file_content|write_to_file|multi_replace_file_content",
+        "hooks": [
+          {
+            "name": "codemap-sync",
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File .gemini/hooks/codemap_sync.ps1",
+            "timeout": 5000
           }
         ]
       }
