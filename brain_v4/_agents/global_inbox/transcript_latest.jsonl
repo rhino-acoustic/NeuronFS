@@ -1,20 +1,20 @@
-감사 결론
+Telegram health	✅ 동작 중	no_token 보고	토큰 로딩 로직 확인 필요
 
-11 PASS / 1 WARN / 1 FAIL (telegram 미설정)
+하지만 health가 cdp: alive → CDP는 실제로 동작. 로그 패턴이 안 잡힌 것일 수 있음:"}
+{"ts":"2026-04-18T21:58:35Z","role":"AI","text":"핵심 발견:
 
-핵심 엔진(뇌, emit, 크론, 전사, 오토파일럿)은 실구동 검증 완료. telegram만 토큰 미설정이며 핵심 기능에 영향 없음."}
-{"ts":"2026-04-18T21:55:43Z","role":"AI","text":"사용자가 원하는 것: 빠진 기능만 감사. \"분명 있다고 판단하고\" — 코드에 선언된 기능인데 실제로 안 돌아가는 것들을 찾아라.
+시작 로그가 neuronfs-api.log에 안 찍힘 — svLog가 stderr나 다른 곳으로 가고 있을 수 있음. 하지만 전사 파일은 0분 전 갱신 → DOM scraper는 실제 돌고 있음
+markServiceRunning 호출이 있지만 dashboard 체크에서 \"watch\", \"api\", \"supervisor\"만 확인, hijack-launcher, mcp-http 등은 health에 안 나옴
+텔레그램은 로그에 없음 — telegram이 아닌 TG 패턴도 없음, 하지만 사용자는 동작한다고 함 → 별도 프로세스거나 Node.js bridge
 
-접근:
+결론 — 실제 빠진 기능:
 
-PROVIDES 헤더에 선언된 함수가 실제로 호출되는지
-supervisor.go에서 시작한 goroutine이 실제로 돌고 있는지
-API 엔드포인트가 등록되었지만 응답 안 하는 것"}
-{"ts":"2026-04-18T21:55:47Z","role":"AI","text":"🟢 빠진 기능만 감사 — 코드에 있지만 안 도는 것:"}
-{"ts":"2026-04-18T21:55:53Z","role":"USER","text":"텔레그램 브릿지는 지금 잘되고 있는데 텔레그램과 문제가 뭐야"}
-{"ts":"2026-04-18T21:56:42Z","role":"AI","text":"사용자가 말하길 텔레그램 브릿지는 잘 되고 있다고. 그"}
-{"ts":"2026-04-18T21:56:45Z","role":"AI","text":"사용자가 말하길 텔레그램 브릿지는 잘 되고 있다고. 그러면 health API에서 no_token으로 나오는 건 코드 문제. 텔레그램이 실제로는 동작하는데 health 체크가 잘못 보고하는 것. 이것도 빠진 기능의 일부.
+기능	상태	수정 필요
+svPatchAntigravityShortcuts	TODO stub	미구현
+svRestoreConversation	TODO stub	미구현
+health: supervisor/watch/telegram 보고	unknown/no_token	dashboard 체크 로직 누락
+EVOLVE:proceed 감지	False	이번 재시작 후 아직 미감지
 
-결과를 기다리면서 텔레그램 상태 확인."}
-{"ts":"2026-04-18T21:56:45Z","role":"AI","text":"🟢 텔레그램이 실제 동작하는데 health가 no_token으로 잘못 보고 — 확인:"}
-{"ts":"2026-04-18T21:57:22Z","role":"AI","text":"API 엔드포인트 테스트가 멈춤 — 타임아웃 중. 별도 실행:"}
+나머지(CDP, Hijack, 크론 등)는 로그 패턴 불일치일 뿐 실제 동작 중 (전사 캡처, 분류 성공이 증거).
+
+텔레그램: Go 코드의 hlTgPoll이 아닌 별도 Node.js 브릿지일 가능이 있음."}

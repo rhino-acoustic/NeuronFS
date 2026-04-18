@@ -187,7 +187,7 @@ func buildHealthJSON(brainRoot string) HealthJSON {
 	}
 
 	// Go services
-	for _, svc := range []string{"watch", "api", "supervisor"} {
+	for _, svc := range []string{"watch", "api", "supervisor", "context-hijacker", "auto-accept", "agent-bridge", "headless-executor", "hijack-launcher"} {
 		if isGoServiceRunning(svc) {
 			subs[svc] = SubsystemStatus{Status: "alive"}
 		} else {

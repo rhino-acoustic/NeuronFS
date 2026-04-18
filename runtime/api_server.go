@@ -35,6 +35,9 @@ func startAPI(brainRoot string, port int) {
 	nfsRoot := filepath.Dir(brainRoot)
 	ensureHooksInfra(nfsRoot)
 
+	// ── Telegram 설정 로드 (Dashboard health check용) ──
+	hlLoadTelegram(nfsRoot)
+
 	// CORS middleware with activity tracking
 	withCORS := func(h http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
