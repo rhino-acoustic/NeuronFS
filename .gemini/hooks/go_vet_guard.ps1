@@ -3,7 +3,7 @@
 $ErrorActionPreference = "SilentlyContinue"
 $input_json = [Console]::In.ReadToEnd()
 if ($input_json -match "git commit" -and $input_json -match "runtime") {
-    Set-Location "C:\Users\BASEMENT_ADMIN\NeuronFS"
+    Set-Location "$env:USERPROFILE\NeuronFS"
     $vet = go vet ./runtime/... 2>&1
     if ($LASTEXITCODE -ne 0) {
         [Console]::Error.WriteLine("[HOOK] BLOCKED: go vet failed")

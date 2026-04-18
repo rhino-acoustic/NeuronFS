@@ -1,20 +1,21 @@
-포트 SSOT 전면 교체 (CDPPort 0잔여, APIPort 1잔여, MCPStreamPort 0잔여)
-419개 함수 중 382개(91.2%) 정상 연결 확인
 
-다음 우선순위: Tier 1 미연결 12개(startMCPServer, NewGeminiClient 등) 연결 또는 Tier 3 deprecated 5개 삭제. 진행할까요?
+doInjectToFile — 정의만 있고 내부 호출 0. emit_tiers.go PROVIDES에 나열되지만 실제 미사용
+activationBar — 테스트에서만 사용. 프로덕션 미사용
+pulseEmoji — 완전 미사용
+isNodeScriptRunning — 테스트에서만 사용
 
-[EVOLVE:proceed]"}
-{"ts":"2026-04-18T22:59:49Z","role":"AI","text":"🟢 Tier 1 미연결 함수 연결 시작:"}
-{"ts":"2026-04-18T22:59:49Z","role":"AI","text":"🟢 배포 + 커밋 + 최종 정밀 스캔:"}
-{"ts":"2026-04-18T22:59:49Z","role":"AI","text":"🔴 419개 함수 중 37개(8.8%)가 미호출!
+이제 pulseEmoji와 doInjectToFile은 진짜 데드코드."}
+{"ts":"2026-04-18T23:03:48Z","role":"AI","text":"🟢 확인: pulseEmoji 완전 데드, doInjectToFile 미연결. 추가 모듈 심층:"}
+{"ts":"2026-04-18T23:04:02Z","role":"USER","text":"qa베스트 프랙티스 검색"}
+{"ts":"2026-04-18T23:04:03Z","role":"AI","text":"정리:
 
-분류:"}
-{"ts":"2026-04-18T22:59:49Z","role":"AI","text":"종합 분류:"}
-{"ts":"2026-04-18T23:00:04Z","role":"AI","text":"harness 여전히 — 확인:"}
-{"ts":"2026-04-18T23:00:13Z","role":"AI","text":"교체가 안 됐음 — PS1 내 \\\\ 이스케이프 때문. Go 백틱 문자열이라 \\가 그대로:"}
-{"ts":"2026-04-18T23:00:37Z","role":"AI","text":"하드코딩 경로 제거 완료. inject.go와 mcp_tools_native"}
-{"ts":"2026-04-18T23:00:40Z","role":"AI","text":"하드코딩 경로 제거 완료. inject.go와 mcp_tools_native.go에서도 확인 필요. 커밋 + 잔여 확인:"}
-{"ts":"2026-04-18T23:00:40Z","role":"AI","text":"🟢 잔여 확인 + 나머지 파일 + 커밋:"}
-{"ts":"2026-04-18T23:00:48Z","role":"AI","text":"이건 사용자 이름 체크 — 환경 기반 아니라 규칙 기반 접근 제어. 경로 하드코딩이 아닌 인가 로직이므로 유지 정상.
+Agent Bridge ✅ supervisor.go에서 호출
+Context Hijacker ✅ supervisor.go에서 호출
+Headless Executor ✅ supervisor.go에서 호출
+Access Control — LoadAccessPolicy/CanAccess/ListRolePermissions 호출자 0 → 인프라만 있고 사용 안 됨
+DEK Manager — InitKeyStore 호출자 0 → 키 관리 전체가 미연결"}
+{"ts":"2026-04-18T23:04:24Z","role":"AI","text":"모듈 대부분이 LIVE! ExecSafe는 16곳에서 사용 — 핵심 유틸.
 
-커밋:"}
+crypto_cartridge.go의 EncryptCartridge/DecryptCartridgeToRAM은 CLI 내부에서 사용 — cartridge_crypto.go 내부 호출되는지:"}
+{"ts":"2026-04-18T23:04:43Z","role":"AI","text":"🟢 Go QA 베스트 프랙티스 검색:"}
+{"ts":"2026-04-18T23:04:55Z","role":"AI","text":"핵심 도구: deadcode (Go 공식), golangci-lint, go test -race, govulncheck. 바로 실행:"}

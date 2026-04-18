@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 $ErrorActionPreference = "SilentlyContinue"
 $input_json = [Console]::In.ReadToEnd()
-Set-Location "C:\Users\BASEMENT_ADMIN\NeuronFS"
+Set-Location "$env:USERPROFILE\NeuronFS"
 $status = git status --porcelain 2>&1
 if ($status) {
     git add -A 2>$null
