@@ -276,7 +276,7 @@ func refreshCodeMap(brainRoot string) {
 // DIAGNOSTICS: OOM, Memory Profiling
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // checkProcessMemoryOverload monitors the OS heap for memory leaks.
-// If the threshold (200MB) is breached, it dumps the Go memory profile and renders the Flatline OOM screen.
+// If the threshold (1GB) is breached, it dumps the Go memory profile and renders the Flatline OOM screen.
 func checkProcessMemoryOverload(cName string, pid int) bool {
 	out, err := SafeOutput(ExecTimeoutShell, "tasklist", "/FI", fmt.Sprintf("PID eq %d", pid), "/FO", "CSV", "/NH")
 	if err != nil {
@@ -290,8 +290,8 @@ func checkProcessMemoryOverload(cName string, pid int) bool {
 		memStr = strings.TrimSpace(memStr)
 		var memKB int64
 		fmt.Sscanf(memStr, "%d", &memKB)
-		if memKB > 1024*200 { // 200MB Limit
-			svLog("\033[31m[TRAUMA] Synaptic overload detected (Amyloid Plaque > 200MB). Triggering in-memory profile...\033[0m")
+		if memKB > 1024*1024 { // 1GB Limit (64GB RAM 기준)
+			svLog("\033[31m[TRAUMA] Synaptic overload detected (Amyloid Plaque > 1GB). Triggering in-memory profile...\033[0m")
 
 			var records []runtime.MemProfileRecord
 			n, ok := runtime.MemProfile(nil, true)
