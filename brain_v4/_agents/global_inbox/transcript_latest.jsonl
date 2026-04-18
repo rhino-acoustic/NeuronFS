@@ -1,20 +1,20 @@
-goroutine 23개 종료 시그널 없음 (설계적 선택)
-에러 무시 66건 (기능 이상 없음, 로깅 추가 권장)
+16건 수정 완료
+10회 커밋
+37개 미호출 함수 4단계 분류
+포트 SSOT 전면 교체 (CDPPort 0잔여, APIPort 1잔여, MCPStreamPort 0잔여)
+419개 함수 중 382개(91.2%) 정상 연결 확인
+
+다음 우선순위: Tier 1 미연결 12개(startMCPServer, NewGeminiClient 등) 연결 또는 Tier 3 deprecated 5개 삭제. 진행할까요?
 
 [EVOLVE:proceed]"}
-{"ts":"2026-04-18T22:54:48Z","role":"AI","text":"🟢 대기 중.
+{"ts":"2026-04-18T22:58:17Z","role":"AI","text":"시스템이 artifact가 자동 승인되었다고 함. 실행 계속. Tier 1 미연결 함수들 중 가장 중요한 것부터 연결하자."}
+{"ts":"2026-04-18T22:58:21Z","role":"AI","text":"🟢 Tier 1 미연결 함수 연결 시작:"}
+{"ts":"2026-04-18T22:58:45Z","role":"AI","text":"startMCPServer는 실제로 startMCPServerWithStdout를 호출하고, startMCPHTTPServer는 supervisor에서 호출됨. startMCPServer 자체는 stdio 버전인데 cli_cmd_mcp.go에서는 HTTP 버전을 사용. stdio 버전이 미호출 — 이건 정상 (HTTP로 전환됨).
 
-[EVOLVE:proceed]"}
-{"ts":"2026-04-18T22:55:27Z","role":"AI","text":"추가 발견:
+activationBar — brain.go 주석에 참조되지만 실제 호출 아님. main.go에 정의. 미사용 맞음.
 
-#	문제	심각도
-82	portAlive(9090), portAlive(9247) — dashboard에서 여전히 숫자 리터럴	P2
-83	GetPersonality, InjectPersonality — 호출자 0	P3
-84	AgentMessageQueue 5개 함수 — 호출자 0	P2
-85	ParseStack — 호출자 0	P3
-87-88	RunBenchmarkSuite, RunCodeAuditV2 — 정의만 있고 호출 0	P3
-
-dashboard 포트도 SSOT 교체:"}
-{"ts":"2026-04-18T22:55:39Z","role":"AI","text":"dashboard의 portAlive에서 9090, 9247, 3000"}
-{"ts":"2026-04-18T22:55:43Z","role":"AI","text":"🟢 dashboard 포트 SSOT + 미연결 모듈 정리:"}
-{"ts":"2026-04-18T22:56:02Z","role":"AI","text":"CDP 레이블도:"}
+doInjectToFile도 emit_tiers.go에 정의되어 있지만 호출되지 않는데, writeAllTiers 내부에서 사용될 가능성이 있어서 더 정확히 확인이 필요함. 나머지 미호출 함수들 중 일부는 grep 패턴 문제일 수 있으니, 실질적인 수정에 집중하고 Tier 3 deprecated 5개를 정리하는 게 우선."}
+{"ts":"2026-04-18T22:58:49Z","role":"AI","text":"🟢 startMCPServer는 stdio 버전 — HTTP(startMCPHTTPServer)로 전환되어 미사용 정상. doInjectToFile은 writeAllTiers 내부 호출 확인:"}
+{"ts":"2026-04-18T22:59:04Z","role":"AI","text":"🔴 harness_hooks.go에 하드코딩 경로 7곳!"}
+{"ts":"2026-04-18T22:59:10Z","role":"AI","text":"이건 PS1 스크립트가 Go 문자열 리터럴로 임베딩 — $env:USERPROFILE로 교체해야 하지만, 규칙 상 \"격리\" + PS1 문법이라 주의 필요. 동적으로 교체:"}
+{"ts":"2026-04-18T22:59:19Z","role":"AI","text":"PS1 스크립트 내의 하드코딩 경로를 $env:USERPROFILE\\NeuronFS로 교체:"}

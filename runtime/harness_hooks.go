@@ -1,4 +1,4 @@
-// harness_hooks.go — NeuronFS Hook 인프라 자동 세팅
+﻿// harness_hooks.go — NeuronFS Hook 인프라 자동 세팅
 // PROVIDES: ensureHooksInfra, writeHookFile
 // 시작 시 .gemini/hooks/ 디렉토리와 settings.json을 자동 생성/갱신
 package main

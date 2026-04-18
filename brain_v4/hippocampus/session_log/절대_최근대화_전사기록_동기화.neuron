@@ -2,8 +2,10 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[22:54:48] AI: 🟢 대기 중.
-[22:55:27] AI: 추가 발견:
-[22:55:39] AI: dashboard의 portAlive에서 9090, 9247, 3000
-[22:55:43] AI: 🟢 dashboard 포트 SSOT + 미연결 모듈 정리:
-[22:56:02] AI: CDP 레이블도:
+[22:58:17] AI: 시스템이 artifact가 자동 승인되었다고 함. 실행 계속. Tier 1 미연결 함수들 중 가장 중요한 것부터 연결하자.
+[22:58:21] AI: 🟢 Tier 1 미연결 함수 연결 시작:
+[22:58:45] AI: startMCPServer는 실제로 startMCPServerWithStdout를 호출하고, startMCPHTTPServer는 supervisor에서 호출됨. startMCPServer 자체는 stdio 버전인데 cli_cmd_mcp.go에서는 HTTP 버전을 사용. stdio 버전이 미호출 — 이건 정상 (HTTP로 전환됨).
+[22:58:49] AI: 🟢 startMCPServer는 stdio 버전 — HTTP(startMCPHTTPServer)로 전환되어 미사용 정상. doInjectToFile은 writeAllTiers 내부 호출 확인:
+[22:59:04] AI: 🔴 harness_hooks.go에 하드코딩 경로 7곳!
+[22:59:10] AI: 이건 PS1 스크립트가 Go 문자열 리터럴로 임베딩 — $env:USERPROFILE로 교체해야 하지만, 규칙 상 \"격리\" + PS1 문법이라 주의 필요. 동적으로 교체:
+[22:59:19] AI: PS1 스크립트 내의 하드코딩 경로를 $env:USERPROFILE\\NeuronFS로 교체:
