@@ -1,4 +1,3 @@
-7	runVacuum 플레이스홀더	print만 하고 실제 GC 없음
 🟢 양호
 항목	상태
 하드코딩 경로	0건 ✅
@@ -18,3 +17,4 @@ SafeOutput 계열	깔끔 (exec_safe.go) ✅
 {"ts":"2026-04-18T22:31:45Z","role":"USER","text":"cdp와 텔레그램 등 이미 정해진 포트 있는데 자꾸 헷갈리지마"}
 {"ts":"2026-04-18T22:31:50Z","role":"AI","text":"빌드 검증 + 추가 스캔:"}
 {"ts":"2026-04-18T22:32:02Z","role":"AI","text":"supervisor.go에 json import 누락:"}
+{"ts":"2026-04-18T22:32:42Z","role":"AI","text":"추가 스캔 계속:"}
