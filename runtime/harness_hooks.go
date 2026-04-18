@@ -17,7 +17,7 @@ var hookScripts = map[string]string{
 # NeuronFS Hook: 파일 수정 전 자동 git snapshot
 $ErrorActionPreference = "SilentlyContinue"
 $input_json = [Console]::In.ReadToEnd()
-Set-Location "C:\Users\BASEMENT_ADMIN\NeuronFS"
+Set-Location "$env:USERPROFILE\NeuronFS"
 $status = git status --porcelain 2>&1
 if ($status) {
     git add -A 2>$null
@@ -49,7 +49,7 @@ exit 0
 $ErrorActionPreference = "SilentlyContinue"
 $input_json = [Console]::In.ReadToEnd()
 if ($input_json -match "git commit" -and $input_json -match "runtime") {
-    Set-Location "C:\Users\BASEMENT_ADMIN\NeuronFS"
+    Set-Location "$env:USERPROFILE\NeuronFS"
     $vet = go vet ./runtime/... 2>&1
     if ($LASTEXITCODE -ne 0) {
         [Console]::Error.WriteLine("[HOOK] BLOCKED: go vet failed")
@@ -82,11 +82,11 @@ exit 0
 $ErrorActionPreference = "SilentlyContinue"
 $input_json = [Console]::In.ReadToEnd()
 if ($input_json -match "\.go") {
-    Set-Location "C:\Users\BASEMENT_ADMIN\NeuronFS"
+    Set-Location "$env:USERPROFILE\NeuronFS"
     Start-Job -ScriptBlock {
-        Set-Location "C:\Users\BASEMENT_ADMIN\NeuronFS"
+        Set-Location "$env:USERPROFILE\NeuronFS"
         $files = Get-ChildItem runtime -Filter "*.go" | Sort-Object Name
-        $mapDir = "C:\Users\BASEMENT_ADMIN\NeuronFS\brain_v4\cortex\dev\_codemap"
+        $mapDir = "$env:USERPROFILE\NeuronFS\brain_v4\cortex\dev\_codemap"
         if (!(Test-Path $mapDir)) { New-Item -ItemType Directory -Path $mapDir -Force | Out-Null }
         $lines = @("---", "type: codemap", ("updated: " + (Get-Date -Format "yyyy-MM-dd HH:mm")), "---")
         foreach ($f in $files) {
@@ -104,7 +104,7 @@ exit 0
 	"session_start.ps1": `#!/usr/bin/env pwsh
 $ErrorActionPreference = "SilentlyContinue"
 $input_json = [Console]::In.ReadToEnd()
-Set-Location "C:\Users\BASEMENT_ADMIN\NeuronFS"
+Set-Location "$env:USERPROFILE\NeuronFS"
 $health = Invoke-RestMethod -Uri "http://127.0.0.1:9090/api/ping" -TimeoutSec 3 -ErrorAction SilentlyContinue
 if ($health.status -eq "ok") {
     Invoke-RestMethod -Uri "http://127.0.0.1:9090/api/inject" -Method POST -TimeoutSec 10 -ErrorAction SilentlyContinue | Out-Null
@@ -119,7 +119,7 @@ exit 0
 	"session_end.ps1": `#!/usr/bin/env pwsh
 $ErrorActionPreference = "SilentlyContinue"
 $input_json = [Console]::In.ReadToEnd()
-Set-Location "C:\Users\BASEMENT_ADMIN\NeuronFS"
+Set-Location "$env:USERPROFILE\NeuronFS"
 $status = git status --porcelain 2>&1
 if ($status) {
     git add -A 2>$null

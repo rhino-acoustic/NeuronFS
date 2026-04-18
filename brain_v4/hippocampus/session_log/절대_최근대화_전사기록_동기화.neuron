@@ -2,10 +2,13 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[22:58:17] AI: 시스템이 artifact가 자동 승인되었다고 함. 실행 계속. Tier 1 미연결 함수들 중 가장 중요한 것부터 연결하자.
-[22:58:21] AI: 🟢 Tier 1 미연결 함수 연결 시작:
-[22:58:45] AI: startMCPServer는 실제로 startMCPServerWithStdout를 호출하고, startMCPHTTPServer는 supervisor에서 호출됨. startMCPServer 자체는 stdio 버전인데 cli_cmd_mcp.go에서는 HTTP 버전을 사용. stdio 버전이 미호출 — 이건 정상 (HTTP로 전환됨).
-[22:58:49] AI: 🟢 startMCPServer는 stdio 버전 — HTTP(startMCPHTTPServer)로 전환되어 미사용 정상. doInjectToFile은 writeAllTiers 내부 호출 확인:
-[22:59:04] AI: 🔴 harness_hooks.go에 하드코딩 경로 7곳!
-[22:59:10] AI: 이건 PS1 스크립트가 Go 문자열 리터럴로 임베딩 — $env:USERPROFILE로 교체해야 하지만, 규칙 상 \"격리\" + PS1 문법이라 주의 필요. 동적으로 교체:
-[22:59:19] AI: PS1 스크립트 내의 하드코딩 경로를 $env:USERPROFILE\\NeuronFS로 교체:
+[22:59:49] AI: 🟢 Tier 1 미연결 함수 연결 시작:
+[22:59:49] AI: 🟢 배포 + 커밋 + 최종 정밀 스캔:
+[22:59:49] AI: 🔴 419개 함수 중 37개(8.8%)가 미호출!
+[22:59:49] AI: 종합 분류:
+[23:00:04] AI: harness 여전히 — 확인:
+[23:00:13] AI: 교체가 안 됐음 — PS1 내 \\\\ 이스케이프 때문. Go 백틱 문자열이라 \\가 그대로:
+[23:00:37] AI: 하드코딩 경로 제거 완료. inject.go와 mcp_tools_native
+[23:00:40] AI: 하드코딩 경로 제거 완료. inject.go와 mcp_tools_native.go에서도 확인 필요. 커밋 + 잔여 확인:
+[23:00:40] AI: 🟢 잔여 확인 + 나머지 파일 + 커밋:
+[23:00:48] AI: 이건 사용자 이름 체크 — 환경 기반 아니라 규칙 기반 접근 제어. 경로 하드코딩이 아닌 인가 로직이므로 유지 정상.
