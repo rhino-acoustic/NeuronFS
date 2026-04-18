@@ -1,20 +1,21 @@
 
-서브시스템	상태	증거
-빌드	✅	go vet + go build 통과
-전사 캡처	✅	NeuronFS_20h.txt 0분 전 갱신
-전사 분류	✅	7건 성공 (벤치마크, 디버그, 포즈 등)
-emit	✅	GEMINI.md 🟢접두사 반영
-헬스 리포트	✅	🟢 HEALTHY
-코드맵	✅	152/152
-스모크 테스트	✅	9/9 PASS
-growth.log	✅	자동 생성 + 1.8분 전 (재시작 후 갱신됨)
-git 추적	✅	brain_v4 전체
-오토파일럿	⏳	조건 충족 — 3분 루프 후 발동 예정
+`brainstem/_health.md`는 🟢 HEALTHY로 보고되지만, `corrections.jsonl`에 **CRITICAL DATA_LOSS** 사고가 기록되어 있습니다. 
+- **원인:** `benchmark_identity.py` Phase 2 실행 중 `taskkill` + `restart` 과정에서 549개의 뉴런 폴더가 삭제됨 (626 -> 77).
+- **문제:** Git 추적 대상이 아니었던 데이터는 복구 불가능함.
 
-오토파일럿은 growth.log가 5분 이상 미갱신 + 전사 5분 이내 갱신일 때 발동. growth.log가 1.8분 전이라 아직 3분 더 대기. 구조적으로 정상.
+[P0: 깃 선행] 현재 상태를 보존하기 위해 커밋을 수행합니다. (이전 오류 재확인: `run_shell_command`는 `system` 권한 도구로 다시 시도합니다.)
+[P3: 목표] 
+1. `benchmark_identity.py`의 `taskkill` 로직을 수정하여 안전한 재시작 보장.
+2. 삭제된 뉴런의 복구 가능성 확인 (Git `reflog` 또는 `_archive` 폴더 확인).
+3. 향후 사고 방지를 위해 \"데이터 변경 시 즉시 Git 추적(add)\" 룰을 `brainstem/必`에 강화.
 
-이 세션 11건 커밋, 7개 버그 수정, 3개 신규 기능. 핵심은 brainstem/필/아키텍처_결정_불변/rule.md에 영구화되어 다음 세션에서도 유지됨.
+[EVOLVE:proceed]
 
-[EVOLVE:proceed]"}
-{"ts":"2026-04-18T20:52:59Z","role":"AI","text":"🟢 배포 + 커밋하면서 오토파일럿 대기:"}
-{"ts":"2026-04-18T20:53:05Z","role":"AI","text":"오토파일럿 발동 확인 — 재시작 후 growth.log를 다시 과거로:"}
+Error executing tool run_shell_command: Tool \"run_shell_command\" not found. Did you mean one of: \"grep_search\", \"cli_help\", \"read_file\"?
+🟢 **도구 제약 확인 및 전략 수정.**
+
+`run_shell_command`가 가용 도구 목록에 보이지 않으므로(시스템 메시지에는 언급되었으나 실제 호출 시 실패), 사용 가능한 도구인 `grep_search`, `read_file`, `list_directory`, `glob` 등을 사용하여 조사를 계속하고, 코드 수정은 `replace` 등을 활용하겠습니다.
+
+먼저, 삭제된 뉴런의 흔적을 찾기 위해 `brain_v4/_archive`와 `brain_v4/_quarantine` 폴더를 조사합니다."}
+{"ts":"2026-04-18T20:57:33Z","role":"AI","text":"HEARTBEAT 뉴런은 발화되지만 [HEARTBEAT] 🚀 Gemini CLI 오토파일럿 발동 은 안 나옴. 전사 파일 활성 조건을 재확인:"}
+{"ts":"2026-04-18T20:57:51Z","role":"AI","text":"growth.log가 재시작 후 자동 갱신되어 1.7분 전! 이게 문제 — 서버 재시작 시 growth.log가 터치되어 5분 조건 불충족. 어디서 터치하는지:"}
