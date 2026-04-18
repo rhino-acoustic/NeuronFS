@@ -3,3 +3,5 @@
 {"path":"brainstem/禁/multi_agent_stdin_injection_only","text":"stdin injection 방식은 검증된 유일한 작동 방식이며, -p flag 사용 시 쉘 이스케이프 및 길이 제한 문제가 발생함. 절대 수정 금지.","ts":"2026-04-19T08:30:55"}
 ﻿{"ts":"2026-04-19T08:29:41","type":"correction","msg":"DO NOT modify multi_agent.go executeGeminiCLI - stdin injection is the verified working method. Never change to -p flag.","severity":"critical"}
 {"path":"brainstem/禁/multi_agent_stdin_injection_only","text":"stdin injection 방식은 검증된 유일한 작동 방식이며, -p flag 사용 시 쉘 이스케이프 및 길이 제한 문제가 발생함. 절대 수정 금지.","ts":"2026-04-19T08:30:55"}
+{"path":"cortex/methodology/禁/빌드후_미검증재시작","text":"brainstem/禁/빌드후_미검증재시작과 100% 중복되어 지식 일관성을 위해 brainstem으로 통합 관리함. cortex 하위 항목은 보관 처리 권장.","ts":"2026-04-19T08:33:43"}
+{"path":"cortex/methodology/禁/빌드후_미검증재시작","text":"brainstem/禁/빌드후_미검증재시작과 100% 중복되어 지식 일관성을 위해 brainstem으로 통합 관리함. cortex 하위 항목은 보관 처리 권장.","ts":"2026-04-19T08:33:43"}

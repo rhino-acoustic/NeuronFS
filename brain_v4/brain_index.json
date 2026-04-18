@@ -1,6 +1,6 @@
 {
   "root": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "last_updated": 1776555213502346600,
+  "last_updated": 1776555224471619800,
   "regions": {
     "brainstem": {
       "region": {
@@ -7746,6 +7746,28 @@
             "BirthTime": "2026-04-18T19:57:39.9267039+09:00"
           },
           {
+            "Name": "빌드후_미검증재시작",
+            "Path": "methodology\\禁\\빌드후_미검증재시작",
+            "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\methodology\\禁\\빌드후_미검증재시작",
+            "Counter": 1,
+            "Contra": 0,
+            "Dopamine": 0,
+            "Intensity": 1,
+            "Polarity": 1,
+            "HasBomb": false,
+            "HasMemory": false,
+            "HasGoal": false,
+            "GoalText": "",
+            "Geofence": "",
+            "Description": "",
+            "Globs": "",
+            "Author": "",
+            "IsDormant": false,
+            "Depth": 2,
+            "ModTime": "2026-04-19T08:33:43.8943029+09:00",
+            "BirthTime": "2026-04-19T08:33:43.893779+09:00"
+          },
+          {
             "Name": "shared",
             "Path": "shared",
             "FullPath": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4\\cortex\\shared",
@@ -8167,7 +8189,7 @@
         "Axons": null,
         "HasBomb": false
       },
-      "max_mod_time": 1776554907833303000
+      "max_mod_time": 1776555223894302900
     },
     "ego": {
       "region": {
