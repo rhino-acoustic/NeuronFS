@@ -50,8 +50,7 @@ func buildPreamble(sb *strings.Builder, result SubsumptionResult, brainRoot stri
 		}
 	}
 	if !principlesLoaded {
-		sb.WriteString("반드시 한국어로 생각(thinking)하고 한국어로 대답해\n")
-		sb.WriteString("커뮤니티 동향(reddit, github 등)을 최우선 검색해서 베스트 프랙티스 검색\n")
+		sb.WriteString("<identity>\nYou MUST think in Korean. You MUST respond in Korean.\n반드시 한국어로 생각(thinking)하고 한국어로 대답해\n</identity>\n")
 	}
 	// ━━━ 마커: preamble 뒤, 나머지 규칙 앞 ━━━
 	sb.WriteString("<!-- NEURONFS:START -->\n")
