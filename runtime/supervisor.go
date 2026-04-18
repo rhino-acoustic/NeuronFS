@@ -1,4 +1,4 @@
-﻿// RULE: ZERO EXTERNAL DEPENDENCY PRESERVED
+// RULE: ZERO EXTERNAL DEPENDENCY PRESERVED
 // supervisor.go — NeuronFS 네이티브 프로세스 매니저
 //
 // watchdog.ps1 + 프로세스 관리를 Go 바이너리로 통합.
@@ -226,6 +226,16 @@ func runSupervisor(brainRoot string) {
 		svLog(fmt.Sprintf("   %-18s %s%s", c.Name, s, extra))
 	}
 	svLog("")
+
+	// supervisor 자신과 자식 프로세스를 health에 보고
+	markServiceRunning("supervisor", true)
+	for _, c := range children {
+		if c.Enabled {
+			// "neuronfs-api" → "api", "neuronfs-watch" → "watch"
+			svcName := strings.TrimPrefix(c.Name, "neuronfs-")
+			markServiceRunning(svcName, true)
+		}
+	}
 
 	stopCh := make(chan struct{})
 	var wg sync.WaitGroup

@@ -1,20 +1,20 @@
-
-주 질문은 시스템 설명이니 먼저 그것에 응답하고, MCP 포트 9091 문제는 settings.json 수정이 제대로 적용되지 않았거나 오토파일럿 CLI가 다른 설정 파일을 참조하고 있을 가능성을 확인해야 한다. 지금 사용자가 원하는 건 시스템 설명, 가치, 위치, 폴더 의미를 정리한 답변이니"}
-{"ts":"2026-04-18T22:08:52Z","role":"AI","text":"사용자가 여러 질문을 한꺼번에 했다:
-
-우리 시스템 설명
-어떤 가치
-어떤 위치의 프로그램인지
-폴더가 갖는 의미
-CLI 오토파일럿이 또 9091로 연결 시도 — settings.json 수정이 적용 안 됨
-
-먼저 MCP 포트 문제 다시 확인 — 이전에 settings.json을 9247로 수정했는데 아직 9091로 연결 시도. 그리고 xterm 에러도 여전히 — NO_COLOR 수정을 빌드+배포했지만 아직 재시작 안 되었을 수 있음.
-
-주 질문은 시스템 설명이니 먼저 그것에 응답하고, MCP 포트 9091 문제는 settings.json 수정이 제대로 적용되지 않았거나 오토파일럿 CLI가 다른 설정 파일을 참조하고 있을 가능성을 확인해야 한다. 지금 사용자가 원하는 건 시스템 설명, 가치, 위치, 폴더 의미를 정리한 답변이니까 아티팩트로 깔끔하게 구성해서 제시하자."}
-{"ts":"2026-04-18T22:08:52Z","role":"AI","text":"🟢 NeuronFS 시스템 설명 + MCP 포트 재확인:"}
-{"ts":"2026-04-18T22:09:02Z","role":"AI","text":"9091이 다시 돌아왔다! 이전 수정이 덮어씌워졌음. 수정:"}
-{"ts":"2026-04-18T22:09:14Z","role":"AI","text":"settings.json이 계속 덮어씌워지는 근본 원인 확인:"}
-{"ts":"2026-04-18T22:09:20Z","role":"AI","text":"harness_hooks.go가 settings.json을 덮어작성! 확인:"}
-{"ts":"2026-04-18T22:09:29Z","role":"AI","text":"L179: MCPPort 상수를 사용! 이게 9091임:"}
-{"ts":"2026-04-18T22:10:03Z","role":"AI","text":"🟢 근본 원인 발견! MCPPort=9091 vs MCPStreamPort=9247. harness가 매번 9091로 되돌림:"}
-{"ts":"2026-04-18T22:10:04Z","role":"AI","text":"근본 수정: harness_hooks.go에서 MCPPort → MCPStreamPort 사용:"}
+content_copy
+brain_v4/
+├── brainstem/   (P0) 🛡️ 양심/본능 — 모든 규칙 위에 군림. 절대 위반 불가.
+│   └── 필/               아키텍처_결정_불변, bomb 상태
+├── limbic/      (P1) 💓 감정 필터 — 분노/집중/긴급 → AI 행동 강도 변조
+├── hippocampus/ (P2) 📝 기억/기록 — 세션 로그, 전사 분석, 에피소드 메모리
+├── sensors/     (P3) 👁️ 환경 제약 — NAS, 브랜드 규칙
+├── cortex/      (P4) 🧠 지식/기술 — 829파일. 코딩 패턴, 스킬, 코드맵
+│   ├── dev/_codemap/     Go 파일별 PROVIDES/DEPENDS 맵 (152개)
+│   └── skills/           기술 카트리지 (13개)
+├── ego/         (P5) 🎭 성향/톤 — 페르소나, 글쓰기 스타일
+├── prefrontal/  (P6) 🎯 목표/계획 — 스프린트 추적
+└── shared/      (P7) 🔗 공유 지식
+핵심 공리: Folder = Neuron | File = Trace | Path = Sentence
+cortex/dev/go_error_handling/rule.md → \"Go 에러 처리 규칙\"
+3.neuron → 이 뉴런이 3번 발화됨 (강화 학습)
+P0이 P6을 항상 이긴다 (Subsumption Cascade)
+뉴런 생명주기
+content_copy
+grow → "}

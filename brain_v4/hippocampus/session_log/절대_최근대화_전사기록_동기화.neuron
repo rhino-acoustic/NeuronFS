@@ -2,11 +2,3 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[22:08:52] AI: 사용자가 여러 질문을 한꺼번에 했다:
-[22:08:52] AI: 🟢 NeuronFS 시스템 설명 + MCP 포트 재확인:
-[22:09:02] AI: 9091이 다시 돌아왔다! 이전 수정이 덮어씌워졌음. 수정:
-[22:09:14] AI: settings.json이 계속 덮어씌워지는 근본 원인 확인:
-[22:09:20] AI: harness_hooks.go가 settings.json을 덮어작성! 확인:
-[22:09:29] AI: L179: MCPPort 상수를 사용! 이게 9091임:
-[22:10:03] AI: 🟢 근본 원인 발견! MCPPort=9091 vs MCPStreamPort=9247. harness가 매번 9091로 되돌림:
-[22:10:04] AI: 근본 수정: harness_hooks.go에서 MCPPort → MCPStreamPort 사용:

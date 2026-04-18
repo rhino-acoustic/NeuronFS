@@ -227,6 +227,16 @@ func runSupervisor(brainRoot string) {
 	}
 	svLog("")
 
+	// supervisor 자신과 자식 프로세스를 health에 보고
+	markServiceRunning("supervisor", true)
+	for _, c := range children {
+		if c.Enabled {
+			// "neuronfs-api" → "api", "neuronfs-watch" → "watch"
+			svcName := strings.TrimPrefix(c.Name, "neuronfs-")
+			markServiceRunning(svcName, true)
+		}
+	}
+
 	stopCh := make(chan struct{})
 	var wg sync.WaitGroup
 	for _, child := range children {
