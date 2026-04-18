@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-18T20:03:22 | Neurons: 384/384 | Activation: 0
+Generated: 2026-04-18T20:19:17 | Neurons: 384/384 | Activation: 2
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
@@ -9,16 +9,16 @@ Generated: 2026-04-18T20:03:22 | Neurons: 384/384 | Activation: 0
 - 🎭 ego → 🧠 cortex
 
 ## 🏆 TOP 10 뉴런
-1. 🛡️ **반드시 > EVOLVE proceed 강제** (0)
-2. 🛡️ **반드시 > NeuronFS 공리** (0)
-3. 🛡️ **반드시 > bat재시작** (0)
-4. 🛡️ **반드시 > 커뮤니티검색필수: 세션시작** (0)
-5. 🛡️ **반드시 > 반드시 누락자문** (0)
-6. 🛡️ **반드시 > 반드시 빌드경로 SSOT** (0)
-7. 🛡️ **반드시 > 코드맵 참조생성갱신** (0)
-8. 🛡️ **절대 금지: > MCP연결실패무시** (0)
-9. 🛡️ **절대 금지: > curl사용** (0)
-10. 🛡️ **절대 금지: > 강제종료** (0)
+1. 🧠 **dev > dev** (1)
+2. 🧠 **methodology > methodology** (1)
+3. 🛡️ **반드시 > EVOLVE proceed 강제** (0)
+4. 🛡️ **반드시 > NeuronFS 공리** (0)
+5. 🛡️ **반드시 > bat재시작** (0)
+6. 🛡️ **반드시 > 커뮤니티검색필수: 세션시작** (0)
+7. 🛡️ **반드시 > 반드시 누락자문** (0)
+8. 🛡️ **반드시 > 반드시 빌드경로 SSOT** (0)
+9. 🛡️ **반드시 > 코드맵 참조생성갱신** (0)
+10. 🛡️ **절대 금지: > MCP연결실패무시** (0)
 
 <details>
 <summary>🆕 신규 (probation) — 384 neurons (7d window)</summary>
@@ -66,11 +66,12 @@ Generated: 2026-04-18T20:03:22 | Neurons: 384/384 | Activation: 0
 (없음)
 
 ### 🧠 cortex (339)
+- **dev > dev** (1) — 7d남음
+- **methodology > methodology** (1) — 7d남음
 - **architecture** (0) — 7d남음
 - **backend** (0) — 3d남음
 - **community** (0) — 3d남음
 - **dev** (0) — 7d남음
-- **dev > dev** (0) — 7d남음
 - **dev > dev > AIA PPT 가이드** (0) — 7d남음
 - **dev > dev > NeuronFS** (0) — 7d남음
 - **dev > dev > NeuronFS > 구조** (0) — 3d남음
@@ -280,7 +281,6 @@ Generated: 2026-04-18T20:03:22 | Neurons: 384/384 | Activation: 0
 - **frontend** (0) — 3d남음
 - **infra** (0) — 3d남음
 - **methodology** (0) — 7d남음
-- **methodology > methodology** (0) — 7d남음
 - **methodology > methodology > 추천: 상쇄구조** (0) — 7d남음
 - **methodology > methodology > 절대 금지: 단편적접근** (0) — 7d남음
 - **methodology > methodology > 절대 금지: 수동업데이트** (0) — 7d남음
@@ -436,7 +436,7 @@ Generated: 2026-04-18T20:03:22 | Neurons: 384/384 | Activation: 0
 | 💓 limbic — 감정 필터 | 3 | 0 | `limbic/_rules.md` |
 | 📝 hippocampus — 기록/기억 | 2 | 0 | `hippocampus/_rules.md` |
 | 👁️ sensors — 환경 제약 | 0 | 0 | `sensors/_rules.md` |
-| 🧠 cortex — 지식/기술 | 339 | 0 | `cortex/_rules.md` |
+| 🧠 cortex — 지식/기술 | 339 | 2 | `cortex/_rules.md` |
 | 🎭 ego — 성향/톤 | 12 | 0 | `ego/_rules.md` |
 | 🎯 prefrontal — 목표/계획 | 0 | 0 | `prefrontal/_rules.md` |
 | 🔗 shared — 공유 지식 | 0 | 0 | `shared/_rules.md` |
