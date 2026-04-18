@@ -1,21 +1,20 @@
-
-수정: setupTestBrain에서 brain_index.json 생성하지 않도록 하거나, 테스트 시 인덱스 로딩 무시. saveBrainIndex가 L631에서 호출되므로 첫 번째 scanBrain 후 인덱스가 저장됨 → 두 번째 scanBrain에서 캐시 히트!"}
-{"ts":"2026-04-18T23:50:42Z","role":"AI","text":"메모리 캐시는 NEURONFS_TEST_ISOLATION=1이면 스킵됨 (L229). 하지만 디스크 인덱스 캐시 (L271-280)는
-TEST_ISOLATION 체크 없음!
-
-첫 번째 scanBrain"}
-{"ts":"2026-04-18T23:50:45Z","role":"AI","text":"메모리 캐시는 NEURONFS_TEST_ISOLATION=1이면 스킵됨 (L229). 하지만 디스크 인덱스 캐시 (L271-280)는
-TEST_ISOLATION 체크 없음!
-
-첫 번째 scanBrain → saveBrainIndex로 brain_index.json 저장 → 두 번째 scanBrain → loadBrainIndex로 읽음 → cortex region의 ModTime이 index.LastUpdated보다 이전 → 캐시에서 로드 → dormant 변경 반영 안 됨!
-
-L271에도 TEST_ISOLATION 체크를 추가해야겠다."}
-{"ts":"2026-04-18T23:50:45Z","role":"AI","text":"🟢 근본 원인: L271의 디스크 인덱스에 TEST_ISOLATION 가드 없음:"}
-{"ts":"2026-04-18T23:51:13Z","role":"AI","text":"✅ M-11 PASS! 이제 전체 벤치마크 재실행:"}
-{"ts":"2026-04-18T23:51:22Z","role":"AI","text":"setup failed — 디버그 테스트 파일 충돌:"}
-{"ts":"2026-04-18T23:51:40Z","role":"AI","text":"Go 모듈 문제 — 이전 디버그 테스트에서 go mod가 꼬임:"}
-{"ts":"2026-04-18T23:52:17Z","role":"AI","text":"internal/cache 모듈 문제:"}
-{"ts":"2026-04-18T23:52:29Z","role":"AI","text":"빌드 OK. 테스트 재시도:"}
-{"ts":"2026-04-18T23:52:47Z","role":"AI","text":"mcp_server.go:29 import 문제. go build는 되지만 go test는 실패. 빌드 태그나 import 확인:"}
-{"ts":"2026-04-18T23:52:56Z","role":"AI","text":"import \"neuronfs/internal/cache\" — 모듈명이 github.com/rhino-acoustic/NeuronFS/runtime인데 import가 neuronfs/internal/cache로 잘못됨!"}
-{"ts":"2026-04-18T23:53:41Z","role":"AI","text":"🎯 Governance Score: 100.0%! MLA 15/15! 배"}
+LIVE 함수	342개 (81.6%)
+DEAD 함수	77개 (18.4%)
+brain_v4	1.6 MB
+Git 커밋	843회
+시스템 상태
+지표	값
+뉴런	613개
+리전	7개
+Axon	6개 (유효)
+코드맵	152/152 일치
+크론	23:07 마지막 실행
+CVE	3건 (Go 업데이트 시 해결)
+SSOT 달성
+항목	상태
+포트 위반	0 ✅
+하드코딩 경로	0 ✅
+panic	0 ✅
+HTTP 타임아웃 없음	0 ✅
+Body 누수	0 ✅"}
+{"ts":"2026-04-18T23:54:10Z","role":"AI","text":"파일들이 이미 이전 커밋에 포함됨. 현재 변경사항 확인:"}

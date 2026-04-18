@@ -2,14 +2,4 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[23:50:42] AI: 메모리 캐시는 NEURONFS_TEST_ISOLATION=1이면 스킵됨 (L229). 하지만 디스크 인덱스 캐시 (L271-280)는
-[23:50:45] AI: 메모리 캐시는 NEURONFS_TEST_ISOLATION=1이면 스킵됨 (L229). 하지만 디스크 인덱스 캐시 (L271-280)는
-[23:50:45] AI: 🟢 근본 원인: L271의 디스크 인덱스에 TEST_ISOLATION 가드 없음:
-[23:51:13] AI: ✅ M-11 PASS! 이제 전체 벤치마크 재실행:
-[23:51:22] AI: setup failed — 디버그 테스트 파일 충돌:
-[23:51:40] AI: Go 모듈 문제 — 이전 디버그 테스트에서 go mod가 꼬임:
-[23:52:17] AI: internal/cache 모듈 문제:
-[23:52:29] AI: 빌드 OK. 테스트 재시도:
-[23:52:47] AI: mcp_server.go:29 import 문제. go build는 되지만 go test는 실패. 빌드 태그나 import 확인:
-[23:52:56] AI: import \"neuronfs/internal/cache\" — 모듈명이 github.com/rhino-acoustic/NeuronFS/runtime인데 import가 neuronfs/internal/cache로 잘못됨!
-[23:53:41] AI: 🎯 Governance Score: 100.0%! MLA 15/15! 배
+[23:54:10] AI: 파일들이 이미 이전 커밋에 포함됨. 현재 변경사항 확인:
