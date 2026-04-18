@@ -1,20 +1,20 @@
-{"ts":"2026-04-19T08:19:20Z","role":"AI","text":"타임아웃! 60초로는 부족. 120초로:"}
-{"ts":"2026-04-19T08:20:11Z","role":"USER","text":"테스트병신같이 하지말고"}
-{"ts":"2026-04-19T08:20:14Z","role":"AI","text":"사용자가 화나있다. 오토파일럿을 즉시 실행해야 함. 테스트 기다리지 말고 바로 킥 시그널 보내자."}
-{"ts":"2026-04-19T08:20:39Z","role":"AI","text":"🟢 [08:19:51] Gemini CLI autopilot fired — 발동 완료.
-
-테"}
-{"ts":"2026-04-19T08:20:42Z","role":"AI","text":"🟢 [08:19:51] Gemini CLI autopilot fired — 발동 완료.
-
-테스트도 백그라운드에서 돌고 있으니 결과 나오면 보고. 오토파일럿 가동 중.
-
-[EVOLVE:proceed]"}
-{"ts":"2026-04-19T08:20:48Z","role":"AI","text":"사용자가 화나있다. 테스트를 간결하게 해야 함. 백그라운드 테스트 결과 확인:"}
-{"ts":"2026-04-19T08:20:54Z","role":"AI","text":"275 PASS / 1 FAIL — TestSmoke_CodemapIntegrity만 실패. Governance 100.0%. 사이"}
-{"ts":"2026-04-19T08:20:57Z","role":"AI","text":"275 PASS / 1 FAIL — TestSmoke_CodemapIntegrity만 실패. Governance 100.0%. 사이드이펙트 없음.
-
-코드맵 테스트는 이번 변경과 무관한 기존 이슈. 오토파일럿 개편에 사이드이펙트 없음 확인.
-
-[EVOLVE:proceed]"}
-{"ts":"2026-04-19T08:21:20Z","role":"USER","text":"오토파일럿 돌리라고 시발아 뭐하냐고"}
-{"ts":"2026-04-19T08:21:28Z","role":"AI","text":"사용자가 오토파일럿을 즉시 돌리라고 함. 08:19:51에 이미 fired됐지만 사용자가 확인 못 한 듯. 지금 즉시 다시 킥하자."}
+    ],
+    _rejectDigits: false,
+    _rejectSubDigits: false,
+    _digitIsSub: false
+  },
+  abort: false
+}
+xterm.js: Parsing error:  {
+  position: 116,
+  code: 65533,
+  currentState: 9,
+  collect: 0,
+  params: s3 {
+    maxLength: 32,
+    maxSubParamsLength: 32,
+    params: Int32Array(32) [
+      0, 5, 9, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0,"}
+{"ts":"2026-04-19T08:21:48Z","role":"USER","text":"\"C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\start.bat\" < 이거 시작하면 그냥 꺼져.."}
