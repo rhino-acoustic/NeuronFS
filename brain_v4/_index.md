@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-18T21:39:16 | Neurons: 394/394 | Activation: 4
+Generated: 2026-04-18T21:40:59 | Neurons: 394/394 | Activation: 6
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
@@ -9,8 +9,8 @@ Generated: 2026-04-18T21:39:16 | Neurons: 394/394 | Activation: 4
 - 🎭 ego → 🧠 cortex
 
 ## 🏆 TOP 10 뉴런
-1. 🧠 **dev > dev** (2)
-2. 🧠 **methodology > methodology** (2)
+1. 🧠 **dev > dev** (3)
+2. 🧠 **methodology > methodology** (3)
 3. 🛡️ **반드시 > EVOLVE proceed 강제** (0)
 4. 🛡️ **반드시 > NeuronFS 공리** (0)
 5. 🛡️ **반드시 > bat재시작** (0)
@@ -76,8 +76,8 @@ Generated: 2026-04-18T21:39:16 | Neurons: 394/394 | Activation: 4
 (없음)
 
 ### 🧠 cortex (339)
-- **dev > dev** (2) — 7d남음
-- **methodology > methodology** (2) — 7d남음
+- **dev > dev** (3) — 7d남음
+- **methodology > methodology** (3) — 7d남음
 - **architecture** (0) — 7d남음
 - **backend** (0) — 3d남음
 - **community** (0) — 3d남음
@@ -446,7 +446,7 @@ Generated: 2026-04-18T21:39:16 | Neurons: 394/394 | Activation: 4
 | 💓 limbic — 감정 필터 | 3 | 0 | `limbic/_rules.md` |
 | 📝 hippocampus — 기록/기억 | 10 | 0 | `hippocampus/_rules.md` |
 | 👁️ sensors — 환경 제약 | 0 | 0 | `sensors/_rules.md` |
-| 🧠 cortex — 지식/기술 | 339 | 4 | `cortex/_rules.md` |
+| 🧠 cortex — 지식/기술 | 339 | 6 | `cortex/_rules.md` |
 | 🎭 ego — 성향/톤 | 12 | 0 | `ego/_rules.md` |
 | 🎯 prefrontal — 목표/계획 | 0 | 0 | `prefrontal/_rules.md` |
 | 🔗 shared — 공유 지식 | 0 | 0 | `shared/_rules.md` |
