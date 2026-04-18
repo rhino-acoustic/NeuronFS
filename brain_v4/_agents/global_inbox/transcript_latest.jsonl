@@ -1,20 +1,20 @@
+수정 완료	18건
+커밋	13회
+deadcode (Go 공식)	77개 식별
+CVE	3건 (Go 업데이트 필요)
+SSOT 위반 → 0	포트 10곳 + 경로 7곳
+크론 확장	8→9단계
+보고서	
+system_audit.md
  + 
 code_gap_analysis.md
 
 [EVOLVE:proceed]"}
-{"ts":"2026-04-18T23:17:55Z","role":"AI","text":"🟢 위험한 에러 무시 2건 수정 + 추가 간극 탐색:"}
-{"ts":"2026-04-18T23:17:55Z","role":"AI","text":"둘 다 로그 디렉토리가 없을 때 로그 파일 생성 실패 → MkdirAll 추가:"}
-{"ts":"2026-04-18T23:17:58Z","role":"AI","text":"✅ 20건 수정 완료. 이제 추가 미발견 간극:"}
-{"ts":"2026-04-18T23:18:19Z","role":"AI","text":"🟢 추가 발견:
-
-HTTP 클라이언트: 10곳 개별 생성 잔여 (이전 공용 풀 추가했으나 교체 미완)
-physical_hooks.go:256 — http.Client{}에 타임아웃 없음! 🔴
-fmt.Errorf %w 55곳 — 에러 래핑은 부분적으로 사용 중 (이전 \"0\"은 grep 오류)
-
-타임아웃 없는 HTTP 클라이언트 수정:"}
-{"ts":"2026-04-18T23:18:25Z","role":"AI","text":"🔴 physical_hooks.go:256 — http.Client{} 타임아웃 없음! Telegram 파일 업로드가 무한 블록 가능:"}
-{"ts":"2026-04-18T23:18:31Z","role":"USER","text":"Continue"}
-{"ts":"2026-04-18T23:18:43Z","role":"AI","text":"🟢 빌드 + 배포 + 추가 간극:"}
-{"ts":"2026-04-18T23:18:43Z","role":"AI","text":"빌드 + 배포 + 미사용 import 제거 + 더 스캔:"}
-{"ts":"2026-04-18T23:18:56Z","role":"USER","text":"코드별 간극"}
-{"ts":"2026-04-18T23:18:56Z","role":"USER","text":"미발견을 찾아"}
+{"ts":"2026-04-18T23:19:09Z","role":"AI","text":"🟢 빌드 + 배포 + 추가 간극:"}
+{"ts":"2026-04-18T23:19:09Z","role":"AI","text":"이제 미탐색 영역 - 동시성/경쟁 조건:"}
+{"ts":"2026-04-18T23:19:33Z","role":"AI","text":"🔴 resp.Body.Close 누락 7곳! — 메모리/커넥션 누수 위험:"}
+{"ts":"2026-04-18T23:19:42Z","role":"AI","text":"edge_inference.go:69는 실제로 75번에서 `"}
+{"ts":"2026-04-18T23:19:45Z","role":"AI","text":"🟢 오탐 확인 — 실제 Body.Close 누락 검증:"}
+{"ts":"2026-04-18T23:20:00Z","role":"AI","text":"🔴 telegram_bridge.go L457, L484 — resp.Body.Close 누락!"}
+{"ts":"2026-04-18T23:20:08Z","role":"AI","text":"L457은 468에서 Close 있음! L484가 진짜 누수:"}
+{"ts":"2026-04-18T23:20:17Z","role":"AI","text":"또 hlCDPPort+90도 SSOT 위반 — APIPort 사용해야 함:"}

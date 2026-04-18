@@ -1,4 +1,4 @@
-// hijack_launcher.go — hijack-launcher.mjs Go 포팅
+﻿// hijack_launcher.go — hijack-launcher.mjs Go 포팅
 // 통합 브릿지: TG polling + CDP 캡처 + 전사 + Groq 뉴런 추출
 // 외부 의존성: 0 (cdp_client.go + Go stdlib)
 package main
@@ -454,7 +454,7 @@ func hlTgPoll(brainRoot string) {
 
 			// ── 기능 누락 복구: 기존 MJS 기능 재이식 ──
 			if text == "/brain" || text == "/neurons" {
-				resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/api/brain", hlCDPPort+90)) // api port: 9090 (hlCDPPort=9000)
+				resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/api/brain", APIPort)) // api port: 9090 (hlCDPPort=9000)
 				if err == nil {
 					var bJSON struct {
 						TotalNeurons int `json:"totalNeurons"`
@@ -481,7 +481,9 @@ func hlTgPoll(brainRoot string) {
 			}
 
 			if text == "/inject" {
-				http.Post(fmt.Sprintf("http://127.0.0.1:%d/api/inject", hlCDPPort+90), "application/json", nil)
+				if resp, err := http.Post(fmt.Sprintf("http://127.0.0.1:%d/api/inject", APIPort), "application/json", nil); err == nil {
+				resp.Body.Close()
+			}
 				hlTgSend(chatID, "🔄 Inject 트리거 완료")
 				continue
 			}
