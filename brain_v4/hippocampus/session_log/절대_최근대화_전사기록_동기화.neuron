@@ -2,7 +2,6 @@
 
 이전 대화 맥락을 파악하고 대답을 연계할 것:
 
-[22:13:34] AI: 상세:
-[22:13:34] AI: 🟢 세션 요약:
-[22:14:10] AI: 수정: supervisor/api/watch는 프로세스 존재 여부로 체크, 나머지는 동일 프로세스 내 goroutine이므로 goNativeServices 사용:
-[22:14:39] USER: Continue
+[22:15:07] AI: api: alive ✅, supervisor: dead — supervisor 프로세스가 neuronfs가 아닌 다른 이름일 수 있음:
+[22:15:16] AI: 3개 neuronfs 프로세스 실행 중! isProcessRunning이 제대로 동작 안 함:
+[22:15:31] AI: isProcessRunning(\"neuronfs\") → tasklist에서 IMAGENAME eq neuronfs → .exe 안 붙여서 실패! 수정:

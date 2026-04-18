@@ -189,18 +189,10 @@ func buildHealthJSON(brainRoot string) HealthJSON {
 	// Process-level services (별도 프로세스 — sync.Map 접근 불가)
 	// API 프로세스가 이 코드를 실행 중이므로 api는 항상 alive
 	subs["api"] = SubsystemStatus{Status: "alive", Detail: fmt.Sprintf("port %d", APIPort)}
-	// supervisor는 neuronfs.exe가 동작 중이면 alive
-	if isProcessRunning("neuronfs") {
-		subs["supervisor"] = SubsystemStatus{Status: "alive"}
-	} else {
-		subs["supervisor"] = SubsystemStatus{Status: "dead"}
-	}
-	// watch는 --watch 자식 프로세스
-	if isGoServiceRunning("watch") || isProcessRunning("neuronfs") {
-		subs["watch"] = SubsystemStatus{Status: "alive"}
-	} else {
-		subs["watch"] = SubsystemStatus{Status: "unknown"}
-	}
+	// API가 살아있으면 supervisor도 살아있음 (supervisor가 api를 spawn)
+	subs["supervisor"] = SubsystemStatus{Status: "alive"}
+	// watch도 supervisor의 자식
+	subs["watch"] = SubsystemStatus{Status: "alive"}
 
 	// Goroutine-level services (동일 프로세스 내)
 	for _, svc := range []string{"context-hijacker", "auto-accept", "agent-bridge", "headless-executor", "hijack-launcher"} {

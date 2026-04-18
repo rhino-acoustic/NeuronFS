@@ -1,5 +1,5 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\dashboard.go
-updated: 2026-04-18T22:14:36
+updated: 2026-04-18T22:16:00
 # dashboard.go
 dir: runtime
 
@@ -21,8 +21,8 @@ CDP check (9000)
 Telegram
 Process-level services (별도 프로세스 — sync.Map 접근 불가)
 API 프로세스가 이 코드를 실행 중이므로 api는 항상 alive
-supervisor는 neuronfs.exe가 동작 중이면 alive
-watch는 --watch 자식 프로세스
+API가 살아있으면 supervisor도 살아있음 (supervisor가 api를 spawn)
+watch도 supervisor의 자식
 Goroutine-level services (동일 프로세스 내)
 Backlog counts
 ─── Build brain JSON from scan ───
