@@ -1,20 +1,21 @@
-수정 완료	18건
-커밋	13회
-deadcode (Go 공식)	77개 식별
-CVE	3건 (Go 업데이트 필요)
-SSOT 위반 → 0	포트 10곳 + 경로 7곳
-크론 확장	8→9단계
-보고서	
-system_audit.md
- + 
-code_gap_analysis.md
 
-[EVOLVE:proceed]"}
-{"ts":"2026-04-18T23:19:09Z","role":"AI","text":"🟢 빌드 + 배포 + 추가 간극:"}
-{"ts":"2026-04-18T23:19:09Z","role":"AI","text":"이제 미탐색 영역 - 동시성/경쟁 조건:"}
-{"ts":"2026-04-18T23:19:33Z","role":"AI","text":"🔴 resp.Body.Close 누락 7곳! — 메모리/커넥션 누수 위험:"}
-{"ts":"2026-04-18T23:19:42Z","role":"AI","text":"edge_inference.go:69는 실제로 75번에서 `"}
-{"ts":"2026-04-18T23:19:45Z","role":"AI","text":"🟢 오탐 확인 — 실제 Body.Close 누락 검증:"}
-{"ts":"2026-04-18T23:20:00Z","role":"AI","text":"🔴 telegram_bridge.go L457, L484 — resp.Body.Close 누락!"}
-{"ts":"2026-04-18T23:20:08Z","role":"AI","text":"L457은 468에서 Close 있음! L484가 진짜 누수:"}
-{"ts":"2026-04-18T23:20:17Z","role":"AI","text":"또 hlCDPPort+90도 SSOT 위반 — APIPort 사용해야 함:"}
+나머지 http.Client 개별 생성 교체
+physical_hooks의 sendTelegramSafe에서 http.Post 사용 - 공용 풀로 교체
+더 많은 resp.Body.Close 누수
+goroutine recover 추가
+unused import 정리
+
+가장 임팩트 있는 것"}
+{"ts":"2026-04-18T23:21:48Z","role":"AI","text":"사용자가 계속하라고 함. 더 많은 간극을 찾아서 수정하자. 아직 안 본 영역들:
+
+나머지 http.Client 개별 생성 교체
+physical_hooks의 sendTelegramSafe에서 http.Post 사용 - 공용 풀로 교체
+더 많은 resp.Body.Close 누수
+goroutine recover 추가
+unused import 정리
+
+가장 임팩트 있는 것부터."}
+{"ts":"2026-04-18T23:21:48Z","role":"AI","text":"🟢 나머지 HTTP 클라이언트 교체 + 추가 간극:"}
+{"ts":"2026-04-18T23:21:56Z","role":"USER","text":"[telegram → NeuronFS] 텔레그램으로 보내면 메세지 두개가 하나는 텔레그램 태그 달려서 하나는 그대로텔레그램으로 보내면 메세지 두개가 하나는 텔레그램 태그 달려서 하나는 그대로"}
+{"ts":"2026-04-18T23:22:01Z","role":"AI","text":"hlCDPPort는 CDPPort의 로컬 alias (telegram_bridge.go L24에서 정의) — 이건 정상. transcript.go:267 로그 문자열 하드코딩 1건 잔여:"}
+{"ts":"2026-04-18T23:22:10Z","role":"AI","text":"L267의 \"CDP:9000\" 로그 문자열을 동적으로 교체:"}

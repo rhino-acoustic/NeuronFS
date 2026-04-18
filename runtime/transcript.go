@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 // ?????? transcript.go ??????
 // PROVIDES: gitSnapshot, touchActivity, getLastActivity, runIdleLoop, digestTranscripts, writeHeartbeat
@@ -264,7 +264,7 @@ func injectIdleResultSync(summary string) {
 		// ???? CDP ????
 		targets, err := cdpListTargets(CDPPort)
 		if err != nil {
-			diagLog = append(diagLog, fmt.Sprintf("CDP:9000 ??? ? %v", err))
+			diagLog = append(diagLog, fmt.Sprintf("CDP:%d 연결 실패: %v", CDPPort, err))
 			continue
 		}
 
