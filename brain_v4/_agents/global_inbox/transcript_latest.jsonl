@@ -1,4 +1,3 @@
-HTTP 클라이언트 통합
 headerRe/roleRe 중복
 
 빠르게 할 수 있는 것부터."}
@@ -18,3 +17,4 @@ headerRe/roleRe 중복
 {"ts":"2026-04-18T22:47:40Z","role":"AI","text":"🟢 대드코드 deprecated 표시 + 추가 영역 스캔:"}
 {"ts":"2026-04-18T22:47:40Z","role":"AI","text":"계속. 대드코드 3개에 deprecated 표시 + 더 스캔하자."}
 {"ts":"2026-04-18T22:47:50Z","role":"AI","text":"aaScrapeAIScript는 실제로 유용한데 아직 연결 안 됨. deprecated가 아님 — 단지 미연결. 나머지 2개(formatAbsoluteRules, formatTop5CoreRules)는 emit 리팩토링 후 대체됨. deprecated 표시:"}
+{"ts":"2026-04-18T22:48:08Z","role":"AI","text":"빌드 + 커밋 + 새 영역 스캔:"}

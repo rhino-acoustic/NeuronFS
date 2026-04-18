@@ -14,3 +14,4 @@
 [22:47:40] AI: 🟢 대드코드 deprecated 표시 + 추가 영역 스캔:
 [22:47:40] AI: 계속. 대드코드 3개에 deprecated 표시 + 더 스캔하자.
 [22:47:50] AI: aaScrapeAIScript는 실제로 유용한데 아직 연결 안 됨. deprecated가 아님 — 단지 미연결. 나머지 2개(formatAbsoluteRules, formatTop5CoreRules)는 emit 리팩토링 후 대체됨. deprecated 표시:
+[22:48:08] AI: 빌드 + 커밋 + 새 영역 스캔:
