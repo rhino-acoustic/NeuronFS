@@ -1,0 +1,9 @@
+﻿type: 禁
+timestamp: 2026-04-12T18:59:41
+source: corrections.jsonl
+root_cause: assumption_without_verification
+description: Gemini CLI multi-agent: coded without testing execution mode first. Start-Process triggers interactive TUI. MCP connection overhead causes timeout. Agent role separation not designed.
+fix: 1) Always test CLI tool behavior before building orchestrator 2) Separate roles: CLI=research, PM=code 3) Pre-cache context to eliminate MCP loading overhead
+status: ACTIVE
+severity: P1
+repeat_count: 1

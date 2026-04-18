@@ -1,0 +1,12 @@
+# EVOLUTION TODO: NeuronFS Autopilot V7 고도화 과제 (Phase 31+)
+
+## 1. Cognitive OS & Autonomous File-System Monitor
+V6 엣지 서바이벌망 구축에 이어, V7에서는 NeuronFS가 단순한 "저장소"를 넘어 "살아 숨쉬는 운영체제(Cognitive OS)"로 진화합니다. 물리적 시스템(OS)의 변화를 실시간 감지하여 능동적으로 대응하는 촉각 네트워크(Sensory Net)를 개통합니다.
+
+- [x] **[Phase 31] FS Watcher 기반 OS 시냅스 발화 (Sensory Monitor)**: Go의 `fsnotify` 채널을 이용해 `cortex/` 나 `dashboard/` 내부의 파일시스템 변경(사용자의 수동 수정 등)을 실시간(Real-time)으로 감시. 변경 감지 즉시 `bot1` 에이전트가 코드를 정적 분석(Linting/Tests)하여 에러를 선제적으로 격리(Quarantine)하거나 MCP를 통해 보고하는 백그라운드 데몬 구축.
+- [x] **[Phase 32] GraphQL / 표준 Webhook 확장 (B2B 상용화 API)**: 외부 서비스(Slack, Jira, Discord 등)와의 완벽한 통합을 위해, 단순한 REST를 넘어 뇌(Brain)의 구조적 질의를 수행하는 GraphQL 레이어 스키마 및 타겟팅 Webhook 포워더(Forwarder) 개통.
+- [x] **[Phase 33] NPU (신경망처리장치) / Tensor Core 메모리 매핑**: 추론 레이턴시를 0ms에 가깝게 만들기 위해, 로컬 추론 엔진(`InvokeLocalLLM`)이 Windows NPU(DirectML)나 Mac NPU(MLX)의 텐서 코어를 하드웨어 레벨에서 직접 물고(Bind) 캐싱할 수 있도록 최적화 파이프라인(CGO Zero-Copy) 도입.
+
+## 진행 지침
+- [원칙: 사이드이펙트 제로]를 항상 숙지하며 레거시 하위 호환성을 반드시 지킬 것.
+- OS 레벨 워커(FS Watcher) 구동 시 CPU 점유율을 1% 미만으로 억제해야 하며, 디바운스(Debounce) 로직을 통해 폭풍 이벤트(Event Storm) 붕괴를 예방할 것.

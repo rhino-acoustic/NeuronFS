@@ -1,0 +1,12 @@
+# EVOLUTION TODO: NeuronFS Autopilot V8 고도화 과제 (Phase 34+)
+
+## 1. 자가 치유 및 에러-시냅스 자동 각인 (Self-Healing Cognitive Introspection)
+V7을 통해 OS와 통합된 감각 기관(Sensory)을 구축했다면, V8에서는 시스템 스스로가 자신의 "상처(오류)"를 기억(Memory)으로 치환하는 자가 치유 메커니즘을 완성합니다.
+
+- [x] **[Phase 34] 런타임 에러 자가 각인 (Auto-Engraving)**: Go 런타임 내부의 패닉이나 추론 엔진 오류(Ollama 타임아웃, NPU 메모리 할당 실패 등)가 발생했을 때, 이를 단순 stdout 로그로 버리지 않습니다. 에러 스택 트레이스를 `cortex/dev/에러패턴확인/` 아래에 실시간 `.neuron` 파일로 저장(각인)하여, FS Watcher가 이를 감지하고 스스로 분석(Self-Fix)하도록 Ouroboros 사이클을 완성합니다.
+- [x] **[Phase 35] 3D 홀로그래픽 대시보드의 GraphQL 실시간 연동**: 정적인 HTML이 머물러 있던 `dashboard_v2.html`을 GraphQL 파이프라인과 연결하여, 실제 로컬 폴더(Neuron 트리)의 크기/뎁스(Depth)/연결(Axon)을 3D Three.js 노드 맵으로 시각화합니다.
+- [x] **[Phase 36] Agent-to-Agent 피어 지식 크로스오버**: `bot1`, `enfp`, `architect` 등 독립된 인박스를 가진 에이전트 간의 통신 시, 서로의 `corrections.jsonl` 학습 데이터를 교환하고 병합(Merge)하여 전체 스웜 지능을 상향 평준화(Leveling)하는 P2P 지식 동기화 브로드캐스트.
+
+## 진행 지침
+- [원칙: 사이드이펙트 제로]를 항상 숙지하며 레거시 하위 호환성을 반드시 지킬 것.
+- 런타임 에러 각인 시 OOM을 막기 위해 동일한 에러는 15초(15,000ms) 디바운스 및 카운터 합산 방식으로 처리할 것.

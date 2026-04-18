@@ -1,0 +1,14 @@
+# EVOLUTION TODO: NeuronFS Autopilot V6 고도화 과제 (Phase 28+)
+
+## 1. On-Device LLM & Edge Compute 인프라통합
+V5를 통해 달성한 "Internet of Agents" 군집 생태계에 **온디바이스 초소형 LLM(Edge Model)** 추론 엔진을 융합하여 로컬 네트워크 단독으로 자율 진화(Self-Evolution)를 완수할 수 있는 코어를 확립합니다.
+
+- [x] **[Phase 28] CGO 기반 llama.cpp (또는 gollm) 런타임 탑재**: Go 런타임 내부에 로컬 모델 추론 계층(MLX, Go-llama.cpp)을 내장. 서버 호출(OpenAI/Anthropic) 없이도 간단한 `turbopack_error` 픽스나 파일 시스템 스캐닝을 로컬에서 4-bit Quantization(양자화) 모델로 고속 처리할 수 있도록 구축.
+- [x] **[Phase 29] 투-트랙(Two-Track) 모델 아키텍처 및 Speculative Decoding 활용 분기**: 빠른 응답을 위한 경량 Draft 모델(로컬)과 정밀 분석을 위한 Target 모델(클라우드 API) 연계. 네크워크 지연 시 로컬 LLM이 전권을 잡는 서바이벌 엣지 모드 구현.
+
+## 2. Model Context Protocol (MCP) 스웜 호환성
+- [x] **[Phase 30] MCP 호환 Tools Registry 노출**: WebSockets로 진행되던 기존 Delegation 구조(Phase 27)를 글로벌 표준인 **MCP(Model Context Protocol)**와 통합. 모든 피어(Peer) 노드들이 다른 에이전트의 "Tool"을 JSON-RPC 프로토콜 기반으로 원격 호출할 수 있도록 P2P 스트림 위에 MCP 레이어 오버레이.
+
+## 진행 지침
+- [원칙: 사이드이펙트 제로]를 항상 숙지하며 레거시 하위 호환성을 반드시 지킬 것.
+- 2026년 하드웨어 트렌드인 메모리 대역폭 한계 방침을 인지하고, 런타임 탑재 시 불필요한 VRAM 누수가 발생하지 않도록 메모리 매니저를 엄격히 분리한다.

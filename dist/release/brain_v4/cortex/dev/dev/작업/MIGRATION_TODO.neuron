@@ -1,0 +1,20 @@
+# MIGRATION TODO: Strangler Fig CLI 모듈화 잔여 과제
+
+## 남은 레거시 명령어 목록 (우선순위 순)
+- [x] `--api`: `startAPI(brainRoot, port)` 호출
+- [x] `--html`: `generateBrainJSON` 및 HTML 익스포트
+- [x] `--grow` & `--fire`: 단일 뉴런 조작 (getNonFlagArg 파싱 필요)
+- [x] `--signal` & `--decay`: 신경 전달 물질 및 TTL 감소 처리
+- [x] `--snapshot`, `--rollback`, `--rollback-all`: Git 연동 및 시냅스 복원
+- [x] `--stats`, `--vacuum`: 폴더 정리 및 통계 생성
+- [x] `--mcp`, `--supervisor`: 시스템 데몬 구동 (의존성 높음)
+- [x] `--neuronize`, `--polarize`, `--symlink`: 고급 유틸리티
+
+## 진행 지침
+- [x] 한 번의 진화(Evolve) 사이클마다 2~3개의 연관 명령어를 묶어서 `cli_cmd_*.go` 로 모듈화한다.
+- [x] `main.go`의 `switch mode` 블랙홀 크기를 점진적으로 0까지 줄여나간다.
+
+## 향후 과제 (Phase 60 ~ 61)
+- [x] **Brain Marketplace 프로토타입**: `.zip` 패키징 및 압축해제 설치 표준 규격 정의 (cli_cmd_package.go 완료)
+- [ ] **P2P 뉴런 동기화 (Phase 60)**: 로컬 장치 간 뇌 폴더 상태 동기화 프로토콜 (emit 전파)
+- [ ] **자가 수정 4단계 폐쇄 루프 (Phase 61)**: 제안 → 검토 → 적용 → 검증 자동화 고도화

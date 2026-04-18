@@ -1,0 +1,14 @@
+# 자율주행 디바운스 대를 시스템 정지로 오해하는 패턴
+
+## 현상
+- AI가 `[EVOLVE:proceed]` 태그를 출력하며 턴을 종료함.
+- `hijack_orchestrator.go`는 채팅 꼬임 방지를 위해 의도적으로 60초 대기(debounce) 진입.
+- 사용자는 즉각적인 반응이 없는 이 60초를 "진행안되잖아", "idle로 트리거된 것 같다" 등으로 오판함.
+
+## 원인
+- `hijack_orchestrator.go` 내의 `time.Sleep(60 * time.Second)` 타이머가 시각적으로 사용자에게 노출되지 않음.
+- `hlAutoEvolve`의 5분(idle)과 헷갈리는 구조적 인지 시차 발생.
+
+## 교정
+- AI가 턴 종료 전, 혹은 대시보드의 상태창이 "Cooldown 60s" 등의 명시적 스테이터스를 표기하도록 개선하거나, 현재의 60초 의도적 지연을 사용자가 인지하도록 안내할 것. 
+- 시스템은 완전히 정상 동작 중이므로 로직 수정이 아니라 VUX(Voice/Visual User Experience)의 영역임.

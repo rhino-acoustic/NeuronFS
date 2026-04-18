@@ -1,0 +1,6 @@
+# 무상태 백그라운드 워커의 패닉 복구 아머 (Antifragile)
+
+핫-스왑 가능한 독립 워커 풀(Goroutine, Worker Process)들은 단일 컴포넌트의 논리 오류(Panic)가 전체 관제소(Supervisor)를 크래시시키지 않도록 반드시 개별 방어막을 갖춰야 한다.
+
+- 모든 워커 진입점(`runWorkerTool`, `idleWorker` 등)의 상단에 `defer func() { recover() }` 로직을 의무 배치할 것.
+- Recover 된 에러는 강제로 프로세스를 살리지 않고, 안전하게 `slog.Error` 로 격리 보존 후 하위 exit 조치를 취한다.

@@ -1,0 +1,1 @@
+{"created":"2026-04-06T12:03:58.219Z","reason":"과도한 리플로우를 피하기 위해 ResizeObserver를 제거하고 디바운스를 사용하여 성능을 최적화할 수 있음","source":"groq_auto_extract","chunk_size":10}

@@ -1,0 +1,6 @@
+P04B: 클린 오디오 Groq Whisper word-level 재전사
+원본 오디오에서 P04 subclips 구간만 numpy 슬라이싱 → clean_audio.wav
+Groq whisper-large-v3 word-level timestamp → clean_words
+25MB 초과 시 10분 청크 분할.
+화자 태그: offset_map 역변환 → diarization 매칭.
+파일: v19_phases/p04b_clean_stt.py

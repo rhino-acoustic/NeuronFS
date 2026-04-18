@@ -1,0 +1,7 @@
+v19 Server: FastAPI + WebSocket, 7-Phase 오케스트레이터
+P01(STT) → P02(화자분리) → P03(AI PD, Groq Llama4 Scout) → P04(클린컷) → P04B(클린STT) → P05(자막 Netflix 7-Pass) → P06(패키징)
+POST /upload → asyncio.create_task(run_pipeline)
+WebSocket /ws → broadcast 실시간 진행상황
+finally: unload_model() + gc.collect() → VRAM 반환
+port: 8800, preload_model() at startup
+파일: v19_server.py

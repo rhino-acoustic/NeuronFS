@@ -1,0 +1,26 @@
+type: 감사
+timestamp: 2026-04-12T19:15:00
+source: PM 직접 감사 (PowerShell)
+
+## 코드 현황
+- Go 파일: 174개
+- 잠재 미사용 함수: 190개 (대부분 테스트)
+- TODO/FIXME: 5개
+
+## 발견된 문제
+1. brain.go:48 — HasGoal 주석에 todo 포함
+2. emotion_prompt.go — 한글 규칙 내 TODO 문자열 매칭 (false positive)
+3. extended_benchmark_test.go:332 — 테스트 문자열
+4. prompt_rotation.go — PowerShell 출력 시 한글 깨짐 (파일은 정상)
+
+## 면역 패턴 발견
+- 동일 마스터 프롬프트 10회 이상 → "핑 확인" 루프 진입
+- 원인: LLM attention decay
+- 해결: Phase 54 프롬프트 로테이션 엔진 구현 완료
+
+## 개선 우선순위
+1. [완료] EmotionPrompt 엔진 (Phase 53)
+2. [완료] 프롬프트 로테이션 (Phase 54)
+3. [미완] Gemini API 직접 호출 (CLI 오버헤드 제거)
+4. [미완] 사전 컨텍스트 캐시
+5. [미완] 랜딩 페이지 구현

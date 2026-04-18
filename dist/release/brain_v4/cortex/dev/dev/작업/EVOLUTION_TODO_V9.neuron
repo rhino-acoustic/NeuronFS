@@ -1,0 +1,12 @@
+# EVOLUTION TODO: NeuronFS Autopilot V9 고도화 과제 (Phase 37+)
+
+## 1. 4D 시간적 기억망 (Temporal Semantic Memory) 최적화
+3차원의 홀로그램 공간(V8)을 넘어, 파일시스템에 시간의 축(Time-Axis)을 직조하여 과거의 변화를 소환할 수 있는 "시계열 벡터 두뇌" 구조를 탑재합니다.
+
+- [x] **[Phase 37] FS-Watcher 기반 자율 Diff 패킹(Packing) 엔진**: 로컬 폴더(`#cortex`)에서 `.neuron` 파일이 수정될 때마다 파일이 덮어써지며 과거 지능이 소멸되는 문제를 차단합니다. FS-Watcher(`fs_watcher.go`) 프로세스에 후킹(Hooking)하여, 파일 변경 즉시 기존 상태와의 Git Diff를 해시 패킹하여 `hippocampus/temporal_log/` 산하에 `[timestamp].delta` 파일로 자율 백업/기록하는 Ouroboros Diff 엔진을 만듭니다.
+- [x] **[Phase 38] GraphQL 시계열 (TemporalHistory) 쿼리 확장**: `graphql_server.go`에 `temporalHistory` 쿼리를 뚫어, 특정 파일명만 요청하면 백엔드가 자동으로 수천 개의 `[timestamp].delta` 파일들을 로드해 그 뉴런의 진화사(Evolution History)를 시간순으로 반환하게 합니다.
+- [x] **[Phase 39] 시계열 로컬 NPU 증강검색 (Temporal RAG)**: Phase 33에서 달성한 0ms NPU-HAL 엔진과 접합합니다. 현재 뇌(cortex)에는 없는 내용이지만, 며칠 전 `temporal_log` 속 과거 기억의 파편을 NPU 스레드가 자율 검색해 프롬프트로 병합하는 무한대 컨텍스트 윈도우 증강 기술 완성.
+
+## 진행 지침
+- [원칙: 사이드이펙트 제로]를 항상 숙지하며 레거시 하위 호환성을 반드시 지킬 것.
+- 델타 파일들은 디스크 I/O를 아끼기 위해 메모리 링 버퍼 등에서 일차 임시 캐싱을 수행할 것.

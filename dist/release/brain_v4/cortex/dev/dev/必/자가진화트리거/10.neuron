@@ -1,0 +1,5 @@
+﻿counter: 3
+created: 2026-04-11
+last_fired: 2026-04-11
+---
+전사문 교정 패턴 → 뉴런 생성 → emit 인젝션. idle loop 12단계 자동 실행.

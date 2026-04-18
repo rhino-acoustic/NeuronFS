@@ -1,0 +1,6 @@
+P05: 넷플릭스 기준 7-Pass 자막 생성
+P04B clean_words (클린본 word timestamp) 직접 사용.
+Pass1: 선병합+Groq 의미분할 | Pass2: 의존어교정(격조사·보조동사) | Pass3: 소프트리미트 22자
+Pass4: 최소 duration 0.8초 | Pass5: 겹침·역전 교정 | Pass6: 3자이하 병합
+상수: SOFT_MAX=22, HARD_MAX=35, MIN_DUR=0.8, TARGET_CPS=10
+파일: v19_phases/p05_subtitle.py (21KB)

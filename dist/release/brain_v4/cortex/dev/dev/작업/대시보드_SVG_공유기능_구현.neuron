@@ -1,0 +1,13 @@
+# 신경망 SVG 벡터 추출 아키텍처 (Strangler Fig 7차 연계)
+
+## 맥락
+- `[NeuronFS 자율 진화 명령: 마스터 프롬프트 v2]` (7차 사이클) 진행 중 사용자로부터 텔레그램을 통해 수동 명령 수신: 대시보드 V2를 SVG로 추출하여 공유 가능하게 하라.
+
+## 조치 사항
+1. `runtime/svg_generator.go`에 삼각함수 기반의 절차적 2D 뇌 매핑 엔진 탑재. 최대 1500개 노드 제한을 걸어 투영 최적화 및 `<svg>` `<circle>` `<text>` 요소로 TTY 관제 패널과 결합.
+2. `runtime/api_static.go` 에 `GET /api/dashboard.svg` (Content-Type: `image/svg+xml`) 신설. API 요청 즉시 V2 두뇌가 벡터화되어 스트리밍됨 (GitHub README / Telegram 네이티브 지원).
+3. CLI 모듈 `cli_cmd_export_svg.go` 적층. Strangler 라우터 구조에 결합하여 명령어 단위의 기능 실행 확보.
+4. `go vet` 검증 중 `Brain` 타입 구조체 내 프로퍼티 매칭 에러 발생. `runSubsumption` 결과값에서 `TotalNeurons`를 추출하는 아키텍처로 우회 복구 성공.
+
+## 디자인 결론
+텔레그램에 전송되거나 README에 박제될 때, 맥박(`Pulse`) 효과와 시스템 부팅 텍스트가 깜빡거리며 사이버펑크 디자인(Emerald / Blue 코팅)이 그대로 보존됨.
