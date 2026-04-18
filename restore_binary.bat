@@ -1,8 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ============================================
-echo  NeuronFS System Prompt RESTORE (원복)
-echo  language_server 바이너리 원본 복원
+echo  RESTORE: language_server binary
 echo ============================================
 echo.
 
@@ -10,25 +9,32 @@ set "BIN=C:\Users\BASEMENT_ADMIN\AppData\Local\Programs\Antigravity\resources\ap
 set "BAK=%BIN%.bak_original"
 
 if not exist "%BAK%" (
-    echo ERROR: 원본 백업이 없습니다!
+    echo ERROR: No backup found!
     echo   %BAK%
     pause
     exit /b 1
 )
 
-echo [1/3] Antigravity 종료...
+echo [1/3] Killing Antigravity...
 taskkill /F /IM Antigravity.exe >nul 2>&1
 taskkill /F /IM language_server_windows_x64.exe >nul 2>&1
+echo   Waiting 5 seconds...
 timeout /t 5 /nobreak >nul
 
-echo [2/3] 원본 복원...
+echo [2/3] Restoring original binary...
 copy /Y "%BAK%" "%BIN%" >nul
-echo   복원 완료
+if %ERRORLEVEL% EQU 0 (
+    echo   OK - Restored
+) else (
+    echo   FAIL - Could not copy
+    pause
+    exit /b 1
+)
 
-echo [3/3] Antigravity 재시작...
+echo [3/3] Starting Antigravity...
 start "" "C:\Users\BASEMENT_ADMIN\AppData\Local\Programs\Antigravity\Antigravity.exe"
 echo.
 echo ============================================
-echo  원복 완료! 원본 바이너리로 복원됨.
+echo  DONE! Original binary restored.
 echo ============================================
 pause
