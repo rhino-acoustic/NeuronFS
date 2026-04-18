@@ -106,14 +106,13 @@ func executeGeminiCLI(task AgentTask) AgentResult {
 	_ = os.WriteFile(promptFile, []byte(task.Prompt), 0644)
 	defer os.Remove(promptFile)
 
-	// Use stdin pipe injection: gemini < prompt.txt (non-interactive)
-	// Also try --yolo/--non-interactive flags if available
-	cmd := exec.Command(geminiPath, "--prompt", task.Prompt, "--yolo", "--allowed-mcp-server-names", "none", "--sandbox", "false")
+	// stdin pipe로 프롬프트 전달 (--prompt는 길이 제한으로 실패할 수 있음)
+	cmd := exec.Command(geminiPath, "--allowed-mcp-server-names", "none", "--sandbox", "false")
 	if task.WorkDir != "" {
 		cmd.Dir = task.WorkDir
 	}
 
-	// Setup stdin pipe as fallback injection
+	// stdin pipe injection
 	stdinPipe, pipeErr := cmd.StdinPipe()
 	if pipeErr == nil {
 		go func() {
