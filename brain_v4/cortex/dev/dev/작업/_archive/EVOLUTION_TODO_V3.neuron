@@ -1,0 +1,13 @@
+# EVOLUTION TODO: NeuronFS Autopilot V3 고도화 과제 (Phase 18+)
+
+## 1. 퍼포먼스 및 병렬 처리 (Hyper-Scale)
+- [x] **[Phase 18] 멀티스레드 기반 병렬 스캔 도입**: `scanBrain` 등 O(1)으로 개선된 VFS 로직을 바탕으로, 7개 `Region`을 병렬 고루틴(Goroutine) 기반으로 동시 스캔하도록 확장. 글로벌 Mutex 락 구간 축소.
+- [x] **[Phase 19] 분산 메모리 공유 시스템**: 대규모 트래픽 발생 시 API Handler가 지연되지 않도록 Redis나 인메모리 Cache 시스템(Go `sync.Map` 고도화)을 도입하여 Memory/Hit Miss율 최적화.
+
+## 2. 통합 대시보드 V3 및 컴포넌트화
+- [x] **[Phase 20] 대시보드 리액트(Next.js) 포팅**: 바닐라 JS/HTML로 구현된 `dashboard_v2.html` 3D 가속 환경을 기반으로 삼아, 데이터 흐름과 상태 로직 관리를 편하게 하기 위해 Standalone 프론트엔드 컴포넌트화 돌입.
+- [x] **[Phase 21] 양방향 이벤트 웹소켓**: SSE 단방향 전송을 양방향 통신 채널로 확장하여 Dashboard 상에서 그래픽적으로 뉴런을 드래그해 머지(Merge)하거나 연결(Axon)하는 기능 제작.
+
+## 진행 지침
+- 모든 I/O는 Strangler Fig에 맞추어 `vfsReadDir` 등 고도화된 VFS Core 함수를 거쳐야 함.
+- 10,000개 이상의 뉴런 확장에 대비해 안전장치(Circuit breaker) 및 1초 이하 Latency 방어 필수.

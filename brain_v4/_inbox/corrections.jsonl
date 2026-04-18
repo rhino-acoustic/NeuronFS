@@ -1,0 +1,1 @@
+﻿{"detail":"benchmark Phase 2 taskkill+restart caused 549 neuron folders deleted (626-\u003e77). Git untracked = unrecoverable.","timestamp":"2026-04-18T19:51:12","severity":"CRITICAL","event":"DATA_LOSS","cause":"benchmark_identity.py Phase 2: taskkill /F /IM neuronfs.exe then start.bat"}

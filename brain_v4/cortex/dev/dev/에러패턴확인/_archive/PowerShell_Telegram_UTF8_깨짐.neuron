@@ -1,0 +1,15 @@
+# PowerShell Telegram UTF-8 이모지 깨짐 패턴
+
+## 증상
+PowerShell에서 Telegram Bot API로 메시지를 보낼 때, 이모지(✅🧠💤 등)가 전부 `?`로 변환됨.
+
+## 원인
+PowerShell 5.x의 기본 문자열 인코딩이 Windows-1252(ANSI)이므로, `ConvertTo-Json` 결과를 `Invoke-RestMethod -Body`에 직접 넘기면 유니코드 문자가 깨짐.
+
+## 해결책
+```powershell
+$utf8 = [System.Text.Encoding]::UTF8.GetBytes($jsonBody)
+Invoke-RestMethod -Uri $url -Method Post -ContentType "application/json; charset=utf-8" -Body $utf8
+```
+- 이모지 사용을 피하고 `[DONE]`, `[FAIL]` 등 ASCII 마커 사용 권장
+- 또는 Go 네이티브 `sendTelegramSafe()` 함수 사용 (이미 UTF-8 기본)

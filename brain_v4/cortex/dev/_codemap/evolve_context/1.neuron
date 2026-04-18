@@ -1,0 +1,11 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\evolve_context.go
+updated: 2026-04-18T19:21:37
+# evolve_context.go
+dir: runtime
+
+## PROVIDES
+hlBuildContextualPrompt, hlReadRecentConversation, hlCheckHealthNudge, hlCheckCorrectionsNudge, hlCheckErrorNudge
+
+## DEPENDS ON
+api_handler_system.go (hlCDPInject — nudge delivery)
+

@@ -1,0 +1,15 @@
+# 대규모 뉴런 스캔(O(N^2) I/O 병목) 원인 및 해결방안
+
+## 현상
+- 5,000개 이상의 뉴런 환경에서 `TestBM_ScaleProfile` 벤치마크가 10초 이상 블로킹(타임아웃 발생)되는 심각한 성능 저하 현상 발견.
+- 백엔드 런타임의 실시간(SSE) 텔레메트리가 `scanBrain` 호출로 인해 주기적으로 멈추는(Hang) VFS 디스크 경합 현상 확인.
+
+## 원인 (Root Cause)
+- `scanBrain` 내부에서 `vfsWalkDir`를 수행하며 모든 폴더를 트리 순회하는데, **각 폴더를 방문할 때마다 `vfsGlob`를 5회 반복 호출(`*.neuron`, `*.contra`, `*.goal`, `*.geofence`, `*.dormant`)** 하고 있었음.
+- `vfsGlob(fs.Glob)`은 내부적으로 다시 `fs.ReadDir(폴더)`를 수행하므로, 하나의 폴더 안에서 파일을 찾기 위해 5회의 중복 디렉터리 읽기 I/O가 발생.
+- 이로 인해 N개의 뉴런이 있을 시 5N 번의 Glob 스캔이 일어나는 O(N^2)에 가까운 파일시스템 I/O가 발생하며 성능이 수직 하락함.
+
+## 해결 (Fix Applied)
+- `vfsWalkDir` 콜백 내부의 5연속 `vfsGlob` 분기 호출 패턴 제거.
+- **`entries, _ := vfsReadDir(path)`** 를 사용하여 단 한 번의 O(1) I/O Read로 해당 디렉터리의 자식 목록을 가져온 후, `e.IsDir()`이 아닌 순수 파일들을 대상으로 단일 For문에서 문자열 `strings.HasSuffix`로 필터링(`*.neuron`, `*.goal` 등 분리 배열)하도록 최적화 적용.
+- 반영 후, 5,000개 뉴런 스캔 I/O 속도가 **1,491ms**로 극적으로 감소하며 벤치마크 (14초 대) 안정적 PASS 완료.

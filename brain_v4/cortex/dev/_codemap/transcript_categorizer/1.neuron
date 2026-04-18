@@ -1,0 +1,65 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\transcript_categorizer.go
+updated: 2026-04-18T19:21:38
+# transcript_categorizer.go
+dir: runtime
+
+## PROVIDES
+runTranscriptCategorizer, categorizeRecentTranscripts
+
+## DEPENDS ON
+multi_agent.go (executeGeminiCLI), hijack_orchestrator.go (hlBuildContextualPrompt)
+기존 카테고리 목록 (SSOT: hippocampus/전사분석/ 디렉토리 기반)
+runTranscriptCategorizer runs every hour as a cron cycle:
+1. git snapshot (선행)
+2. 전사 백업 (24시간 경과분 이관)
+3. 정황 수집 (세션, git push, 빌드 상태)
+4. Gemini CLI 위임 카테고리 분류
+via Gemini CLI. Stacked on top of existing transcript system.
+초기 대기: 서버 안정화 후 시작
+자율주행 비활성 체크
+── Step 1: git 선행 ──
+── Step 2: 전사 백업 (24시간 경과분) ──
+── Step 2.5: 라이브 전사 50건 초과 시 자동 정리 ──
+── Step 3: 정황 수집 ──
+── Step 4: 카테고리 분류 (전사 있을 때만 Gemini CLI 위임) ──
+── Step 5: 정황 기록 ──
+── Step 6: 뇌 외부 구축 + 프로세스 뉴런 검증 ──
+── Step 7: 뉴런 발화 정리 (6시간 간격) ──
+cronGitSnapshot performs a quick git add+commit before transcript processing
+collectCronContext gathers system state for transcript enrichment
+1. 활성 세션 수 (CDP 타겟)
+2. git push 여부
+3. 빌드 상태 (neuronfs.exe 최종 빌드 시각)
+4. 전사 파일 수
+5. corrections 상태
+writeCronLog appends a line to the cron log for audit trail
+categorizeRecentTranscripts categorizes transcript files from the last N hours
+using Gemini CLI for content analysis and classification.
+1. 최근 N시간 전사 파일 수집
+2. 각 전사 파일에서 첫 2000자 추출 + 카테고리 분류 요청
+이미 분류된 파일인지 체크 (.categorized.json 마커)
+첫 3000자만 추출 (토큰 절약)
+3. 카테고리 목록과 함께 Gemini CLI에 분류 요청
+4. JSON 파싱
+5. 전사분석 뉴런 생성
+날짜+제목으로 디렉토리 생성
+마커 기록
+JSON 블록 추출 (```json ... ``` 또는 { ... })
+NeuronFS_2026-04-18_08h.txt → 4월18일
+디렉토리명으로 사용 불가한 문자 제거
+──────────────────────────────────────────────────────────
+T1: 전사 50건 초과 시 자동 정리 (적층)
+──────────────────────────────────────────────────────────
+pruneExcessTranscripts archives oldest transcripts when count exceeds maxLive
+txt 파일만 수집
+오래된 순으로 정렬 (ModTime 기준)
+직접 정렬 (sort 패키지 불사용)
+초과분을 백업으로 이동
+──────────────────────────────────────────────────────────
+T8: 뇌 외부 구축 + 프로세스 뉴런 검증 (적층)
+──────────────────────────────────────────────────────────
+verifyBrainExternals checks that essential files outside brain_v4 exist
+and records the state as a neuron for audit trail.
+프로세스 뉴런에 기록
+countRecentTranscripts counts transcript files modified within the last N hours
+

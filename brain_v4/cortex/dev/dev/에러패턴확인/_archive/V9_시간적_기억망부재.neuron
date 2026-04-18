@@ -1,0 +1,12 @@
+# 시간적 기억망 (Temporal Semantic Memory) 부재 문제 (V9 진입)
+
+현재 NeuronFS 시스템은 공간적 지능(3D Hologram, Directory Tree)은 완벽히 장착했으나, 시간에 따른 파일의 변화(Delta)나 과거의 자신의 상태를 기억하는 "시간 좌표계(4D)"를 가지고 있지 않다.
+
+## 문제점
+- 파일을 덮어쓰거나 수정하면 과거의 시냅스 연결선이 완전히 증발함.
+- "내가 3일 전에 무슨 고민을 했지?" 와 같은 시계열 추론(Temporal Reasoning) 불가.
+
+## 해결책 (V9 마일스톤)
+- `Phase 37`: OS 파일 변경(Watcher) 시, 단순 Webhook 호출이 아니라 기존 상태와의 Git Diff를 `hippocampus/temporal_log/` 산하에 자율적으로 패킹(Packing)하는 4D 타임스탬프 기록 엔진 신설.
+- `Phase 38`: `/graphql` 엔드포인트에 `temporalHistory` 쿼리 추가. 특정 뉴런 파일의 시계열 진화사를 GraphQL로 즉각 로드 가능하게 확장.
+- `Phase 39`: 시계열 데이터를 백그라운드 벡터라이저(Vector Embedder)에 태워, 로컬 NPU로 과거 기억을 RAG(검색 증강) 할 수 있도록 하는 최후의 로컬 스웜 기억 체계 구축.

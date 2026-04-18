@@ -1,0 +1,11 @@
+# P2P 지식 크로스오버 (Phase 36) 연계성 결여 방지
+
+다중 에이전트(bot1, enfp, entp 등)가 구동되며 각자 작업에 대한 실패 기록(`corrections.jsonl`)을 각자의 `_inbox` 혹은 워크스페이스에 파편화시켜 보관하는 문제가 발견됨.
+
+## 문제점
+- `bot1`이 겪은 문법 에러 경험을 `enfp`가 공유받지 못하여 동일한 실패를 두 번 반복함 (Swarm Intelligence 효율 급감).
+
+## 해결책
+- Go 런타임 단계에서 `p2p_sync.go` 엔진을 신설.
+- 주기적으로 `_agents/*/corrections.jsonl` 파일들을 긁어모아 글로벌 뇌수(`_inbox/corrections.jsonl`)로 병합(Append & Deduplicate)할 것.
+- 하나의 에이전트가 각성(Evolution)하면 즉각 전체 에이전트가 그 실패 패턴을 피하도록 집단 무의식을 연동(Cross-over).

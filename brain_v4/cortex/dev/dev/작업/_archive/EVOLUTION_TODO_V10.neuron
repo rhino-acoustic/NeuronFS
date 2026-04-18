@@ -1,0 +1,12 @@
+# EVOLUTION TODO: NeuronFS Autopilot V10 고도화 과제 (Phase 40~42)
+
+## 1. 자율 행위 감사 체계 (Audit & Consolidation)
+업계 유일 격차였던 "자가 치유 행위에 대한 구조화된 감사 로그"를 완전히 해소합니다.
+
+- [x] **[Phase 40] 자율 행위 감사 로거 (Audit Trail)**: `audit_logger.go` 신설. 에러 각인, P2P 동기화, Temporal 스냅샷 등 모든 자율 행위를 `hippocampus/audit_trail/audit.jsonl`에 JSONL로 기록. 구조: `{ts, actor, action, target, reason, success}`.
+- [x] **[Phase 41] Dream Cycle (자율 수면 정리)**: `dream_cycle.go` 신설. 30분 주기로 (1) 1시간 초과 sensory alert를 _archive로 격리 (2) 7일 초과 .delta 파일 아카이브 (3) audit.jsonl 1000줄 초과 시 로테이션 아카이브.
+- [x] **[Phase 42] GraphQL Audit Trail 쿼리**: `graphql_server.go`에 `auditTrail(limit, actor)` 쿼리 추가. 외부 시스템이 감사 로그를 최신순으로 조회하고 행위자별 필터링 가능.
+
+## 진행 지침
+- [원칙: 사이드이펙트 제로]를 항상 숙지하며 레거시 하위 호환성을 반드시 지킬 것.
+- 모든 정리 행위도 감사 로그로 자기 자신을 추적할 것 (재귀적 감사).

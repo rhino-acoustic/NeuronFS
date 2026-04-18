@@ -1,0 +1,7 @@
+# Structured Logging (12-Factor App) 표준화 적용
+
+출력 및 로깅 시 레거시 시스템(`fmt.Printf`) 사용을 전면 금지한다.
+모든 Go 기반 백엔드 워커와 데몬은 `log/slog` 를 사용하여 K-V 형태로 구조화된 에러와 모니터링 로그를 배출해야 한다.
+
+- `slog.Info`, `slog.Warn`, `slog.Error` 를 기본으로 컨텍스트("component", "tool_name", "error_details")를 분리하여 작성할 것.
+- 무분별한 포맷팅 문자열 결합 금지.

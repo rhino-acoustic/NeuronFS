@@ -1,4 +1,4 @@
-﻿# NeuronFS ??Folder-as-Neuron Cognitive Engine
+# NeuronFS ??Folder-as-Neuron Cognitive Engine
 
 # ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
 # Personal / Debug / Local-only files
@@ -103,31 +103,18 @@ Thumbs.db
 
 # Brain runtime files (auto-generated)
 brain_state.json
-# brain_dashboard.html ??tracked: core UI file
 brain_mesh.obj
 brain.obj
 
-# Brain user data (personal ??use `--init` to create example brain)
-brain_v4/
-!brain_v4/*/_rules.md
-!brain_v4/brainstem/
-!brain_v4/brainstem/**
-!brain_v4/_inbox/
-!brain_v4/_inbox/**
-!brain_v4/_agents/
-!brain_v4/_agents/**
-!brain_v4/hippocampus/
-!brain_v4/hippocampus/**
-!brain_v4/cortex/
-!brain_v4/cortex/**
-!brain_v4/ego/
-!brain_v4/ego/**
-!brain_v4/limbic/
-!brain_v4/limbic/**
-!brain_v4/prefrontal/
-!brain_v4/prefrontal/**
-!brain_v4/sensors/
-!brain_v4/sensors/**
+# Brain user data — 뉴런 폴더 전체 추적 (폴더=뉴런, 손실 방지)
+# 트랜잭션 파일만 제외
+brain_v4/.neuronfs_backup/
+brain_v4/.similarity_index/
+brain_v4/.archive/
+brain_v4/**/*.dormant
+brain_v4/**/*.bak
+brain_v4/_transcripts/*.txt
+
 .gemini/
 .neuronrc
 

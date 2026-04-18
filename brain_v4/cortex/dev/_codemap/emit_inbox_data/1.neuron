@@ -1,0 +1,12 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\emit_inbox_data.go
+updated: 2026-04-18T19:21:37
+# emit_inbox_data.go
+dir: runtime
+
+## PROVIDES
+emitBootstrap, emitAgentInbox, extractInboxPreview, emitSessionMemory
+
+## DEPENDS ON
+brain.go (SubsumptionResult, Neuron, Region)
+emit_helpers.go (pathToSentence, splitNeuronPath, sortedActiveNeurons)
+

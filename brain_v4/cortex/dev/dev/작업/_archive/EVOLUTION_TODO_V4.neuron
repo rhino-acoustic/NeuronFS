@@ -1,0 +1,12 @@
+# EVOLUTION TODO: NeuronFS Autopilot V4 고도화 과제 (Phase 22+)
+
+## 1. 3D 공간 상호작용 및 VR 통섭 체계
+- [x] **[Phase 22] 3D 노드 머지 실시간 레이캐스팅**: 현재 난수 기반의 Dummy InstancedMesh를 실제 `/api/brain` 에서 파생된 계층 트리 `x, y, z` 좌표계로 치환. 각 폴더(뉴런)가 연관성에 따라 군집(Cluster)을 이루도록 물리 엔진(D3-Force-3d 등)과 R3F 통합.
+- [x] **[Phase 23] WebXR 가상현실(VR) 뉴런 탐색**: React Three Fiber의 AR/VR 기능을 켜서, 브라우저가 아닌 오큘러스 등 HMD 환경 시야에서 거대한 파일시스템 데이터를 걸어다니며 직관적으로 파악하는 V4의 핵심 비전 달성.
+
+## 2. LLM 자율 에이전트 다기능 화
+- [x] **[Phase 24] 에이전트 자동 교정 파이프라인**: 런타임 뿐만 아니라 프론트엔드(`dashboard_v3`)의 TurboPack 컴파일 에러가 발생할 시 해당 터미널 로그를 WebSockets으로 넘겨 오토 스크래퍼가 파일을 교정해 `Next.js`가 무장애 배포되게 돕는 Auto-Fix 기능 고도화.
+
+## 진행 지침
+- 항상 `[원칙: 사이드이펙트 제로]`에 의거하여 `dashboard_v3` 폴더와 `runtime`의 격리를 유지하라.
+- 수정 사항은 언제나 `go test`로 무결성을 검증하고 넘어가야 한다.

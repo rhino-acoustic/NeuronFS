@@ -1,0 +1,69 @@
+# EVOLUTION TODO: NeuronFS Autopilot V2 고도화 과제
+
+## 1. 기반 인프라 (Telemetry & Stream)
+- [x] **[Phase 12] 실시간 SSE 텔레메트리 연동**: Dashboard V2에서 `fetch('/api/ops')` 폴링 방식을 폐기하고, 백엔드에서 로그 및 상태 변화를 즉시 푸시하는 Server-Sent Events (SSE) 엔트리포인트(`/api/stream`) 구현.
+- [x] **[Phase 13] 대시보드 시각화 텔레그램 스트리밍 (SVG Share)**
+- [x] **[Phase 14] TTY 파이프라인 일원화**: 현재 Dashboard V2의 `appendLog` 하드코딩 목업을 제거하고, `hijack_orchestrator.go`의 오케스트레이션 로직 및 CLI 실행 결과를 SSE 파이프라인으로 관통시킴.
+
+## 2. 자가 복구 및 브릿지 (Autonomy & CDP)
+- [x] **[Phase 15] CDP Async 워커큐 분리**: 브라우저 기반 동기식 CDP 통신(`watchdog.mjs`, `patch_guardian.py`)이 UI 렌더링 지연으로 멈추는 행 현상(hang) 방지. 비동기 메시지 큐 구조로 격리.
+- [x] **[Phase 16] LLM Agnostic 프로토콜**: `emitTarget`이 `gemini`, `claude` 등에 강하게 종속된 구조를 탈피. 모든 Provider의 입출력을 파일 기반의 표준 `cortex.llm.*` 인터페이스로 범용화.
+
+## 진행 지침
+- Strangler Fig (레거시 코드 모듈화 100% 완료) 이후의 `진화(Evolve)`는 성능 및 실시간성에 초점을 맞춘다.
+- 매 진화 시 기존 화면(Dashboard V1/V2)의 렌더링 무결성을 깨뜨리지 않고 점진적 교체 방식을 유지한다.
+
+## 3. V12 로드맵: 잠재 → 구현 (Potential → Production)
+
+### A. 멀티에이전트 실전 검증
+- [ ] P2P Sync를 2대 이상 실제 머신에서 테스트
+- [ ] 에이전트 간 에러 패턴 교차 학습 검증
+- [ ] 네트워크 장애 시 graceful degradation 확인
+
+### B. 자가 수정 파이프라인 완성
+- [ ] Self-Repair 제안 → LLM(Ollama) 기반 실제 패치 코드 생성
+- [ ] 패치 코드를 _inbox/에 투하 후 에이전트 자동 검토
+- [ ] "제안 → 검토 → 적용 → 검증" 4단계 폐쇄 루프
+
+### C. 벡터DB 대체 벤치마크
+- [ ] TF-IDF vs Pinecone/Chroma 검색 정확도 비교
+- [ ] 420 뉴런 규모에서의 latency 측정
+- [ ] 결과를 블로그/README에 공개
+
+### D. 카트리지 암호화 출시
+- [ ] AES-256-GCM 기반 brain 폴더 암호화/복호화
+- [ ] `neuronfs export` → 단일 .cartridge 파일로 패키징
+- [ ] `neuronfs import` → 복원 + 무결성 검증
+
+### E. 범용 에이전트 하네스
+- [ ] Claude Code Agent 호환 테스트 (CLAUDE.md 생성)
+- [ ] Cursor Rules 호환 테스트 (.cursorrules 생성)
+- [ ] GPT/Windsurf 호환 테스트
+- [ ] `neuronfs init` CLI 원라이너 완성
+- [ ] 랜딩페이지 (neuronfs.dev) 퍼블리시
+
+## V12 완료 (2026-04-12)
+- [x] V12-A: 병렬 에이전트 오케스트레이터
+- [x] V12-B: Git 격리 자가 수정
+- [x] V12-C: 벤치마크 스위트
+- [x] V12-D: 카트리지 암호화 + PII 마스킹
+- [x] V12-E: 범용 하네스 (init)
+- [x] Phase 48: MBTI 에이전트 성향
+- [x] Phase 49: 언어 설정 (ko/en)
+- [x] Phase 50: FS Watcher 디바운스
+- [x] Phase 51: 에이전트 메시지 큐
+- [x] Phase 52: 코드 감사 (Gemini CLI 생성 + PM 보완)
+
+## V13 계획
+- [x] Phase 53: EmotionPrompt 엔진 (3-tier, A/B tested F→B+)
+- [x] Phase 54: 마스터 프롬프트 로테이션 (면역 방지, vorq 원리)
+- [x] Phase 55: Gemini API 직접 호출 (CLI 23초 → API 3초)
+- [x] Phase 56: 사전 컨텍스트 캐시 (MCP 15초 → 0초)
+- [x] Phase 57: 대시보드 기능-UI 간극 해소 (GraphQL→REST, 39/39 API 100%)
+- [x] Phase 58: Closed Learning Loop (Hermes 차용, skill_accumulator.go)
+- [ ] Phase 59: 랜딩 페이지 구현 (neuronfs.dev)
+- [ ] Phase 60: P2P 뉴런 동기화 실전 테스트
+- [ ] Phase 61: 자가 수정 4단계 폐쇄 루프
+- [ ] Phase 62: 멀티 플랫폼 게이트웨이 (Discord/Slack — Hermes 차용)
+
+

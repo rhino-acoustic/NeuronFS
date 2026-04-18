@@ -1,0 +1,36 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\diag.go
+updated: 2026-04-18T19:21:37
+# diag.go
+dir: runtime
+
+## PROVIDES
+printDiag, generateBrainJSON, getNonFlagArg, refreshCodeMap
+
+## DEPENDS ON
+brain.go
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Shadow Context (Dashboard UI Panel logic inline for CLI)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+JSON OUTPUT: Pure data for dashboard consumption
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+fmt.Printf("[OK] Brain state → %s\n", abs) // Suppress for autoReinject
+initBrain is defined in init.go
+startDashboard is defined in dashboard.go
+getNonFlagArg returns the Nth non-flag argument (0-indexed)
+━━━ Similarity Engine → similarity.go ━━━
+MOVED: tokenize, stem, jaccardSimilarity, hybridSimilarity,
+cosineTokens, levenshteinDistance, extractPrefix,
+newtonSqrt, maxInt, minInt
+━━━ Neuron CRUD → neuron_crud.go ━━━
+━━━ Injection Pipeline → inject.go ━━━
+━━━ Transcripts/Idle → transcript.go ━━━
+refreshCodeMap regenerates runtime/CODE_MAP.md with current file stats.
+Called by IDLE loop to keep code structure docs in sync.
+Extract role from header comment (// PROVIDES: ...)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DIAGNOSTICS: OOM, Memory Profiling
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+checkProcessMemoryOverload monitors the OS heap for memory leaks.
+If the threshold (1GB) is breached, it dumps the Go memory profile and renders the Flatline OOM screen.
+Sort manually
+

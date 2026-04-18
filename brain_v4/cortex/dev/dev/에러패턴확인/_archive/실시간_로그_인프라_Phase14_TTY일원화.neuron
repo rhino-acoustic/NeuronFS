@@ -1,0 +1,19 @@
+# 진짜 텔레메트리 연쇄 송출 파이프라인 (Phase 14: TTY 일원화)
+
+## 맥락
+- Dashboard V2의 하단 인터페이스 타임라인(Log)이 `setInterval`을 타고 가짜(Mock) 데이터를 발생시키고 있었음.
+- 이 가짜 이펙트를 걷어내고, 서버 내부에서 `[IDLE]`, `[HEARTBEAT]`, `[TG]` 등 에이전트의 실제 뉴런 스파크를 **"맥락 있게 보이게 연결하라"**는 목적 하에 실행됨.
+
+## 조치 사항
+1. **GlobalSSEBroker 메모리 바인딩 (`api_handler_system.go`)**:
+   - 기존의 단일 통계용 `clientChan`을 확장, 스레드-세이프(Thread-safe) `Mutex` 블록 구조체를 구축하여 `Broadcastf(level, msg)`를 전역으로 개방함.
+2. **핵심 거점 훅 (Hooking)**:
+   - `hijack_orchestrator.go`: `appendDebugLog` 호출 시 `[TG]` 말머리로 SSE 브로드캐스트 전파.
+   - `transcript.go`: IDLE 트리거 실패 시 `[IDLE] ❌`, 사용자 감정 교란 시 `[LIMBIC] 😤`, 시스템 뉴런 증식 시 `[HEARTBEAT] 🔥` 포맷으로 각각 에러, 경고, 단순 스파크 등을 전송하도록 구성.
+3. **프론트엔드 파서 체결 (`dashboard_v2.html`)**:
+   - `EventSource` 패킷 내부에 들어있는 `type: 'stat'` 과 `type: 'log'` 페이로드를 역직렬화 도중 분기하여, 후자일 경우 즉시 `logTTY()` 함수에 넘김.
+
+## 파급 효과 및 진화 성과
+- 단순 숫자로만 파벨을 그리던 3D 대시보드가, 이제 터미널 창(TTY) 없이도 시스템 내부에서 진행 중인 CDP/API 통신 내역을 "의미 있게" 사용자에게 실시간 노출함.
+- 개발 환경(Terminal)과 운영 환경(Dashboard) 간의 물리적 장벽 붕괴.
+- 시각적 스파크(빨간색, 초록색 폰트 하이라이팅)가 백엔드 상황과 100% 동기화됨에 따라 사용자의 AI 신뢰도가 급상승.

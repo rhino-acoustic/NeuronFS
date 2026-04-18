@@ -1,0 +1,14 @@
+# 자가 치유 감사 추적(Audit Trail) 부재 (V10 격차)
+
+2026년 업계 베스트 프랙티스 대조 결과, NeuronFS의 유일한 구조적 격차 식별됨.
+
+## 문제점
+- `error_engraver.go`가 런타임 에러를 자율 각인하고, `p2p_sync.go`가 교정 데이터를 병합하지만,
+  이러한 "자가 치유 행위 자체"가 왜/언제/어떻게 발생했는지의 구조화된 감사 로그가 없음.
+- 현재는 git 커밋 메시지에만 의존 → 인간 감사(Audit)가 불가능하며, 에이전트가 자신의 과거 치유 전략을 검색할 수 없음.
+
+## 해결책 (V10 Phase 40)
+- `runtime/audit_logger.go` 신설: 모든 자율 행위(에러 각인, P2P 동기화, Temporal 스냅샷)를
+  `hippocampus/audit_trail/` 산하에 JSONL 형식으로 구조화 기록.
+- 각 레코드: `{"ts":..., "actor":"error_engraver", "action":"engrave", "target":"...", "reason":"..."}`
+- 이를 통해 에이전트가 "내가 과거에 어떤 자가 치유를 했는지" 검색 가능.

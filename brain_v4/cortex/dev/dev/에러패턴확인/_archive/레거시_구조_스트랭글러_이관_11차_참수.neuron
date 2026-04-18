@@ -1,0 +1,14 @@
+# 레거시 구조 스트랭글러 피그 결론 (Phase 11: Decapitation)
+
+## 맥락
+- `MIGRATION_TODO.neuron` 100% 완료 후에도 발견된 `main.go` 내의 모놀리식 잔재 제거.
+- 시스템 자가진단 및 코어 규칙 생성 파이프라인(`diag`, `emit`, `emit-target`) 추상화.
+
+## 조치 사항
+1. `cli_cmd_diag.go`, `cli_cmd_emit.go` 신규 생성.
+2. `cmd == "--emit"` 일 경우 옆의 인자까지 파싱하여 `emitTarget`을 자체적으로 설정하도록 라우터 독립 파싱 로직 체득. (main.go의 의존성 완전 분리 타결)
+3. `main.go`에 남아있던 전역 커맨드 인수 검사 로직(100줄) 철거.
+4. `main.go` 최하단에 있던 `Legacy Switch-Case Fallback` 영역 전체 영구 소거.
+
+## 진화 성과
+- 이로써 `main.go`는 `router.Register`를 통한 인터페이스 등록 및 엔트리 포인트(Entry Point)로서의 단일 책임 원칙(SRP)만 갖게 됨. 파일 크기는 60% 축소되었으며 구조적으로 가장 현대적인 Go CLI 패턴(Cobra 유사 형태의 자율 라우팅)을 NeuronFS 네이티브로 구현 완료함.

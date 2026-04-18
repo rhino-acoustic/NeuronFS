@@ -1,0 +1,10 @@
+# 에러 패턴: 스트랭글러 피그로 인한 미사용 import (Orphaned Import)
+
+## 현상
+- `--decay` 명령어를 모듈화(Strangler Fig 5차)하여 `cli_cmd_decay.go`로 이식. 기존 `main.go`에서 해당 로직이 지워졌음.
+- 지워진 로직에서 전용으로 사용하던 패키지 `strconv`의 import 문이 그대로 남아 `go vet` 검증에서 `strconv imported and not used` 명시적 에러 반환.
+
+## 교훈 및 각인
+- 禁 뉴런 갱신: 미사용 변수 고아화(`스트랭글러_미사용변수_고아.neuron`)와 맥락을 같이 함.
+- 로직의 완전한 이관은 해당 로직에만 묶여있던 **종속 패키지의 import 제거**까지 파급되어야 한다.
+- `go vet`이 없었다면 불필요한 빌드 용량 낭비 및 의존성 분석 혼선을 초래했을 것.

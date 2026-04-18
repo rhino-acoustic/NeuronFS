@@ -1,0 +1,47 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\inject.go
+updated: 2026-04-18T19:21:37
+# inject.go
+dir: runtime
+
+## PROVIDES
+markBrainDirty, consumeDirty, computeMountHash, autoReinject, processInbox, runInjectionLoop
+
+## DEPENDS ON
+brain.go, emit.go, lifecycle.go, mcp_server.go (notifyMCPResourceUpdated)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DIRTY FLAG + BATCH INJECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+markBrainDirty signals that the brain state has changed and needs an event broadcast.
+Non-blocking trigger
+MCP: 리소스 변경 알림 → IDE가 neuronfs://rules/current 재읽기
+consumeDirty checks and clears the brain's dirty state flag.
+computeMountHash returns a hash of the current mount set (neuron IDs + counters that are mounted)
+폴더 존재 = 활성. 모든 비dormant 뉴런을 마운트 해시에 포함.
+autoReinject checks mount set hash and only writes if changed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INBOX PROCESSOR: AI tool call → _inbox → neurons
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+inboxEntry represents a correction or insight from AI or auto-accept
+processInbox reads _inbox/corrections.jsonl, creates/fires neurons, then clears
+Determine neuron path
+Auto-generate path from text if not provided
+Simple heuristic: cortex/_inbox_pending/<sanitized_text>
+Security: Basic Prompt Injection & Path Traversal Defense
+기계적 칭찬(Dopamine Inflation) 필터링
+PM 칭찬은 바로 도파민 발화
+Determine action
+Check if neuron exists → fire, else → grow
+Exists → fire N times
+New → grow
+Fire additional times if counter_add > 1
+Append to persistent history before clearing (for --neuronize)
+Clear inbox
+runInjectionLoop uses fsnotify and channels for event-driven, real-time updates
+[Hot Reload] Background Delegate (Delegate Logic to Worker)
+_inbox changes detect -> Spawn stateless worker to process them.
+Initial check
+주기적 폴백 확인 (5분)
+gitSnapshot takes a single git snapshot of the brain state
+Called only during idle via --snapshot flag (not on every fire/grow)
+Lifecycle: active → changes accumulate → idle → groq analysis → snapshot
+

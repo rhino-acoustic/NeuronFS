@@ -1,0 +1,19 @@
+# CDP 비동기 메시지 큐 런타임 개조 (Phase 15: Autonomy Async)
+
+## 맥락
+- 브라우저 통신 프로토콜(CDP)이 고랭 백엔드에 결합된 이후, 간헐적으로 브라우저 탭(workbench.html)이 DOM 연산에 과부하가 걸리거나 UI 쓰레드가 멈추었을 때(Sleep/Hang) 이를 조종하는 백그라운드 런타임(`hijack_orchestrator`, `transcript` 등)이 호출 함수단(`client.Call`)에서 최대 8초간 동기 지연(Blocking)되는 현상이 관측됨.
+- 특히 텔레그램을 통한 `[telegram -> NeuronFS]` 자동 타이핑 주입이 시스템 메인맥을 막으면 전체 백그라운드 통신망이 정지됨.
+
+## 조치 사항
+1. **CDPJob 모델 및 `CDPQueue` 개통**
+   - 채널 버퍼 `100`을 할당해 `TargetRoom`과 `Payload`를 싣는 전역 큐를 생성함.
+2. **워커 데몬 `hlStartCDPWorker()` 가동**
+   - 시스템 엔진 기동(`main.go` -> `hijack_orchestrator.go`) 단계에서 1개의 백그라운드 고루틴으로 활성화.
+   - 큐에 메시지가 들어오면 동기 블로킹 방식으로 `hlCDPInjectSync`/`injectIdleResultSync`를 실행.
+3. **Strangler 래퍼 API 구축**
+   - 외부에서 부르던 기존의 `hlCDPInject`, `injectIdleResult` 껍데기는 내용물을 비우고 단순히 `select { case CDPQueue <- job: }` 형태로 Push 연산만 하도록 캡슐화를 완료함.
+
+## 파급 효과 및 진화 성과
+- 비동기 Fire-and-Forget 구조로 개편됨에 따라, 백엔드가 텔레그램이나 파일 이벤트를 인지한 시점과 실제 DOM에 주입되는 시점이 철저히 분리됨.
+- 따라서 IDE 렌더링 렉에 의해 AI 런타임 자체가 다운되거나 대기열 낭비(Hang)가 일어나는 현상이 원천 차단됨.
+- 분할된 텔레메트리 파이프라인(Phase 14)을 통해, 큐가 꽉 차거나 튕겨낼 때 `[WARN]` 로그가 즉각 관제 콘솔에 뜨는 시너지 완성.

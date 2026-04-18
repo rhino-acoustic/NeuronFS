@@ -1,0 +1,14 @@
+# 레거시 구조 스트랭글러 피그 이관 5차 (signal & decay)
+
+## 맥락
+- `[NeuronFS 자율 진화 명령: 마스터 프롬프트 v2]` 에 의한 자율 호출 (5th cycle).
+- 지속되는 Autopilot 호출을 활용하여 `MIGRATION_TODO.neuron`의 적층된 기술 부채를 소거함.
+
+## 조치 사항
+1. 뉴런 신호 전달 및 감쇄 명령인 `--signal`과 `--decay`를 각각 `cli_cmd_signal.go`, `cli_cmd_decay.go`로 모듈화.
+2. 각 명령어의 파라미터 파싱 로직(`daysStr` 추출, `sigType` 파싱)을 라우터 내부 Execute로 이양.
+3. `main.go` 라우터 체인 편입 및 모놀리식 스위치 케이스 삭제.
+4. `MIGRATION_TODO.neuron`의 체크 마킹 이행.
+
+## 영향 범위
+- 모놀리식 switch 문 의존성 탈피가 80% 이상 완료됨.

@@ -1,0 +1,25 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\diag_harness.go
+updated: 2026-04-18T19:21:37
+# diag_harness.go
+dir: runtime
+
+## PROVIDES
+RunHarness
+
+## DEPENDS ON
+brain.go (scanBrain, RegionOrder), utils.go (fileExists)
+RunHarness checks the structural integrity of the NeuronFS brain
+and logs failures into the agent inbox.
+Uses fileExists from utils.go (single source of truth for path checking).
+── Check 1: Essential regions exist ──
+── Check 2: Brainstem 필수 뉴런 (必/禁 구조) ──
+Folder = Neuron 원칙: 하위 폴더가 뉴런이다
+── Check 3: _rules.md 존재 (최근 1시간 내 갱신) ──
+── Check 4: GEMINI.md 마커 무결성 ──
+── Check 5: bomb 상태 확인 ──
+── Check 6: 뉴런 인코딩 무결성 (mojibake 감지) ──
+한자 옵코드 폴더(必/禁 등)는 통과, 깨진 1~3바이트 비ASCII 폴더명은 스킵
+── Check 7: MCP 서버 health ──
+── Check 8: 코드맵 커버리지 (runtime .go vs cortex/dev/_codemap) ──
+── Result ──
+

@@ -1,0 +1,23 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\agent_bridge.go
+updated: 2026-04-18T19:21:37
+# agent_bridge.go
+dir: runtime
+
+## PROVIDES
+runAgentBridge, abInjectToAgent, abCheckOutboxToTelegram
+
+## DEPENDS ON
+cdp_client.go (cdpListTargets, NewCDPClient), telegram_bridge.go (sendTelegramSafe)
+NAS brain
+inbox 폴더 확보
+헤더 파싱
+헤더 제거
+마스터 프롬프트 감지 → 넛지로 변환 또는 생략
+시스템 안정 — inbox 처리만 하고 주입 생략
+재시도 카운터
+Runtime.evaluate로 DOM 직접 조작 (비활성 탭에서도 동작)
+── outbox → Telegram 전송 ──
+NeuronFS 에이전트의 outbox만 감시
+헤더 제거
+sendTelegramSafe로 분할 전송 (글자 제한 자동 처리)
+

@@ -1,0 +1,8 @@
+---
+counter: 20
+---
+개발 빌드: go build . (runtime 디렉토리에서 직접)
+dist 빌드: 사용자가 명시적으로 요청할 때만 실행
+
+개발 중에는 dist 경로를 사용하지 않는다.
+supervisor를 재시작할 때는 Stop-Process 후 직접 실행.

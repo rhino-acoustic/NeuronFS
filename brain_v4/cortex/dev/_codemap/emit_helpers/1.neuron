@@ -1,0 +1,87 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\emit_helpers.go
+updated: 2026-04-18T19:28:21
+# emit_helpers.go
+dir: runtime
+
+## PROVIDES
+emitIndex, emitRegionRules, renderTree, isHanjaFolder,
+renderTreeWithPrefix, handleReadRegion, splitNeuronPath,
+pathToSentence, collectAllNeurons, sortedActiveNeurons, axonBoostNeurons
+
+## DEPENDS ON
+brain.go
+Axon connections
+TOP 10 global
+Spotlight
+Group by region in P0→P6 order
+Per-region summary table
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TIER 3: {region}/_rules.md — Tree-compressed detail
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+treeNode represents a compressed tree of neurons
+emitRegionRules converts a Region's neurons into a formatted markdown ruleset string.
+Accepts optional Brain for Attention Residuals cross-referencing via axons.
+Counts
+Axons
+━━━ Attention Residuals: Cross-Region Selective Reference ━━━
+Instead of each region being an isolated silo, axon connections
+enable selective aggregation — pulling relevant neurons from
+connected regions based on keyword matching (the "query-key" paradigm).
+━━━ Codemap Auto-Injection (방안 E: 하이브리드 하네스 강화) ━━━
+AI가 코드 수정 시 관련 코드맵을 반드시 참조하도록 구조적으로 강제
+━━━ Phase 58: Closed Learning Loop — Inject learned skills into prompt ━━━
+Only inject for cortex region (code-related skills most relevant)
+Build tree from neuron paths
+Also handle forward slash
+Leaf neuron
+Render tree with indentation
+renderTree outputs tree-compressed neuron listing
+Shared parents are printed once, children indented below
+Sort children: branches first (for grouping), then by counter desc
+Branches before leaves
+By counter descending for leaves
+한자 1글자 폴더 감지 — branch가 아니라 opcode modifier로 처리
+禁/hard_coded_text → "절대 금지: hard coded text" (한자 폴더를 투명하게 통과)
+한자 폴더의 하위 노드에 한국어 접두어를 전파
+Pure leaf — show with counter + intensity prefix
+Natural language mode: show description
+Leaf but also a branch — show counter then children
+Pure branch — show as group header
+isHanjaFolder checks if a folder name is a single hanja micro-opcode
+renderTreeWithPrefix renders tree nodes with a hanja-derived Korean prefix
+Used when a hanja folder (禁, 推, etc.) is encountered — the folder itself is invisible,
+but its Korean translation is prepended to all leaf node names below it
+재귀적 한자 폴더 (한자/한자/뉴런 — 드물지만 지원)
+한자 하위는 계속 renderTreeWithPrefix로 전파 (strength 비활성화)
+카테고리 폴더 (룬워드) — 옵코드 접두어 포함
+leaf children에 옵코드 의미 전파 (counter-strength 대신)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WRITE ALL TIERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Validate region
+Try hierarchical cache
+Always generate fresh _rules.md on-the-fly (never serve stale files)
+Also update the file for view_file access
+Cache it hierarchical
+FIRE: reading = activation
+Fire the top 3 most-used neurons in this region (retrieval strengthening)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HELPERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+splitNeuronPath splits a neuron path by both / and \ separators
+pathToSentence converts path to readable sentence
+"frontend\css\glass_blur20" → "frontend > css > glass blur20"
+한자 prefix는 한국어로 자동 변환
+한자→한국어 변환
+연속 공백 정규화 (한자 변환 후 "반드시 " + " > " → "반드시  > " 방지)
+collectAllNeurons aggregates neurons from all regions into a single flat slice.
+sortedActiveNeurons filters out dormant/bomb neurons and returns the top N neurons sorted by counter.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Attention Residuals: Selective Aggregation via Axon
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+axonBoostNeurons applies Attention Residuals' selective aggregation:
+When a region has axon connections to other regions, neurons in the
+target region that share category/path keywords get a boost in scoring.
+This prevents the "signal dilution" problem — relevant cross-region
+knowledge surfaces instead of being buried by high-counter noise.
+

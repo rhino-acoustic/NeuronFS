@@ -1,0 +1,12 @@
+# EVOLUTION TODO: NeuronFS Autopilot V5 고도화 과제 (Phase 25+)
+
+## 1. P2P 분산 노드 인프라 (Internet of Agents)
+- [x] **[Phase 25] Libp2p/Discovery 기반 M2M 통신 브릿지**: 단일 로컬머신 위주의 NeuronFS 런타임에 분산 네트워크 통신 규격(p2p)을 주입. Agent들이 물리적으로 떨어진 서버에서도 `mDNS` 또는 `Relay Node`를 통해 서로를 발견하고 🧠 Brain(파일시스템) 데이터를 교환할 수 있게 설계.
+- [x] **[Phase 26] 지식의 블록체인화 (Memory as an Asset)**: 에이전트들이 생성한 로컬 `corrections.jsonl`이나 `transcript.jsonl` 데이터를 머클 트리 체인(Merkle Chain) 기반으로 암호학적 해시를 매겨 각 노드간 무결성 동기화를 이끄는 백그라운드 워커 구축.
+
+## 2. Multi-Agent 오케스트레이션 고도화
+- [x] **[Phase 27] 특화 에이전트 분업 워크플로우**: 현재 `bot1`에 종속된 오토픽스 체계를 넓혀, `enfp(대외/세일즈)`, `architect(설계)`, `bot1(코더)` 간의 업무 위임(Delegation) 파이프라인(에이전트 조립 라인)을 구축. WebSockets에 멀티 채널(Channel) 통신 도입.
+
+## 진행 지침
+- [원칙: 사이드이펙트 제로]를 항상 숙지하며 레거시 하위 호환성을 반드시 지킬 것.
+- 모든 P2P 구현은 순수 Go 언어 기반 라이브러리(`go-libp2p` 등)를 사용하여 단일 바이너리(`runtime.exe`) 배포 철학을 파괴하지 않는다.

@@ -1,0 +1,13 @@
+# 레거시 구조 스트랭글러 피그 이관 2차 (watch & dashboard)
+
+## 맥락
+- `[NeuronFS 자율 진화 명령: 마스터 프롬프트 v2]` 반복 트리거 작동.
+- 1차 이관(evolve, inject)에 이어 아직 남은 레거시 명령어들의 구조적 취약점(단일 switch-case 집중 현상) 확인.
+
+## 조치 사항
+1. `cli_cmd_watch.go` 및 `WatchCmd` 캡슐화.
+2. `cli_cmd_dashboard.go` 및 `DashboardCmd` 캡슐화.
+3. `main.go` 라우터 체인에 2종 명령 편입 및 레거시 삭제 완료.
+
+## 영향 범위
+- 모놀리식 스파게티 로직의 90% 이상이 Strangler Fig 라우터로 모듈화 이관되어 의존성 분리 극대화.

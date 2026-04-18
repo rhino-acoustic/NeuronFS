@@ -1,0 +1,5 @@
+P03: Groq Llama 4 Scout (meta-llama/llama-4-scout-17b-16e-instruct)
+컨텍스트 131K, 50000자 청크, 52분 영상 2~3회 호출.
+Phase0: Summary (1회) → Phase1: Drop 15~25% (2~3회) → Phase2: Correct 고유명사/STT오인식 (1~2회) → Phase3: EditPlan (1회)
+Groq 키 없으면 필러사전 폴백 (_filler_fallback).
+파일: v19_phases/p03_ai_pd.py

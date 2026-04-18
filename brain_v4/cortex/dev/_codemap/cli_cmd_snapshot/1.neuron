@@ -1,0 +1,8 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cli_cmd_snapshot.go
+updated: 2026-04-18T19:21:37
+# cli_cmd_snapshot.go
+dir: runtime
+
+## PROVIDES
+Strangler Fig CLI migration for the "snapshot" mode.
+

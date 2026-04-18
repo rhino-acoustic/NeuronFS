@@ -1,0 +1,12 @@
+# Temporal RAG: 시계열 기억 단절의 망각곡선 극복 (Phase 39)
+
+시스템 내부에서 NPU를 이용해 타겟 `.neuron` 파일들을 기반으로 프롬프트를 추론할 때, 현재 시점(T0)의 `cortex` 폴더 내용만 문맥(Context)으로 삽입됨.
+
+## 문제점
+- 사용자가 과거의 결정을 번복했거나 삭제(Pruning)한 내용은 뇌에 없으므로 현재의 NPU 엔진은 "과거의 맥락"을 전혀 추론할 수 없음. 
+- (예: "왜 어제 우리가 A 대신 B 프레임워크를 썼지?" 라는 질문에 대답 불가)
+
+## 해결책 (V9 최후 관문)
+- `Phase 33`에서 구축한 Zero-Copy NPU 파이프라인(`edge_inference.go`)에 `Temporal RAG Processor`를 주입(Strangler Fig).
+- 추론 엔진이 프롬프트를 조립하기 직전, `hippocampus/temporal_log/` 산하의 과거 `.delta` 조각들을 키워드 유사도(또는 경로 서치)로 스캔.
+- 검색된 시계열 스냅샷(과거의 파편)들을 프롬프트의 `<TemporalContext>` 블록에 병합해, 시간 축을 초월한 맥락 하에서 0ms 로컬 LLM이 대답을 도출하도록 파이프라인 진화.

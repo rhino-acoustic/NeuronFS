@@ -1,0 +1,5 @@
+﻿counter: 3
+created: 2026-04-11
+last_fired: 2026-04-11
+---
+전사문에서 사용자 교정 키워드 추출하여 뉴런 자동 생성. digestTranscripts가 idle에서 실행.

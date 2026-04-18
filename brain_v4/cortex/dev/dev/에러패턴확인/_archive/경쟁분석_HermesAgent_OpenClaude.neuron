@@ -1,0 +1,60 @@
+type: 인텔리전스
+timestamp: 2026-04-12T19:42:00
+source: 커뮤니티 검색 (GitHub, Medium, NousResearch)
+
+## Hermes Agent vs NeuronFS 비교 분석
+
+### Hermes Agent (Nous Research)
+- 오픈소스 자율 AI 에이전트
+- **Closed Learning Loop**: 경험에서 "스킬"을 자동 생성/개선
+- **3-Layer 메모리**: FTS5 + LLM 요약 + 장기 기억
+- **15+ 플랫폼 지원**: CLI, Telegram, Discord, Slack, WhatsApp 등
+- **서브에이전트 위임**: 병렬 워크스트림
+- **47+ 빌트인 도구**: 웹 검색, 터미널, 파일 편집
+- **MCP 호환**
+- **Self-Evolution**: DSPy + GEPA로 스킬/프롬프트 진화
+
+### OpenClaude (커뮤니티)
+- 비공식, Claude Code 스타일 오픈소스
+- **모델 불가지론**: GPT-4o, Gemini, DeepSeek, Llama 모두 사용 가능
+- **자율 코딩**: 파일 CRUD, 터미널 실행, 테스트
+- **셀프 호스팅**: 로컬 실행, 데이터 제어
+
+### 비교 매트릭스
+
+| 기능 | Hermes | NeuronFS | 차이 |
+|------|--------|----------|------|
+| 메모리 | FTS5 DB | 파일시스템 | NeuronFS: DB 없음 |
+| 스킬 학습 | 자동 스킬 생성 | corrections.jsonl | ⚠️ 차용 필요 |
+| 플랫폼 | 15+ | Telegram+CDP | ⚠️ 차용 필요 |
+| 서브에이전트 | 격리 병렬 | multi_agent.go | 유사 |
+| MCP | 호환 | 네이티브 서버 | NeuronFS 우위 |
+| 진화 | DSPy GEPA | EmotionPrompt+vorq | 독자적 |
+| 거버넌스 | 없음 | bomb.neuron+Subsumption | NeuronFS 우위 |
+| 도구 | 47+ 빌트인 | 38 API | 유사 |
+| Self-Evolution | hermes-agent-self-evolution | prompt_rotation.go | 유사 방향 |
+
+### NeuronFS가 차용해야 할 것
+
+1. ⭐ **Closed Learning Loop (스킬 자동 생성)**
+   - Hermes: 경험 → 스킬 파일 → 재사용
+   - NeuronFS: corrections.jsonl → 禁 뉴런은 있으나 "성공 스킬" 누적이 없음
+   - → brain_v4/hippocampus/skills/ 에 성공 패턴 자동 기록 구현 필요
+
+2. ⭐ **멀티 플랫폼 게이트웨이**
+   - Hermes: Discord, Slack, WhatsApp, Signal, Email 지원
+   - NeuronFS: Telegram만
+   - → gateway 추상화 레이어 적층
+
+3. ⭐ **DSPy 기반 프롬프트 진화**
+   - Hermes: 프롬프트 자체를 ML로 최적화
+   - NeuronFS: EmotionPrompt + Rotation으로 수동 변형
+   - → 프롬프트 성능 A/B 테스트 자동화
+
+### NeuronFS 독보적 우위 (Hermes에 없는 것)
+
+1. bomb.neuron (물리적 프롬프트 차단)
+2. Subsumption Cascade (P0→P6 우선순위)
+3. vorq (네올로지즘 순종 해킹)
+4. 파일시스템 = 메모리 (DB 의존성 제로)
+5. EmotionPrompt (감정 자극 코드 품질 향상)

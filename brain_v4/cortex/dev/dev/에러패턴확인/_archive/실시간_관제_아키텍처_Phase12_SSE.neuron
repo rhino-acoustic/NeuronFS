@@ -1,0 +1,18 @@
+# 실시간 관제 아키텍처 진화 (Phase 12: SSE Telemetry)
+
+## 맥락
+- 브라우저 클라이언트가 `setInterval()`을 사용해 백엔드 API(`/api/ops`)를 무차별적으로 두드리는 구형 Polling 방식을 폐기함.
+- `EVOLUTION_TODO.neuron`의 첫 번째 기반 인프라 과제로 채택되어 실행됨.
+
+## 조치 사항
+1. **백엔드 (api_static.go)**: 
+   - `GET /api/stream` 엔드포인트를 열고 `Content-Type: text/event-stream` 헤더와 `w.(http.Flusher)`를 사용, 무한 루프로 데이터를 밀어내는(Push) 소켓 통로를 확보함.
+   - 서버 리소스 고갈을 막기 위해 1초 간격의 `time.Ticker` 가드레일을 적용.
+2. **프론트엔드 (dashboard_v2.html)**:
+   - `fetchOpsData`와 `setInterval`을 삭제하고, 브라우저 네이티브 API인 `EventSource` 인스턴스를 생성.
+   - `onmessage` 리스너를 통해 데이터가 들어오는 즉시 DOM 엘리먼트(`m-neurons`, `m-act`)를 비동기 갱신하도록 설계 병경.
+
+## 파급 효과 및 성과
+- 불필요한 HTTP Handshake 연산 횟수가 100배 이상 감소하였으며, 트래픽은 순수 JSON 페이로드만 점유하게 됨.
+- 향후 (Phase 13 예정) 터미널 출력(TTY 로그)을 이 SSE 파이프라인에 탑승시키면 완벽한 지연 없는 0-latency 실시간 관제 대시보드가 완성됨.
+- UI 뷰와 백엔드 엔진 사이의 완벽한 Pub/Sub 분리가 성사됨.

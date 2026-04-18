@@ -1,0 +1,1 @@
+{"created":"2026-04-06T10:59:54.532Z","reason":"flex와 절대 위치를 함께 사용할 때 레이아웃 충돌이 발생할 수 있음","source":"groq_auto_extract","chunk_size":10}

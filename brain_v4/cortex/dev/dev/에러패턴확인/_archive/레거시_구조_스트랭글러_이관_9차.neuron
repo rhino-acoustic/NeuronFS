@@ -1,0 +1,15 @@
+# 레거시 구조 스트랭글러 피그 이관 9차 (MCP & Supervisor)
+
+## 맥락
+- `[NeuronFS 자율 진화 명령: 마스터 프롬프트 v2]` 에 의한 9번째 자율 순환.
+- `MIGRATION_TODO.neuron`의 지침에 따라 시스템의 근간 데몬인 `--mcp` 및 `--supervisor`를 모듈화 타겟으로 편입함.
+
+## 조치 사항
+1. 인프라의 심장인 `mcp` 백그라운드 구동 루프(`IDE 결합용 API`, `Injection Loop`, `Idle Loop`, `HTTP Server`)를 분리.
+2. 관제탑 노드 데몬인 `supervisor` 분리.
+3. 각각 `cli_cmd_mcp.go`, `cli_cmd_supervisor.go` 파일 구조 내부로 완전 이식 및 전역 접근 권한(`MCPPort` 등)을 통한 의존성 충돌 회피.
+4. `go vet` 검증 무사 통과.
+
+## 파급
+- 시스템 내의 비동기 네트워크 구동체들이 분리되어, 차후 `MCP` 프로토콜 최적화(Letta나 Mem0에 준하는 속도 개선)를 단일 파일(`cli_cmd_mcp.go` 및 관련 핸들러) 단위에서 독립 수행할 수 있게 됨.
+- 메인 `try-switch`의 블랙홀화율이 드디어 95% 이상으로 진압되었음.

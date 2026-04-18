@@ -1,0 +1,22 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\watch.go
+updated: 2026-04-18T19:21:38
+# watch.go
+dir: runtime
+
+## PROVIDES
+runWatch
+
+## DEPENDS ON
+brain.go, emit.go, inject.go
+Recursively add all region directories to the watcher
+Also watch _inbox for agent communication events
+Initial injection on startup
+Debounce timer: batch rapid filesystem events into a single re-scan
+.git 디렉토리 이벤트 무시 — git snapshot과 데드락 방지
+Log individual pulse events with biological naming
+If a new directory was created, add it to the watcher (skip .git)
+Debounce: reset timer on each event, fire rescan after debounceMs of silence
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DIAGNOSTICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+

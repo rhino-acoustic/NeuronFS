@@ -1,0 +1,11 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\hebbian.go
+updated: 2026-04-18T19:21:37
+# hebbian.go
+dir: runtime
+
+## PROVIDES
+hebbianTrack, sleepConsolidate
+
+## DEPENDS ON
+neuron_crud.go (fireNeuron calls this), transcript.go (idle loop)
+

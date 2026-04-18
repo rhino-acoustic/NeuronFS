@@ -1,0 +1,39 @@
+source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\similarity.go
+updated: 2026-04-18T19:21:38
+# similarity.go
+dir: runtime
+
+## PROVIDES
+tokenize, stem, jaccardSimilarity, hybridSimilarity,
+cosineTokens, levenshteinDistance, extractPrefix,
+newtonSqrt, maxInt, minInt
+
+## DEPENDS ON
+strings (stdlib only — leaf module, no cross-file dependencies)
+tokenize splits a snake_case neuron name into stemmed lowercase tokens
+"no_console_logging" → {"no", "console", "log"}
+밑줄과 공백 모두 분리자로 처리
+한자 접두어 분리 (必/禁/推/絶 등)
+한글 감지: rune 범위 0xAC00-0xD7A3
+한글 2-gram: "한국어사고" → ["한국", "국어", "어사", "사고"]
+전체 한글 문자열도 토큰으로 (짧은 단어 매칭 보강)
+영문 stemming
+stem applies minimal suffix stripping for merge matching
+Not a full Porter stemmer — just handles common AI naming patterns
+Order matters: check longer suffixes first
+Trailing 's' (plural) — only if word is 4+ chars
+jaccardSimilarity computes |A∩B| / |A∪B| between two token sets (legacy)
+─── Hybrid Similarity Engine (Jaccard 대체) ───
+Cosine Bigram (60%) + Levenshtein Ratio (40%)
+- Cosine: 빈도 고려, 부분 매칭, 한글 2-gram에 최적
+- Levenshtein: 편집 거리, 짧은 문자열 비교에 최적
+- 접두어(禁/推/必/核) 제거 후 비교 (접두어가 다르면 별도 처리)
+Cosine similarity over token frequency vectors
+Levenshtein over joined strings
+cosineTokens: token frequency vector cosine similarity
+dot product, magnitudes
+manual sqrt: Newton's method (avoid math import conflict)
+levenshteinDistance: edit distance between two rune slices
+Single-row DP
+extractPrefix returns the Han prefix (禁/推/必/核/絶/最/有) from a neuron name, or ""
+

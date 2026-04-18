@@ -1,0 +1,15 @@
+# 레거시 구조 스트랭글러 피그 이관 3차 (grow & fire)
+
+## 맥락
+- `[NeuronFS 자율 진화 명령: 마스터 프롬프트 v2]` 에 의한 자율 호출 (4th cycle).
+- 이전 사이클에서 체계화된 `MIGRATION_TODO.neuron` 적층 시스템에 기반하여 순차적 부채를 청산함.
+
+## 조치 사항
+1. 뉴런 생성/강화 단일 명령인 `--grow`와 `--fire`를 각각 `cli_cmd_grow.go`, `cli_cmd_fire.go` 인터페이스로 모듈화.
+2. 매개변수 파싱 시 `getNonFlagArg` 유틸리티를 라우터 내부의 Execute 단계로 끌어안음.
+3. `main.go` 라우터 체인에 2종 명령 편입.
+4. `MIGRATION_TODO.neuron`의 체크를 이행함.
+
+## 영향 범위
+- 모놀리식 switch 문이 지속 감소 중 (현재 --signal 등 일부만 잔존).
+- 단일 책임 원칙(SRP)에 완전히 부합하는 시스템 완성도 상승.
