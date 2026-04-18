@@ -1,6 +1,6 @@
 # 🧠 NeuronFS Brain Index
 
-Generated: 2026-04-18T23:13:12 | Neurons: 397/397 | Activation: 11
+Generated: 2026-04-18T23:14:05 | Neurons: 397/397 | Activation: 12
 
 ## 🕸️ Axon 연결
 - 🛡️ brainstem → 🧠 cortex
@@ -11,8 +11,8 @@ Generated: 2026-04-18T23:13:12 | Neurons: 397/397 | Activation: 11
 ## 🏆 TOP 10 뉴런
 1. 🧠 **dev > dev** (4)
 2. 🧠 **methodology > methodology** (4)
-3. 🧠 **dev > e2e test** (2)
-4. 📝 **episodes > 2026-04-18 Pose 데이터 변환 분석** (1)
+3. 📝 **episodes > 2026-04-18 Pose 데이터 변환 분석** (2)
+4. 🧠 **dev > e2e test** (2)
 5. 🛡️ **반드시 > EVOLVE proceed 강제** (0)
 6. 🛡️ **반드시 > NeuronFS 공리** (0)
 7. 🛡️ **반드시 > bat재시작** (0)
@@ -61,7 +61,7 @@ Generated: 2026-04-18T23:13:12 | Neurons: 397/397 | Activation: 11
 - **칭찬 사용자만족감지** (0) — 7d남음
 
 ### 📝 hippocampus (12)
-- **episodes > 2026-04-18 Pose 데이터 변환 분석** (1) — 7d남음
+- **episodes > 2026-04-18 Pose 데이터 변환 분석** (2) — 7d남음
 - **episodes** (0) — 7d남음
 - **session log** (0) — 7d남음
 - **전사분석** (0) — 7d남음
@@ -447,7 +447,7 @@ Generated: 2026-04-18T23:13:12 | Neurons: 397/397 | Activation: 11
 |------|------|--------|------|
 | 🛡️ brainstem — 양심/본능 | 30 | 0 | `brainstem/_rules.md` |
 | 💓 limbic — 감정 필터 | 3 | 0 | `limbic/_rules.md` |
-| 📝 hippocampus — 기록/기억 | 12 | 1 | `hippocampus/_rules.md` |
+| 📝 hippocampus — 기록/기억 | 12 | 2 | `hippocampus/_rules.md` |
 | 👁️ sensors — 환경 제약 | 0 | 0 | `sensors/_rules.md` |
 | 🧠 cortex — 지식/기술 | 340 | 10 | `cortex/_rules.md` |
 | 🎭 ego — 성향/톤 | 12 | 0 | `ego/_rules.md` |
