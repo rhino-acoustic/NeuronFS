@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "neuronfs": {
-      "httpUrl": "http://127.0.0.1:9091/mcp"
+      "httpUrl": "http://127.0.0.1:9247/mcp"
     }
   },
   "fileFiltering": {
