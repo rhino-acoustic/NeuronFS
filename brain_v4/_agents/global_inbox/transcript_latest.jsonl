@@ -1,20 +1,20 @@
-🟢 양호
-항목	상태
-하드코딩 경로	0건 ✅
-포트 상수 SSOT	1건 위반 (hlCDPPort)
-fileExists 중복	0건 ✅ (utils.go 1곳만)
-scanBrain 중복	0건 ✅ (brain.go 1곳만)
-SafeOutput 계열	깔끔 (exec_safe.go) ✅
+{"ts":"2026-04-18T22:33:49Z","role":"AI","text":"사용자 피드백: CDP와 텔레그램 포트는 이미 정해져 있는데 내가 자꾸 헷갈린다고. CDPPort=9000은 이미 정해진 것이고, 텔레그램은 포트가 아니라 API 토큰 기반. 내가 CDPPort를 governance_consts에 추가한 건 좋지만, 이미 hlCDPPort라는 이름으로 telegram_bridge.go에 있었고 그걸 const에서 var로 바꾼 게 불필요한 혼란을 줄 수 있음. 사용자가 지적하는 건 이미 정해진 포트를 계속 건드리지 말라는 것. SSOT 통합은 맞지만 이제 포"}
+{"ts":"2026-04-18T22:33:52Z","role":"AI","text":"🟢 포트 건 이해. 이미 확정된 것 안 건드림. 다른 영역 약점 탐색 계속:"}
+{"ts":"2026-04-18T22:34:04Z","role":"AI","text":"거대 발견: API 엔드포인트 중복 등록!"}
+{"ts":"2026-04-18T22:34:23Z","role":"AI","text":"🔴 8개 API 엔드포인트가 중복 등록! 마지막 등록이 이전 것을 덮어씀 — 기능 충돌 가능. 어느 파일에 있는지:"}
+{"ts":"2026-04-18T22:34:31Z","role":"USER","text":"Continue"}
+{"ts":"2026-04-18T22:34:33Z","role":"AI","text":"중복 원인: api_handler_crud.go와 api_handler_test.go에 각각 등록. 테스트가 별도 mux를 만드는지 확인:"}
+{"ts":"2026-04-18T22:34:45Z","role":"AI","text":"테스트 파일은 별도 mux를 만들어서 httptest.NewServer에 사용하므로 실제 중복 등록 아님 — 테스트 격리용. 실제 문제는 api_handler_crud.go와 api_server.go 또는 api_handlers.go에서 같은 엔드포인트를 등록하는지. grep 결과를 다시 보면 테스트 파일만 나왔으므로 실제 중복은 없음. 이제 다른 성능 문제들을 찾아야 하는데, regex 반복 컴파일 4건과 하드코드 6개를 먼저 정리하고, 종료 시그널이 없는 34개의 goroutine 무한루프도 처"}
+{"ts":"2026-04-18T22:34:49Z","role":"AI","text":"🟢 API 중복은 테스트 격리용 별도 mux — 실제 중복 아님.
 
-가장 시급: vfs_ops panic 5개 + hlCDPPort SSOT 위반. 수정할까요?
+이제 실제 약점 수정. regex 반복 컴파일 4건:"}
+{"ts":"2026-04-18T22:35:04Z","role":"AI","text":"23개 파일에 종료 시그널 없는 무한루프! 이건 설계적 이슈 — supervisor가 프로세스를 kill로 종료하므로 goroutine 개별 종료는 불필요하지만 graceful shutdown에는 필요.
 
-[EVOLVE:proceed]"}
-{"ts":"2026-04-18T22:30:41Z","role":"USER","text":"하고 더 찾아 계속 찾아"}
-{"ts":"2026-04-18T22:30:48Z","role":"AI","text":"사용자가 수정하고 더 찾으라고 함. vfs_ops panic 수정 + hlCDPPort SSOT 수정부터 하고,"}
-{"ts":"2026-04-18T22:30:52Z","role":"AI","text":"🟢 즉시 수정 + 추가 스캔 병렬 진행:"}
-{"ts":"2026-04-18T22:31:20Z","role":"AI","text":"hlCDPPort SSOT 수정:"}
-{"ts":"2026-04-18T22:31:29Z","role":"AI","text":"governance_consts에 CDP 포트 없음. 추가하고 telegram_bridge의 로컬 상수 제거:"}
-{"ts":"2026-04-18T22:31:45Z","role":"USER","text":"cdp와 텔레그램 등 이미 정해진 포트 있는데 자꾸 헷갈리지마"}
-{"ts":"2026-04-18T22:31:50Z","role":"AI","text":"빌드 검증 + 추가 스캔:"}
-{"ts":"2026-04-18T22:32:02Z","role":"AI","text":"supervisor.go에 json import 누락:"}
-{"ts":"2026-04-18T22:32:42Z","role":"AI","text":"추가 스캔 계속:"}
+regex 중복 수정 — memRegex를 패키지 레벨 var로 통합:"}
+{"ts":"2026-04-18T22:35:16Z","role":"AI","text":"3곳에서 동일 regex 반복 컴파일. 패키지 레벨로 통합 — brain.go에 이미 유사 패턴 있음:"}
+{"ts":"2026-04-18T22:35:28Z","role":"AI","text":"memRegex는 이미 brain.go에서 package-level로 올리는 것이 좋음. 하지만 brain.go의 regex는 counterRegex와 dopamineRegex이고, memRegex는 다른 패턴. utils나 brain.go에 추가:"}
+{"ts":"2026-04-18T22:35:43Z","role":"AI","text":"3곳의 로컬 memRegex 선언 제거:"}
+{"ts":"2026-04-18T22:35:43Z","role":"AI","text":"3곳에서 로컬 memRegex 제거:"}
+{"ts":"2026-04-18T22:36:05Z","role":"AI","text":"빌드 + 사용하지 않는 import 정리:"}
+{"ts":"2026-04-18T22:36:14Z","role":"AI","text":"3파일에서 불필요한 regexp import 제거:"}
+{"ts":"2026-04-18T22:36:26Z","role":"AI","text":"3파일 모두 regexp를 더 이상 사용 안함. import 제거:"}

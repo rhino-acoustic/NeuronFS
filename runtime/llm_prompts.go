@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -141,7 +140,7 @@ func collectEpisodes(brainRoot string) []string {
 	// 1. 기존 메모리 로그 수집
 	logDir := filepath.Join(brainRoot, "hippocampus", "session_log")
 	if entries, err := os.ReadDir(logDir); err == nil {
-		memRegex := regexp.MustCompile(`^memory(\d+)\.neuron$`)
+		// memRegex: brain.go package-level var
 		type memFile struct {
 			num     int
 			content string

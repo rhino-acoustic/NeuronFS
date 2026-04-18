@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 // ━━━ lifecycle.go ━━━
 // Module: Neuron Lifecycle Management (prune, decay, dedup, episode logging)
@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -209,7 +208,7 @@ func logEpisode(brainRoot string, event string, detail string) {
 	logDir := filepath.Join(brainRoot, "hippocampus", "session_log")
 	os.MkdirAll(logDir, 0750)
 
-	memRegex := regexp.MustCompile(`^memory(\d+)\.neuron$`)
+	// memRegex: brain.go package-level var
 	entries, _ := os.ReadDir(logDir)
 
 	// Collect all memory files with their numbers

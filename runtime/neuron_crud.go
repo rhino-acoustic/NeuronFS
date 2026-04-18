@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 // ━━━ neuron_crud.go ━━━
 // PROVIDES: growNeuron, fireNeuron, rollbackNeuron, signalNeuron
@@ -9,7 +9,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -336,7 +335,7 @@ func signalNeuron(brainRoot string, neuronPath string, sigType string) error {
 
 	case "memory":
 		nextMem := 1
-		memRegex := regexp.MustCompile(`^memory(\d+)\.neuron$`)
+		// memRegex: brain.go package-level var
 		entries, _ := vfsReadDir(fullPath)
 		for _, e := range entries {
 			if m := memRegex.FindStringSubmatch(e.Name()); m != nil {

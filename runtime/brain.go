@@ -156,6 +156,7 @@ type SubsumptionResult struct {
 // ─── Regex for trace files ───
 var counterRegex = regexp.MustCompile(`^(\d+)\.neuron$`)
 var dopamineRegex = regexp.MustCompile(`^dopamine(\d+)\.neuron$`)
+var memRegex = regexp.MustCompile(`^memory(\d+)\.neuron$`)
 
 // ─── Find brain root ───
 func findBrainRoot() string {
