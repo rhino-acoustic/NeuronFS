@@ -1,20 +1,20 @@
-커밋	5f54455
-매 응답 이모지 규칙
+{"ts":"2026-04-18T20:42:15Z","role":"AI","text":"핵심 발견:
 
-GEMINI.md에서 🏴 접두사 → 이제 이걸 오토파일럿 상태로 교체:
+전사 파일은 0분 전 갱신 (50KB!) — CDP DOM scraper 정상 동작!
+growth.log 없음 — 이 파일이 없으면 os.Stat 에러 → err == nil 조건 실패 → 오토파일럿 트리거 안 됨!"}
+{"ts":"2026-04-18T20:42:21Z","role":"USER","text":"이런식의 누락이 사방에 있을거야"}
+{"ts":"2026-04-18T20:42:28Z","role":"AI","text":"이제 오토파일럿 트리거 조건 충족:
 
-🟢 = 오토파일럿 ON
-🔴 = 오토파일럿 OFF
-⚡ = 작업 중
+✅ .auto_evolve_disabled = False
+✅ CDP :9000 = alive
+✅ growth.log > 5분 미갱신
+✅ 전사 파일 < 5분 (0분 전)
 
-[EVOLVE:proceed]"}
-{"ts":"2026-04-18T20:38:23Z","role":"AI","text":"사용자 핵심: \"이번 세션에만 되는"}
-{"ts":"2026-04-18T20:38:26Z","role":"AI","text":"사용자 핵심: \"이번 세션에만 되는 게 아냐\" — emit이 오토파일럿 상태를 GEMINI.md에 자동으로 넣어야 함. 페르소나 이모지가 emit_format_rules.go에서 생성되는 곳을 찾아서 오토파일럿 상태를 동적으로 포함시켜야 함.
+30초 후 로그 확인:"}
+{"ts":"2026-04-18T20:43:10Z","role":"AI","text":"전사 분류 4건 추가 성공! 하지만 HEARTBEAT/AUTOPILOT 로그가 없음 — idle 루프가 30초 간격이라 아직 안 도달. 더 기다리면:"}
+{"ts":"2026-04-18T20:43:21Z","role":"USER","text":"CLI 에 더해지는 마스터 프롬프트가 주는 지침은 뭐가있어 계속 자동진행될수록 발전이 되어야는데 무지성으로 되었다간 퇴행하게 되어있어 깃선행 필수고 삭제아닌 격리 이런게 들어간어여야해"}
+{"ts":"2026-04-18T20:44:02Z","role":"AI","text":"IDLE ENGINE은 돌지만 HEARTBEAT 🚀 (L259: \"Gemini CLI 오토파일럿 발동\")가 없음. 이유: hlAutoEvolve가 idle_worker.go에서 호출되는 건지 확인:"}
+{"ts":"2026-04-18T20:44:08Z","role":"AI","text":"L324에서 go hlAutoEvolve(brainRoot) — runHijackLauncher에서 호출. 이건 supervisor.go에서 시작:"}
+{"ts":"2026-04-18T20:44:23Z","role":"AI","text":"growth.log가 없으면 err != nil → if 조건 실패 → 오토파일럿 절대 발동 안 됨!
 
-emit_format_rules.go에서 페르소나 섹션을 찾고, 오토파일럿 상태를 동적으로 포함하도록 수정."}
-{"ts":"2026-04-18T20:38:26Z","role":"AI","text":"emit에서 오토파일럿 상태를 동적으로 GEMINI.md에 반영하도록 수정:"}
-{"ts":"2026-04-18T20:39:01Z","role":"USER","text":"그외 여러 상태를 보여주던지"}
-{"ts":"2026-04-18T20:39:03Z","role":"AI","text":"이미 동적 이모지 시스템이 있음! currentPulseEmoji가 매 emit마다 변경됨. 이걸 오토파일럿 상태 기반으로 변경:"}
-{"ts":"2026-04-18T20:39:37Z","role":"USER","text":"그외 여러 상태를 보여주던지"}
-{"ts":"2026-04-18T20:39:37Z","role":"USER","text":"fix되어서 안건드려야 할 코드들은 정하고 거기 폴더에도 백업해놔"}
-{"ts":"2026-04-18T20:39:37Z","role":"USER","text":"땜질하지 말고 emit이 수행하도록 전체 검수 이번 세션에만 되는게 아냐"}
+이건 이미 growth.log를 생성했으니 다음 루프(3분 대기)에서 발동. 로그 확인:"}
