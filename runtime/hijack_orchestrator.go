@@ -285,8 +285,10 @@ func hlAutoEvolve(brainRoot string) {
 						response = string([]rune(response)[:2000])
 					}
 					svLog("[AUTOPILOT] ✅ Gemini CLI 응답 수신")
-					// 텔레그램→IDE 경유 주입 (CDP 대신 — Antigravity에 CDP 포트 없음)
-					hlTgSend(hlTgChatID, response)
+					// CDP로 IDE 채팅창에 직접 주입 (텔레그램→IDE와 동일 경로)
+					hlCDPInject(hlTgMountedRoom, response)
+					// 텔레그램에도 알림
+					hlTgSend(hlTgChatID, "[AUTOPILOT] ✅ CLI→IDE 주입 완료 ("+fmt.Sprintf("%d", len([]rune(response)))+"자)")
 				} else {
 					outputSnip := ""
 					if len(result.Output) > 100 {

@@ -1,20 +1,21 @@
-content_copy
-# 전체 서비스 검수 한 줄
-go test -run TestSmoke -v -timeout 60s
-테스트	검증 대상
-NeuronLifecycle	grow/fire/decay
-EmitPipeline	_rules.md 8개 + _index.md + GEMINI.md
-CodemapIntegrity	코드맵 44개 + PROVIDES 헤더
-HookSystem	4 이벤트 + 7 스크립트
-Cartridges	13개 .jloot
-GitProtection	brain_v4 추적
-SelfHealing	corrections.jsonl
-Memory	hippocampus 에피소드
-
-9/9 PASS — 커밋 467ef52.
 
 [EVOLVE:proceed]"}
-{"ts":"2026-04-18T20:32:19Z","role":"AI","text":"핵심 발견: Verification-on-Resume + Progress Summarization 패턴. NeuronFS 크론에 스모크 테스트를 넣어서 AI가 문맥을 잃어도 _rules.md에 최근 검증 결과가 항상 있게 만든다."}
-{"ts":"2026-04-18T20:32:19Z","role":"AI","text":"크론 루프에 Step 8로 스모크 테스트 자동 실행 + _rules.md 기록 추가:"}
-{"ts":"2026-04-18T20:32:19Z","role":"AI","text":"이제 runHealthReport 함수 구현:"}
-{"ts":"2026-04-18T20:32:19Z","role":"AI","text":"vet ✅ build ✅. 배포 + 테스트:"}
+{"ts":"2026-04-18T20:34:21Z","role":"AI","text":"사용자가 많은 피드백을 주고 있음. 핵심:
+
+오토파일럿이 CLI 응답을 IDE에 CDP로 주입해야 순환됨2. 마스터 프롬프트가 CLI에 같이 전달되어야 함
+이게 복잡한 프로그램이라 완벽하게 구성될 대까지 깃 선행해야 함이건 계획이 필요한 수준의 큰 작업. 일단 현재 상태를 정리하고 계획을 세우자."}
+{"ts":"2026-04-18T20:34:23Z","role":"USER","text":"병신아"}
+{"ts":"2026-04-18T20:34:23Z","role":"USER","text":"지금 텔레그램에서 여기 인젝션이 돼 그걸 그대로 사용해"}
+{"ts":"2026-04-18T20:34:40Z","role":"AI","text":"사용자가 답답해함. 핵심:
+
+텔레그램→IDE 인젝션이 이미 되고 있음 (CDP)
+오토파일럿에서 CLI 응답을 텔레그램 대신 CDP로 IDE에 직접 주"}
+{"ts":"2026-04-18T20:34:43Z","role":"AI","text":"사용자가 답답해함. 핵심:
+
+텔레그램→IDE 인젝션이 이미 되고 있음 (CDP)
+오토파일럿에서 CLI 응답을 텔레그램 대신 CDP로 IDE에 직접 주입하면 순환 완성
+L289의 hlTgSend를 hlCDPInject로 교체하면 됨
+
+빠르게 수정."}
+{"ts":"2026-04-18T20:34:43Z","role":"AI","text":"오토파일럿 L289: hlTgSend → hlCDPInject로 교체. CLI 응답을 IDE 창에 직접 주입:"}
+{"ts":"2026-04-18T20:35:17Z","role":"AI","text":"텔레그램에서 hlCDPInject(hlTgMountedRoom, msg) — 이 코드가 이미 텔레그램→IDE 인젝션을 하고 있음! 오토파일럿도 동일 경로 사용:"}
