@@ -422,10 +422,10 @@ func svSupervise(c *ChildSpec, stopCh <-chan struct{}) {
 			continue
 		}
 
-		// Antigravity: 이미 실행 중이면 시작하지 않고 대기
+		// Antigravity: 이미 실행 중이면 시작하지 않고 대기 (외부 실행 = UP)
 		if c.Name == "antigravity" && isProcessRunning("Antigravity.exe") {
 			c.mu.Lock()
-			c.running = false
+			c.running = true // 외부 실행도 UP으로 보고
 			c.mu.Unlock()
 			time.Sleep(30 * time.Second)
 			continue

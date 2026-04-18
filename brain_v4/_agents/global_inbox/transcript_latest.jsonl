@@ -1,20 +1,20 @@
-NeuronFS @ 00:01
-├─ 🟢 PID 6556 | 33MB | 가동 2분 46초
-├─ Governance 100% | 93/93 PASS
-├─ Harness 23 checks | Codemap 152/152
-├─ Violations 0 | Axon 6/6
-└─"}
-{"ts":"2026-04-19T00:01:47Z","role":"AI","text":"🟢 정상 가동.
-
-alternate_email
-content_copy
-NeuronFS @ 00:01
-├─ 🟢 PID 6556 | 33MB | 가동 2분 46초
-├─ Governance 100% | 93/93 PASS
-├─ Harness 23 checks | Codemap 152/152
-├─ Violations 0 | Axon 6/6
-└─ Cron: 세션3 | 전사10건
-
-추가 작업 필요하면 말씀.
+IDE 재기동 필요하면 말씀.
 
 [EVOLVE:proceed]"}
+{"ts":"2026-04-19T07:36:19Z","role":"USER","text":"[telegram → NeuronFS] 지금 ide가 구동중이니끼 대화가되지"}
+{"ts":"2026-04-19T07:36:23Z","role":"AI","text":"🟢 맞다 — IDE 구동 중인데 Supervisor가 DOWN으로 보고. Supervisor 감지 버그:"}
+{"ts":"2026-04-19T07:36:23Z","role":"AI","text":"Antigravity 프로세스 23개 구동 중! 하지만 CDP 9222/9223 미연결. Supervisor가 프로세스 존재를 확인하지만 CDP 포트 응답으로 판단하고 있을 수 있음."}
+{"ts":"2026-04-19T07:36:44Z","role":"AI","text":"L426-431이 핵심!
+
+go
+alternate_email
+content_copy
+if c.Name == \"antigravity\" && isProcessRunning(\"Antigravity.exe\") {
+    c.running = false  // ← 🔴 이미 실행 중인데 running=false!
+    time.Sleep(30 * time.Second)
+    continue
+}
+
+버그: Antigravity가 사용자에 의해 직접 실행된 경우(Supervisor가 시작하지 않음), isProcessRunning(\"Antigravity.exe\")=true → c.running = false → Supervisor가 DOWN으로 보고!
+
+수정: 이미 실행 중이면 running=true로 표시:"}
