@@ -127,7 +127,7 @@ func healSession(targetBase string) string {
 		req, _ := http.NewRequest("POST", targetBase+"/mcp/message", strings.NewReader(notif))
 		req.Header.Set("Mcp-Session-Id", sess)
 		req.Header.Set("Content-Type", "application/json")
-		nr, err := http.DefaultClient.Do(req)
+		nr, err := httpMedium.Do(req)
 		if err == nil && nr != nil {
 			nr.Body.Close()
 		}
