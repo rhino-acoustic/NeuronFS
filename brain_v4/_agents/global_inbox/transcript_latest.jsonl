@@ -1,20 +1,20 @@
-content_copy
-brain_v4/
-├── brainstem/   (P0) 🛡️ 양심/본능 — 모든 규칙 위에 군림. 절대 위반 불가.
-│   └── 필/               아키텍처_결정_불변, bomb 상태
-├── limbic/      (P1) 💓 감정 필터 — 분노/집중/긴급 → AI 행동 강도 변조
-├── hippocampus/ (P2) 📝 기억/기록 — 세션 로그, 전사 분석, 에피소드 메모리
-├── sensors/     (P3) 👁️ 환경 제약 — NAS, 브랜드 규칙
-├── cortex/      (P4) 🧠 지식/기술 — 829파일. 코딩 패턴, 스킬, 코드맵
-│   ├── dev/_codemap/     Go 파일별 PROVIDES/DEPENDS 맵 (152개)
-│   └── skills/           기술 카트리지 (13개)
-├── ego/         (P5) 🎭 성향/톤 — 페르소나, 글쓰기 스타일
-├── prefrontal/  (P6) 🎯 목표/계획 — 스프린트 추적
-└── shared/      (P7) 🔗 공유 지식
-핵심 공리: Folder = Neuron | File = Trace | Path = Sentence
-cortex/dev/go_error_handling/rule.md → \"Go 에러 처리 규칙\"
-3.neuron → 이 뉴런이 3번 발화됨 (강화 학습)
-P0이 P6을 항상 이긴다 (Subsumption Cascade)
 뉴런 생명주기
 content_copy
 grow → "}
+{"ts":"2026-04-18T22:13:34Z","role":"AI","text":"상세: 
+neuronfs_overview.md
+
+그리고 이번 발견이 중요: settings.json 9091→9247 수정이 계속 되돌아간 근본 원인 = harness_hooks.go가 MCPPort(9091) 상수로 매번 재생성. 이제 MCPStreamPort(9247) 사용으로 영구 해결.
+
+[EVOLVE:proceed]"}
+{"ts":"2026-04-18T22:13:34Z","role":"AI","text":"🟢 세션 요약:
+
+10건 근본 원인 수정, 19 커밋. 가장 중요한 발견:
+
+MCP 리그레션 근본 원인 — harness_hooks.go가 MCPPort(9091) 상수로 settings.json을 매번 덮어씀 → MCPStreamPort(9247)로 영구 수정
+E2E 6/6 연계 검증 통과 — 전사→분류→뉴런, emit→규칙, API CRUD, 크론, MCP, 오토파일럿
+대시보드 hover 선택 — 뉴런 마우스오버 시 3D 확대 + 툴팁
+
+[EVOLVE:proceed]"}
+{"ts":"2026-04-18T22:14:10Z","role":"AI","text":"수정: supervisor/api/watch는 프로세스 존재 여부로 체크, 나머지는 동일 프로세스 내 goroutine이므로 goNativeServices 사용:"}
+{"ts":"2026-04-18T22:14:39Z","role":"USER","text":"Continue"}

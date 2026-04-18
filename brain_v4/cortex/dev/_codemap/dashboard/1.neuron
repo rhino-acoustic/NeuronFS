@@ -1,7 +1,10 @@
 source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\dashboard.go
-updated: 2026-04-18T22:00:23
+updated: 2026-04-18T22:14:36
 # dashboard.go
 dir: runtime
+
+## PROVIDES
+buildDashboard, renderSystemGraph
 
 ## DEPENDS ON
 brain.go (scanBrain), api_server.go (health)
@@ -16,7 +19,11 @@ Go 네이티브: supervisor goroutine 상태 추적
 MCP check (9247)
 CDP check (9000)
 Telegram
-Go services
+Process-level services (별도 프로세스 — sync.Map 접근 불가)
+API 프로세스가 이 코드를 실행 중이므로 api는 항상 alive
+supervisor는 neuronfs.exe가 동작 중이면 alive
+watch는 --watch 자식 프로세스
+Goroutine-level services (동일 프로세스 내)
 Backlog counts
 ─── Build brain JSON from scan ───
 Scan Jloot Cartridges (flat scan only — avoid walking 7K+ files)
