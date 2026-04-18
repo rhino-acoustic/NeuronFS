@@ -102,7 +102,7 @@ func hlAppendTranscript(entry, projectLabel, brainRoot string) {
 				evolveDebounce.Lock()
 				lastEvolveTime = time.Now()
 				evolveDebounce.Unlock()
-				fmt.Println("[EVOLVE] 🔄 [EVOLVE:proceed] 감지 — growth.log 터치만 수행 (CLI가 오케스트레이터)")
+				svLog("[EVOLVE] 🔄 [EVOLVE:proceed] 감지 — growth.log 터치만 수행 (CLI가 오케스트레이터)")
 				growthLog := filepath.Join(brainRoot, "hippocampus", "session_log", "growth.log")
 				os.Chtimes(growthLog, time.Now(), time.Now())
 				// CDP 주입 제거: CLI(AI 에이전트)가 스스로 판단하여 다음 액션을 결정함
@@ -250,13 +250,13 @@ func hlAutoEvolve(brainRoot string) {
 			rulesPath := filepath.Join(brainRoot, "brainstem", "_rules.md")
 			if info, err := os.Stat(rulesPath); err == nil {
 				if time.Since(info.ModTime()) > 90*time.Minute {
-					fmt.Println("[HEARTBEAT] ♻️ _rules.md 90분 경과 — 자동 re-inject")
+					svLog("[HEARTBEAT] ♻️ _rules.md 90분 경과 — 자동 re-inject")
 					go writeAllTiers(brainRoot)
 				}
 			}
 
 			// 항상 트리거 — 이상 여부 상관없이 오토파일럿 구동
-			fmt.Println("[HEARTBEAT] 🚀 Gemini CLI 오토파일럿 발동")
+			svLog("[HEARTBEAT] 🚀 Gemini CLI 오토파일럿 발동")
 
 			// ── 올바른 자율주행 플로우 ──
 			// 1. 최근대화 + 마스터 프롬프트 조합
@@ -284,7 +284,7 @@ func hlAutoEvolve(brainRoot string) {
 					if len([]rune(response)) > 2000 {
 						response = string([]rune(response)[:2000])
 					}
-					fmt.Println("[AUTOPILOT] ✅ Gemini CLI 응답 수신")
+					svLog("[AUTOPILOT] ✅ Gemini CLI 응답 수신")
 					// 텔레그램→IDE 경유 주입 (CDP 대신 — Antigravity에 CDP 포트 없음)
 					hlTgSend(hlTgChatID, response)
 				} else {
@@ -309,7 +309,7 @@ func runHijackLauncher(brainRoot string) {
 	nfsRoot := filepath.Dir(brainRoot)
 	hlLoadTelegram(nfsRoot)
 
-	fmt.Println("[HL] 🚀 Hijack Launcher (Go native) 시작")
+	svLog("[HL] 🚀 Hijack Launcher (Go native) 시작")
 
 	// 텔레그램 양방향 polling
 	go hlTgPoll(brainRoot)

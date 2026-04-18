@@ -52,7 +52,7 @@ func runTranscriptCategorizer(brainRoot string) {
 			continue
 		}
 
-		fmt.Println("[CRON] ⏰ 전사 크론 사이클 시작")
+		svLog("[CRON] ⏰ 전사 크론 사이클 시작")
 
 		// ── Step 1: git 선행 ──
 		cronGitSnapshot(nfsRoot)
@@ -65,14 +65,14 @@ func runTranscriptCategorizer(brainRoot string) {
 
 		// ── Step 3: 정황 수집 ──
 		ctx := collectCronContext(brainRoot, nfsRoot)
-		fmt.Printf("[CRON] 📋 정황: %s\n", ctx)
+		svLog(fmt.Sprintf("[CRON] 📋 정황: %s", ctx))
 
 		// ── Step 4: 카테고리 분류 (전사 있을 때만 Gemini CLI 위임) ──
 		recentCount := countRecentTranscripts(brainRoot, 1)
 		if recentCount > 0 {
 			categorizeRecentTranscripts(brainRoot, 1)
 		} else {
-			fmt.Println("[CRON] 💤 최근 전사 없음 — CLI 스킵")
+			svLog("[CRON] 💤 최근 전사 없음 — CLI 스킵")
 		}
 
 		// ── Step 5: 정황 기록 ──
@@ -83,13 +83,13 @@ func runTranscriptCategorizer(brainRoot string) {
 
 		// ── Step 7: 뉴런 발화 정리 (6시간 간격) ──
 		if time.Since(lastNeuronCleanup) >= 6*time.Hour {
-			fmt.Println("[CRON] 🧹 뉴런 정리 시작")
+			svLog("[CRON] 🧹 뉴런 정리 시작")
 			runDecay(brainRoot, 7)
 			deduplicateNeurons(brainRoot)
 			lastNeuronCleanup = time.Now()
 		}
 
-		fmt.Println("[CRON] ✅ 전사 크론 사이클 완료")
+		svLog("[CRON] ✅ 전사 크론 사이클 완료")
 		time.Sleep(1 * time.Hour)
 	}
 }
@@ -101,7 +101,7 @@ func cronGitSnapshot(nfsRoot string) {
 	}
 	msg := fmt.Sprintf("[cron] hourly snapshot %s", time.Now().Format("01-02 15:04"))
 	SafeExecDir(ExecTimeoutGit, nfsRoot, "git", "commit", "-m", msg, "--no-verify", "--allow-empty-message")
-	fmt.Println("[CRON] 📸 git snapshot 완료")
+	svLog("[CRON] 📸 git snapshot 완료")
 }
 
 // collectCronContext gathers system state for transcript enrichment
@@ -243,14 +243,14 @@ func categorizeRecentTranscripts(brainRoot string, hoursBack int) int {
 		})
 
 		if !result.Success || len(result.Output) < 10 {
-			fmt.Printf("[CATEGORIZE] ⚠️ %s 분류 실패\n", fname)
+			svLog(fmt.Sprintf("[CATEGORIZE] ⚠️ %s 분류 실패", fname))
 			continue
 		}
 
 		// 4. JSON 파싱
 		catResult := parseCategoryResult(result.Output)
 		if catResult.Category == "" {
-			fmt.Printf("[CATEGORIZE] ⚠️ %s JSON 파싱 실패\n", fname)
+			svLog(fmt.Sprintf("[CATEGORIZE] ⚠️ %s JSON 파싱 실패", fname))
 			continue
 		}
 
@@ -272,12 +272,10 @@ func categorizeRecentTranscripts(brainRoot string, hoursBack int) int {
 		saveCategoryMarkers(markerPath, markers)
 
 		categorized++
-		fmt.Printf("[CATEGORIZE] ✅ %s → %s/%s\n", fname, catResult.Category, catResult.Title)
+		svLog(fmt.Sprintf("[CATEGORIZE] ✅ %s → %s/%s", fname, catResult.Category, catResult.Title))
 	}
 
-	if categorized > 0 {
-		fmt.Printf("[CATEGORIZE] 📊 %d건 전사 분류 완료\n", categorized)
-	}
+		svLog(fmt.Sprintf("[CATEGORIZE] 📊 %d건 전사 분류 완료", categorized))
 	return categorized
 }
 
@@ -431,9 +429,7 @@ func pruneExcessTranscripts(brainRoot string, maxLive int) int {
 		moved++
 	}
 
-	if moved > 0 {
-		fmt.Printf("[PRUNE] 🗑️ 라이브 전사 %d건 → 백업 이관 (잔여 %d건)\n", moved, len(sorted)-moved)
-	}
+		svLog(fmt.Sprintf("[PRUNE] 🗑️ 라이브 전사 %d건 → 백업 이관 (잔여 %d건)", moved, len(sorted)-moved))
 	return moved
 }
 
@@ -488,9 +484,9 @@ func verifyBrainExternals(brainRoot, nfsRoot string) {
 	os.WriteFile(filepath.Join(progressDir, "externals.md"), []byte(strings.Join(lines, "\n")), 0600)
 
 	if missing > 0 {
-		fmt.Printf("[VERIFY] ⚠️ 뇌 외부 %d건 누락\n", missing)
+		svLog(fmt.Sprintf("[VERIFY] ⚠️ 뇌 외부 %d건 누락", missing))
 	} else {
-		fmt.Println("[VERIFY] ✅ 뇌 외부 구축 완전")
+		svLog("[VERIFY] ✅ 뇌 외부 구축 완전")
 	}
 }
 

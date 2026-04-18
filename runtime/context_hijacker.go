@@ -50,7 +50,7 @@ func mitmCapture(body []byte, url, method, dumpDir, outputFile string) {
 	md := fmt.Sprintf("# Hijacked Context — %s\n\nURL: %s\n\n```text\n%s\n```\n",
 		time.Now().Format(time.RFC3339), url, truncStr(string(body), 50000))
 	os.WriteFile(outputFile, []byte(md), 0600)
-	fmt.Printf("[MITM CAPTURE] Dumped %d bytes from %s %s\n", len(body), method, url)
+	svLog(fmt.Sprintf("[MITM CAPTURE] Dumped %d bytes from %s %s", len(body), method, url))
 }
 
 func truncStr(s string, max int) string {
@@ -97,7 +97,7 @@ func runContextHijacker(brainRoot string) {
 
 	cert, err := generateMitmCert()
 	if err != nil {
-		fmt.Printf("[MITM] cert error: %v\n", err)
+		svLog(fmt.Sprintf("[MITM] cert error: %v", err))
 		return
 	}
 
@@ -109,11 +109,11 @@ func runContextHijacker(brainRoot string) {
 	// MITM TLS termination server (random port)
 	mitmListener, err := tls.Listen("tcp", "127.0.0.1:0", tlsConfig)
 	if err != nil {
-		fmt.Printf("[MITM] listen error: %v\n", err)
+		svLog(fmt.Sprintf("[MITM] listen error: %v", err))
 		return
 	}
 	mitmPort := mitmListener.Addr().(*net.TCPAddr).Port
-	fmt.Printf("[MITM] TLS termination on :%d\n", mitmPort)
+	svLog(fmt.Sprintf("[MITM] TLS termination on :%d", mitmPort))
 
 	// Handle MITM connections
 	go func() {
@@ -154,13 +154,13 @@ func runContextHijacker(brainRoot string) {
 	// Raw TCP proxy on :8080 — handles CONNECT + plain HTTP
 	listener, err := net.Listen("tcp", "127.0.0.1:8080")
 	if err != nil {
-		fmt.Printf("[MITM] proxy listen error: %v\n", err)
+		svLog(fmt.Sprintf("[MITM] proxy listen error: %v", err))
 		return
 	}
 
-	fmt.Println("📡 NeuronFS Context Hijacker (Go Native)")
-	fmt.Println("   Listening: 127.0.0.1:8080")
-	fmt.Printf("   Targets: %s\n", strings.Join(mitmTargetHosts, " | "))
+	svLog("📡 NeuronFS Context Hijacker (Go Native)")
+	svLog("   Listening: 127.0.0.1:8080")
+	svLog(fmt.Sprintf("   Targets: %s", strings.Join(mitmTargetHosts, " | ")))
 
 	for {
 		conn, err := listener.Accept()

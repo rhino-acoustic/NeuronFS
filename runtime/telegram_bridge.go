@@ -581,7 +581,7 @@ func hlTgPoll(brainRoot string) {
 					cdpPayload = nudge
 					payload = nudge // inbox에도 넛지로 저장
 				} else {
-					fmt.Println("[TG→IDE] ✅ 시스템 안정 — 마스터 프롬프트 전체 생략 (inbox+CDP)")
+					svLog("[TG→IDE] ✅ 시스템 안정 — 마스터 프롬프트 전체 생략 (inbox+CDP)")
 					hlTgSend(chatID, "✅ 시스템 안정 — 주입 생략")
 					continue
 				}

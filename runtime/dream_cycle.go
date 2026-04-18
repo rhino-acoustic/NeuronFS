@@ -21,7 +21,7 @@ func startDreamCycleDaemon(brainRoot string) {
 		return
 	}
 
-	fmt.Println("  💤 DREAM ENGINE: Memory Consolidation Daemon ONLINE (30min cycle)")
+	svLog("  💤 DREAM ENGINE: Memory Consolidation Daemon ONLINE (30min cycle)")
 
 	for {
 		time.Sleep(30 * time.Minute)
@@ -30,14 +30,14 @@ func startDreamCycleDaemon(brainRoot string) {
 }
 
 func runDreamCycle(brainRoot string) {
-	fmt.Println("[Dream] 💤 Starting memory consolidation cycle...")
+	svLog("[Dream] 💤 Starting memory consolidation cycle...")
 
 	pruned := pruneSensoryAlerts(brainRoot)
 	cleaned := cleanOldDeltas(brainRoot, 7)
 	compacted := compactAuditTrail(brainRoot)
 
 	summary := fmt.Sprintf("pruned %d alerts, cleaned %d deltas, compacted %d audit lines", pruned, cleaned, compacted)
-	fmt.Printf("[Dream] ✅ Cycle complete: %s\n", summary)
+	svLog(fmt.Sprintf("[Dream] ✅ Cycle complete: %s", summary))
 
 	RecordAudit(brainRoot, "dream_cycle", "consolidate", "hippocampus", summary, true)
 
