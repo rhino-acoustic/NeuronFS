@@ -39,3 +39,19 @@ func ConvertPoseData(joint string, x, y, z float64) (string, error) {
 	}
 	return string(jsonData), nil
 }
+
+// BatchConvertPoseData converts multiple joint data in a single call.
+func BatchConvertPoseData(inputs []struct {
+	Joint string
+	X, Y, Z float64
+}) ([]string, error) {
+	results := make([]string, 0, len(inputs))
+	for _, input := range inputs {
+		res, err := ConvertPoseData(input.Joint, input.X, input.Y, input.Z)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, res)
+	}
+	return results, nil
+}

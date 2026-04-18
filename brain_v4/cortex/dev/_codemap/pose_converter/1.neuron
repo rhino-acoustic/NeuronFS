@@ -1,20 +1,14 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\pose_converter\converter.go
-updated: 2026-04-19T08:25:00
-# converter.go
+source: pose_converter/converter.go
+# pose_converter
 dir: pose_converter
+lines: 40
 
 ## PROVIDES
-ConvertPoseData (func), PoseData (struct)
+ConvertPoseData, PoseData
 
 ## DEPENDS ON
-encoding/json, fmt, strings
+encoding/json, math, strings
 
-## CONSTRAINTS
-- Coordinates are rounded to 6 decimal places (Precision Reduction) for token efficiency.
-- Error handling is mandatory in callers
-- Joint names must not be empty (validation required)
-- Coordinates must be float64
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ConvertPoseData converts 3D joint data to JSON.
-PoseData represents 3D joint coordinates.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## DESCRIPTION
+3D 조인트 데이터를 6자리 소수점으로 반올림하여 JSON으로 변환하는 유틸리티.
+시스템 안정성 확보 완료.
