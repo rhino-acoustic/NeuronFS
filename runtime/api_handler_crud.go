@@ -177,7 +177,16 @@ func registerCRUDRoutes(mux *http.ServeMux, brainRoot string, withCORS func(http
 		json.NewEncoder(w).Encode(map[string]string{"status": "rolled_back", "message": "Global git rollback executed successfully (P0 included)."})
 	}))
 
-	// GET /api/health — system process health check
+	// GET /api/ping — lightweight liveness (supervisor용, scanBrain 없음)
+	mux.HandleFunc("/api/ping", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "ok",
+			"uptime": time.Since(startTime).Round(time.Second).String(),
+		})
+	}))
+
+	// GET /api/health — system process health check (무거움: scanBrain 포함)
 	mux.HandleFunc("/api/health", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		health := buildHealthJSON(brainRoot)
 		w.Header().Set("Content-Type", "application/json")
