@@ -1,6 +1,6 @@
 {
   "root": "C:\\Users\\BASEMENT_ADMIN\\NeuronFS\\brain_v4",
-  "last_updated": 1776512676106763100,
+  "last_updated": 1776512746667236300,
   "regions": {
     "brainstem": {
       "region": {
@@ -665,7 +665,7 @@
             "Author": "",
             "IsDormant": false,
             "Depth": 1,
-            "ModTime": "2026-04-18T20:36:49.6883535+09:00",
+            "ModTime": "2026-04-18T20:36:49.6899372+09:00",
             "BirthTime": "2026-04-18T20:36:49.6883535+09:00"
           }
         ],
@@ -675,7 +675,7 @@
         ],
         "HasBomb": false
       },
-      "max_mod_time": 1776512209688353500
+      "max_mod_time": 1776512209689937200
     },
     "cortex": {
       "region": {
