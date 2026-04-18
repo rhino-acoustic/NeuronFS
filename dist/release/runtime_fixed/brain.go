@@ -88,8 +88,8 @@ type Neuron struct {
 
 // Emission thresholds → governance_consts.go (SSOT)
 var (
-	var emitThreshold = 5 // SSOT hard-fixed (EmitThreshold)
-	spotlightDays = SpotlightDays
+	emitThreshold = 5 // SSOT hard-fixed (EmitThreshold)
+	spotlightDays = 7 // SSOT hard-fixed (SpotlightDays)
 )
 
 // ─── Region ───
