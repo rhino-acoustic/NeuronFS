@@ -1,20 +1,21 @@
 
-호출 0 6. InitKeyStore — dek_manager.go. 호출 0
+AttemptSelfRepair 미연결 — 크론에 연결
+formatAbsoluteRules/formatTop5CoreRules 대드코드
+aaScrapeAIScript 대드코드
+에러 무시 66건
+HTTP"}
+{"ts":"2026-04-18T22:41:46Z","role":"AI","text":"종합 보고서를 업데이트하고, 남은 약점들을 더 스캔하자. 아직 못 본 영역:
 
-이들을 바로 삭제하는 건 위험할 수 있다. 나중에 필요할 수도 있고, 규칙에서 코드 수정 전에 반드시 영향 범위를 파악하라고 했으며, 문제 발생 시 기존 코드를 교체하지 말고 위에 적층하여 해결하라고 명시했기 때문이다.
+AttemptSelfRepair 미연결 — 크론에 연결
+formatAbsoluteRules/formatTop5CoreRules 대드코드
+aaScrapeAIScript 대드코드
+에러 무시 66건
+HTTP 클라이언트 10곳
 
-다만 사용자가 명시적으로 약점을 더 찾아서 보완해달라고 요청했으므로 진행해야 한다. 대신 한 번에 여러 파일을 대규모로 삭제하는 건 위험하니, // DEAD CODE 주석을 달고 건너뛰는 방식이 더 안전할 것 같다. 사용자가 \"땜질코딩\" 금지와 \"근본원인 해결\"을 원하므로 깔끔하게 처리하되, 한 번에 모두 하지 말고 확인 단계를 거쳐야겠다.
+AttemptSelfRepair를 크론에 연결하는 것이 가장 가치 있음.
 
-실제로 호출되는지 다시 확인해보자."}
-{"ts":"2026-04-18T22:39:02Z","role":"AI","text":"isNodeScriptRunning은 2회 호출, InitKeyStore는 12회 — 대드코드 아님! 실제 대드코드는 4개만:"}
-{"ts":"2026-04-18T22:39:12Z","role":"AI","text":"AttemptSelfRepair는 미호출이지만 자가 수리 파이프라인 전체 파일 — 삭제 대신 연결. formatAbsoluteRules와 formatTop5CoreRules는 emit에서 사용했다가 리팩토링 후 미사용. aaScrapeAIScript도 유사.
-
-삭제보다 _ = AttemptSelfRepair로 연결하는 게 가치 있음. 크론에 연결:"}
-{"ts":"2026-04-18T22:39:39Z","role":"AI","text":"대드코드 4개 중 AttemptSelfRepair는 실제로 유용한 기능인데 연결이 안 된 것. 하지만 지금 크론 호출 지점을 찾기 어려우니, 일단 이건 \"미연결\"로 보고하"}
-{"ts":"2026-04-18T22:39:43Z","role":"AI","text":"🟢 대드코드 분류 정리 + 추가 깊은 스캔:"}
-{"ts":"2026-04-18T22:40:19Z","role":"AI","text":"주요 발견! 추가 스캔:"}
-{"ts":"2026-04-18T22:40:47Z","role":"AI","text":"큰 발견: debounceMu가 watch.go와 watch_src.go에서 동시에 같은 이름으로 정의 — 같은 패키지에서 같은 변수명이면 컴파일 에러여야 하는데... 빌드가 되는 걸 보면 하나가 다른 스코프일 수도. 확인 필요. 그리고 AttemptSelfRepair는 파이프라인은 있지만 호출되지 않음 — api에 /api/proposal이 있어 수동 트리거는 가능하지만 자동 호출이 없음."}
-{"ts":"2026-04-18T22:40:50Z","role":"AI","text":"큰 발견: debounceMu가 watch.go와 watch_src.go에서 동시에 같은 이름으로 정의 — 같은 패키지에서 같은 변수명이면 컴파일 에러여야 하는데... 빌드가 되는 걸 보면 하나가 다른 스코프일 수도. 확인 필요. 그리고 AttemptSelfRepair는 파이프라인은 있지만 호출되지 않음 — api에 /api/proposal이 있어 수동 트리거는 가능하지만 자동 호출이 없음. 이제 빠르게 수정할 수 있는 부분들부터 처리하고 종합 보고서를 업데이트해야겠다. 먼저 debounceMu 충돌을 확인해보자."}
-{"ts":"2026-04-18T22:40:50Z","role":"AI","text":"🟢 debounceMu 충돌 수정 — 같은 패키지에 동일 variable name:"}
-{"ts":"2026-04-18T22:41:00Z","role":"AI","text":"빌드 통과 — 두 파일이 각각 다른 용도이지만 같은 이름. 혼동 위험. 확인:"}
-{"ts":"2026-04-18T22:41:09Z","role":"AI","text":"watch.go:65는 로컬 변수 (var debounceMu sync.Mutex 함수 내). watch_src.go:135는:"}
+이제 크론 루프가 어디에 있는지 찾아야겠다."}
+{"ts":"2026-04-18T22:41:46Z","role":"AI","text":"🟢 AttemptSelfRepair 크론 연결 + 대드코드 정리 계속:"}
+{"ts":"2026-04-18T22:41:58Z","role":"AI","text":"크론이 transcript_categorizer.go에 있음. 여기에 AttemptSelfRepair 연결:"}
+{"ts":"2026-04-18T22:42:04Z","role":"AI","text":"Step 8 뒤에 Step 9로 자가 수리 연결:"}
+{"ts":"2026-04-18T22:42:20Z","role":"AI","text":"나머지 대드코드 3개 — formatAbsoluteRules, formatTop5CoreRules, aaScrapeAIScript. 이전에 사용됐다가 리팩토링 후 미사용. deprecated 표시:"}
