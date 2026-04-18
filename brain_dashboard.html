@@ -1223,7 +1223,7 @@ function buildNeurons(bs){
       const ls=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lc),transparent:true,opacity:0,depthWrite:false,sizeAttenuation:true}));
       ls.position.set(x,y+dotR+2.5,z);ls.scale.set(16,2,1);scene.add(ls);
       neuronLabels.push({sprite:ls});
-      allPts.push({spr,x,y,z,neuron:n,region:region.name});
+      const baseScale=spr.scale.x;\r\n      allPts.push({spr,x,y,z,neuron:n,region:region.name,name:n.path.replace(/\\\\\\\\/g,'/').replace(/\\\\/g,'/').split('/').pop(),baseScale});
     });
 
     // Region center GLOWING ORB + label
