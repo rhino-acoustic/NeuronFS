@@ -1,20 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\api_static.go
-updated: 2026-04-18T19:21:37
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\api_static.go
+updated: 2026-04-18T20:37:40
 # api_static.go
 dir: runtime
+lines: 149
 
 ## PROVIDES
 registerStaticRoutes
-하드코딩 경로 제거: neuronfsRoot로 통일
-Helper: Check if dashboard is disabled
-GET /3d — Dashboard HTML
-GET /brain.obj
-GET /brain_state.json
-GET /v2 — Dashboard V2
-GET /v3 — Dashboard V3
-GET /api/dashboard.svg — Generate dashboard vector snapshot
-GET / — Main Dashboard
-GET /bible — Bible demo (NeuronFS showcase with real filesystem data)
-Look for index.html in examples/game_world relative to the runtime binary,
-or relative to the neuronfs dist root
+
+## DEPENDS ON
 

@@ -1,11 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\emit_ki_sync.go
-updated: 2026-04-18T19:21:37
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\emit_ki_sync.go
+updated: 2026-04-18T20:37:40
 # emit_ki_sync.go
 dir: runtime
+lines: 91
 
 ## PROVIDES
 syncKnowledgeItem
 
 ## DEPENDS ON
 emit_tiers.go (writeAllTiersForTargets 에서 호출)
-

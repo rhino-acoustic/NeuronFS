@@ -1,11 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\codemap_gen.go
-updated: 2026-04-18T19:21:37
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\codemap_gen.go
+updated: 2026-04-18T20:37:40
 # codemap_gen.go
 dir: runtime
+lines: 233
 
 ## PROVIDES
 generateCodemap, parseCodeHeaders, collectStaleCodemaps
 
 ## DEPENDS ON
 emit_helpers.go (collectCodemapPaths — freshness 소비자)
-

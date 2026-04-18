@@ -1,19 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\mcp_proxy.go
-updated: 2026-04-18T19:21:38
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\mcp_proxy.go
+updated: 2026-04-18T20:37:40
 # mcp_proxy.go
 dir: runtime
+lines: 208
 
 ## PROVIDES
 runMCPProxy, healSession
 
 ## DEPENDS ON
 (stdlib net/http only)
-loadSessionMap reads persisted session mappings from disk
-saveSessionMap writes current session mappings to disk atomically
-runMCPProxy starts a reverse proxy on listenPort that forwards to targetPort.
-Persist session map to brain root
-Send initialized notification
-We can try to heal, but if it's an SSE GET request, healing might be complex.
-Heal the session with a full initialize cycle
-Retry the original request with the new session ID
-

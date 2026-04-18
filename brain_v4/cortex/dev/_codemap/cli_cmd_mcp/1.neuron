@@ -1,10 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cli_cmd_mcp.go
-updated: 2026-04-18T19:21:37
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cli_cmd_mcp.go
+updated: 2026-04-18T20:37:40
 # cli_cmd_mcp.go
 dir: runtime
+lines: 28
 
 ## PROVIDES
 Strangler Fig CLI migration for the "mcp" mode.
-MCP Streamable HTTP server + background loops
-HTTP transport: IDE 재시작에도 연결 유지
+
+## DEPENDS ON
 

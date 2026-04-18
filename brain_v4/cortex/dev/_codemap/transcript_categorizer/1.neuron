@@ -1,9 +1,11 @@
 ﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\transcript_categorizer.go
-updated: 2026-04-18T20:37:02
+updated: 2026-04-18T20:37:40
 # transcript_categorizer.go
+dir: runtime
+lines: 556
 
-## 절대 변경 금지
-1. WorkDir = os.TempDir()/neuronfs_categorize (GEMINI.md 간섭 방지)
-2. relaxed JSON 파싱 (fixRelaxedJSON)
+## PROVIDES
+runTranscriptCategorizer, categorizeRecentTranscripts
 
-## 8단계 크론: git→backup→prune→categorize→log→verify→decay→health
+## DEPENDS ON
+multi_agent.go (executeGeminiCLI), hijack_orchestrator.go (hlBuildContextualPrompt)

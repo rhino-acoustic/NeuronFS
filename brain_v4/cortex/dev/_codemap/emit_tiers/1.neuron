@@ -1,14 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\emit_tiers.go
-updated: 2026-04-18T19:21:37
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\emit_tiers.go
+updated: 2026-04-18T20:37:40
 # emit_tiers.go
 dir: runtime
+lines: 423
 
 ## PROVIDES
 writeAllTiers, writeAllTiersForTargets, applyOOMProtection, doInjectToFile
 
 ## DEPENDS ON
-brain.go (scanBrain, runSubsumption)
-emit_bootstrap.go (emitBootstrap)
-emit_helpers.go (emitIndex, emitRegionRules)
-diag.go (generateBrainJSON)
 

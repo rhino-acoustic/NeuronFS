@@ -1,20 +1,20 @@
-지금:
-1. hlBuildContextualPrompt → 최근대화 + corrections"}
-{"ts":"2026-04-18T20:36:11Z","role":"AI","text":"오토파일럿 순환 수정 완료
+{"ts":"2026-04-18T20:37:21Z","role":"AI","text":"커밋 5f54455. 영구화 완료:
+
 alternate_email
 content_copy
-이전:
-CLI 응답 → hlTgSend(텔레그램) → 끝 (순환 끊김)
-지금:
-1. hlBuildContextualPrompt → 최근대화 + corrections + health
-2. hlMasterPrompt + nudge → executeGeminiCLI
-3. CLI 응답 → hlCDPInject(hlTgMountedRoom) → IDE 채팅창 직접 주입
-4. Antigravity 응답 → [EVOLVE:proceed] → 1번으로
+brain_v4/
+├── brainstem/필/아키텍처_결정_불변/rule.md  ← 핵심 결정 (롤백 방지)
+├── cortex/dev/_codemap/hijack_orchestrator/1.neuron  ← 오토파일럿 플로우
+└── cortex/dev/_codemap/transcript_categorizer/1.neuron  ← 전사분류 규칙
 
-커밋 e745330. 배포 완료, 503 뉴런.
+이 뉴런들은:
+
+emit 크론이 매시간 GEMINI.md에 반영 → 새 세션에서 자동 로드
+git에 추적 → 삭제 시 git checkout으로 복원
+brainstem/필/ → P0 우선순위 → 항상 emit
+
+AI가 문맥을 잃어도 이 뉴런을 읽으면 \"CLI→CDP 직접 주입\"이라는 결정을 다시 알게 됨.
 
 [EVOLVE:proceed]"}
-{"ts":"2026-04-18T20:36:23Z","role":"AI","text":"사용자 핵심: \"이걸 여러차례 이야기했는데 계속 롤백됨\" — AI가 문맥을 잃으면 같은 실수를 반복. 이 결정사항들을 뉴런 코드맵에 영구 저장해야 함."}
-{"ts":"2026-04-18T20:36:26Z","role":"AI","text":"핵심 결정사항을 코드맵 뉴런에 영구 기록:"}
-{"ts":"2026-04-18T20:36:37Z","role":"USER","text":"지금 오토파일럿 켜져있는 상태로 아는데 오토파일럿 온오프 이런게 네 대답 맨처음 이모지로 나오게 해"}
-{"ts":"2026-04-18T20:36:53Z","role":"USER","text":"코드맵이 다 갱신되어야해 크론 기다리지 말고 제발좀 검증해"}
+{"ts":"2026-04-18T20:37:34Z","role":"AI","text":"🟢 오토파일럿 확인 + 코드맵 전체 갱신 + 백업:"}
+{"ts":"2026-04-18T20:37:52Z","role":"AI","text":"152개 코드맵 뉴런 전체 갱신! 이제 fix된 코드 백업:"}

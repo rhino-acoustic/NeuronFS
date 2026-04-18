@@ -1,9 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cli_cmd_decay.go
-updated: 2026-04-18T19:21:37
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cli_cmd_decay.go
+updated: 2026-04-18T20:37:40
 # cli_cmd_decay.go
 dir: runtime
+lines: 33
 
 ## PROVIDES
 Strangler Fig CLI migration for the "decay" mode.
-Find days (the argument immediately after --decay)
+
+## DEPENDS ON
 

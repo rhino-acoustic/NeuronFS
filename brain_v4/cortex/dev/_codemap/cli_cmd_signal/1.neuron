@@ -1,10 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cli_cmd_signal.go
-updated: 2026-04-18T19:21:37
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cli_cmd_signal.go
+updated: 2026-04-18T20:37:40
 # cli_cmd_signal.go
 dir: runtime
+lines: 33
 
 ## PROVIDES
 Strangler Fig CLI migration for the "signal" mode.
-Find sigType (the argument immediately after --signal)
-Find neuronPath (the first non-flag arg after brainRoot and sigType)
+
+## DEPENDS ON
 

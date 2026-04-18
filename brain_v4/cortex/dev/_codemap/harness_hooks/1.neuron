@@ -1,13 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\harness_hooks.go
-updated: 2026-04-18T19:21:37
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\harness_hooks.go
+updated: 2026-04-18T20:37:40
 # harness_hooks.go
 dir: runtime
+lines: 234
 
 ## PROVIDES
 ensureHooksInfra, writeHookFile
-시작 시 .gemini/hooks/ 디렉토리와 settings.json을 자동 생성/갱신
-── Hook 스크립트 정의 ──
-── settings.json Hook 설정 ──
-1. Hook 스크립트 생성
-2. settings.json 갱신 (기존 MCP 설정 보존)
+
+## DEPENDS ON
 

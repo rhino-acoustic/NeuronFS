@@ -1,12 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\api_server.go
-updated: 2026-04-18T19:21:37
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\api_server.go
+updated: 2026-04-18T20:37:40
 # api_server.go
 dir: runtime
+lines: 86
 
 ## PROVIDES
 startAPI
 
 ## DEPENDS ON
-api_handlers.go (핸들러 함수들)
-api_static.go (대시보드/정적 파일 서빙)
 

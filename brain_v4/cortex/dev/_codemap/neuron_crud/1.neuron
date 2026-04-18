@@ -1,54 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\neuron_crud.go
-updated: 2026-04-18T19:21:38
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\neuron_crud.go
+updated: 2026-04-18T20:37:40
 # neuron_crud.go
 dir: runtime
+lines: 393
 
 ## PROVIDES
 growNeuron, fireNeuron, rollbackNeuron, signalNeuron
 
 ## DEPENDS ON
 brain.go, similarity.go, lifecycle.go
-growNeuron creates a new neuron folder with 1.neuron
-If a similar neuron already exists (hybrid similarity >= MergeThreshold), fire that instead (consolidation)
-Uses Cosine Bigram (60%) + Levenshtein (40%) instead of legacy Jaccard
-Prefix-aware: 禁X and 推X are treated as DIFFERENT neurons (polarity matters)
-Returns error instead of os.Exit so REST API won't crash
-── Hanja prefix normalization: 禁하드코딩 → 禁/하드코딩 ──
-── Guard: block unlimited session_log growth ──
-Validate region
-Check if neuron already exists (exact match in either physical or virtual layer)
-── Synaptic Consolidation: merge similar neurons (GLOBAL scan) ──
-Tokenize the new neuron's leaf name
-Walk ALL regions to find similar neurons (cross-region dedup)
-Prefix-aware: 접두어가 다르면 별개로 취급
-Create folder
-Create 1.neuron
-Log to hippocampus
-Mark dirty — periodic loop will handle injection
-fireNeuron increments the counter of an existing neuron
-Usage: neuronfs brain_v4 --fire cortex/frontend/coding/no_console_log
-Extract region for incremental scan touching
-Find current counter (reads from virtual OS spanning Cartridge + Disk)
-Delete old counter file (Only if it exists in Physical UpperDir)
-Ensure physical folder exists before writing to UpperDir
-Create new counter file
-Hebbian Co-activation: 30초 내 발화된 뉴런과의 연관 기록
-rollbackNeuron decrements the counter of an existing neuron
-Minimum counter is 1 (won't go below). Returns error for API usage.
-Usage: neuronfs brain_v4 --rollback cortex/frontend/coding/no_console_log
-Extract region for incremental scan touching
-Find current counter from VFS
-Delete old counter file from UpperDir only
-Create new counter file
-signalNeuron adds dopamine/bomb/memory signal to a neuron
-Returns error instead of os.Exit so REST API won't crash
-Extract region for incremental scan touching
-━━━ Lifecycle (prune/decay/episode) → lifecycle.go ━━━
-MOVED: pruneWeakNeurons, runDecay, logEpisode, MaxEpisodes
-normalizeHanjaPath splits rune-prefixed names into parent/child structure.
-e.g. "cortex/dev/禁하드코딩" → "cortex/dev/禁/하드코딩"
-Rune opcodes are single-character structural containers (Path=Sentence).
-Rune list is defined in governance_consts.go (SSOT).
-Split: 禁하드코딩 → 禁, 하드코딩
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-

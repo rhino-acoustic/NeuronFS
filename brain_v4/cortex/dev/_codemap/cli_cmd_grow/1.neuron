@@ -1,8 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cli_cmd_grow.go
-updated: 2026-04-18T19:21:37
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cli_cmd_grow.go
+updated: 2026-04-18T20:37:40
 # cli_cmd_grow.go
 dir: runtime
+lines: 25
 
 ## PROVIDES
 Strangler Fig CLI migration for the "grow" mode.
+
+## DEPENDS ON
 

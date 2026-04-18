@@ -1,40 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cdp_monitor.go
-updated: 2026-04-18T19:21:37
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\cdp_monitor.go
+updated: 2026-04-18T20:37:40
 # cdp_monitor.go
 dir: runtime
+lines: 397
 
 ## PROVIDES
 hlStartCDPMonitor, hlAttachDOMScraper, hlAttachNetworkMonitor, hlCDPInject, hlCDPInjectSync, hlStartCDPWorker
 
 ## DEPENDS ON
 cdp_client.go (cdpListTargets, NewCDPClient), hijack_orchestrator.go (hlAppendTranscript)
-배치 합침: 500ms 내 같은 targetRoom의 메시지를 하나로
-다른 room → 현재 배치 처리 후 다시 큐에
-쿨다운: AI가 응답 시작할 때까지 대기 (이전 인젝션 간섭 방지)
-Queue full, drop or log
-채팅 입력창 포커스 스크립트 (텍스트 삽입은 CDP Input.insertText로 분리)
-CDP Input.insertText — UTF-8 한국어 완벽 지원
-Enter 전송
-── 전사 기록 ──
-(min func removed to prevent redeclaration)
-── CDP DOM 스크래핑 + Network 모니터 ──
-활성 Network scraper 추적
-DOM scraper (AI/THINK)
-Network monitor (USER/CMD)
-★ 종료 시 활성 목록에서 제거 — 재연결 허용
-안정화 판단 (4초 무변경 → 확정 기록)
-role 확인
-10분 eviction (3분→10분 확장 — 재캡처 중복 방지)
-── CDP Network 모니터 (USER 입력 + CMD 캡처) ──
-원본 mjs attachCDPNetwork 포팅: Network.requestWillBeSent → LanguageServerService postData 파싱
-Network.enable
-이벤트 수신 루프 — CDPClient의 event channel 사용
-CDPClient는 현재 request-response만 지원하므로, 폴링 방식으로 구현
-→ Network.requestWillBeSent를 직접 수신할 수 없으므로,
-대안: DOM에서 사용자 입력을 직접 스크래핑
-★ DOM 기반 USER 입력 스크래핑 — Network 이벤트 대신 채팅 메시지 DOM 캡처
-Antigravity 채팅 사용자 메시지 DOM
-사용자 메시지: whitespace-pre-wrap + text-sm 조합 (PD 입력)
-안정화 판단 (2초 — 사용자 입력은 즉시 확정되므로 AI보다 짧게)
-── 자동 통합 스케줄러 (30분마다) ──
-

@@ -1,14 +1,11 @@
-source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\mcp_server.go
-updated: 2026-04-18T19:21:38
+﻿source: C:\Users\BASEMENT_ADMIN\NeuronFS\runtime\mcp_server.go
+updated: 2026-04-18T20:37:40
 # mcp_server.go
 dir: runtime
+lines: 396
 
 ## PROVIDES
 startMCPServer, startMCPServerWithStdout, startMCPHTTPServer,
-buildFreshMCPServer, buildMCPInstructions,
-registerActiveMCPServer, notifyMCPResourceUpdated
 
 ## DEPENDS ON
 mcp_tools_native.go (registerMCPTools), emit_bootstrap.go (emitBootstrap),
-emit_format_rules.go (buildPreamble), brain.go (scanBrain, runSubsumption)
-
