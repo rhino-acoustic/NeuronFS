@@ -253,8 +253,7 @@ func sendTelegramFileSafe(token, chatID, filePath, label string) {
 	req, _ := http.NewRequest("POST", apiURL, body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := httpMedium.Do(req)
 	if err == nil {
 		resp.Body.Close()
 	} else {
