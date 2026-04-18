@@ -58,6 +58,9 @@ func runTranscriptCategorizer(brainRoot string) {
 		// ── Step 2: 전사 백업 (24시간 경과분) ──
 		archiveOldTranscripts(brainRoot)
 
+		// ── Step 2.5: 라이브 전사 50건 초과 시 자동 정리 ──
+		pruneExcessTranscripts(brainRoot, 50)
+
 		// ── Step 3: 정황 수집 ──
 		ctx := collectCronContext(brainRoot, nfsRoot)
 		fmt.Printf("[CRON] 📋 정황: %s\n", ctx)
@@ -67,6 +70,9 @@ func runTranscriptCategorizer(brainRoot string) {
 
 		// ── Step 5: 정황 기록 ──
 		writeCronLog(brainRoot, ctx)
+
+		// ── Step 6: 뇌 외부 구축 + 프로세스 뉴런 검증 ──
+		verifyBrainExternals(brainRoot, nfsRoot)
 
 		fmt.Println("[CRON] ✅ 전사 크론 사이클 완료")
 		time.Sleep(1 * time.Hour)
@@ -323,4 +329,152 @@ func loadCategoryMarkers(path string) map[string]string {
 func saveCategoryMarkers(path string, markers map[string]string) {
 	data, _ := json.MarshalIndent(markers, "", "  ")
 	os.WriteFile(path, data, 0600)
+}
+
+// ──────────────────────────────────────────────────────────
+// T1: 전사 50건 초과 시 자동 정리 (적층)
+// ──────────────────────────────────────────────────────────
+
+// pruneExcessTranscripts archives oldest transcripts when count exceeds maxLive
+func pruneExcessTranscripts(brainRoot string, maxLive int) int {
+	transcriptsDir := filepath.Join(brainRoot, "_transcripts")
+	entries, err := os.ReadDir(transcriptsDir)
+	if err != nil {
+		return 0
+	}
+
+	// txt 파일만 수집
+	var txtFiles []os.DirEntry
+	for _, e := range entries {
+		if !e.IsDir() && strings.HasSuffix(e.Name(), ".txt") {
+			txtFiles = append(txtFiles, e)
+		}
+	}
+
+	if len(txtFiles) <= maxLive {
+		return 0
+	}
+
+	// 오래된 순으로 정렬 (ModTime 기준)
+	type fileAge struct {
+		entry os.DirEntry
+		mtime time.Time
+	}
+	var sorted []fileAge
+	for _, e := range txtFiles {
+		info, err := e.Info()
+		if err != nil {
+			continue
+		}
+		sorted = append(sorted, fileAge{e, info.ModTime()})
+	}
+	// 직접 정렬 (sort 패키지 불사용)
+	for i := 0; i < len(sorted)-1; i++ {
+		for j := i + 1; j < len(sorted); j++ {
+			if sorted[i].mtime.After(sorted[j].mtime) {
+				sorted[i], sorted[j] = sorted[j], sorted[i]
+			}
+		}
+	}
+
+	// 초과분을 백업으로 이동
+	excess := len(sorted) - maxLive
+	moved := 0
+	for i := 0; i < excess; i++ {
+		name := sorted[i].entry.Name()
+		info, _ := sorted[i].entry.Info()
+
+		dateStr := info.ModTime().Format("20060102")
+		parts := strings.Split(name, "_")
+		for _, p := range parts {
+			if len(p) == 10 && strings.Count(p, "-") == 2 {
+				dateStr = strings.ReplaceAll(p, "-", "")
+				break
+			}
+		}
+
+		backupDir := filepath.Join(transcriptsDir, "_backup_"+dateStr)
+		os.MkdirAll(backupDir, 0750)
+
+		src := filepath.Join(transcriptsDir, name)
+		dst := filepath.Join(backupDir, name)
+
+		if fileExists(dst) {
+			os.Remove(src) // 이미 백업에 있으면 원본만 제거
+			moved++
+			continue
+		}
+
+		data, err := os.ReadFile(src)
+		if err != nil {
+			continue
+		}
+		if err := os.WriteFile(dst, data, 0600); err != nil {
+			continue
+		}
+		os.Remove(src)
+		moved++
+	}
+
+	if moved > 0 {
+		fmt.Printf("[PRUNE] 🗑️ 라이브 전사 %d건 → 백업 이관 (잔여 %d건)\n", moved, len(sorted)-moved)
+	}
+	return moved
+}
+
+// ──────────────────────────────────────────────────────────
+// T8: 뇌 외부 구축 + 프로세스 뉴런 검증 (적층)
+// ──────────────────────────────────────────────────────────
+
+// verifyBrainExternals checks that essential files outside brain_v4 exist
+// and records the state as a neuron for audit trail.
+func verifyBrainExternals(brainRoot, nfsRoot string) {
+	type externalCheck struct {
+		Name   string
+		Path   string
+		Exists bool
+	}
+
+	checks := []externalCheck{
+		{"neuronfs.exe", filepath.Join(nfsRoot, "neuronfs.exe"), false},
+		{"start.bat", filepath.Join(nfsRoot, "start.bat"), false},
+		{"CLAUDE.md", filepath.Join(nfsRoot, "CLAUDE.md"), false},
+		{"GEMINI.md", filepath.Join(os.Getenv("USERPROFILE"), ".gemini", "GEMINI.md"), false},
+		{".cursorrules", filepath.Join(nfsRoot, ".cursorrules"), false},
+		{"telegram-bridge", filepath.Join(nfsRoot, "telegram-bridge", "index.js"), false},
+		{"corrections.jsonl", filepath.Join(brainRoot, "_inbox", "corrections.jsonl"), false},
+	}
+
+	missing := 0
+	for i, c := range checks {
+		checks[i].Exists = fileExists(c.Path)
+		if !checks[i].Exists {
+			missing++
+		}
+	}
+
+	// 프로세스 뉴런에 기록
+	progressDir := filepath.Join(brainRoot, "hippocampus", "전사분석", "_진행상황")
+	os.MkdirAll(progressDir, 0750)
+
+	var lines []string
+	lines = append(lines, fmt.Sprintf("## 뇌 외부 구축 검증 [%s]", time.Now().Format("2006-01-02 15:04")))
+	for _, c := range checks {
+		status := "✅"
+		if !c.Exists {
+			status = "🔴"
+		}
+		lines = append(lines, fmt.Sprintf("- %s %s", status, c.Name))
+	}
+	if missing > 0 {
+		lines = append(lines, fmt.Sprintf("\n⚠️ %d건 누락", missing))
+	}
+
+	os.WriteFile(filepath.Join(progressDir, "externals.md"), []byte(strings.Join(lines, "\n")), 0600)
+
+	if missing > 0 {
+		fmt.Printf("[VERIFY] ⚠️ 뇌 외부 %d건 누락\n", missing)
+	} else {
+		fmt.Println("[VERIFY] ✅ 뇌 외부 구축 완전")
+	}
 }
